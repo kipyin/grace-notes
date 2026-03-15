@@ -36,6 +36,8 @@ Items appear as removable chips (like tags or pills). User types in one field, t
 ### 3. **Sequential Reveal** — One at a time
 Show a single input. When user finishes and moves on (e.g., taps Next or presses Return), the next slot appears. Optionally show subtle progress (e.g., "2 of 5").
 
+**Richer variant:** User types a *full sentence* → Enter → sentence is summarized into a short tag → tag appears as chip, input clears → next slot. Summarization can use LLMs or workarounds (colon syntax `Tag: sentence`, manual tag, truncation). See [Sequential Input Clarification](SEQUENTIAL_INPUT_CLARIFICATION.md).
+
 **Pros:** Zero "list" feel. Focused, calming. Great for mindful journaling.  
 **Cons:** Can't easily jump to edit #3 without stepping through.  
 **Best for:** Breath, Tesseract-like immersion.

@@ -53,7 +53,7 @@
     }
     .badge { font-size: 12px; padding: 4px 10px; border-radius: 20px; background: var(--complete); color: white; margin-left: auto; }
 
-    /* Prose block — one flowing text area with inline slots */
+    /* Prose block — one flowing line: intro + inline slots with dots */
     .prose-block {
       padding: 16px 18px;
       background: rgba(255,255,255,0.5);
@@ -64,16 +64,18 @@
       color: var(--text);
     }
     .prose-block:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(199,123,91,0.2); outline: none; }
-    .prose-intro { color: var(--text-muted); margin-bottom: 4px; }
-    .prose-slots {
+    .prose-line {
       display: flex;
       flex-wrap: wrap;
-      gap: 4px 12px;
-      align-items: baseline;
+      align-items: center;
+      gap: 6px 8px;
     }
+    .prose-intro { color: var(--text-muted); flex-shrink: 0; }
     .prose-slot {
-      display: inline-block;
-      min-width: 60px;
+      width: 4em;
+      min-width: 48px;
+      max-width: 100%;
+      border: none;
       border-bottom: 1px solid var(--border);
       background: transparent;
       font-family: inherit;
@@ -83,7 +85,7 @@
     }
     .prose-slot:focus { outline: none; border-bottom-color: var(--accent); }
     .prose-slot::placeholder { color: var(--text-muted); opacity: 0.5; }
-    .prose-dot { color: var(--text-muted); font-weight: 400; }
+    .prose-dot { color: var(--text-muted); flex-shrink: 0; }
 
     .textarea {
       width: 100%;
@@ -118,8 +120,8 @@
     <div class="section">
       <div class="section-label">Gratitudes</div>
       <div class="prose-block">
-        <div class="prose-intro">I'm grateful for…</div>
-        <div class="prose-slots">
+        <div class="prose-line">
+          <span class="prose-intro">I'm grateful for</span>
           <input class="prose-slot" placeholder="1" value="Family">
           <span class="prose-dot">·</span>
           <input class="prose-slot" placeholder="2" value="Coffee">
@@ -136,8 +138,8 @@
     <div class="section">
       <div class="section-label">Needs</div>
       <div class="prose-block">
-        <div class="prose-intro">Today I need…</div>
-        <div class="prose-slots">
+        <div class="prose-line">
+          <span class="prose-intro">Today I need</span>
           <input class="prose-slot" placeholder="1" value="Patience">
           <span class="prose-dot">·</span>
           <input class="prose-slot" placeholder="2" value="Rest">
@@ -154,8 +156,8 @@
     <div class="section">
       <div class="section-label">People To Pray For</div>
       <div class="prose-block">
-        <div class="prose-intro">Holding in prayer…</div>
-        <div class="prose-slots">
+        <div class="prose-line">
+          <span class="prose-intro">Holding in prayer</span>
           <input class="prose-slot" placeholder="1" value="Sarah">
           <span class="prose-dot">·</span>
           <input class="prose-slot" placeholder="2">
