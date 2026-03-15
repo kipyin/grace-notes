@@ -80,11 +80,16 @@ struct JournalItem: Codable {
 
 ### 3.1 Abstraction
 
-Create `Summarizer` protocol:
+Create `Summarizer` protocol. The protocol returns `SummarizationResult` so truncation metadata is preserved for chip fade styling:
 
 ```swift
+struct SummarizationResult {
+    let label: String
+    let isTruncated: Bool  // true = use fade on chip
+}
+
 protocol Summarizer {
-    func summarize(_ sentence: String) -> String
+    func summarize(_ sentence: String) -> SummarizationResult
 }
 ```
 
@@ -95,25 +100,18 @@ protocol Summarizer {
 
 Create `NaturalLanguageSummarizer` using:
 
-- `NLTagger` with `.name` or `.lexicalClass` to extract nouns/keywords
+- `NLTagger` with `.nameType` or `.lexicalClass` (or `.nameTypeOrLexicalClass`) to extract nouns/keywords
 - `NLTokenizer` to split into words
 - Strategy: Extract nouns > 2 chars; if none, use first meaningful phrase (skip articles)
 
-**File:** `FiveCubedMoments/Services/Summarization/NaturalLanguageSummarizer.swift`
+**File:** `FiveCubedMoments/FiveCubedMoments/Services/Summarization/NaturalLanguageSummarizer.swift`
 
 ### 3.3 First-N Fallback
 
 When NL returns empty or trivial result:
 
 - Use first N words (e.g., N = 4–5)
-- Mark result as "truncated" so UI can apply fade styling.
-
-```swift
-struct SummarizationResult {
-    let label: String
-    let isTruncated: Bool  // true = use fade on chip
-}
-```
+- Return `SummarizationResult(label: ..., isTruncated: true)` so UI can apply fade styling.
 
 ### 3.4 Future: Cloud API Placeholder
 
@@ -235,7 +233,7 @@ NEEDS
 ## File Structure (New/Modified)
 
 ```
-FiveCubedMoments/
+FiveCubedMoments/FiveCubedMoments/
 ├── DesignSystem/
 │   ├── Theme.swift           (expand: Warm Paper palette)
 │   └── Fonts.swift           (optional: custom font extensions)
@@ -250,7 +248,7 @@ FiveCubedMoments/
 │       └── JournalViewModel.swift       (sequential flow, summarization)
 ├── Services/
 │   └── Summarization/
-│       ├── Summarizer.swift              (protocol)
+│       ├── Summarizer.swift              (protocol + SummarizationResult)
 │       ├── NaturalLanguageSummarizer.swift
 │       └── FirstNWordsSummarizer.swift   (fallback)
 ├── Data/Models/
