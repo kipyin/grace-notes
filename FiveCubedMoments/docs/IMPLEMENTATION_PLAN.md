@@ -55,32 +55,24 @@ Add to `DesignSystem/Theme.swift` (or new `DesignSystem/WarmPaperTheme.swift`):
 
 ## Phase 2: Data Model Changes
 
-### 2.1 From Plain Strings to Rich Items
+### 2.1 From Plain Strings to Rich Items (Option A)
 
 **Current:** `JournalEntry` stores `gratitudes: [String]`, `needs: [String]`, `people: [String]`.
 
-**Target:** Store full sentence and optional chip label.
+**Target:** New `JournalItem` type storing full sentence and chip label.
 
-**Options:**
-
-| Option | Pros | Cons |
-|--------|------|------|
-| **A. New model type** | Clean separation | Migration from existing `[String]` entries |
-| **B. Keep `[String]`** | No migration | Chip label recomputed on load; no persisted distinction between NL vs first-N |
-
-**Recommendation:** Option A — Introduce a Codable/SwiftData-compatible struct:
+**Decision:** Option A — Introduce a Codable/SwiftData-compatible struct. The app is in very early development; **no data migration** is required.
 
 ```swift
 struct JournalItem: Codable {
     var fullText: String      // Always the full sentence
-    var chipLabel: String?     // NL/extracted or first-N; nil = recompute
+    var chipLabel: String?     // NL/extracted or first-N; nil = recompute on load
 }
 ```
 
-- `JournalEntry.gratitudes` → `[JournalItem]` (or persisted as JSON/encoded)
-- Migration: Map existing `[String]` to `[JournalItem(fullText: s, chipLabel: nil)]` on first load
-
-**Alternative (simpler):** Keep `[String]` as full text; recompute chip labels on demand. Only introduce `JournalItem` if we need to persist NL vs first-N distinction for UI (e.g., whether to show fade). For v1, recomputing is acceptable.
+- `JournalEntry.gratitudes` → `[JournalItem]` (persisted as JSON or via SwiftData-compatible encoding)
+- `JournalEntry.needs` → `[JournalItem]`
+- `JournalEntry.people` → `[JournalItem]`
 
 ---
 
@@ -171,10 +163,11 @@ Display "X of 5" below input for each section.
 - Max width or character limit (e.g., ~20 chars)
 - Full sentence stored; tap to view/edit
 
-### 5.3 Tap-to-Expand/Edit
+### 5.3 Tap to Edit
 
-- Tap chip → sheet or inline expansion showing full sentence
-- Allow edit; on save, re-summarize if needed and update chip
+- **Tap an existing chip** → load that chip's full text into the input box for editing
+- **Before loading:** If the input box currently has text, auto-save it as a new chip first (summarize, add chip, clear), then load the tapped chip's content into the input
+- User edits in place; on Enter/submit, re-summarize and update the chip
 
 ---
 
@@ -229,13 +222,13 @@ NEEDS
 |------|------|--------------|
 | 1 | Theme: colors + typography + apply globally | None |
 | 2 | Summarization: protocol + NL + fallback | None |
-| 3 | Data: decide JournalItem vs recompute; implement migration if needed | None |
+| 3 | Data: implement JournalItem, update JournalEntry schema | None |
 | 4 | ChipView component (normal + truncated with fade) | Theme |
 | 5 | SequentialSectionView + SequentialInputField | Theme, Summarizer, ChipView |
 | 6 | JournalViewModel: sequential add flow, integrate Summarizer | Data, Summarizer |
 | 7 | JournalScreen: replace Form, wire SequentialSectionView | Steps 1–6 |
 | 8 | Share card + History theme updates | Theme |
-| 9 | Tap chip → expand/edit | ChipView, ViewModel |
+| 9 | Tap chip → edit (input auto-saves to new chip first) | ChipView, ViewModel |
 
 ---
 
@@ -261,7 +254,7 @@ FiveCubedMoments/
 │       ├── NaturalLanguageSummarizer.swift
 │       └── FirstNWordsSummarizer.swift   (fallback)
 ├── Data/Models/
-│   └── JournalEntry.swift                (possible JournalItem)
+│   └── JournalEntry.swift                (JournalItem arrays)
 ```
 
 ---
@@ -273,7 +266,7 @@ FiveCubedMoments/
 | **Unit** | `NaturalLanguageSummarizer` with fixture sentences; `FirstNWordsSummarizer` edge cases |
 | **ViewModel** | Add-item flow, autosave, completion logic with sequential items |
 | **Snapshot/UI** | Warm Paper screens (requires macOS/Xcode) |
-| **Migration** | If introducing `JournalItem`, verify existing entries load and display correctly |
+| **Schema** | Verify JournalEntry with `[JournalItem]` persists and loads correctly |
 
 ---
 
@@ -282,7 +275,7 @@ FiveCubedMoments/
 | Risk | Mitigation |
 |------|------------|
 | NL extraction poor for some languages | Fallback to first-N is always available |
-| SwiftData schema change | Use lightweight migration; store `[String]` as JSON if adding metadata |
+| SwiftData schema change | Early development; no migration. Store `[JournalItem]` via Codable/Transformable |
 | Custom font licensing | Playfair Display and Source Serif 4 are open license (OFL) |
 | Sequential UX feels slower | Optional: keep "quick add" for power users (future) |
 
