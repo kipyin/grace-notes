@@ -51,11 +51,17 @@ struct CloudSummarizer: Summarizer {
         let baseSuffix = " Reply with only the label, no punctuation."
         switch section {
         case .gratitude:
-            return "Extract 1–5 words for a chip label. This is for a gratitude list — do NOT include words like gratitude, grateful (or 感恩, 感谢, 感激). Just the essence: \(sentence).\(bilingualNote)\(baseSuffix)"
+            let prefix = "Extract 1–5 words for a chip label. This is for a gratitude list — "
+            let restriction = "do NOT include words like gratitude, grateful (or 感恩, 感谢, 感激). Just the essence"
+            return "\(prefix)\(restriction): \(sentence).\(bilingualNote)\(baseSuffix)"
         case .need:
-            return "Extract 1–5 words for a chip label. This is for a needs list — do NOT include words like need, needs (or 需要, 想). Just the essence: \(sentence).\(bilingualNote)\(baseSuffix)"
+            let prefix = "Extract 1–5 words for a chip label. This is for a needs list — "
+            let restriction = "do NOT include words like need, needs (or 需要, 想). Just the essence"
+            return "\(prefix)\(restriction): \(sentence).\(bilingualNote)\(baseSuffix)"
         case .person:
-            return "Extract 1–5 words for a chip label about people. MUST include the person's name(s) if mentioned (人名 if in Chinese): \(sentence).\(bilingualNote)\(baseSuffix)"
+            let prefix = "Extract 1–5 words for a chip label about people. "
+            let requirement = "MUST include the person's name(s) if mentioned (人名 if in Chinese)"
+            return "\(prefix)\(requirement): \(sentence).\(bilingualNote)\(baseSuffix)"
         }
     }
 

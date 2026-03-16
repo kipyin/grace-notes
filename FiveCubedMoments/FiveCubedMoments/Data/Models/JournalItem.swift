@@ -14,19 +14,19 @@ struct JournalItem: Codable {
     }
 
     init(from decoder: Decoder) throws {
-        let c = try decoder.container(keyedBy: CodingKeys.self)
-        id = try c.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
-        fullText = try c.decode(String.self, forKey: .fullText)
-        chipLabel = try c.decodeIfPresent(String.self, forKey: .chipLabel)
-        isTruncated = try c.decodeIfPresent(Bool.self, forKey: .isTruncated) ?? false
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        fullText = try container.decode(String.self, forKey: .fullText)
+        chipLabel = try container.decodeIfPresent(String.self, forKey: .chipLabel)
+        isTruncated = try container.decodeIfPresent(Bool.self, forKey: .isTruncated) ?? false
     }
 
     func encode(to encoder: Encoder) throws {
-        var c = encoder.container(keyedBy: CodingKeys.self)
-        try c.encode(id, forKey: .id)
-        try c.encode(fullText, forKey: .fullText)
-        try c.encodeIfPresent(chipLabel, forKey: .chipLabel)
-        try c.encode(isTruncated, forKey: .isTruncated)
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(fullText, forKey: .fullText)
+        try container.encodeIfPresent(chipLabel, forKey: .chipLabel)
+        try container.encode(isTruncated, forKey: .isTruncated)
     }
 
     private enum CodingKeys: String, CodingKey {
