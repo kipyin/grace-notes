@@ -7,14 +7,18 @@
 - Cloud summarization: optional OpenAI-compatible API with NL fallback
 - Settings tab: toggle cloud summarization
 - Chinese (Simplified, zh-Hans) localization
+- Toast notification when photo is saved to library via share sheet
+- Section-tailored summarization prompts (gratitude/need/person-specific; Chinese stop words and NLLanguage)
 
 ### Changed
 - Section renames for app store: "People To Pray For" → "People in Mind", "Bible Notes" → "Reading Notes"
+- Chip deletion UX: section-level deletion mode with wobble animation, long-press or double-tap to enter, minus badge, Done button, auto-exit when last chip deleted
 - Summarization protocol now async; ViewModel add/update flows use Task
 - Sequential progress text uses localized format
 
 ### Fixed
 - Faded chips: cap extracted keyword labels to show truncation gradient
+- Chip content mix-up after deletion (stable JournalItem id for SwiftUI ForEach)
 
 ### Developer
 - Calendar view exploration doc (defer implementation to 0.3.0)
