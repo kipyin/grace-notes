@@ -5,15 +5,12 @@ struct JournalShareCardView: View {
 
     private static let cardWidth: CGFloat = 400
     private static let padding: CGFloat = 24
-    private static let titleFont = Font.title2.weight(.semibold)
-    private static let sectionFont = Font.headline
-    private static let bodyFont = Font.body
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text(payload.dateFormatted)
-                .font(JournalShareCardView.titleFont)
-                .foregroundStyle(Color.primary)
+                .font(AppTheme.warmPaperHeader)
+                .foregroundStyle(AppTheme.textPrimary)
 
             sectionIfNonEmpty("Gratitudes", items: payload.gratitudes)
             sectionIfNonEmpty("Needs", items: payload.needs)
@@ -22,9 +19,11 @@ struct JournalShareCardView: View {
             if !payload.bibleNotes.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Bible Notes")
-                        .font(JournalShareCardView.sectionFont)
+                        .font(AppTheme.warmPaperHeader)
+                        .foregroundStyle(AppTheme.textPrimary)
                     Text(payload.bibleNotes)
-                        .font(JournalShareCardView.bodyFont)
+                        .font(AppTheme.warmPaperBody)
+                        .foregroundStyle(AppTheme.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -32,16 +31,18 @@ struct JournalShareCardView: View {
             if !payload.reflections.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Reflections")
-                        .font(JournalShareCardView.sectionFont)
+                        .font(AppTheme.warmPaperHeader)
+                        .foregroundStyle(AppTheme.textPrimary)
                     Text(payload.reflections)
-                        .font(JournalShareCardView.bodyFont)
+                        .font(AppTheme.warmPaperBody)
+                        .foregroundStyle(AppTheme.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
         }
         .frame(width: JournalShareCardView.cardWidth)
         .padding(JournalShareCardView.padding)
-        .background(Color.white)
+        .background(AppTheme.paper)
         .preferredColorScheme(.light)
     }
 
@@ -50,10 +51,12 @@ struct JournalShareCardView: View {
         if !items.isEmpty {
             VStack(alignment: .leading, spacing: 6) {
                 Text(title)
-                    .font(JournalShareCardView.sectionFont)
+                    .font(AppTheme.warmPaperHeader)
+                    .foregroundStyle(AppTheme.textPrimary)
                 ForEach(Array(items.enumerated()), id: \.offset) { index, item in
                     Text("\(index + 1). \(item)")
-                        .font(JournalShareCardView.bodyFont)
+                        .font(AppTheme.warmPaperBody)
+                        .foregroundStyle(AppTheme.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }

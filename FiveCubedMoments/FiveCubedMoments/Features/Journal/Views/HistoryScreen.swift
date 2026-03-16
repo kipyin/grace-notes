@@ -15,6 +15,7 @@ struct HistoryScreen: View {
             }
         }
         .navigationTitle("History")
+        .background(AppTheme.background)
     }
 
     private var emptyState: some View {
@@ -36,13 +37,18 @@ struct HistoryScreen: View {
                         } label: {
                             HistoryRow(entry: entry)
                         }
+                        .listRowBackground(AppTheme.paper)
                     }
                 } header: {
                     Text(monthYearString(from: group.key))
-                        .font(.headline)
+                        .font(AppTheme.warmPaperHeader)
+                        .foregroundStyle(AppTheme.textPrimary)
                 }
             }
         }
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .background(AppTheme.background)
     }
 
     private var groupedByMonth: [(key: Date, entries: [JournalEntry])] {
@@ -74,10 +80,12 @@ private struct HistoryRow: View {
     var body: some View {
         HStack {
             Text(entry.entryDate.formatted(date: .abbreviated, time: .omitted))
+                .font(AppTheme.warmPaperBody)
+                .foregroundStyle(AppTheme.textPrimary)
             Spacer()
             if isComplete {
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
+                    .foregroundStyle(AppTheme.complete)
                     .font(.caption)
             }
         }
