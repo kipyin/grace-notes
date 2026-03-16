@@ -16,9 +16,9 @@ final class JournalRepositoryTests: XCTestCase {
         let context = try makeInMemoryContext()
         let repo = JournalRepository(calendar: calendar)
 
-        let date1 = Date(timeIntervalSince1970: 1_742_147_200) // 2025-03-15
-        let date2 = Date(timeIntervalSince1970: 1_742_056_800) // 2025-03-04
-        let date3 = Date(timeIntervalSince1970: 1_742_221_600) // 2025-03-22
+        let date1 = calendar.startOfDay(for: Date(timeIntervalSince1970: 1_742_147_200)) // 2025-03-15
+        let date2 = calendar.startOfDay(for: Date(timeIntervalSince1970: 1_742_056_800)) // 2025-03-04
+        let date3 = calendar.startOfDay(for: Date(timeIntervalSince1970: 1_742_221_600)) // 2025-03-22
 
         let entry1 = JournalEntry(entryDate: date1, createdAt: date1, updatedAt: date1)
         let entry2 = JournalEntry(entryDate: date2, createdAt: date2, updatedAt: date2)
@@ -31,9 +31,9 @@ final class JournalRepositoryTests: XCTestCase {
         let entries = try repo.fetchAllEntries(context: context)
 
         XCTAssertEqual(entries.count, 3)
-        XCTAssertEqual(entries[0].entryDate, calendar.startOfDay(for: date3))
-        XCTAssertEqual(entries[1].entryDate, calendar.startOfDay(for: date1))
-        XCTAssertEqual(entries[2].entryDate, calendar.startOfDay(for: date2))
+        XCTAssertEqual(entries[0].entryDate, date3)
+        XCTAssertEqual(entries[1].entryDate, date1)
+        XCTAssertEqual(entries[2].entryDate, date2)
     }
 
     func test_fetchEntry_forExistingDate_returnsEntry() throws {

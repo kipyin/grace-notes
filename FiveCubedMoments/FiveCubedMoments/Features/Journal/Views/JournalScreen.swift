@@ -176,33 +176,36 @@ struct JournalScreen: View {
     }
 
     private func submitGratitude() {
+        let succeeded: Bool
         if let index = editingGratitudeIndex {
-            viewModel.updateGratitude(at: index, fullText: gratitudeInput)
-            editingGratitudeIndex = nil
+            succeeded = viewModel.updateGratitude(at: index, fullText: gratitudeInput)
+            if succeeded { editingGratitudeIndex = nil }
         } else {
-            viewModel.addGratitude(gratitudeInput)
+            succeeded = viewModel.addGratitude(gratitudeInput)
         }
-        gratitudeInput = ""
+        if succeeded { gratitudeInput = "" }
     }
 
     private func submitNeed() {
+        let succeeded: Bool
         if let index = editingNeedIndex {
-            viewModel.updateNeed(at: index, fullText: needInput)
-            editingNeedIndex = nil
+            succeeded = viewModel.updateNeed(at: index, fullText: needInput)
+            if succeeded { editingNeedIndex = nil }
         } else {
-            viewModel.addNeed(needInput)
+            succeeded = viewModel.addNeed(needInput)
         }
-        needInput = ""
+        if succeeded { needInput = "" }
     }
 
     private func submitPerson() {
+        let succeeded: Bool
         if let index = editingPersonIndex {
-            viewModel.updatePerson(at: index, fullText: personInput)
-            editingPersonIndex = nil
+            succeeded = viewModel.updatePerson(at: index, fullText: personInput)
+            if succeeded { editingPersonIndex = nil }
         } else {
-            viewModel.addPerson(personInput)
+            succeeded = viewModel.addPerson(personInput)
         }
-        personInput = ""
+        if succeeded { personInput = "" }
     }
 
     private enum ChipSection {

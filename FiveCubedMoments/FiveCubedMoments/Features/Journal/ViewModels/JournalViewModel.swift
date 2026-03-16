@@ -107,7 +107,7 @@ final class JournalViewModel: ObservableObject {
         entry.bibleNotes = bibleNotes.trimmingCharacters(in: .whitespacesAndNewlines)
         entry.reflections = reflections.trimmingCharacters(in: .whitespacesAndNewlines)
         entry.updatedAt = nowProvider()
-        entry.completedAt = isCompleteEnough ? (entry.completedAt ?? nowProvider()) : nil
+        entry.completedAt = entry.isComplete ? (entry.completedAt ?? nowProvider()) : nil
 
         do {
             try context.save()
@@ -122,71 +122,81 @@ final class JournalViewModel: ObservableObject {
         autosaveTrigger.send(())
     }
 
-    private var isCompleteEnough: Bool {
-        gratitudes.count >= Self.slotCount &&
-        needs.count >= Self.slotCount &&
-        people.count >= Self.slotCount &&
-        !bibleNotes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        !reflections.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
-
     var completedToday: Bool {
         guard journalEntry != nil else { return false }
-        return isCompleteEnough
+        return JournalEntry.criteriaMet(
+            gratitudesCount: gratitudes.count,
+            needsCount: needs.count,
+            peopleCount: people.count,
+            bibleNotes: bibleNotes,
+            reflections: reflections
+        )
     }
 
-    func addGratitude(_ sentence: String) {
+    /// Returns true if the item was added (trimmed text non-empty and under slot limit).
+    func addGratitude(_ sentence: String) -> Bool {
         let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty, gratitudes.count < Self.slotCount else { return }
+        guard !trimmed.isEmpty, gratitudes.count < Self.slotCount else { return false }
 
         let result = summarizer.summarize(trimmed)
         gratitudes.append(JournalItem(fullText: trimmed, chipLabel: result.label, isTruncated: result.isTruncated))
         scheduleAutosave()
+        return true
     }
 
-    func addNeed(_ sentence: String) {
+    /// Returns true if the item was added (trimmed text non-empty and under slot limit).
+    func addNeed(_ sentence: String) -> Bool {
         let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty, needs.count < Self.slotCount else { return }
+        guard !trimmed.isEmpty, needs.count < Self.slotCount else { return false }
 
         let result = summarizer.summarize(trimmed)
         needs.append(JournalItem(fullText: trimmed, chipLabel: result.label, isTruncated: result.isTruncated))
         scheduleAutosave()
+        return true
     }
 
-    func addPerson(_ sentence: String) {
+    /// Returns true if the item was added (trimmed text non-empty and under slot limit).
+    func addPerson(_ sentence: String) -> Bool {
         let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty, people.count < Self.slotCount else { return }
+        guard !trimmed.isEmpty, people.count < Self.slotCount else { return false }
 
         let result = summarizer.summarize(trimmed)
         people.append(JournalItem(fullText: trimmed, chipLabel: result.label, isTruncated: result.isTruncated))
         scheduleAutosave()
+        return true
     }
 
-    func updateGratitude(at index: Int, fullText: String) {
+    /// Returns true if the item was updated (valid index and trimmed text non-empty).
+    func updateGratitude(at index: Int, fullText: String) -> Bool {
         let trimmed = fullText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard index >= 0, index < gratitudes.count, !trimmed.isEmpty else { return }
+        guard index >= 0, index < gratitudes.count, !trimmed.isEmpty else { return false }
 
         let result = summarizer.summarize(trimmed)
         gratitudes[index] = JournalItem(fullText: trimmed, chipLabel: result.label, isTruncated: result.isTruncated)
         scheduleAutosave()
+        return true
     }
 
-    func updateNeed(at index: Int, fullText: String) {
+    /// Returns true if the item was updated (valid index and trimmed text non-empty).
+    func updateNeed(at index: Int, fullText: String) -> Bool {
         let trimmed = fullText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard index >= 0, index < needs.count, !trimmed.isEmpty else { return }
+        guard index >= 0, index < needs.count, !trimmed.isEmpty else { return false }
 
         let result = summarizer.summarize(trimmed)
         needs[index] = JournalItem(fullText: trimmed, chipLabel: result.label, isTruncated: result.isTruncated)
         scheduleAutosave()
+        return true
     }
 
-    func updatePerson(at index: Int, fullText: String) {
+    /// Returns true if the item was updated (valid index and trimmed text non-empty).
+    func updatePerson(at index: Int, fullText: String) -> Bool {
         let trimmed = fullText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard index >= 0, index < people.count, !trimmed.isEmpty else { return }
+        guard index >= 0, index < people.count, !trimmed.isEmpty else { return false }
 
         let result = summarizer.summarize(trimmed)
         people[index] = JournalItem(fullText: trimmed, chipLabel: result.label, isTruncated: result.isTruncated)
         scheduleAutosave()
+        return true
     }
 
     func updateBibleNotes(_ value: String) {

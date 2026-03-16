@@ -41,7 +41,7 @@ final class NaturalLanguageSummarizerTests: XCTestCase {
         XCTAssertTrue(result.isTruncated)
     }
 
-    func test_summarize_verbsOnly_triggersFallback() {
+    func test_summarize_shortNeedSentence_returnsNonEmptyLabel() {
         let result = sut.summarize("I need help")
         XCTAssertFalse(result.label.isEmpty)
     }

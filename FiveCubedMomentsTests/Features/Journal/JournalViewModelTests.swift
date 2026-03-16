@@ -127,7 +127,7 @@ final class JournalViewModelTests: XCTestCase {
         XCTAssertEqual(vm.gratitudes[0].fullText, "Past")
     }
 
-    func test_exportSnapshot_trimsTextAndOmitsEmptyStrings() throws {
+    func test_exportSnapshot_trimsTextFromFieldsAndOmitsEmptySubmissions() throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
         let vm = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizer: MockSummarizer())
@@ -136,6 +136,8 @@ final class JournalViewModelTests: XCTestCase {
         vm.addGratitude("  Family  ")
         vm.addNeed("Peace")
         vm.addPerson("Alice")
+        vm.addGratitude("   ") // whitespace-only should be rejected
+        vm.addNeed("") // empty should be rejected
         vm.updateBibleNotes("  Matthew 5  ")
         vm.updateReflections("  Be patient today  ")
 

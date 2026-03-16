@@ -2,7 +2,7 @@ import Foundation
 import NaturalLanguage
 
 /// Summarizes a sentence into a short chip label using on-device NL.
-/// Falls back to first N words when noun extraction returns nothing useful.
+/// Falls back to first N words when keyword extraction returns nothing useful.
 struct NaturalLanguageSummarizer: Summarizer {
     private let maxFallbackWords = 5
     private let minNounLength = 2
@@ -11,31 +11,32 @@ struct NaturalLanguageSummarizer: Summarizer {
         let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return SummarizationResult(label: "", isTruncated: false) }
 
-        if let label = extractNouns(from: trimmed), !label.isEmpty {
+        if let label = extractKeywords(from: trimmed), !label.isEmpty {
             return SummarizationResult(label: label, isTruncated: false)
         }
         return firstNWords(from: trimmed)
     }
 
-    private func extractNouns(from text: String) -> String? {
+    /// Extracts keywords (nouns, verbs, adjectives) for a short chip label.
+    private func extractKeywords(from text: String) -> String? {
         let tagger = NLTagger(tagSchemes: [.lexicalClass])
         tagger.string = text
 
-        var nouns: [String] = []
+        var keywords: [String] = []
         let range = text.startIndex..<text.endIndex
 
         tagger.enumerateTags(in: range, unit: .word, scheme: .lexicalClass) { tag, tokenRange in
             if tag == .noun || tag == .verb || tag == .adjective {
                 let word = String(text[tokenRange])
                 if word.count >= minNounLength {
-                    nouns.append(word)
+                    keywords.append(word)
                 }
             }
             return true
         }
 
-        guard !nouns.isEmpty else { return nil }
-        return nouns.prefix(3).joined(separator: " ")
+        guard !keywords.isEmpty else { return nil }
+        return keywords.prefix(3).joined(separator: " ")
     }
 
     private func firstNWords(from text: String) -> SummarizationResult {

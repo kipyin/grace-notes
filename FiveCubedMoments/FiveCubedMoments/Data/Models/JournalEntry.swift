@@ -27,7 +27,7 @@ final class JournalEntry {
         completedAt: Date? = nil
     ) {
         self.id = id
-        self.entryDate = Calendar.current.startOfDay(for: entryDate)
+        self.entryDate = entryDate // Callers must pass start-of-day
         self.gratitudes = gratitudes
         self.needs = needs
         self.people = people
@@ -38,13 +38,30 @@ final class JournalEntry {
         self.completedAt = completedAt
     }
 
-    /// Whether this entry meets completion criteria. Matches ViewModel logic so History and Journal detail are consistent.
+    /// Whether this entry meets completion criteria. Used by History and Journal.
     var isComplete: Bool {
+        Self.criteriaMet(
+            gratitudesCount: gratitudes.count,
+            needsCount: needs.count,
+            peopleCount: people.count,
+            bibleNotes: bibleNotes,
+            reflections: reflections
+        )
+    }
+
+    /// Shared completion criteria used by JournalEntry and JournalViewModel.
+    static func criteriaMet(
+        gratitudesCount: Int,
+        needsCount: Int,
+        peopleCount: Int,
+        bibleNotes: String,
+        reflections: String
+    ) -> Bool {
         let notesTrimmed = bibleNotes.trimmingCharacters(in: .whitespacesAndNewlines)
         let reflectionsTrimmed = reflections.trimmingCharacters(in: .whitespacesAndNewlines)
-        return gratitudes.count >= Self.slotCount &&
-            needs.count >= Self.slotCount &&
-            people.count >= Self.slotCount &&
+        return gratitudesCount >= slotCount &&
+            needsCount >= slotCount &&
+            peopleCount >= slotCount &&
             !notesTrimmed.isEmpty &&
             !reflectionsTrimmed.isEmpty
     }
