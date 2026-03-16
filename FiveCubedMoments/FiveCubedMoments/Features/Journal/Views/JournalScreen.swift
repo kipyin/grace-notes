@@ -5,7 +5,7 @@ import UIKit
 
 struct JournalScreen: View {
     @Environment(\.modelContext) private var modelContext
-    @StateObject private var viewModel = JournalViewModel()
+    @State private var viewModel = JournalViewModel()
     @State private var shareableImage: ShareableImage?
     @State private var showShareError = false
     @State private var showSavedToPhotosToast = false

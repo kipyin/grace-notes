@@ -28,6 +28,8 @@ For Gratitudes, Needs, and People To Pray For:
 4. Tag appears as chip; input **clears**; next slot ready
 5. Repeat until 5 items per section
 
+**Assumption:** Gratitudes, needs, and people each have a maximum of 5 items (`JournalEntry.slotCount`). The ViewModel and UI enforce this limit.
+
 ---
 
 ## 3. Summarization into Chips
