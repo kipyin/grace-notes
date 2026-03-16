@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SettingsScreen: View {
+    /// Default false to align with SummarizerProvider; first launch uses on-device NL summarization.
     @AppStorage("useCloudSummarization") private var useCloudSummarization = false
     @AppStorage("confirmChipDeletion") private var confirmChipDeletion = true
 
