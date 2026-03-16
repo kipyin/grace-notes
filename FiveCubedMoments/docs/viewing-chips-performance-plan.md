@@ -15,7 +15,7 @@ When switching viewing chips (tapping from one chip to another to edit), the app
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
 | **Immediate switch vs. wait** | Switch immediately | User expects instant feedback. Persisting/summarizing can complete in background. |
-| **Interim chip label when text changed** | First-N-words fallback | Display something immediately while background summarization runs. Avoids showing a stale/wrong label (e.g., "Family" when user changed to "Coffee with mom"). |
+| **Interim chip label when text changed** | First 20 chars | Display something immediately while background summarization runs. Matches existing fallback in `JournalViewModel` and `CloudSummarizer`. Avoids showing a stale/wrong label (e.g., "Family" when user changed to "Coffee with mom"). |
 | **Unchanged-text check** | Compare trimmed input to stored fullText | Avoids redundant summarization and persist when user tapped away without editing. Same check covers both "skip update" and "reuse chipLabel" logic. |
 | **History groupedByMonth** | Cache in @State, invalidate on entries change | Prevents recomputing O(n) grouping on every body evaluation when History tab is visible. |
 
@@ -33,18 +33,18 @@ When switching viewing chips (tapping from one chip to another to edit), the app
 
 ### New Flow (immediate switch)
 1. User taps chip B while editing chip A.
-2. **Immediately:** Update model with new `fullText`, interim chip label (first-N-words), and `isTruncated`. Update `editingIndex` and `inputText` for chip B. Switch completes.
-3. **Background:** Task runs `summarizeForChip`; when done, updates the item's `chipLabel` and `isTruncated`, then schedules autosave.
+2. **Immediately:** Update model with new `fullText`, interim chip label (first 20 chars), and `isTruncated`. Update `editingIndex` and `inputText` for chip B. Switch completes.
+3. **Background:** Run summarization off the main actor; when done, hop to main actor to apply `chipLabel` and `isTruncated`, then schedule autosave.
 
 ### Implementation
 
 **JournalViewModel** — Add fast-path methods that do not await summarization:
 
 - `updateGratitudeImmediate(at:fullText:)` — Updates `gratitudes[index]` with fullText, `chipLabel: String(fullText.prefix(20))`, `isTruncated: fullText.count > 20`. Schedules autosave. Returns the index updated (for background task).
-- `addGratitudeImmediate(_:)` — Appends new item with first-N-words as label. Schedules autosave. Returns the new index.
+- `addGratitudeImmediate(_:)` — Appends new item with first 20 chars as interim label. Schedules autosave. Returns the new index.
 - Same for needs and people.
 
-- `summarizeAndUpdateChip(section:index:)` — Async method that runs `summarizeForChip` for the item at index, updates `chipLabel` and `isTruncated`, calls `scheduleAutosave()`. Called from a detached Task.
+- `summarizeAndUpdateChip(section:index:)` — Async method. **Run summarization off the main actor** to avoid UI hitches (especially from synchronous NL work): capture a snapshot of the item's `fullText`, use `Task.detached` or a nonisolated helper to call the summarizer, then `await MainActor.run` to apply `chipLabel` and `isTruncated` and call `scheduleAutosave()`. Do not run summarization on the main actor.
 
 **JournalViewModel** — Optional refactor: introduce shared helpers to reduce duplication across the six methods (update/add × gratitudes/needs/people).
 
@@ -67,13 +67,13 @@ When switching viewing chips (tapping from one chip to another to edit), the app
 
 ### Logic
 Before calling any update:
-- If `editingIndex != nil` and `inputText.trimmingCharacters(in: .whitespacesAndNewlines) == viewModel.fullTextForGratitude(at: editingIndex)`, then skip update.
+- If switching from an existing chip (e.g. `editingGratitudeIndex != nil`), unwrap the index and compare: `let trimmed = inputText.trimmingCharacters(...)` and `let stored = viewModel.fullTextForGratitude(at: idx) ?? ""`; if `trimmed == stored`, skip update.
 - Same check for needs and people.
 
 ### Implementation
 
 **JournalScreen** — In `chipTapped`, before the "has unsaved text" branch:
-- Add guard: if we're switching from an existing chip and trimmed input equals `viewModel.fullTextForGratitude(at: currentIndex)`, set `editingIndex` and `inputText` for the new chip and return (no Task, no update).
+- When switching from an existing chip (`editingGratitudeIndex != nil`), unwrap the index, compute `trimmed = inputText.trimmingCharacters(in: .whitespacesAndNewlines)`, and `stored = viewModel.fullTextForGratitude(at: currentIndex) ?? ""`. If `trimmed == stored`, set `editingIndex` and `inputText` for the new chip and return (no Task, no update).
 - Same for need and person sections.
 
 **JournalViewModel** — No changes required for this fix; the check lives in the view layer.
@@ -140,7 +140,7 @@ In `updateGratitude`, `updateNeed`, `updatePerson` (and in the new immediate-upd
 
 - **Fix 2:** Tap chip A, tap chip B without editing. Switch should be instant. Tap chip A, edit text, tap chip B. Should save (Fix 1 applies).
 - **Fix 3:** Submit (Enter) without changing text. Should not call summarization (if that code path is hit). Unit test: `updateGratitude(at: 0, fullText: existingFullText)` returns true, no summarizer call.
-- **Fix 1:** Tap chip A, edit, tap chip B. Verify: (a) switch is immediate, (b) chip A shows interim label (first-N) briefly, then correct label when summary arrives, (c) persist eventually happens. With cloud summarization, switch should be instant; label may update 1–2s later.
+- **Fix 1:** Tap chip A, edit, tap chip B. Verify: (a) switch is immediate, (b) chip A shows interim label (first 20 chars) briefly, then correct label when summary arrives, (c) persist eventually happens. With cloud summarization, switch should be instant; label may update 1–2s later.
 - **Existing tests:** Ensure `JournalViewModelTests` still pass. Add tests for skip-when-unchanged and immediate-update paths if feasible.
 
 ---
