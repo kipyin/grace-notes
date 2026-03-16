@@ -61,9 +61,9 @@ struct JournalScreen: View {
                 )
 
                 SequentialSectionView(
-                    title: "People To Pray For",
+                    title: "People in Mind",
                     items: viewModel.people,
-                    placeholder: "Who would you like to pray for?",
+                    placeholder: "Who are you thinking of today?",
                     slotCount: JournalViewModel.slotCount,
                     inputAccessibilityIdentifier: "Person 1",
                     inputText: $personInput,
@@ -145,7 +145,7 @@ struct JournalScreen: View {
     private var bibleNotesSection: some View {
         let vm = viewModel
         return VStack(alignment: .leading, spacing: 8) {
-            Text("Bible Notes")
+            Text("Reading Notes")
                 .font(AppTheme.warmPaperHeader)
                 .foregroundStyle(AppTheme.textPrimary)
             TextEditor(text: Binding(

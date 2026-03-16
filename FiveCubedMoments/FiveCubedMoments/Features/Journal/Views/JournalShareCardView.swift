@@ -14,11 +14,11 @@ struct JournalShareCardView: View {
 
             sectionIfNonEmpty("Gratitudes", items: payload.gratitudes)
             sectionIfNonEmpty("Needs", items: payload.needs)
-            sectionIfNonEmpty("People To Pray For", items: payload.people)
+            sectionIfNonEmpty("People in Mind", items: payload.people)
 
             if !payload.bibleNotes.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Bible Notes")
+                    Text("Reading Notes")
                         .font(AppTheme.warmPaperHeader)
                         .foregroundStyle(AppTheme.textPrimary)
                     Text(payload.bibleNotes)
