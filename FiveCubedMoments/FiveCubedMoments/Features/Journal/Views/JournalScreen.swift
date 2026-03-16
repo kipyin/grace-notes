@@ -24,60 +24,108 @@ struct JournalScreen: View {
 
     var body: some View {
         Form {
-            Section("Date") {
-                    Text(viewModel.entryDate.formatted(date: .abbreviated, time: .omitted))
-                        .font(.headline)
+            Section {
+                Text(viewModel.entryDate.formatted(date: .abbreviated, time: .omitted))
+                    .font(AppTheme.warmPaperHeader)
+                    .foregroundStyle(AppTheme.textPrimary)
+                    .listRowBackground(Color.clear)
 
-                    if viewModel.completedToday {
-                        Label("Completed for today", systemImage: "checkmark.circle.fill")
-                            .foregroundStyle(.green)
-                    } else {
-                        Label("In progress", systemImage: "pencil.circle")
-                            .foregroundStyle(.secondary)
+                if viewModel.completedToday {
+                    Label("Completed for today", systemImage: "checkmark.circle.fill")
+                        .foregroundStyle(AppTheme.complete)
+                } else {
+                    Label("In progress", systemImage: "pencil.circle")
+                        .foregroundStyle(AppTheme.textMuted)
                 }
+            } header: {
+                Text("Date")
+                    .font(AppTheme.warmPaperHeader)
+                    .foregroundStyle(AppTheme.textPrimary)
             }
 
-            Section("Gratitudes") {
-                    ForEach(0..<5, id: \.self) { index in
-                        TextField("Gratitude \(index + 1)", text: slotBinding(for: viewModel.gratitudes, index: index) { updated in
-                            viewModel.updateGratitudes(updated)
-                        })
-                        .textInputAutocapitalization(.sentences)
+            Section {
+                ForEach(0..<5, id: \.self) { index in
+                    TextField("Gratitude \(index + 1)", text: slotBinding(for: viewModel.gratitudes, index: index) { updated in
+                        viewModel.updateGratitudes(updated)
+                    })
+                    .font(AppTheme.warmPaperBody)
+                    .foregroundStyle(AppTheme.textPrimary)
+                    .textInputAutocapitalization(.sentences)
+                    .warmPaperInputStyle()
+                    .listRowBackground(Color.clear)
                 }
+            } header: {
+                Text("Gratitudes")
+                    .font(AppTheme.warmPaperHeader)
+                    .foregroundStyle(AppTheme.textPrimary)
             }
 
-            Section("Needs") {
-                    ForEach(0..<5, id: \.self) { index in
-                        TextField("Need \(index + 1)", text: slotBinding(for: viewModel.needs, index: index) { updated in
-                            viewModel.updateNeeds(updated)
-                        })
-                        .textInputAutocapitalization(.sentences)
+            Section {
+                ForEach(0..<5, id: \.self) { index in
+                    TextField("Need \(index + 1)", text: slotBinding(for: viewModel.needs, index: index) { updated in
+                        viewModel.updateNeeds(updated)
+                    })
+                    .font(AppTheme.warmPaperBody)
+                    .foregroundStyle(AppTheme.textPrimary)
+                    .textInputAutocapitalization(.sentences)
+                    .warmPaperInputStyle()
+                    .listRowBackground(Color.clear)
                 }
+            } header: {
+                Text("Needs")
+                    .font(AppTheme.warmPaperHeader)
+                    .foregroundStyle(AppTheme.textPrimary)
             }
 
-            Section("People To Pray For") {
-                    ForEach(0..<5, id: \.self) { index in
-                        TextField("Person \(index + 1)", text: slotBinding(for: viewModel.people, index: index) { updated in
-                            viewModel.updatePeople(updated)
-                        })
-                        .textInputAutocapitalization(.words)
+            Section {
+                ForEach(0..<5, id: \.self) { index in
+                    TextField("Person \(index + 1)", text: slotBinding(for: viewModel.people, index: index) { updated in
+                        viewModel.updatePeople(updated)
+                    })
+                    .font(AppTheme.warmPaperBody)
+                    .foregroundStyle(AppTheme.textPrimary)
+                    .textInputAutocapitalization(.words)
+                    .warmPaperInputStyle()
+                    .listRowBackground(Color.clear)
                 }
+            } header: {
+                Text("People To Pray For")
+                    .font(AppTheme.warmPaperHeader)
+                    .foregroundStyle(AppTheme.textPrimary)
             }
 
-            Section("Bible Notes") {
-                    TextEditor(text: Binding(
-                        get: { viewModel.bibleNotes },
-                        set: { viewModel.updateBibleNotes($0) }
-                    ))
-                    .frame(minHeight: 120)
+            Section {
+                TextEditor(text: Binding(
+                    get: { viewModel.bibleNotes },
+                    set: { viewModel.updateBibleNotes($0) }
+                ))
+                .font(AppTheme.warmPaperBody)
+                .foregroundStyle(AppTheme.textPrimary)
+                .scrollContentBackground(.hidden)
+                .frame(minHeight: 120)
+                .warmPaperInputStyle()
+                .listRowBackground(Color.clear)
+            } header: {
+                Text("Bible Notes")
+                    .font(AppTheme.warmPaperHeader)
+                    .foregroundStyle(AppTheme.textPrimary)
             }
 
-            Section("Reflections") {
-                    TextEditor(text: Binding(
-                        get: { viewModel.reflections },
-                        set: { viewModel.updateReflections($0) }
-                    ))
-                    .frame(minHeight: 120)
+            Section {
+                TextEditor(text: Binding(
+                    get: { viewModel.reflections },
+                    set: { viewModel.updateReflections($0) }
+                ))
+                .font(AppTheme.warmPaperBody)
+                .foregroundStyle(AppTheme.textPrimary)
+                .scrollContentBackground(.hidden)
+                .frame(minHeight: 120)
+                .warmPaperInputStyle()
+                .listRowBackground(Color.clear)
+            } header: {
+                Text("Reflections")
+                    .font(AppTheme.warmPaperHeader)
+                    .foregroundStyle(AppTheme.textPrimary)
             }
 
             if let saveErrorMessage = viewModel.saveErrorMessage {
@@ -87,7 +135,9 @@ struct JournalScreen: View {
                 }
             }
         }
-            .navigationTitle(navigationTitle)
+        .scrollContentBackground(.hidden)
+        .background(AppTheme.background)
+        .navigationTitle(navigationTitle)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
