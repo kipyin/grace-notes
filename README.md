@@ -24,7 +24,8 @@ Five Cubed Moments guides you through a simple daily rhythm: 5 gratitudes, 5 nee
 
 1. Clone the repository.
 2. Open `FiveCubedMoments/FiveCubedMoments.xcodeproj` in Xcode.
-3. Select a simulator or device and run (⌘R).
+3. For code signing, select your development team in the project's Signing & Capabilities (if needed).
+4. Select a simulator or device and run (⌘R).
 
 ## Tech Stack
 
