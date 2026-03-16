@@ -26,7 +26,7 @@ struct JournalScreen: View {
         if let date = entryDate {
             return date.formatted(date: .abbreviated, time: .omitted)
         }
-        return "Today's 5³"
+        return String(localized: "Today's 5³")
     }
 
     var body: some View {
@@ -35,9 +35,9 @@ struct JournalScreen: View {
                 dateSection
 
                 SequentialSectionView(
-                    title: "Gratitudes",
+                    title: String(localized: "Gratitudes"),
                     items: viewModel.gratitudes,
-                    placeholder: "What's one thing you're grateful for?",
+                    placeholder: String(localized: "What's one thing you're grateful for?"),
                     slotCount: JournalViewModel.slotCount,
                     inputAccessibilityIdentifier: "Gratitude 1",
                     inputText: $gratitudeInput,
@@ -49,9 +49,9 @@ struct JournalScreen: View {
                 )
 
                 SequentialSectionView(
-                    title: "Needs",
+                    title: String(localized: "Needs"),
                     items: viewModel.needs,
-                    placeholder: "What do you need today?",
+                    placeholder: String(localized: "What do you need today?"),
                     slotCount: JournalViewModel.slotCount,
                     inputAccessibilityIdentifier: "Need 1",
                     inputText: $needInput,
@@ -63,9 +63,9 @@ struct JournalScreen: View {
                 )
 
                 SequentialSectionView(
-                    title: "People in Mind",
+                    title: String(localized: "People in Mind"),
                     items: viewModel.people,
-                    placeholder: "Who are you thinking of today?",
+                    placeholder: String(localized: "Who are you thinking of today?"),
                     slotCount: JournalViewModel.slotCount,
                     inputAccessibilityIdentifier: "Person 1",
                     inputText: $personInput,

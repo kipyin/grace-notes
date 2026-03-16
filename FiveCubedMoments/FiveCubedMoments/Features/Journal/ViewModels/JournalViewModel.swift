@@ -70,7 +70,7 @@ final class JournalViewModel: ObservableObject {
                 return
             }
         } catch {
-            saveErrorMessage = "Unable to load today's entry."
+            saveErrorMessage = String(localized: "Unable to load today's entry.")
             return
         }
 
@@ -113,7 +113,7 @@ final class JournalViewModel: ObservableObject {
             try context.save()
             saveErrorMessage = nil
         } catch {
-            saveErrorMessage = "Unable to save your journal entry."
+            saveErrorMessage = String(localized: "Unable to save your journal entry.")
         }
     }
 
@@ -292,6 +292,7 @@ final class JournalViewModel: ObservableObject {
 
     func exportSnapshot() -> JournalExportPayload {
         let formatter = DateFormatter()
+        formatter.locale = Locale.current
         formatter.dateStyle = .long
         let dateStr = formatter.string(from: entryDate)
         return JournalExportPayload(

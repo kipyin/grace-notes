@@ -61,6 +61,7 @@ struct HistoryScreen: View {
 
     private func monthYearString(from date: Date) -> String {
         let formatter = DateFormatter()
+        formatter.locale = Locale.current
         formatter.dateFormat = "MMMM yyyy"
         return formatter.string(from: date)
     }
