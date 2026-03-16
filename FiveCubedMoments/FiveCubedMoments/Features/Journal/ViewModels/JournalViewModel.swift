@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import Observation
 import SwiftData
 
 struct JournalExportPayload {
@@ -12,28 +13,29 @@ struct JournalExportPayload {
 }
 
 @MainActor
-final class JournalViewModel: ObservableObject {
-    @Published var entryDate: Date = .now
-    @Published var gratitudes: [JournalItem] = []
-    @Published var needs: [JournalItem] = []
-    @Published var people: [JournalItem] = []
-    @Published var bibleNotes: String = ""
-    @Published var reflections: String = ""
-    @Published private(set) var saveErrorMessage: String?
+@Observable
+final class JournalViewModel {
+    var entryDate: Date = .now
+    var gratitudes: [JournalItem] = []
+    var needs: [JournalItem] = []
+    var people: [JournalItem] = []
+    var bibleNotes: String = ""
+    var reflections: String = ""
+    private(set) var saveErrorMessage: String?
 
     static let slotCount = JournalEntry.slotCount
 
-    private let calendar: Calendar
-    private let nowProvider: () -> Date
-    private let repository: JournalRepository
-    private let summarizerProvider: SummarizerProvider
-    private let autosaveTrigger = PassthroughSubject<Void, Never>()
-    private var cancellables: Set<AnyCancellable> = []
+    @ObservationIgnored private let calendar: Calendar
+    @ObservationIgnored private let nowProvider: () -> Date
+    @ObservationIgnored private let repository: JournalRepository
+    @ObservationIgnored private let summarizerProvider: SummarizerProvider
+    @ObservationIgnored private let autosaveTrigger = PassthroughSubject<Void, Never>()
+    @ObservationIgnored private var cancellables: Set<AnyCancellable> = []
 
-    private var modelContext: ModelContext?
-    private var journalEntry: JournalEntry?
-    private var hasLoadedToday = false
-    private var isHydrating = false
+    @ObservationIgnored private var modelContext: ModelContext?
+    @ObservationIgnored private var journalEntry: JournalEntry?
+    @ObservationIgnored private var hasLoadedToday = false
+    @ObservationIgnored private var isHydrating = false
 
     init(
         calendar: Calendar = .current,
