@@ -88,25 +88,43 @@ struct SequentialSectionView: View {
         return editingIndex != nil || items.count < slotCount
     }
 
+    @State private var isDeletionMode = false
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(title)
-                .font(AppTheme.warmPaperHeader)
-                .foregroundStyle(AppTheme.textPrimary)
+            HStack {
+                Text(title)
+                    .font(AppTheme.warmPaperHeader)
+                    .foregroundStyle(AppTheme.textPrimary)
+                Spacer(minLength: 8)
+                if isDeletionMode {
+                    Button(String(localized: "Done")) {
+                        isDeletionMode = false
+                    }
+                    .font(AppTheme.warmPaperBody)
+                    .foregroundStyle(AppTheme.textPrimary)
+                }
+            }
 
             if !items.isEmpty || showAddChip {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
-                        ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+                        ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                             ChipView(
                                 label: item.displayLabel,
                                 isTruncated: item.isTruncated,
+                                isDeletionMode: isDeletionMode,
                                 onTap: { onChipTap(index) },
-                                onDelete: onDeleteChip.map { handler in { handler(index) } }
+                                onDelete: onDeleteChip.map { handler in { handler(index) } },
+                                onEnterDeletionMode: { isDeletionMode = true },
+                                onExitDeletionMode: { isDeletionMode = false }
                             )
                         }
                         if showAddChip, let addNew = onAddNew {
-                            AddChipView(onTap: addNew)
+                            AddChipView(onTap: {
+                                isDeletionMode = false
+                                addNew()
+                            })
                         }
                     }
                 }
@@ -125,6 +143,9 @@ struct SequentialSectionView: View {
             Text(progressText)
                 .font(AppTheme.warmPaperBody)
                 .foregroundStyle(AppTheme.textMuted)
+        }
+        .onChange(of: items.count) { _, count in
+            if count == 0 { isDeletionMode = false }
         }
     }
 }
