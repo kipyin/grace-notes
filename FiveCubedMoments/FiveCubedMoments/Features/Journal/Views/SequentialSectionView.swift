@@ -1,5 +1,23 @@
 import SwiftUI
 
+private struct AddChipView: View {
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            Image(systemName: "plus.circle.fill")
+                .font(.system(size: 20))
+                .foregroundStyle(AppTheme.textMuted)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(AppTheme.complete.opacity(0.2))
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Add new")
+    }
+}
+
 private struct ConditionalAccessibilityIdentifier: ViewModifier {
     let identifier: String?
     func body(content: Content) -> some View {
@@ -21,6 +39,7 @@ struct SequentialSectionView: View {
     let editingIndex: Int?
     let onSubmit: () -> Void
     let onChipTap: (Int) -> Void
+    let onAddNew: (() -> Void)?
 
     init(
         title: String,
@@ -31,7 +50,8 @@ struct SequentialSectionView: View {
         inputText: Binding<String>,
         editingIndex: Int?,
         onSubmit: @escaping () -> Void,
-        onChipTap: @escaping (Int) -> Void
+        onChipTap: @escaping (Int) -> Void,
+        onAddNew: (() -> Void)? = nil
     ) {
         self.title = title
         self.items = items
@@ -42,10 +62,24 @@ struct SequentialSectionView: View {
         self.editingIndex = editingIndex
         self.onSubmit = onSubmit
         self.onChipTap = onChipTap
+        self.onAddNew = onAddNew
     }
 
     private var showInput: Bool {
         items.count < slotCount || editingIndex != nil
+    }
+
+    private var progressText: String {
+        let countText = "\(items.count) of \(slotCount)"
+        if let idx = editingIndex {
+            return "\(countText) — editing \(idx + 1)"
+        }
+        return countText
+    }
+
+    private var showAddChip: Bool {
+        guard onAddNew != nil, !items.isEmpty else { return false }
+        return editingIndex != nil || items.count < slotCount
     }
 
     var body: some View {
@@ -54,16 +88,18 @@ struct SequentialSectionView: View {
                 .font(AppTheme.warmPaperHeader)
                 .foregroundStyle(AppTheme.textPrimary)
 
-            if !items.isEmpty {
+            if !items.isEmpty || showAddChip {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
-                        // id: \.offset assumes no delete/reorder. If delete is added, switch to stable id (e.g., JournalItem.id or fullText) to avoid view reuse issues.
                         ForEach(Array(items.enumerated()), id: \.offset) { index, item in
                             ChipView(
                                 label: item.displayLabel,
                                 isTruncated: item.isTruncated,
                                 onTap: { onChipTap(index) }
                             )
+                        }
+                        if showAddChip, let addNew = onAddNew {
+                            AddChipView(onTap: addNew)
                         }
                     }
                 }
@@ -79,7 +115,7 @@ struct SequentialSectionView: View {
                     .modifier(ConditionalAccessibilityIdentifier(identifier: inputAccessibilityIdentifier))
             }
 
-            Text("\(items.count) of \(slotCount)")
+            Text(progressText)
                 .font(AppTheme.warmPaperBody)
                 .foregroundStyle(AppTheme.textMuted)
         }
