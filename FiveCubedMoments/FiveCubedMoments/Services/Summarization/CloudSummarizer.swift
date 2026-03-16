@@ -28,26 +28,38 @@ struct CloudSummarizer: Summarizer {
         self.urlSession = urlSession
     }
 
-    func summarize(_ sentence: String) async throws -> SummarizationResult {
+    func summarize(_ sentence: String, section: SummarizationSection) async throws -> SummarizationResult {
         let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return SummarizationResult(label: "", isTruncated: false) }
 
         do {
-            let label = try await callAPI(sentence: trimmed)
+            let label = try await callAPI(sentence: trimmed, section: section)
             let capped = label.count > maxLabelChars ? String(label.prefix(maxLabelChars)) : label
             log.debug("Cloud summarization succeeded: \"\(trimmed)\" -> \"\(capped)\"")
             return SummarizationResult(label: capped, isTruncated: label.count > maxLabelChars)
         } catch {
             log.info("Cloud API failed, using NL fallback: \(String(describing: error))")
-            if let result = try? await fallback.summarize(sentence) {
+            if let result = try? await fallback.summarize(sentence, section: section) {
                 return result
             }
-            let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
             return SummarizationResult(label: String(trimmed.prefix(maxLabelChars)), isTruncated: trimmed.count > maxLabelChars)
         }
     }
 
-    private func callAPI(sentence: String) async throws -> String {
+    private func prompt(for section: SummarizationSection, sentence: String) -> String {
+        let bilingualNote = " Input may be in English or Chinese (中文); respond in the same language as the input with a short chip label (1–5 words or 1–5 字)."
+        let baseSuffix = " Reply with only the label, no punctuation."
+        switch section {
+        case .gratitude:
+            return "Extract 1–5 words for a chip label. This is for a gratitude list — do NOT include words like gratitude, grateful (or 感恩, 感谢, 感激). Just the essence: \(sentence).\(bilingualNote)\(baseSuffix)"
+        case .need:
+            return "Extract 1–5 words for a chip label. This is for a needs list — do NOT include words like need, needs (or 需要, 想). Just the essence: \(sentence).\(bilingualNote)\(baseSuffix)"
+        case .person:
+            return "Extract 1–5 words for a chip label about people. MUST include the person's name(s) if mentioned (人名 if in Chinese): \(sentence).\(bilingualNote)\(baseSuffix)"
+        }
+    }
+
+    private func callAPI(sentence: String, section: SummarizationSection) async throws -> String {
         guard let url = URL(string: "\(baseURL)/chat/completions") else {
             throw CloudSummarizerError.invalidURL
         }
@@ -58,10 +70,10 @@ struct CloudSummarizer: Summarizer {
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         request.timeoutInterval = 10
 
-        let prompt = "Summarize this into 1–5 words for a chip label: \(sentence). Reply with only the label, no punctuation."
+        let promptText = prompt(for: section, sentence: sentence)
         let body: [String: Any] = [
             "model": model,
-            "messages": [["role": "user", "content": prompt]],
+            "messages": [["role": "user", "content": promptText]],
             "max_tokens": 20,
             "temperature": 0.3
         ]

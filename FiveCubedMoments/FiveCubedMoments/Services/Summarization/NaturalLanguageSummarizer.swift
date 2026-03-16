@@ -8,22 +8,68 @@ struct NaturalLanguageSummarizer: Summarizer {
     private let minNounLength = 2
     private let maxKeywordLabelChars = 20
 
-    func summarize(_ sentence: String) async throws -> SummarizationResult {
-        summarizeSync(sentence)
+    func summarize(_ sentence: String, section: SummarizationSection) async throws -> SummarizationResult {
+        summarizeSync(sentence, section: section)
     }
 
-    private func summarizeSync(_ sentence: String) -> SummarizationResult {
+    private func isPrimarilyChinese(_ text: String) -> Bool {
+        guard let lang = NLLanguageRecognizer.dominantLanguage(for: text) else { return false }
+        return lang.rawValue.hasPrefix("zh")
+    }
+
+    private func summarizeSync(_ sentence: String, section: SummarizationSection) -> SummarizationResult {
         let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return SummarizationResult(label: "", isTruncated: false) }
 
+        var rawLabel: String
+        var isTruncated: Bool
+
         if let label = extractKeywords(from: trimmed), !label.isEmpty {
-            if label.count <= maxKeywordLabelChars {
-                return SummarizationResult(label: label, isTruncated: false)
+            rawLabel = label
+            isTruncated = label.count > maxKeywordLabelChars
+            if isTruncated {
+                rawLabel = firstTokensUpToMaxChars(label, maxChars: maxKeywordLabelChars)
             }
-            let truncated = firstTokensUpToMaxChars(label, maxChars: maxKeywordLabelChars)
-            return SummarizationResult(label: truncated, isTruncated: true)
+        } else {
+            let fallback = firstNWords(from: trimmed)
+            rawLabel = fallback.label
+            isTruncated = fallback.isTruncated
         }
-        return firstNWords(from: trimmed)
+
+        let filtered = filterRedundantWords(from: rawLabel, section: section)
+        return SummarizationResult(label: filtered, isTruncated: isTruncated)
+    }
+
+    private func filterRedundantWords(from label: String, section: SummarizationSection) -> String {
+        let stopWords: Set<String>
+        switch section {
+        case .gratitude:
+            stopWords = ["gratitude", "grateful", "thankful", "thank", "thanks", "感恩", "感谢", "感激"]
+        case .need:
+            stopWords = ["need", "needs", "want", "wants", "需要", "想要", "想"]
+        case .person:
+            stopWords = ["person", "people"]
+        }
+
+        let tokenizer = NLTokenizer(unit: .word)
+        tokenizer.string = label
+        if isPrimarilyChinese(label) {
+            tokenizer.setLanguage(NLLanguage(rawValue: "zh-Hans"))
+        }
+        var tokens: [String] = []
+        let range = label.startIndex..<label.endIndex
+        tokenizer.enumerateTokens(in: range) { tokenRange, _ in
+            let word = String(label[tokenRange])
+            let wordLower = word.lowercased()
+            // Check both forms: lowercase for English, original for Chinese (no case folding)
+            if !stopWords.contains(wordLower), !stopWords.contains(word) {
+                tokens.append(word)
+            }
+            return true
+        }
+
+        let result = tokens.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+        return result.isEmpty ? label : result
     }
 
     /// Extracts keywords for a short chip label: prefers named entities (people, places, orgs),
@@ -31,6 +77,9 @@ struct NaturalLanguageSummarizer: Summarizer {
     private func extractKeywords(from text: String) -> String? {
         let tagger = NLTagger(tagSchemes: [.nameTypeOrLexicalClass])
         tagger.string = text
+        if isPrimarilyChinese(text) {
+            tagger.setLanguage(NLLanguage(rawValue: "zh-Hans"), range: text.startIndex..<text.endIndex)
+        }
 
         var nameTokens: [String] = []
         var lexicalTokens: [String] = []
@@ -62,6 +111,9 @@ struct NaturalLanguageSummarizer: Summarizer {
     private func firstNWords(from text: String) -> SummarizationResult {
         let tokenizer = NLTokenizer(unit: .word)
         tokenizer.string = text
+        if isPrimarilyChinese(text) {
+            tokenizer.setLanguage(NLLanguage(rawValue: "zh-Hans"))
+        }
 
         var words: [String] = []
         let range = text.startIndex..<text.endIndex
@@ -88,6 +140,9 @@ struct NaturalLanguageSummarizer: Summarizer {
     private func firstTokensUpToMaxChars(_ text: String, maxChars: Int) -> String {
         let tokenizer = NLTokenizer(unit: .word)
         tokenizer.string = text
+        if isPrimarilyChinese(text) {
+            tokenizer.setLanguage(NLLanguage(rawValue: "zh-Hans"))
+        }
         var tokens: [String] = []
         var len = 0
         let range = text.startIndex..<text.endIndex
