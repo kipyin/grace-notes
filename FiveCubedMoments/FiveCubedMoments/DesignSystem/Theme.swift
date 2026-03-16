@@ -48,9 +48,9 @@ extension View {
 
 private extension Color {
     init(hex: UInt) {
-        let r = Double((hex >> 16) & 0xFF) / 255
-        let g = Double((hex >> 8) & 0xFF) / 255
-        let b = Double(hex & 0xFF) / 255
-        self.init(red: r, green: g, blue: b)
+        let red = Double((hex >> 16) & 0xFF) / 255
+        let green = Double((hex >> 8) & 0xFF) / 255
+        let blue = Double(hex & 0xFF) / 255
+        self.init(red: red, green: green, blue: blue)
     }
 }

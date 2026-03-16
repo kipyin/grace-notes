@@ -189,14 +189,14 @@ struct JournalScreen: View {
     }
 
     private var bibleNotesSection: some View {
-        let vm = viewModel
+        let model = viewModel
         return VStack(alignment: .leading, spacing: 8) {
             Text("Reading Notes")
                 .font(AppTheme.warmPaperHeader)
                 .foregroundStyle(AppTheme.textPrimary)
             TextEditor(text: Binding(
-                get: { vm.bibleNotes },
-                set: { vm.updateBibleNotes($0) }
+                get: { model.bibleNotes },
+                set: { model.updateBibleNotes($0) }
             ))
             .font(AppTheme.warmPaperBody)
             .foregroundStyle(AppTheme.textPrimary)
@@ -207,14 +207,14 @@ struct JournalScreen: View {
     }
 
     private var reflectionsSection: some View {
-        let vm = viewModel
+        let model = viewModel
         return VStack(alignment: .leading, spacing: 8) {
             Text("Reflections")
                 .font(AppTheme.warmPaperHeader)
                 .foregroundStyle(AppTheme.textPrimary)
             TextEditor(text: Binding(
-                get: { vm.reflections },
-                set: { vm.updateReflections($0) }
+                get: { model.reflections },
+                set: { model.updateReflections($0) }
             ))
             .font(AppTheme.warmPaperBody)
             .foregroundStyle(AppTheme.textPrimary)
