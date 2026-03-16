@@ -17,24 +17,35 @@ struct NaturalLanguageSummarizer: Summarizer {
         return firstNWords(from: trimmed)
     }
 
-    /// Extracts keywords (nouns, verbs, adjectives) for a short chip label.
+    /// Extracts keywords for a short chip label: prefers named entities (people, places, orgs),
+    /// then nouns, verbs, adjectives. Uses nameTypeOrLexicalClass with joinNames for multi-word names.
     private func extractKeywords(from text: String) -> String? {
-        let tagger = NLTagger(tagSchemes: [.lexicalClass])
+        let tagger = NLTagger(tagSchemes: [.nameTypeOrLexicalClass])
         tagger.string = text
 
-        var keywords: [String] = []
+        var nameTokens: [String] = []
+        var lexicalTokens: [String] = []
         let range = text.startIndex..<text.endIndex
+        let options: NLTagger.Options = [.joinNames, .omitPunctuation, .omitWhitespace]
 
-        tagger.enumerateTags(in: range, unit: .word, scheme: .lexicalClass) { tag, tokenRange in
-            if tag == .noun || tag == .verb || tag == .adjective {
-                let word = String(text[tokenRange])
-                if word.count >= minNounLength {
-                    keywords.append(word)
+        tagger.enumerateTags(in: range, unit: .word, scheme: .nameTypeOrLexicalClass, options: options) { tag, tokenRange in
+            let word = String(text[tokenRange])
+            guard word.count >= minNounLength else { return true }
+
+            if let t = tag {
+                switch t {
+                case .personalName, .placeName, .organizationName:
+                    nameTokens.append(word)
+                case .noun, .verb, .adjective:
+                    lexicalTokens.append(word)
+                default:
+                    break
                 }
             }
             return true
         }
 
+        let keywords = nameTokens.isEmpty ? lexicalTokens : nameTokens
         guard !keywords.isEmpty else { return nil }
         return keywords.prefix(3).joined(separator: " ")
     }
