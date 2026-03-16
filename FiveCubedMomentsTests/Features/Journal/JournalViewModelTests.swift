@@ -224,6 +224,58 @@ final class JournalViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.people[0].fullText, "Alice")
     }
 
+    func test_updateGratitude_unchangedText_returnsTrueWithoutReSummarizing() async throws {
+        let context = try makeInMemoryContext()
+        let now = Date(timeIntervalSince1970: 1_742_147_200)
+        let viewModel = JournalViewModel(
+            calendar: calendar,
+            nowProvider: { now },
+            summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer())
+        )
+
+        viewModel.loadEntry(for: now, using: context)
+        await viewModel.addGratitude("Family")
+        let originalLabel = viewModel.gratitudes[0].chipLabel
+
+        let result = await viewModel.updateGratitude(at: 0, fullText: "Family")
+
+        XCTAssertTrue(result)
+        XCTAssertEqual(viewModel.gratitudes[0].fullText, "Family")
+        XCTAssertEqual(viewModel.gratitudes[0].chipLabel, originalLabel)
+    }
+
+    func test_updateGratitudeImmediate_updatesWithInterimLabel() throws {
+        let context = try makeInMemoryContext()
+        let now = Date(timeIntervalSince1970: 1_742_147_200)
+        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now })
+
+        viewModel.loadEntry(for: now, using: context)
+        viewModel.gratitudes = [JournalItem(fullText: "Old", chipLabel: "Old", isTruncated: false)]
+
+        let longText = "A very long gratitude that exceeds twenty characters"
+        let result = viewModel.updateGratitudeImmediate(at: 0, fullText: longText)
+
+        XCTAssertEqual(result, 0)
+        XCTAssertEqual(viewModel.gratitudes[0].fullText, longText)
+        XCTAssertEqual(viewModel.gratitudes[0].chipLabel, String(longText.prefix(20)))
+        XCTAssertTrue(viewModel.gratitudes[0].isTruncated)
+    }
+
+    func test_addGratitudeImmediate_appendsWithInterimLabel() throws {
+        let context = try makeInMemoryContext()
+        let now = Date(timeIntervalSince1970: 1_742_147_200)
+        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now })
+
+        viewModel.loadEntry(for: now, using: context)
+
+        let result = viewModel.addGratitudeImmediate("New gratitude")
+
+        XCTAssertEqual(result, 0)
+        XCTAssertEqual(viewModel.gratitudes.count, 1)
+        XCTAssertEqual(viewModel.gratitudes[0].fullText, "New gratitude")
+        XCTAssertEqual(viewModel.gratitudes[0].chipLabel, "New gratitude")
+    }
+
     func test_updatesPersistAfterDebouncedAutosave() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)

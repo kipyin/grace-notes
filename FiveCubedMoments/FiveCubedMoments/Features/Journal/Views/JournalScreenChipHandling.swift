@@ -1,13 +1,14 @@
 import SwiftUI
 
-/// Parameters for chip tap/delete operations. Used to reduce duplication across gratitude/need/person sections.
-/// Marked @MainActor so it can store JournalViewModel method references and mutate SwiftUI Bindings safely.
+/// Parameters for chip tap operations. Used to reduce duplication across gratitude/need/person sections.
+/// Uses immediate update/add (no await) with background summarization for instant chip switching.
 @MainActor
 struct ChipSectionOperations {
-    let update: (Int, String) async -> Bool
-    let add: (String) async -> Bool
+    let updateImmediate: (Int, String) -> Int?
+    let addImmediate: (String) -> Int?
     let fullText: (Int) -> String?
     let count: Int
+    let summarizeAndUpdateChip: (Int) async -> Void
 }
 
 @MainActor
@@ -53,27 +54,47 @@ enum JournalScreenChipHandling {
     }
 
     /// Performs the chip-tap-to-edit flow: commits any pending input, then loads the tapped chip into the editor.
+    /// Switch is immediate; summarization runs in background when input changed.
     static func performChipTap(
         tapIndex: Int,
         input: Binding<String>,
         editingIndex: Binding<Int?>,
         operations: ChipSectionOperations
     ) {
-        Task { @MainActor in
-            var canSwitch = true
-            if let currentIndex = editingIndex.wrappedValue, !input.wrappedValue.isEmpty {
-                let succeeded = await operations.update(currentIndex, input.wrappedValue)
-                canSwitch = succeeded
-                if succeeded { input.wrappedValue = "" }
-            } else if !input.wrappedValue.isEmpty, operations.count < JournalViewModel.slotCount {
-                let succeeded = await operations.add(input.wrappedValue)
-                canSwitch = succeeded
-                if succeeded { input.wrappedValue = "" }
+        let trimmed = input.wrappedValue.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Fix 2: If switching from existing chip with no text change, skip update entirely.
+        if let currentIndex = editingIndex.wrappedValue, !trimmed.isEmpty {
+            let stored = operations.fullText(currentIndex) ?? ""
+            if trimmed == stored {
+                if let full = operations.fullText(tapIndex) {
+                    input.wrappedValue = full
+                    editingIndex.wrappedValue = tapIndex
+                }
+                return
             }
-            if canSwitch, let full = operations.fullText(tapIndex) {
-                input.wrappedValue = full
-                editingIndex.wrappedValue = tapIndex
+        }
+
+        var canSwitch = true
+        if let currentIndex = editingIndex.wrappedValue, !trimmed.isEmpty {
+            if let updatedIndex = operations.updateImmediate(currentIndex, input.wrappedValue) {
+                input.wrappedValue = ""
+                Task { await operations.summarizeAndUpdateChip(updatedIndex) }
+            } else {
+                canSwitch = false
             }
+        } else if !trimmed.isEmpty, operations.count < JournalViewModel.slotCount {
+            if let newIndex = operations.addImmediate(input.wrappedValue) {
+                input.wrappedValue = ""
+                Task { await operations.summarizeAndUpdateChip(newIndex) }
+            } else {
+                canSwitch = false
+            }
+        }
+
+        if canSwitch, let full = operations.fullText(tapIndex) {
+            input.wrappedValue = full
+            editingIndex.wrappedValue = tapIndex
         }
     }
 }

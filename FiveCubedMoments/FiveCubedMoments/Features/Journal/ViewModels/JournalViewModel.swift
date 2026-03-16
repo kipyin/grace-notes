@@ -181,6 +181,9 @@ final class JournalViewModel: ObservableObject {
         let trimmed = fullText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard index >= 0, index < gratitudes.count, !trimmed.isEmpty else { return false }
 
+        // Fix 3: Skip summarization when fullText unchanged.
+        guard trimmed != gratitudes[index].fullText else { return true }
+
         let result = await summarizeForChip(trimmed, section: .gratitude)
         gratitudes[index] = JournalItem(
             fullText: trimmed,
@@ -196,6 +199,9 @@ final class JournalViewModel: ObservableObject {
     func updateNeed(at index: Int, fullText: String) async -> Bool {
         let trimmed = fullText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard index >= 0, index < needs.count, !trimmed.isEmpty else { return false }
+
+        // Fix 3: Skip summarization when fullText unchanged.
+        guard trimmed != needs[index].fullText else { return true }
 
         let result = await summarizeForChip(trimmed, section: .need)
         needs[index] = JournalItem(
@@ -213,6 +219,9 @@ final class JournalViewModel: ObservableObject {
         let trimmed = fullText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard index >= 0, index < people.count, !trimmed.isEmpty else { return false }
 
+        // Fix 3: Skip summarization when fullText unchanged.
+        guard trimmed != people[index].fullText else { return true }
+
         let result = await summarizeForChip(trimmed, section: .person)
         people[index] = JournalItem(
             fullText: trimmed,
@@ -222,6 +231,133 @@ final class JournalViewModel: ObservableObject {
         )
         scheduleAutosave()
         return true
+    }
+
+    // MARK: - Immediate update/add (no await) for instant chip switching
+
+    /// Updates the item immediately with interim label (first 20 chars). Returns index or nil.
+    func updateGratitudeImmediate(at index: Int, fullText: String) -> Int? {
+        let trimmed = fullText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard index >= 0, index < gratitudes.count, !trimmed.isEmpty else { return nil }
+
+        let interimLabel = String(trimmed.prefix(20))
+        gratitudes[index] = JournalItem(
+            fullText: trimmed,
+            chipLabel: interimLabel,
+            isTruncated: trimmed.count > 20,
+            id: gratitudes[index].id
+        )
+        scheduleAutosave()
+        return index
+    }
+
+    /// Appends item with interim label. Returns new index or nil.
+    func addGratitudeImmediate(_ sentence: String) -> Int? {
+        let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, gratitudes.count < Self.slotCount else { return nil }
+
+        let interimLabel = String(trimmed.prefix(20))
+        gratitudes.append(JournalItem(fullText: trimmed, chipLabel: interimLabel, isTruncated: trimmed.count > 20))
+        scheduleAutosave()
+        return gratitudes.count - 1
+    }
+
+    /// Updates the item immediately with interim label. Returns index or nil.
+    func updateNeedImmediate(at index: Int, fullText: String) -> Int? {
+        let trimmed = fullText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard index >= 0, index < needs.count, !trimmed.isEmpty else { return nil }
+
+        let interimLabel = String(trimmed.prefix(20))
+        needs[index] = JournalItem(
+            fullText: trimmed,
+            chipLabel: interimLabel,
+            isTruncated: trimmed.count > 20,
+            id: needs[index].id
+        )
+        scheduleAutosave()
+        return index
+    }
+
+    /// Appends item with interim label. Returns new index or nil.
+    func addNeedImmediate(_ sentence: String) -> Int? {
+        let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, needs.count < Self.slotCount else { return nil }
+
+        let interimLabel = String(trimmed.prefix(20))
+        needs.append(JournalItem(fullText: trimmed, chipLabel: interimLabel, isTruncated: trimmed.count > 20))
+        scheduleAutosave()
+        return needs.count - 1
+    }
+
+    /// Updates the item immediately with interim label. Returns index or nil.
+    func updatePersonImmediate(at index: Int, fullText: String) -> Int? {
+        let trimmed = fullText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard index >= 0, index < people.count, !trimmed.isEmpty else { return nil }
+
+        let interimLabel = String(trimmed.prefix(20))
+        people[index] = JournalItem(
+            fullText: trimmed,
+            chipLabel: interimLabel,
+            isTruncated: trimmed.count > 20,
+            id: people[index].id
+        )
+        scheduleAutosave()
+        return index
+    }
+
+    /// Appends item with interim label. Returns new index or nil.
+    func addPersonImmediate(_ sentence: String) -> Int? {
+        let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, people.count < Self.slotCount else { return nil }
+
+        let interimLabel = String(trimmed.prefix(20))
+        people.append(JournalItem(fullText: trimmed, chipLabel: interimLabel, isTruncated: trimmed.count > 20))
+        scheduleAutosave()
+        return people.count - 1
+    }
+
+    /// Runs summarization (offloaded from main actor when possible), then applies result and schedules autosave.
+    func summarizeAndUpdateChip(section: SummarizationSection, index: Int) async {
+        guard let fullText = fullTextForSection(section, at: index) else { return }
+        let result = await summarizeForChip(fullText, section: section)
+        applySummaryResult(result, to: section, at: index)
+        scheduleAutosave()
+    }
+
+    private func fullTextForSection(_ section: SummarizationSection, at index: Int) -> String? {
+        switch section {
+        case .gratitude: return index >= 0 && index < gratitudes.count ? gratitudes[index].fullText : nil
+        case .need: return index >= 0 && index < needs.count ? needs[index].fullText : nil
+        case .person: return index >= 0 && index < people.count ? people[index].fullText : nil
+        }
+    }
+
+    private func applySummaryResult(_ result: SummarizationResult, to section: SummarizationSection, at index: Int) {
+        switch section {
+        case .gratitude where index >= 0 && index < gratitudes.count:
+            gratitudes[index] = JournalItem(
+                fullText: gratitudes[index].fullText,
+                chipLabel: result.label,
+                isTruncated: result.isTruncated,
+                id: gratitudes[index].id
+            )
+        case .need where index >= 0 && index < needs.count:
+            needs[index] = JournalItem(
+                fullText: needs[index].fullText,
+                chipLabel: result.label,
+                isTruncated: result.isTruncated,
+                id: needs[index].id
+            )
+        case .person where index >= 0 && index < people.count:
+            people[index] = JournalItem(
+                fullText: people[index].fullText,
+                chipLabel: result.label,
+                isTruncated: result.isTruncated,
+                id: people[index].id
+            )
+        default:
+            break
+        }
     }
 
     /// Returns true if the item was removed (valid index).

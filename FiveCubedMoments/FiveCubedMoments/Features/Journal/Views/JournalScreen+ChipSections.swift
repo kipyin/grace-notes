@@ -51,10 +51,13 @@ extension JournalScreen {
                 input: $gratitudeInput,
                 editingIndex: $editingGratitudeIndex,
                 operations: ChipSectionOperations(
-                    update: viewModel.updateGratitude,
-                    add: viewModel.addGratitude,
+                    updateImmediate: viewModel.updateGratitudeImmediate,
+                    addImmediate: viewModel.addGratitudeImmediate,
                     fullText: viewModel.fullTextForGratitude,
-                    count: viewModel.gratitudes.count
+                    count: viewModel.gratitudes.count,
+                    summarizeAndUpdateChip: { idx in
+                        await viewModel.summarizeAndUpdateChip(section: SummarizationSection.gratitude, index: idx)
+                    }
                 )
             )
         case .need:
@@ -63,10 +66,13 @@ extension JournalScreen {
                 input: $needInput,
                 editingIndex: $editingNeedIndex,
                 operations: ChipSectionOperations(
-                    update: viewModel.updateNeed,
-                    add: viewModel.addNeed,
+                    updateImmediate: viewModel.updateNeedImmediate,
+                    addImmediate: viewModel.addNeedImmediate,
                     fullText: viewModel.fullTextForNeed,
-                    count: viewModel.needs.count
+                    count: viewModel.needs.count,
+                    summarizeAndUpdateChip: { idx in
+                        await viewModel.summarizeAndUpdateChip(section: SummarizationSection.need, index: idx)
+                    }
                 )
             )
         case .person:
@@ -75,10 +81,13 @@ extension JournalScreen {
                 input: $personInput,
                 editingIndex: $editingPersonIndex,
                 operations: ChipSectionOperations(
-                    update: viewModel.updatePerson,
-                    add: viewModel.addPerson,
+                    updateImmediate: viewModel.updatePersonImmediate,
+                    addImmediate: viewModel.addPersonImmediate,
                     fullText: viewModel.fullTextForPerson,
-                    count: viewModel.people.count
+                    count: viewModel.people.count,
+                    summarizeAndUpdateChip: { idx in
+                        await viewModel.summarizeAndUpdateChip(section: SummarizationSection.person, index: idx)
+                    }
                 )
             )
         }
