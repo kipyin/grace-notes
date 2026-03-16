@@ -224,6 +224,8 @@ A quick inspection suggests the codebase is **generally solid** and aligned with
 
 ## 8. Execution Order
 
+> **See also:** `CODE_QUALITY_IMPLEMENTATION_PATH.md` for a detailed, file-referenced implementation path with specific tasks and prioritization.
+
 ### Phase A: Quick Wins (1–2 hours)
 
 1. Run SwiftLint and record full output.
