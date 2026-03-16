@@ -133,16 +133,6 @@ final class JournalViewModel: ObservableObject {
         )
     }
 
-    private func summarize(_ text: String) async -> SummarizationResult {
-        let summarizer = summarizerProvider.currentSummarizer()
-        do {
-            return try await summarizer.summarize(text)
-        } catch {
-            return (try? await NaturalLanguageSummarizer().summarize(text))
-                ?? SummarizationResult(label: String(text.prefix(20)), isTruncated: text.count > 20)
-        }
-    }
-
     /// Returns true if the item was added (trimmed text non-empty and under slot limit).
     func addGratitude(_ sentence: String) async -> Bool {
         let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
