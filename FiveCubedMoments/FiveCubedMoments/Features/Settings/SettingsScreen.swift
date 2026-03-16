@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SettingsScreen: View {
-    @AppStorage("useCloudSummarization") private var useCloudSummarization = true
+    @AppStorage("useCloudSummarization") private var useCloudSummarization = false
     @AppStorage("confirmChipDeletion") private var confirmChipDeletion = true
 
     var body: some View {

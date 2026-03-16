@@ -15,10 +15,10 @@ final class JournalViewModelTests: XCTestCase {
     func test_loadTodayIfNeeded_createsSingleNormalizedEntry() throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200) // 2025-03-15 12:00:00 UTC
-        let vm = JournalViewModel(calendar: calendar, nowProvider: { now })
+        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now })
 
-        vm.loadTodayIfNeeded(using: context)
-        vm.loadTodayIfNeeded(using: context)
+        viewModel.loadTodayIfNeeded(using: context)
+        viewModel.loadTodayIfNeeded(using: context)
 
         let startOfDay = calendar.startOfDay(for: now)
         let nextDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
@@ -50,14 +50,14 @@ final class JournalViewModelTests: XCTestCase {
         context.insert(existingEntry)
         try context.save()
 
-        let vm = JournalViewModel(calendar: calendar, nowProvider: { now })
-        vm.loadEntry(for: now, using: context)
+        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now })
+        viewModel.loadEntry(for: now, using: context)
 
-        XCTAssertEqual(vm.gratitudes[0].fullText, "Family")
-        XCTAssertEqual(vm.needs[0].fullText, "Wisdom")
-        XCTAssertEqual(vm.people[0].fullText, "Friend")
-        XCTAssertEqual(vm.bibleNotes, "Psalm 23")
-        XCTAssertEqual(vm.reflections, "Trusting God")
+        XCTAssertEqual(viewModel.gratitudes[0].fullText, "Family")
+        XCTAssertEqual(viewModel.needs[0].fullText, "Wisdom")
+        XCTAssertEqual(viewModel.people[0].fullText, "Friend")
+        XCTAssertEqual(viewModel.bibleNotes, "Psalm 23")
+        XCTAssertEqual(viewModel.reflections, "Trusting God")
     }
 
     func test_loadEntry_forPastDate_loadsExistingPastEntry() throws {
@@ -78,14 +78,14 @@ final class JournalViewModelTests: XCTestCase {
         context.insert(pastEntry)
         try context.save()
 
-        let vm = JournalViewModel(calendar: calendar, nowProvider: { now })
-        vm.loadEntry(for: pastDate, using: context)
+        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now })
+        viewModel.loadEntry(for: pastDate, using: context)
 
-        XCTAssertEqual(vm.gratitudes[0].fullText, "Past gratitude")
-        XCTAssertEqual(vm.needs[0].fullText, "Past need")
-        XCTAssertEqual(vm.people[0].fullText, "Past person")
-        XCTAssertEqual(vm.bibleNotes, "Past notes")
-        XCTAssertEqual(vm.reflections, "Past reflection")
+        XCTAssertEqual(viewModel.gratitudes[0].fullText, "Past gratitude")
+        XCTAssertEqual(viewModel.needs[0].fullText, "Past need")
+        XCTAssertEqual(viewModel.people[0].fullText, "Past person")
+        XCTAssertEqual(viewModel.bibleNotes, "Past notes")
+        XCTAssertEqual(viewModel.reflections, "Past reflection")
     }
 
     func test_loadEntry_switchingDates_hydratesCorrectly() throws {
@@ -119,29 +119,29 @@ final class JournalViewModelTests: XCTestCase {
         context.insert(pastEntry)
         try context.save()
 
-        let vm = JournalViewModel(calendar: calendar, nowProvider: { now })
-        vm.loadTodayIfNeeded(using: context)
-        XCTAssertEqual(vm.gratitudes[0].fullText, "Today")
+        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now })
+        viewModel.loadTodayIfNeeded(using: context)
+        XCTAssertEqual(viewModel.gratitudes[0].fullText, "Today")
 
-        vm.loadEntry(for: pastDate, using: context)
-        XCTAssertEqual(vm.gratitudes[0].fullText, "Past")
+        viewModel.loadEntry(for: pastDate, using: context)
+        XCTAssertEqual(viewModel.gratitudes[0].fullText, "Past")
     }
 
     func test_exportSnapshot_trimsTextFromFieldsAndOmitsEmptySubmissions() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let vm = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
+        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
 
-        vm.loadEntry(for: now, using: context)
-        await vm.addGratitude("  Family  ")
-        await vm.addNeed("Peace")
-        await vm.addPerson("Alice")
-        await vm.addGratitude("   ") // whitespace-only should be rejected
-        await vm.addNeed("") // empty should be rejected
-        vm.updateBibleNotes("  Matthew 5  ")
-        vm.updateReflections("  Be patient today  ")
+        viewModel.loadEntry(for: now, using: context)
+        await viewModel.addGratitude("  Family  ")
+        await viewModel.addNeed("Peace")
+        await viewModel.addPerson("Alice")
+        await viewModel.addGratitude("   ") // whitespace-only should be rejected
+        await viewModel.addNeed("") // empty should be rejected
+        viewModel.updateBibleNotes("  Matthew 5  ")
+        viewModel.updateReflections("  Be patient today  ")
 
-        let payload = vm.exportSnapshot()
+        let payload = viewModel.exportSnapshot()
 
         XCTAssertEqual(payload.gratitudes, ["Family"])
         XCTAssertEqual(payload.needs, ["Peace"])
@@ -153,12 +153,12 @@ final class JournalViewModelTests: XCTestCase {
     func test_exportSnapshot_partialEntry_producesValidPayload() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let vm = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
+        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
 
-        vm.loadEntry(for: now, using: context)
-        await vm.addGratitude("One gratitude")
+        viewModel.loadEntry(for: now, using: context)
+        await viewModel.addGratitude("One gratitude")
 
-        let payload = vm.exportSnapshot()
+        let payload = viewModel.exportSnapshot()
 
         XCTAssertEqual(payload.gratitudes, ["One gratitude"])
         XCTAssertEqual(payload.needs, [])
@@ -171,50 +171,50 @@ final class JournalViewModelTests: XCTestCase {
     func test_updateGratitudeRejectsEmptyString_leavesOriginalUnchanged() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let vm = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
+        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
 
-        vm.loadEntry(for: now, using: context)
-        await vm.addGratitude("Family")
-        await vm.updateGratitude(at: 0, fullText: "   ")
+        viewModel.loadEntry(for: now, using: context)
+        await viewModel.addGratitude("Family")
+        await viewModel.updateGratitude(at: 0, fullText: "   ")
 
-        XCTAssertEqual(vm.gratitudes[0].fullText, "Family")
+        XCTAssertEqual(viewModel.gratitudes[0].fullText, "Family")
     }
 
     func test_updateNeedRejectsEmptyString_leavesOriginalUnchanged() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let vm = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
+        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
 
-        vm.loadEntry(for: now, using: context)
-        await vm.addNeed("Peace")
-        await vm.updateNeed(at: 0, fullText: "")
+        viewModel.loadEntry(for: now, using: context)
+        await viewModel.addNeed("Peace")
+        await viewModel.updateNeed(at: 0, fullText: "")
 
-        XCTAssertEqual(vm.needs[0].fullText, "Peace")
+        XCTAssertEqual(viewModel.needs[0].fullText, "Peace")
     }
 
     func test_updatePersonRejectsEmptyString_leavesOriginalUnchanged() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let vm = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
+        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
 
-        vm.loadEntry(for: now, using: context)
-        await vm.addPerson("Alice")
-        await vm.updatePerson(at: 0, fullText: "\n\t")
+        viewModel.loadEntry(for: now, using: context)
+        await viewModel.addPerson("Alice")
+        await viewModel.updatePerson(at: 0, fullText: "\n\t")
 
-        XCTAssertEqual(vm.people[0].fullText, "Alice")
+        XCTAssertEqual(viewModel.people[0].fullText, "Alice")
     }
 
     func test_updatesPersistAfterDebouncedAutosave() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let vm = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
+        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
 
-        vm.loadEntry(for: now, using: context)
-        await vm.addGratitude("  Family  ")
-        await vm.addNeed("Peace")
-        await vm.addPerson("Alice")
-        vm.updateBibleNotes("  Matthew 5  ")
-        vm.updateReflections("  Be patient today  ")
+        viewModel.loadEntry(for: now, using: context)
+        await viewModel.addGratitude("  Family  ")
+        await viewModel.addNeed("Peace")
+        await viewModel.addPerson("Alice")
+        viewModel.updateBibleNotes("  Matthew 5  ")
+        viewModel.updateReflections("  Be patient today  ")
 
         try await Task.sleep(nanoseconds: 800_000_000)
 
@@ -231,62 +231,62 @@ final class JournalViewModelTests: XCTestCase {
     func test_removeGratitude_validIndex_removesAndPersists() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let vm = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
+        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
 
-        vm.loadEntry(for: now, using: context)
-        await vm.addGratitude("First")
-        await vm.addGratitude("Second")
+        viewModel.loadEntry(for: now, using: context)
+        await viewModel.addGratitude("First")
+        await viewModel.addGratitude("Second")
 
-        let removed = vm.removeGratitude(at: 0)
+        let removed = viewModel.removeGratitude(at: 0)
 
         XCTAssertTrue(removed)
-        XCTAssertEqual(vm.gratitudes.count, 1)
-        XCTAssertEqual(vm.gratitudes[0].fullText, "Second")
+        XCTAssertEqual(viewModel.gratitudes.count, 1)
+        XCTAssertEqual(viewModel.gratitudes[0].fullText, "Second")
     }
 
     func test_removeGratitude_invalidIndex_returnsFalse() throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let vm = JournalViewModel(calendar: calendar, nowProvider: { now })
+        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now })
 
-        vm.loadEntry(for: now, using: context)
+        viewModel.loadEntry(for: now, using: context)
 
-        let removed = vm.removeGratitude(at: 99)
+        let removed = viewModel.removeGratitude(at: 99)
 
         XCTAssertFalse(removed)
-        XCTAssertEqual(vm.gratitudes.count, 0)
+        XCTAssertEqual(viewModel.gratitudes.count, 0)
     }
 
     func test_removeNeed_validIndex_removesAndPersists() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let vm = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
+        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
 
-        vm.loadEntry(for: now, using: context)
-        await vm.addNeed("Peace")
-        await vm.addNeed("Joy")
+        viewModel.loadEntry(for: now, using: context)
+        await viewModel.addNeed("Peace")
+        await viewModel.addNeed("Joy")
 
-        let removed = vm.removeNeed(at: 0)
+        let removed = viewModel.removeNeed(at: 0)
 
         XCTAssertTrue(removed)
-        XCTAssertEqual(vm.needs.count, 1)
-        XCTAssertEqual(vm.needs[0].fullText, "Joy")
+        XCTAssertEqual(viewModel.needs.count, 1)
+        XCTAssertEqual(viewModel.needs[0].fullText, "Joy")
     }
 
     func test_removePerson_validIndex_removesAndPersists() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let vm = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
+        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
 
-        vm.loadEntry(for: now, using: context)
-        await vm.addPerson("Alice")
-        await vm.addPerson("Bob")
+        viewModel.loadEntry(for: now, using: context)
+        await viewModel.addPerson("Alice")
+        await viewModel.addPerson("Bob")
 
-        let removed = vm.removePerson(at: 1)
+        let removed = viewModel.removePerson(at: 1)
 
         XCTAssertTrue(removed)
-        XCTAssertEqual(vm.people.count, 1)
-        XCTAssertEqual(vm.people[0].fullText, "Alice")
+        XCTAssertEqual(viewModel.people.count, 1)
+        XCTAssertEqual(viewModel.people[0].fullText, "Alice")
     }
 
     private func makeInMemoryContext() throws -> ModelContext {

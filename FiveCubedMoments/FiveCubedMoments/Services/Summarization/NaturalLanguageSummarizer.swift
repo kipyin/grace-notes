@@ -90,8 +90,8 @@ struct NaturalLanguageSummarizer: Summarizer {
             let word = String(text[tokenRange])
             guard word.count >= minNounLength else { return true }
 
-            if let t = tag {
-                switch t {
+            if let tag = tag {
+                switch tag {
                 case .personalName, .placeName, .organizationName:
                     nameTokens.append(word)
                 case .noun, .verb, .adjective:
