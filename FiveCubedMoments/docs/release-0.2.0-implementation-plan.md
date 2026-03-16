@@ -15,7 +15,7 @@ Decisions made for this release, with rationale:
 | **Reminders** | Defer to 0.3.0 | Release 0.2.0 is already substantial (fixes, chip delete, localization, external API). Reminders add UserNotifications, settings UI, and persistence. Better to ship 0.2.0 and tackle reminders as a focused follow-up. |
 | **Monthly calendar view** | Exploration doc only | Document pros/cons in `calendar-view-exploration.md`; implement in 0.3.0+ if the analysis supports it. Avoids scope creep and allows time to evaluate UX tradeoffs (accessibility, empty-cell semantics). |
 | **Chinese localization** | zh-Hans only | Simplified Chinese covers the largest Chinese-speaking audience and primary censoring concerns. zh-Hant (Traditional) can be added in a later release if needed. |
-| **External summarizer API** | Include in 0.2.0 | Release plan noted this may accelerate. The `Summarizer` protocol is already injectable; adding a cloud option differentiates the product and enables better labels for complex sentences. Use free-tier API (e.g., Google Gemini) with NL fallback for offline/resilience. |
+| **External summarizer API** | Include in 0.2.0 | Release plan noted this may accelerate. The `Summarizer` protocol is already injectable; adding a cloud option differentiates the product and enables better labels for complex sentences. Use OpenAI-compatible API (https://chat.cloudapi.vip) with NL fallback for offline/resilience. |
 
 ---
 
@@ -94,7 +94,7 @@ Decisions made for this release, with rationale:
    Or: single protocol with `func summarize(_ sentence: String) async throws -> SummarizationResult`; `NaturalLanguageSummarizer` implements it with immediate return.
 
 2. **CloudSummarizer:** New type that:
-   - Calls a free-tier API (e.g., Google Gemini via REST)
+   - Calls OpenAI-compatible API (https://chat.cloudapi.vip via REST)
    - Prompt: "Summarize this into 1–5 words for a chip label: [sentence]"
    - On failure (network, timeout, quota): fall back to `NaturalLanguageSummarizer`
    - API key stored in Keychain
@@ -105,7 +105,7 @@ Decisions made for this release, with rationale:
 
 5. **Fallback:** Always fall back to NL on API failure so the app remains usable offline.
 
-**API choice:** Prefer **Google Gemini** (Google AI Studio) for free tier; alternative: SummarizeAPI (100 summaries/month). Document the choice and any rate limits in code comments.
+**API choice:** Use **chat.cloudapi.vip** (OpenAI-compatible; supports GPT, Claude, Gemini, DeepSeek, etc.). Base URL: https://chat.cloudapi.vip/v1. Document the choice and base URL in code comments.
 
 **Files:**
 - `FiveCubedMoments/FiveCubedMoments/Services/Summarization/Summarizer.swift` — extend or add async protocol
