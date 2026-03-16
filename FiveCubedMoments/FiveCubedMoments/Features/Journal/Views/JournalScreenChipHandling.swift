@@ -1,6 +1,8 @@
 import SwiftUI
 
 /// Parameters for chip tap/delete operations. Used to reduce duplication across gratitude/need/person sections.
+/// Marked @MainActor so it can store JournalViewModel method references and mutate SwiftUI Bindings safely.
+@MainActor
 struct ChipSectionOperations {
     let update: (Int, String) async -> Bool
     let add: (String) async -> Bool
@@ -8,6 +10,7 @@ struct ChipSectionOperations {
     let count: Int
 }
 
+@MainActor
 enum JournalScreenChipHandling {
 
     /// Submits the current input as update or add, then clears input on success.
@@ -36,7 +39,7 @@ enum JournalScreenChipHandling {
     /// Performs the delete-chip flow: removes the item and updates editing state.
     static func performDelete(
         index: Int,
-        remove: (Int) -> Bool,
+        remove: @MainActor (Int) -> Bool,
         input: Binding<String>,
         editingIndex: Binding<Int?>
     ) {
