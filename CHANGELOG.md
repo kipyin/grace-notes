@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.2] - Unreleased
+
+### Added
+- (none)
+
+### Changed
+- (none)
+
+### Fixed
+- (none)
+
+### Developer
+- (none)
+
 ## [0.2.1] - 2026-03-16
 
 ### Changed
