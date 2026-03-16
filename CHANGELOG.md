@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.1] - 2026-03-16
+
+### Added
+- Save to Photos option in share sheet for journal cards
+- "Add new" chip button in sequential sections (Gratitudes, Needs, People)
+- Release 0.2.0 planning doc
+
+### Changed
+- iOS deployment target lowered from 18.6 to 17.0 for broader device support
+- Asset catalog moved into app target folder
+
+### Fixed
+- NL summarizer now prefers named entities (people, places, orgs) for chip labels
+
 ## [0.1.0] - 2026-03-16
 
 ### Added
