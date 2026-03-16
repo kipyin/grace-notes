@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.1] - 2026-03-16
+
+### Changed
+- Chip deletion UX: long-press to delete with optional confirmation (Settings: "Confirm chip deletion"); removed deletion mode, wiggle, minus badge, double-tap
+- Journal screen dismisses keyboard immediately when scrolling
+
+### Fixed
+- (none)
+
+### Developer
+- ApiSecrets doc comment clarity
+- Remove unused JournalViewModel.summarize; remove WiggleModifier
+
 ## [0.2.0] - 2026-03-16
 
 ### Added
