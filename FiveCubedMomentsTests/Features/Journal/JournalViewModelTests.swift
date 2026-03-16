@@ -130,7 +130,11 @@ final class JournalViewModelTests: XCTestCase {
     func test_exportSnapshot_trimsTextFromFieldsAndOmitsEmptySubmissions() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
+        let viewModel = JournalViewModel(
+            calendar: calendar,
+            nowProvider: { now },
+            summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer())
+        )
 
         viewModel.loadEntry(for: now, using: context)
         await viewModel.addGratitude("  Family  ")
@@ -153,7 +157,11 @@ final class JournalViewModelTests: XCTestCase {
     func test_exportSnapshot_partialEntry_producesValidPayload() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
+        let viewModel = JournalViewModel(
+            calendar: calendar,
+            nowProvider: { now },
+            summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer())
+        )
 
         viewModel.loadEntry(for: now, using: context)
         await viewModel.addGratitude("One gratitude")
@@ -171,7 +179,11 @@ final class JournalViewModelTests: XCTestCase {
     func test_updateGratitudeRejectsEmptyString_leavesOriginalUnchanged() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
+        let viewModel = JournalViewModel(
+            calendar: calendar,
+            nowProvider: { now },
+            summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer())
+        )
 
         viewModel.loadEntry(for: now, using: context)
         await viewModel.addGratitude("Family")
@@ -183,7 +195,11 @@ final class JournalViewModelTests: XCTestCase {
     func test_updateNeedRejectsEmptyString_leavesOriginalUnchanged() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
+        let viewModel = JournalViewModel(
+            calendar: calendar,
+            nowProvider: { now },
+            summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer())
+        )
 
         viewModel.loadEntry(for: now, using: context)
         await viewModel.addNeed("Peace")
@@ -195,7 +211,11 @@ final class JournalViewModelTests: XCTestCase {
     func test_updatePersonRejectsEmptyString_leavesOriginalUnchanged() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
+        let viewModel = JournalViewModel(
+            calendar: calendar,
+            nowProvider: { now },
+            summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer())
+        )
 
         viewModel.loadEntry(for: now, using: context)
         await viewModel.addPerson("Alice")
@@ -207,7 +227,11 @@ final class JournalViewModelTests: XCTestCase {
     func test_updatesPersistAfterDebouncedAutosave() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
+        let viewModel = JournalViewModel(
+            calendar: calendar,
+            nowProvider: { now },
+            summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer())
+        )
 
         viewModel.loadEntry(for: now, using: context)
         await viewModel.addGratitude("  Family  ")
@@ -231,7 +255,11 @@ final class JournalViewModelTests: XCTestCase {
     func test_removeGratitude_validIndex_removesAndPersists() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
+        let viewModel = JournalViewModel(
+            calendar: calendar,
+            nowProvider: { now },
+            summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer())
+        )
 
         viewModel.loadEntry(for: now, using: context)
         await viewModel.addGratitude("First")
@@ -260,7 +288,11 @@ final class JournalViewModelTests: XCTestCase {
     func test_removeNeed_validIndex_removesAndPersists() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
+        let viewModel = JournalViewModel(
+            calendar: calendar,
+            nowProvider: { now },
+            summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer())
+        )
 
         viewModel.loadEntry(for: now, using: context)
         await viewModel.addNeed("Peace")
@@ -276,7 +308,11 @@ final class JournalViewModelTests: XCTestCase {
     func test_removePerson_validIndex_removesAndPersists() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()))
+        let viewModel = JournalViewModel(
+            calendar: calendar,
+            nowProvider: { now },
+            summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer())
+        )
 
         viewModel.loadEntry(for: now, using: context)
         await viewModel.addPerson("Alice")
