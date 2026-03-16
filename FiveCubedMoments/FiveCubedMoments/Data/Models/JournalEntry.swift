@@ -50,6 +50,8 @@ final class JournalEntry {
     }
 
     /// Shared completion criteria used by JournalEntry and JournalViewModel.
+    /// An entry is complete when it has at least `slotCount` gratitudes, needs, and people,
+    /// plus non-empty (after trimming) bibleNotes and reflections.
     static func criteriaMet(
         gratitudesCount: Int,
         needsCount: Int,
@@ -66,5 +68,7 @@ final class JournalEntry {
             !reflectionsTrimmed.isEmpty
     }
 
+    /// Maximum number of items per chip section (gratitudes, needs, people).
+    /// The "5³" design means each section holds at most 5 items.
     static let slotCount = 5
 }

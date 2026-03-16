@@ -204,14 +204,14 @@ identifier_name:
 
 ---
 
-### Phase 5: Optional Enhancements (Backlog)
+### Phase 5: Optional Enhancements ✅
 
 | # | Task | Notes |
 |---|------|-------|
-| 5.1 | Migrate to `@Observable` | iOS 17+; replace `ObservableObject` + `@Published` with `@Observable`. Reduces boilerplate. |
-| 5.2 | Consolidate ViewModel add/update/remove | Generic `addItem(_:section:)` etc. — only if it clearly improves readability. AGENTS.md cautions against abstraction for its own sake. |
-| 5.3 | Document assumptions | Add comments to `JournalEntry.slotCount`, `criteriaMet`; document "gratitudes count ≤ 5" in design docs. |
-| 5.4 | PersistenceController error handling | Consider surfacing to user instead of `fatalError` for production resilience. |
+| 5.1 | Migrate to `@Observable` | ✅ Done. Replaced `ObservableObject` + `@Published` with `@Observable` in JournalViewModel. JournalScreen uses `@State` instead of `@StateObject`. |
+| 5.2 | Consolidate ViewModel add/update/remove | Skipped. AGENTS.md cautions against abstraction for its own sake; current explicit methods are clear. |
+| 5.3 | Document assumptions | ✅ Done. Added comments to `JournalEntry.slotCount`, `criteriaMet`; documented "gratitudes count ≤ 5" in DESIGN_SPEC.md. |
+| 5.4 | PersistenceController error handling | ✅ Documented. Added comment explaining `fatalError` rationale and future improvement (surface to user). |
 
 ---
 

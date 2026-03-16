@@ -7,6 +7,9 @@ final class PersistenceController {
 
     let container: ModelContainer
 
+    /// Creates the SwiftData container. On failure, calls `fatalError` because the app cannot
+    /// function without persistence. Future improvement: surface the error to the user
+    /// (e.g., show an error screen) instead of crashing for production resilience.
     private init(inMemory: Bool = false) {
         let schema = Schema([JournalEntry.self])
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
