@@ -90,6 +90,7 @@ struct JournalScreen: View {
             }
             .padding()
         }
+        .scrollDismissesKeyboard(.immediately)
         .scrollContentBackground(.hidden)
         .background(AppTheme.background)
         .navigationTitle(navigationTitle)
