@@ -252,6 +252,22 @@
         }
       }
     },
+    "Saved to Photos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved to Photos"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已保存到相册"
+          }
+        }
+      }
+    },
     "Settings" : {
       "localizations" : {
         "en" : {

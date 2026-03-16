@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 import SwiftData
 import UIKit
@@ -7,6 +8,8 @@ struct JournalScreen: View {
     @StateObject private var viewModel = JournalViewModel()
     @State private var shareableImage: ShareableImage?
     @State private var showShareError = false
+    @State private var showSavedToPhotosToast = false
+    @State private var savedToPhotosDismissTask: Task<Void, Never>?
 
     @State private var gratitudeInput = ""
     @State private var needInput = ""
@@ -114,6 +117,26 @@ struct JournalScreen: View {
         } message: {
             Text("Unable to create share image.")
         }
+        .overlay {
+            if showSavedToPhotosToast {
+                VStack {
+                    Spacer()
+                    savedToPhotosToast
+                }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .photoSavedToLibrary)) { _ in
+            savedToPhotosDismissTask?.cancel()
+            withAnimation(.easeInOut(duration: 0.2)) {
+                showSavedToPhotosToast = true
+            }
+            savedToPhotosDismissTask = Task { @MainActor in
+                try? await Task.sleep(for: .seconds(2.5))
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    showSavedToPhotosToast = false
+                }
+            }
+        }
         .task {
             if let date = entryDate {
                 viewModel.loadEntry(for: date, using: modelContext)
@@ -121,6 +144,25 @@ struct JournalScreen: View {
                 viewModel.loadTodayIfNeeded(using: modelContext)
             }
         }
+    }
+
+    private var savedToPhotosToast: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundStyle(AppTheme.complete)
+            Text(String(localized: "Saved to Photos"))
+                .font(AppTheme.warmPaperBody)
+                .foregroundStyle(AppTheme.textPrimary)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(AppTheme.paper)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(AppTheme.border, lineWidth: 1)
+        )
+        .padding(.bottom, 32)
     }
 
     private var dateSection: some View {

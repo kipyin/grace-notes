@@ -1,5 +1,10 @@
+import Foundation
 import Photos
 import UIKit
+
+extension Notification.Name {
+    static let photoSavedToLibrary = Notification.Name("photoSavedToLibrary")
+}
 
 /// Custom UIActivity that saves an image to the photo library.
 /// Requires NSPhotoLibraryAddUsageDescription in Info.plist.
@@ -31,6 +36,9 @@ final class SaveToPhotosActivity: UIActivity {
             PHAssetChangeRequest.creationRequestForAsset(from: self.image)
         } completionHandler: { [weak self] success, _ in
             DispatchQueue.main.async {
+                if success {
+                    NotificationCenter.default.post(name: .photoSavedToLibrary, object: nil)
+                }
                 self?.activityDidFinish(success)
             }
         }
