@@ -1,4 +1,7 @@
 import Foundation
+import os
+
+private let log = Logger(subsystem: "com.fivecubedmoments.FiveCubedMoments", category: "CloudSummarizer")
 
 /// Calls OpenAI-compatible chat completions API at chat.cloudapi.vip.
 /// On any failure (network, timeout, invalid key, empty response), falls back to NaturalLanguageSummarizer.
@@ -32,8 +35,10 @@ struct CloudSummarizer: Summarizer {
         do {
             let label = try await callAPI(sentence: trimmed)
             let capped = label.count > maxLabelChars ? String(label.prefix(maxLabelChars)) : label
+            log.debug("Cloud summarization succeeded: \"\(trimmed)\" -> \"\(capped)\"")
             return SummarizationResult(label: capped, isTruncated: label.count > maxLabelChars)
         } catch {
+            log.info("Cloud API failed, using NL fallback: \(String(describing: error))")
             if let result = try? await fallback.summarize(sentence) {
                 return result
             }
@@ -67,6 +72,7 @@ struct CloudSummarizer: Summarizer {
             throw CloudSummarizerError.invalidResponse
         }
         guard (200...299).contains(http.statusCode) else {
+            log.info("Cloud API HTTP \(http.statusCode)")
             throw CloudSummarizerError.httpError(statusCode: http.statusCode)
         }
 
