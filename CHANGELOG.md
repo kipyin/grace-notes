@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.2.0] - 2026-03-16
+
+### Added
+- Chip delete: long-press chip to reveal delete button, tap x to remove
+- Cloud summarization: optional OpenAI-compatible API with NL fallback
+- Settings tab: toggle cloud summarization
+- Chinese (Simplified, zh-Hans) localization
+
+### Changed
+- Section renames for app store: "People To Pray For" → "People in Mind", "Bible Notes" → "Reading Notes"
+- Summarization protocol now async; ViewModel add/update flows use Task
+- Sequential progress text uses localized format
+
+### Fixed
+- Faded chips: cap extracted keyword labels to show truncation gradient
+
+### Developer
+- Calendar view exploration doc (defer implementation to 0.3.0)
+
 ## [0.1.1] - 2026-03-16
 
 ### Added
