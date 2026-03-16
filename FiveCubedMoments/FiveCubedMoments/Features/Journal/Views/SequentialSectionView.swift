@@ -39,6 +39,7 @@ struct SequentialSectionView: View {
     let editingIndex: Int?
     let onSubmit: () -> Void
     let onChipTap: (Int) -> Void
+    let onDeleteChip: ((Int) -> Void)?
     let onAddNew: (() -> Void)?
 
     init(
@@ -51,6 +52,7 @@ struct SequentialSectionView: View {
         editingIndex: Int?,
         onSubmit: @escaping () -> Void,
         onChipTap: @escaping (Int) -> Void,
+        onDeleteChip: ((Int) -> Void)? = nil,
         onAddNew: (() -> Void)? = nil
     ) {
         self.title = title
@@ -62,6 +64,7 @@ struct SequentialSectionView: View {
         self.editingIndex = editingIndex
         self.onSubmit = onSubmit
         self.onChipTap = onChipTap
+        self.onDeleteChip = onDeleteChip
         self.onAddNew = onAddNew
     }
 
@@ -95,7 +98,8 @@ struct SequentialSectionView: View {
                             ChipView(
                                 label: item.displayLabel,
                                 isTruncated: item.isTruncated,
-                                onTap: { onChipTap(index) }
+                                onTap: { onChipTap(index) },
+                                onDelete: onDeleteChip.map { handler in { handler(index) } }
                             )
                         }
                         if showAddChip, let addNew = onAddNew {

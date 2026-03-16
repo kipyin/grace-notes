@@ -228,6 +228,67 @@ final class JournalViewModelTests: XCTestCase {
         XCTAssertEqual(entries[0].reflections, "Be patient today")
     }
 
+    func test_removeGratitude_validIndex_removesAndPersists() throws {
+        let context = try makeInMemoryContext()
+        let now = Date(timeIntervalSince1970: 1_742_147_200)
+        let vm = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizer: MockSummarizer())
+
+        vm.loadEntry(for: now, using: context)
+        vm.addGratitude("First")
+        vm.addGratitude("Second")
+
+        let removed = vm.removeGratitude(at: 0)
+
+        XCTAssertTrue(removed)
+        XCTAssertEqual(vm.gratitudes.count, 1)
+        XCTAssertEqual(vm.gratitudes[0].fullText, "Second")
+    }
+
+    func test_removeGratitude_invalidIndex_returnsFalse() throws {
+        let context = try makeInMemoryContext()
+        let now = Date(timeIntervalSince1970: 1_742_147_200)
+        let vm = JournalViewModel(calendar: calendar, nowProvider: { now })
+
+        vm.loadEntry(for: now, using: context)
+
+        let removed = vm.removeGratitude(at: 99)
+
+        XCTAssertFalse(removed)
+        XCTAssertEqual(vm.gratitudes.count, 0)
+    }
+
+    func test_removeNeed_validIndex_removesAndPersists() throws {
+        let context = try makeInMemoryContext()
+        let now = Date(timeIntervalSince1970: 1_742_147_200)
+        let vm = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizer: MockSummarizer())
+
+        vm.loadEntry(for: now, using: context)
+        vm.addNeed("Peace")
+        vm.addNeed("Joy")
+
+        let removed = vm.removeNeed(at: 0)
+
+        XCTAssertTrue(removed)
+        XCTAssertEqual(vm.needs.count, 1)
+        XCTAssertEqual(vm.needs[0].fullText, "Joy")
+    }
+
+    func test_removePerson_validIndex_removesAndPersists() throws {
+        let context = try makeInMemoryContext()
+        let now = Date(timeIntervalSince1970: 1_742_147_200)
+        let vm = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizer: MockSummarizer())
+
+        vm.loadEntry(for: now, using: context)
+        vm.addPerson("Alice")
+        vm.addPerson("Bob")
+
+        let removed = vm.removePerson(at: 1)
+
+        XCTAssertTrue(removed)
+        XCTAssertEqual(vm.people.count, 1)
+        XCTAssertEqual(vm.people[0].fullText, "Alice")
+    }
+
     private func makeInMemoryContext() throws -> ModelContext {
         let schema = Schema([JournalEntry.self])
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)

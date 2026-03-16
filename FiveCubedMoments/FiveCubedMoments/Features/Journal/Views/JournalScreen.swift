@@ -44,6 +44,7 @@ struct JournalScreen: View {
                     editingIndex: editingGratitudeIndex,
                     onSubmit: { submitGratitude() },
                     onChipTap: { index in chipTapped(section: .gratitude, index: index) },
+                    onDeleteChip: { index in deleteChip(section: .gratitude, index: index) },
                     onAddNew: { addNewTapped(section: .gratitude) }
                 )
 
@@ -57,6 +58,7 @@ struct JournalScreen: View {
                     editingIndex: editingNeedIndex,
                     onSubmit: { submitNeed() },
                     onChipTap: { index in chipTapped(section: .need, index: index) },
+                    onDeleteChip: { index in deleteChip(section: .need, index: index) },
                     onAddNew: { addNewTapped(section: .need) }
                 )
 
@@ -70,6 +72,7 @@ struct JournalScreen: View {
                     editingIndex: editingPersonIndex,
                     onSubmit: { submitPerson() },
                     onChipTap: { index in chipTapped(section: .person, index: index) },
+                    onDeleteChip: { index in deleteChip(section: .person, index: index) },
                     onAddNew: { addNewTapped(section: .person) }
                 )
 
@@ -226,6 +229,35 @@ struct JournalScreen: View {
         case .person:
             editingPersonIndex = nil
             personInput = ""
+        }
+    }
+
+    private func deleteChip(section: ChipSection, index: Int) {
+        switch section {
+        case .gratitude:
+            _ = viewModel.removeGratitude(at: index)
+            if editingGratitudeIndex == index {
+                editingGratitudeIndex = nil
+                gratitudeInput = ""
+            } else if let editing = editingGratitudeIndex, editing > index {
+                editingGratitudeIndex = editing - 1
+            }
+        case .need:
+            _ = viewModel.removeNeed(at: index)
+            if editingNeedIndex == index {
+                editingNeedIndex = nil
+                needInput = ""
+            } else if let editing = editingNeedIndex, editing > index {
+                editingNeedIndex = editing - 1
+            }
+        case .person:
+            _ = viewModel.removePerson(at: index)
+            if editingPersonIndex == index {
+                editingPersonIndex = nil
+                personInput = ""
+            } else if let editing = editingPersonIndex, editing > index {
+                editingPersonIndex = editing - 1
+            }
         }
     }
 

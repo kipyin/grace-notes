@@ -199,6 +199,30 @@ final class JournalViewModel: ObservableObject {
         return true
     }
 
+    /// Returns true if the item was removed (valid index).
+    func removeGratitude(at index: Int) -> Bool {
+        guard index >= 0, index < gratitudes.count else { return false }
+        gratitudes.remove(at: index)
+        scheduleAutosave()
+        return true
+    }
+
+    /// Returns true if the item was removed (valid index).
+    func removeNeed(at index: Int) -> Bool {
+        guard index >= 0, index < needs.count else { return false }
+        needs.remove(at: index)
+        scheduleAutosave()
+        return true
+    }
+
+    /// Returns true if the item was removed (valid index).
+    func removePerson(at index: Int) -> Bool {
+        guard index >= 0, index < people.count else { return false }
+        people.remove(at: index)
+        scheduleAutosave()
+        return true
+    }
+
     func updateBibleNotes(_ value: String) {
         bibleNotes = value
         scheduleAutosave()
