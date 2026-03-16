@@ -39,9 +39,9 @@ final class JournalViewModelTests: XCTestCase {
         let startOfDay = calendar.startOfDay(for: now)
         let existingEntry = JournalEntry(
             entryDate: startOfDay,
-            gratitudes: ["Family"],
-            needs: ["Wisdom"],
-            people: ["Friend"],
+            gratitudes: [JournalItem(fullText: "Family", chipLabel: nil)],
+            needs: [JournalItem(fullText: "Wisdom", chipLabel: nil)],
+            people: [JournalItem(fullText: "Friend", chipLabel: nil)],
             bibleNotes: "Psalm 23",
             reflections: "Trusting God",
             createdAt: now,
@@ -53,9 +53,9 @@ final class JournalViewModelTests: XCTestCase {
         let vm = JournalViewModel(calendar: calendar, nowProvider: { now })
         vm.loadEntry(for: now, using: context)
 
-        XCTAssertEqual(vm.gratitudes[0], "Family")
-        XCTAssertEqual(vm.needs[0], "Wisdom")
-        XCTAssertEqual(vm.people[0], "Friend")
+        XCTAssertEqual(vm.gratitudes[0].fullText, "Family")
+        XCTAssertEqual(vm.needs[0].fullText, "Wisdom")
+        XCTAssertEqual(vm.people[0].fullText, "Friend")
         XCTAssertEqual(vm.bibleNotes, "Psalm 23")
         XCTAssertEqual(vm.reflections, "Trusting God")
     }
@@ -67,9 +67,9 @@ final class JournalViewModelTests: XCTestCase {
         let startOfPastDay = calendar.startOfDay(for: pastDate)
         let pastEntry = JournalEntry(
             entryDate: startOfPastDay,
-            gratitudes: ["Past gratitude"],
-            needs: ["Past need"],
-            people: ["Past person"],
+            gratitudes: [JournalItem(fullText: "Past gratitude", chipLabel: nil)],
+            needs: [JournalItem(fullText: "Past need", chipLabel: nil)],
+            people: [JournalItem(fullText: "Past person", chipLabel: nil)],
             bibleNotes: "Past notes",
             reflections: "Past reflection",
             createdAt: pastDate,
@@ -81,9 +81,9 @@ final class JournalViewModelTests: XCTestCase {
         let vm = JournalViewModel(calendar: calendar, nowProvider: { now })
         vm.loadEntry(for: pastDate, using: context)
 
-        XCTAssertEqual(vm.gratitudes[0], "Past gratitude")
-        XCTAssertEqual(vm.needs[0], "Past need")
-        XCTAssertEqual(vm.people[0], "Past person")
+        XCTAssertEqual(vm.gratitudes[0].fullText, "Past gratitude")
+        XCTAssertEqual(vm.needs[0].fullText, "Past need")
+        XCTAssertEqual(vm.people[0].fullText, "Past person")
         XCTAssertEqual(vm.bibleNotes, "Past notes")
         XCTAssertEqual(vm.reflections, "Past reflection")
     }
@@ -97,7 +97,7 @@ final class JournalViewModelTests: XCTestCase {
 
         let todayEntry = JournalEntry(
             entryDate: startOfToday,
-            gratitudes: ["Today"],
+            gratitudes: [JournalItem(fullText: "Today", chipLabel: nil)],
             needs: [],
             people: [],
             bibleNotes: "",
@@ -107,7 +107,7 @@ final class JournalViewModelTests: XCTestCase {
         )
         let pastEntry = JournalEntry(
             entryDate: startOfPastDay,
-            gratitudes: ["Past"],
+            gratitudes: [JournalItem(fullText: "Past", chipLabel: nil)],
             needs: [],
             people: [],
             bibleNotes: "",
@@ -121,21 +121,21 @@ final class JournalViewModelTests: XCTestCase {
 
         let vm = JournalViewModel(calendar: calendar, nowProvider: { now })
         vm.loadTodayIfNeeded(using: context)
-        XCTAssertEqual(vm.gratitudes[0], "Today")
+        XCTAssertEqual(vm.gratitudes[0].fullText, "Today")
 
         vm.loadEntry(for: pastDate, using: context)
-        XCTAssertEqual(vm.gratitudes[0], "Past")
+        XCTAssertEqual(vm.gratitudes[0].fullText, "Past")
     }
 
     func test_exportSnapshot_trimsTextAndOmitsEmptyStrings() throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let vm = JournalViewModel(calendar: calendar, nowProvider: { now })
+        let vm = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizer: MockSummarizer())
 
         vm.loadEntry(for: now, using: context)
-        vm.updateGratitudes(["  Family  ", "", "  ", "", ""])
-        vm.updateNeeds(["Peace", "", "", "", ""])
-        vm.updatePeople(["Alice", "", "", "", ""])
+        vm.addGratitude("  Family  ")
+        vm.addNeed("Peace")
+        vm.addPerson("Alice")
         vm.updateBibleNotes("  Matthew 5  ")
         vm.updateReflections("  Be patient today  ")
 
@@ -151,12 +151,10 @@ final class JournalViewModelTests: XCTestCase {
     func test_exportSnapshot_partialEntry_producesValidPayload() throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let vm = JournalViewModel(calendar: calendar, nowProvider: { now })
+        let vm = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizer: MockSummarizer())
 
         vm.loadEntry(for: now, using: context)
-        vm.updateGratitudes(["One gratitude", "", "", "", ""])
-        vm.updateNeeds([])
-        vm.updatePeople([])
+        vm.addGratitude("One gratitude")
 
         let payload = vm.exportSnapshot()
 
@@ -168,15 +166,51 @@ final class JournalViewModelTests: XCTestCase {
         XCTAssertFalse(payload.dateFormatted.isEmpty)
     }
 
+    func test_updateGratitudeRejectsEmptyString_leavesOriginalUnchanged() throws {
+        let context = try makeInMemoryContext()
+        let now = Date(timeIntervalSince1970: 1_742_147_200)
+        let vm = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizer: MockSummarizer())
+
+        vm.loadEntry(for: now, using: context)
+        vm.addGratitude("Family")
+        vm.updateGratitude(at: 0, fullText: "   ")
+
+        XCTAssertEqual(vm.gratitudes[0].fullText, "Family")
+    }
+
+    func test_updateNeedRejectsEmptyString_leavesOriginalUnchanged() throws {
+        let context = try makeInMemoryContext()
+        let now = Date(timeIntervalSince1970: 1_742_147_200)
+        let vm = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizer: MockSummarizer())
+
+        vm.loadEntry(for: now, using: context)
+        vm.addNeed("Peace")
+        vm.updateNeed(at: 0, fullText: "")
+
+        XCTAssertEqual(vm.needs[0].fullText, "Peace")
+    }
+
+    func test_updatePersonRejectsEmptyString_leavesOriginalUnchanged() throws {
+        let context = try makeInMemoryContext()
+        let now = Date(timeIntervalSince1970: 1_742_147_200)
+        let vm = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizer: MockSummarizer())
+
+        vm.loadEntry(for: now, using: context)
+        vm.addPerson("Alice")
+        vm.updatePerson(at: 0, fullText: "\n\t")
+
+        XCTAssertEqual(vm.people[0].fullText, "Alice")
+    }
+
     func test_updatesPersistAfterDebouncedAutosave() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let vm = JournalViewModel(calendar: calendar, nowProvider: { now })
+        let vm = JournalViewModel(calendar: calendar, nowProvider: { now }, summarizer: MockSummarizer())
 
         vm.loadEntry(for: now, using: context)
-        vm.updateGratitudes(["  Family  ", "", "", "", ""])
-        vm.updateNeeds(["Peace", "", "", "", ""])
-        vm.updatePeople(["Alice", "", "", "", ""])
+        vm.addGratitude("  Family  ")
+        vm.addNeed("Peace")
+        vm.addPerson("Alice")
         vm.updateBibleNotes("  Matthew 5  ")
         vm.updateReflections("  Be patient today  ")
 
@@ -185,9 +219,9 @@ final class JournalViewModelTests: XCTestCase {
         let descriptor = FetchDescriptor<JournalEntry>()
         let entries = try context.fetch(descriptor)
         XCTAssertEqual(entries.count, 1)
-        XCTAssertEqual(entries[0].gratitudes, ["Family"])
-        XCTAssertEqual(entries[0].needs, ["Peace"])
-        XCTAssertEqual(entries[0].people, ["Alice"])
+        XCTAssertEqual(entries[0].gratitudes.map(\.fullText), ["Family"])
+        XCTAssertEqual(entries[0].needs.map(\.fullText), ["Peace"])
+        XCTAssertEqual(entries[0].people.map(\.fullText), ["Alice"])
         XCTAssertEqual(entries[0].bibleNotes, "Matthew 5")
         XCTAssertEqual(entries[0].reflections, "Be patient today")
     }

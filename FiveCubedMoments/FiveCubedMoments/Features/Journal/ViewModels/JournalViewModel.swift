@@ -14,19 +14,19 @@ struct JournalExportPayload {
 @MainActor
 final class JournalViewModel: ObservableObject {
     @Published var entryDate: Date = .now
-    @Published var gratitudes: [String] = JournalViewModel.emptySlots
-    @Published var needs: [String] = JournalViewModel.emptySlots
-    @Published var people: [String] = JournalViewModel.emptySlots
+    @Published var gratitudes: [JournalItem] = []
+    @Published var needs: [JournalItem] = []
+    @Published var people: [JournalItem] = []
     @Published var bibleNotes: String = ""
     @Published var reflections: String = ""
     @Published private(set) var saveErrorMessage: String?
 
-    private static let slotCount = 5
-    private static let emptySlots = Array(repeating: "", count: slotCount)
+    static let slotCount = JournalEntry.slotCount
 
     private let calendar: Calendar
     private let nowProvider: () -> Date
     private let repository: JournalRepository
+    private let summarizer: Summarizer
     private let autosaveTrigger = PassthroughSubject<Void, Never>()
     private var cancellables: Set<AnyCancellable> = []
 
@@ -38,11 +38,13 @@ final class JournalViewModel: ObservableObject {
     init(
         calendar: Calendar = .current,
         nowProvider: @escaping () -> Date = Date.init,
-        repository: JournalRepository? = nil
+        repository: JournalRepository? = nil,
+        summarizer: Summarizer = NaturalLanguageSummarizer()
     ) {
         self.calendar = calendar
         self.nowProvider = nowProvider
         self.repository = repository ?? JournalRepository(calendar: calendar)
+        self.summarizer = summarizer
 
         autosaveTrigger
             .debounce(for: .milliseconds(400), scheduler: RunLoop.main)
@@ -89,9 +91,9 @@ final class JournalViewModel: ObservableObject {
         defer { isHydrating = false }
 
         entryDate = entry.entryDate
-        gratitudes = JournalViewModel.padded(entry.gratitudes)
-        needs = JournalViewModel.padded(entry.needs)
-        people = JournalViewModel.padded(entry.people)
+        gratitudes = entry.gratitudes
+        needs = entry.needs
+        people = entry.people
         bibleNotes = entry.bibleNotes
         reflections = entry.reflections
     }
@@ -99,13 +101,13 @@ final class JournalViewModel: ObservableObject {
     private func persistChanges() {
         guard !isHydrating, let context = modelContext, let entry = journalEntry else { return }
 
-        entry.gratitudes = cleaned(gratitudes)
-        entry.needs = cleaned(needs)
-        entry.people = cleaned(people)
+        entry.gratitudes = gratitudes
+        entry.needs = needs
+        entry.people = people
         entry.bibleNotes = bibleNotes.trimmingCharacters(in: .whitespacesAndNewlines)
         entry.reflections = reflections.trimmingCharacters(in: .whitespacesAndNewlines)
         entry.updatedAt = nowProvider()
-        entry.completedAt = isCompleteEnough(entry: entry) ? (entry.completedAt ?? nowProvider()) : nil
+        entry.completedAt = isCompleteEnough ? (entry.completedAt ?? nowProvider()) : nil
 
         do {
             try context.save()
@@ -120,49 +122,70 @@ final class JournalViewModel: ObservableObject {
         autosaveTrigger.send(())
     }
 
-    private func cleaned(_ values: [String]) -> [String] {
-        values
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-    }
-
-    private func isCompleteEnough(entry: JournalEntry) -> Bool {
-        !entry.gratitudes.isEmpty &&
-        !entry.needs.isEmpty &&
-        !entry.people.isEmpty &&
-        !entry.bibleNotes.isEmpty &&
-        !entry.reflections.isEmpty
-    }
-
-    private static func padded(_ values: [String]) -> [String] {
-        var normalized = values
-        if normalized.count > slotCount {
-            normalized = Array(normalized.prefix(slotCount))
-        }
-
-        if normalized.count < slotCount {
-            normalized.append(contentsOf: Array(repeating: "", count: slotCount - normalized.count))
-        }
-        return normalized
+    private var isCompleteEnough: Bool {
+        gratitudes.count >= Self.slotCount &&
+        needs.count >= Self.slotCount &&
+        people.count >= Self.slotCount &&
+        !bibleNotes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !reflections.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     var completedToday: Bool {
-        guard let entry = journalEntry else { return false }
-        return isCompleteEnough(entry: entry)
+        guard journalEntry != nil else { return false }
+        return isCompleteEnough
     }
 
-    func updateGratitudes(_ values: [String]) {
-        gratitudes = JournalViewModel.padded(values)
+    func addGratitude(_ sentence: String) {
+        let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, gratitudes.count < Self.slotCount else { return }
+
+        let result = summarizer.summarize(trimmed)
+        gratitudes.append(JournalItem(fullText: trimmed, chipLabel: result.label, isTruncated: result.isTruncated))
         scheduleAutosave()
     }
 
-    func updateNeeds(_ values: [String]) {
-        needs = JournalViewModel.padded(values)
+    func addNeed(_ sentence: String) {
+        let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, needs.count < Self.slotCount else { return }
+
+        let result = summarizer.summarize(trimmed)
+        needs.append(JournalItem(fullText: trimmed, chipLabel: result.label, isTruncated: result.isTruncated))
         scheduleAutosave()
     }
 
-    func updatePeople(_ values: [String]) {
-        people = JournalViewModel.padded(values)
+    func addPerson(_ sentence: String) {
+        let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, people.count < Self.slotCount else { return }
+
+        let result = summarizer.summarize(trimmed)
+        people.append(JournalItem(fullText: trimmed, chipLabel: result.label, isTruncated: result.isTruncated))
+        scheduleAutosave()
+    }
+
+    func updateGratitude(at index: Int, fullText: String) {
+        let trimmed = fullText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard index >= 0, index < gratitudes.count, !trimmed.isEmpty else { return }
+
+        let result = summarizer.summarize(trimmed)
+        gratitudes[index] = JournalItem(fullText: trimmed, chipLabel: result.label, isTruncated: result.isTruncated)
+        scheduleAutosave()
+    }
+
+    func updateNeed(at index: Int, fullText: String) {
+        let trimmed = fullText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard index >= 0, index < needs.count, !trimmed.isEmpty else { return }
+
+        let result = summarizer.summarize(trimmed)
+        needs[index] = JournalItem(fullText: trimmed, chipLabel: result.label, isTruncated: result.isTruncated)
+        scheduleAutosave()
+    }
+
+    func updatePerson(at index: Int, fullText: String) {
+        let trimmed = fullText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard index >= 0, index < people.count, !trimmed.isEmpty else { return }
+
+        let result = summarizer.summarize(trimmed)
+        people[index] = JournalItem(fullText: trimmed, chipLabel: result.label, isTruncated: result.isTruncated)
         scheduleAutosave()
     }
 
@@ -176,15 +199,30 @@ final class JournalViewModel: ObservableObject {
         scheduleAutosave()
     }
 
+    func fullTextForGratitude(at index: Int) -> String? {
+        guard index >= 0, index < gratitudes.count else { return nil }
+        return gratitudes[index].fullText
+    }
+
+    func fullTextForNeed(at index: Int) -> String? {
+        guard index >= 0, index < needs.count else { return nil }
+        return needs[index].fullText
+    }
+
+    func fullTextForPerson(at index: Int) -> String? {
+        guard index >= 0, index < people.count else { return nil }
+        return people[index].fullText
+    }
+
     func exportSnapshot() -> JournalExportPayload {
         let formatter = DateFormatter()
         formatter.dateStyle = .long
         let dateStr = formatter.string(from: entryDate)
         return JournalExportPayload(
             dateFormatted: dateStr,
-            gratitudes: cleaned(gratitudes),
-            needs: cleaned(needs),
-            people: cleaned(people),
+            gratitudes: gratitudes.map(\.fullText),
+            needs: needs.map(\.fullText),
+            people: people.map(\.fullText),
             bibleNotes: bibleNotes.trimmingCharacters(in: .whitespacesAndNewlines),
             reflections: reflections.trimmingCharacters(in: .whitespacesAndNewlines)
         )
