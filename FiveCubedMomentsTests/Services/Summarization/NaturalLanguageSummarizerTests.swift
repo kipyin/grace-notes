@@ -59,11 +59,13 @@ final class NaturalLanguageSummarizerTests: XCTestCase {
     /// Long extracted labels (e.g. place names) should be truncated with isTruncated = true
     /// so chips render the gradient fade and avoid overflow.
     func test_summarize_longExtractedLabel_returnsTruncatedWithIsTruncatedTrue() async throws {
-        let result = try await sut.summarize("I traveled through John Smith International Airport today", section: .person)
+        let input = "I traveled through John Smith International Airport today"
+        let result = try await sut.summarize(input, section: .person)
         XCTAssertFalse(result.label.isEmpty)
         if result.isTruncated {
-            XCTAssertLessThanOrEqual(result.label.count, 20,
-                                    "When truncated, label must be at most 20 chars, got: '\(result.label)' (\(result.label.count) chars)")
+            let msg = "When truncated, label must be at most 20 chars, got: '\(result.label)' "
+                + "(\(result.label.count) chars)"
+            XCTAssertLessThanOrEqual(result.label.count, 20, msg)
         }
     }
 

@@ -16,7 +16,8 @@ struct SettingsScreen: View {
                     .font(AppTheme.warmPaperHeader)
                     .foregroundStyle(AppTheme.textPrimary)
             } footer: {
-                Text("When on, long-pressing a chip shows a confirmation before deleting. When off, long-press deletes immediately.")
+                Text("When on, long-pressing a chip shows a confirmation before deleting. "
+                    + "When off, long-press deletes immediately.")
                     .font(AppTheme.warmPaperBody)
                     .foregroundStyle(AppTheme.textMuted)
             }
@@ -30,7 +31,8 @@ struct SettingsScreen: View {
                     .font(AppTheme.warmPaperHeader)
                     .foregroundStyle(AppTheme.textPrimary)
             } footer: {
-                Text("When on, chip labels use an online service for better summaries. When off, labels use on-device processing only.")
+                Text("When on, chip labels use an online service for better summaries. "
+                    + "When off, labels use on-device processing only.")
                     .font(AppTheme.warmPaperBody)
                     .foregroundStyle(AppTheme.textMuted)
             }

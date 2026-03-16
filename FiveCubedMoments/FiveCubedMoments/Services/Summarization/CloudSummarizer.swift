@@ -42,12 +42,14 @@ struct CloudSummarizer: Summarizer {
             if let result = try? await fallback.summarize(sentence, section: section) {
                 return result
             }
-            return SummarizationResult(label: String(trimmed.prefix(maxLabelChars)), isTruncated: trimmed.count > maxLabelChars)
+            let fallbackLabel = String(trimmed.prefix(maxLabelChars))
+            return SummarizationResult(label: fallbackLabel, isTruncated: trimmed.count > maxLabelChars)
         }
     }
 
     private func prompt(for section: SummarizationSection, sentence: String) -> String {
-        let bilingualNote = " Input may be in English or Chinese (中文); respond in the same language as the input with a short chip label (1–5 words or 1–5 字)."
+        let bilingualNote = " Input may be in English or Chinese (中文); respond in the same language " +
+            "as the input with a short chip label (1–5 words or 1–5 字)."
         let baseSuffix = " Reply with only the label, no punctuation."
         switch section {
         case .gratitude:
