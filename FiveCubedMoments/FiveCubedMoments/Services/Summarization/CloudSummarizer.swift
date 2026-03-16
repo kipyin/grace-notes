@@ -10,7 +10,7 @@ struct CloudSummarizer: Summarizer {
     private let baseURL: String
     private let model: String
     private let apiKey: String
-    private let fallback: NaturalLanguageSummarizer
+    private let fallback: any Summarizer
     private let urlSession: URLSession
     private let maxLabelChars = 20
 
@@ -18,13 +18,13 @@ struct CloudSummarizer: Summarizer {
         baseURL: String = "https://chat.cloudapi.vip/v1",
         model: String = "gpt-4o-mini",
         apiKey: String,
-        fallback: NaturalLanguageSummarizer = NaturalLanguageSummarizer(),
+        fallback: (any Summarizer)? = nil,
         urlSession: URLSession = .shared
     ) {
         self.baseURL = baseURL
         self.model = model
         self.apiKey = apiKey
-        self.fallback = fallback
+        self.fallback = fallback ?? NaturalLanguageSummarizer()
         self.urlSession = urlSession
     }
 

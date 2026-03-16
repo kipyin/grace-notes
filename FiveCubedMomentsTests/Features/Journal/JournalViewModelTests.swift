@@ -325,6 +325,103 @@ final class JournalViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.people[0].fullText, "Alice")
     }
 
+    func test_completedToday_withFullEntry_returnsTrue() async throws {
+        let context = try makeInMemoryContext()
+        let now = Date(timeIntervalSince1970: 1_742_147_200)
+        let viewModel = JournalViewModel(
+            calendar: calendar,
+            nowProvider: { now },
+            summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer())
+        )
+
+        viewModel.loadEntry(for: now, using: context)
+        for index in 1...5 {
+            _ = await viewModel.addGratitude("Gratitude \(index)")
+            _ = await viewModel.addNeed("Need \(index)")
+            _ = await viewModel.addPerson("Person \(index)")
+        }
+        viewModel.updateBibleNotes("Psalm 23")
+        viewModel.updateReflections("Today was meaningful")
+
+        XCTAssertTrue(viewModel.completedToday)
+    }
+
+    func test_completedToday_withPartialEntry_returnsFalse() async throws {
+        let context = try makeInMemoryContext()
+        let now = Date(timeIntervalSince1970: 1_742_147_200)
+        let viewModel = JournalViewModel(
+            calendar: calendar,
+            nowProvider: { now },
+            summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer())
+        )
+
+        viewModel.loadEntry(for: now, using: context)
+        _ = await viewModel.addGratitude("One")
+        _ = await viewModel.addNeed("One")
+        _ = await viewModel.addPerson("One")
+        viewModel.updateBibleNotes("Notes")
+        viewModel.updateReflections("Reflections")
+
+        XCTAssertFalse(viewModel.completedToday)
+    }
+
+    func test_addGratitude_atSlotLimit_returnsFalseAndDoesNotAdd() async throws {
+        let context = try makeInMemoryContext()
+        let now = Date(timeIntervalSince1970: 1_742_147_200)
+        let viewModel = JournalViewModel(
+            calendar: calendar,
+            nowProvider: { now },
+            summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer())
+        )
+
+        viewModel.loadEntry(for: now, using: context)
+        for index in 1...5 {
+            _ = await viewModel.addGratitude("Gratitude \(index)")
+        }
+        let sixth = await viewModel.addGratitude("Sixth gratitude")
+
+        XCTAssertFalse(sixth)
+        XCTAssertEqual(viewModel.gratitudes.count, 5)
+    }
+
+    func test_addNeed_atSlotLimit_returnsFalseAndDoesNotAdd() async throws {
+        let context = try makeInMemoryContext()
+        let now = Date(timeIntervalSince1970: 1_742_147_200)
+        let viewModel = JournalViewModel(
+            calendar: calendar,
+            nowProvider: { now },
+            summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer())
+        )
+
+        viewModel.loadEntry(for: now, using: context)
+        for index in 1...5 {
+            _ = await viewModel.addNeed("Need \(index)")
+        }
+        let sixth = await viewModel.addNeed("Sixth need")
+
+        XCTAssertFalse(sixth)
+        XCTAssertEqual(viewModel.needs.count, 5)
+    }
+
+    func test_addPerson_atSlotLimit_returnsFalseAndDoesNotAdd() async throws {
+        let context = try makeInMemoryContext()
+        let now = Date(timeIntervalSince1970: 1_742_147_200)
+        let viewModel = JournalViewModel(
+            calendar: calendar,
+            nowProvider: { now },
+            summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer())
+        )
+
+        viewModel.loadEntry(for: now, using: context)
+        for index in 1...5 {
+            _ = await viewModel.addPerson("Person \(index)")
+        }
+        let sixth = await viewModel.addPerson("Sixth person")
+
+        XCTAssertFalse(sixth)
+        XCTAssertEqual(viewModel.people.count, 5)
+    }
+
     private func makeInMemoryContext() throws -> ModelContext {
         let schema = Schema([JournalEntry.self])
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
