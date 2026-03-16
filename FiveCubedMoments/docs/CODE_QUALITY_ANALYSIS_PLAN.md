@@ -10,7 +10,7 @@ A quick inspection suggests the codebase is **generally solid** and aligned with
 
 | Pillar | Impression | Notes |
 |--------|-------------|-------|
-| **Aesthetic** | Good with caveats | Clear names, single representation (`JournalExportPayload`), sparse comments. `JournalScreen` is large (341 lines) and one function has high cyclomatic complexity; extraction recommended. |
+| **Aesthetic** | Good with caveats | Clear names, single representation (`JournalExportPayload`), sparse comments. `JournalScreen` is large (374 lines as of analysis) and one function has high cyclomatic complexity; extraction recommended. |
 | **Hygienic** | Strong | Explicit boundaries (Views → ViewModel → Repository), typed contracts (`Summarizer`, `SummarizationResult`), shared completion logic (`JournalEntry.criteriaMet`). |
 | **Robust** | Good | Input validation in add/update/remove, `saveErrorMessage` for users, injection points for testing. Fallback when summarizer fails. |
 
@@ -18,7 +18,7 @@ A quick inspection suggests the codebase is **generally solid** and aligned with
 
 **Swift:** Uses SwiftData `@Model`/`#Predicate`, `async/await`, `@MainActor`, Combine for debounce, `String(localized:)`. Idiomatic overall.
 
-**SwiftLint:** 46 violations (7 errors). Main issues: `identifier_name` (`vm`, `c`, `t`, `r`, `g`, `b`), `JournalScreen` complexity/body length, and `line_length`.
+**SwiftLint:** Baseline at analysis: 46 violations (7 errors). Main issues: `identifier_name` (`vm`, `c`, `t`, `r`, `g`, `b`), `JournalScreen` complexity/body length, and `line_length`. Run `swiftlint lint` for current counts; AGENTS.md may report different numbers if it predates this analysis.
 
 ---
 
@@ -57,7 +57,7 @@ A quick inspection suggests the codebase is **generally solid** and aligned with
 
 ### 2.2 Known Signals (from initial inspection)
 
-- **JournalScreen.swift**: `type_body_length` (341 lines), `cyclomatic_complexity` (18), `function_body_length` (53 lines) — suggests extraction of subviews or section logic.
+- **JournalScreen.swift**: `type_body_length` (374 lines as of analysis), `cyclomatic_complexity` (18), `function_body_length` (53 lines) — suggests extraction of subviews or section logic.
 - **JournalViewModel**: Repetitive `add*/update*/remove*` for gratitudes/needs/people — may be intentional (clarity) or refactorable.
 - **Identifier names**: `vm`, `c`, `t`, `r`, `g`, `b` violate SwiftLint `identifier_name` — fix to improve clarity.
 
@@ -200,7 +200,7 @@ A quick inspection suggests the codebase is **generally solid** and aligned with
 
 ## 7. SwiftLint Baseline
 
-**Current**: 46 violations, 7 serious (per `swiftlint lint`).
+**Current (baseline at analysis)**: 46 violations, 7 serious. Run `swiftlint lint` for up-to-date counts.
 
 ### Violation Summary (for tracking)
 
@@ -264,4 +264,4 @@ After running the plan, produce:
 
 | Date | Author | Changes |
 |------|--------|---------|
-| 2025-03-16 | — | Initial plan created |
+| 2025-03-16 | — | Initial plan created (date reflects analysis snapshot) |
