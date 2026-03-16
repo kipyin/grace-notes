@@ -60,10 +60,36 @@
       }
     },
     "Cancel" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消"
+          }
+        }
+      }
     },
     "Chips" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chips"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "标签"
+          }
+        }
+      }
     },
     "Completed for today" : {
       "localizations" : {
@@ -82,7 +108,20 @@
       }
     },
     "Confirm chip deletion" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirm chip deletion"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除前确认"
+          }
+        }
+      }
     },
     "Date" : {
       "localizations" : {
@@ -117,7 +156,20 @@
       }
     },
     "Delete %@?" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete %@?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除「%@」？"
+          }
+        }
+      }
     },
     "Gratitudes" : {
       "localizations" : {
@@ -504,7 +556,20 @@
       }
     },
     "When on, long-pressing a chip shows a confirmation before deleting. When off, long-press deletes immediately." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When on, long-pressing a chip shows a confirmation before deleting. When off, long-press deletes immediately."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开启时，长按标签会先确认再删除。关闭时，长按直接删除。"
+          }
+        }
+      }
     },
     "Who are you thinking of today?" : {
       "localizations" : {

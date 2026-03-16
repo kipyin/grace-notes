@@ -35,6 +35,29 @@ struct ChipView: View {
                     delete()
                 }
             })
+            .contextMenu {
+                if onDelete != nil {
+                    Button(role: .destructive) {
+                        if confirmChipDeletion {
+                            showDeleteConfirm = true
+                        } else {
+                            onDelete?()
+                        }
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                }
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction(named: "Delete") {
+                guard onDelete != nil else { return }
+                if confirmChipDeletion {
+                    showDeleteConfirm = true
+                } else {
+                    onDelete?()
+                }
+            }
             .confirmationDialog("Delete \(label)?", isPresented: $showDeleteConfirm) {
                 Button("Delete", role: .destructive) {
                     onDelete?()
