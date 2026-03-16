@@ -27,6 +27,12 @@ struct FiveCubedMomentsApp: App {
                 .tabItem {
                     Label("History", systemImage: "clock.arrow.circlepath")
                 }
+                NavigationStack {
+                    SettingsScreen()
+                }
+                .tabItem {
+                    Label("Settings", systemImage: "gearshape")
+                }
             }
             .preferredColorScheme(.light)
             .background(AppTheme.background)

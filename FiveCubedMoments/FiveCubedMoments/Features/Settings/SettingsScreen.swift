@@ -1,0 +1,26 @@
+import SwiftUI
+
+struct SettingsScreen: View {
+    @AppStorage("useCloudSummarization") private var useCloudSummarization = true
+
+    var body: some View {
+        List {
+            Section {
+                Toggle("Use cloud summarization", isOn: $useCloudSummarization)
+                    .font(AppTheme.warmPaperBody)
+                    .foregroundStyle(AppTheme.textPrimary)
+            } header: {
+                Text("Summarization")
+                    .font(AppTheme.warmPaperHeader)
+                    .foregroundStyle(AppTheme.textPrimary)
+            } footer: {
+                Text("When on, chip labels use an online service for better summaries. When off, labels use on-device processing only.")
+                    .font(AppTheme.warmPaperBody)
+                    .foregroundStyle(AppTheme.textMuted)
+            }
+        }
+        .scrollContentBackground(.hidden)
+        .background(AppTheme.background)
+        .navigationTitle("Settings")
+    }
+}
