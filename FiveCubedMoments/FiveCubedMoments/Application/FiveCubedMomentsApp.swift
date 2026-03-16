@@ -28,6 +28,9 @@ struct FiveCubedMomentsApp: App {
                     Label("History", systemImage: "clock.arrow.circlepath")
                 }
             }
+            .preferredColorScheme(.light)
+            .background(AppTheme.background)
+            .tint(AppTheme.accent)
         }
         .modelContainer(persistenceController.container)
     }
