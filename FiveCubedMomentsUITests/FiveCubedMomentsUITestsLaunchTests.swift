@@ -9,7 +9,8 @@ import XCTest
 
 final class FiveCubedMomentsUITestsLaunchTests: XCTestCase {
 
-    override static var runsForEachTargetApplicationUIConfiguration: Bool {
+    // swiftlint:disable:next static_over_final_class
+    override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true
     }
 
