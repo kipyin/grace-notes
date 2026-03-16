@@ -8,7 +8,11 @@ struct NaturalLanguageSummarizer: Summarizer {
     private let minNounLength = 2
     private let maxKeywordLabelChars = 20
 
-    func summarize(_ sentence: String) -> SummarizationResult {
+    func summarize(_ sentence: String) async throws -> SummarizationResult {
+        summarizeSync(sentence)
+    }
+
+    private func summarizeSync(_ sentence: String) -> SummarizationResult {
         let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return SummarizationResult(label: "", isTruncated: false) }
 

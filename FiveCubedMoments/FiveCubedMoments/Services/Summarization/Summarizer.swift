@@ -6,5 +6,5 @@ struct SummarizationResult {
 }
 
 protocol Summarizer {
-    func summarize(_ sentence: String) -> SummarizationResult
+    func summarize(_ sentence: String) async throws -> SummarizationResult
 }
