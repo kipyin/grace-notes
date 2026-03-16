@@ -5,8 +5,7 @@ import UIKit
 struct JournalScreen: View {
     @Environment(\.modelContext) private var modelContext
     @StateObject private var viewModel = JournalViewModel()
-    @State private var shareImage: UIImage?
-    @State private var showShareSheet = false
+    @State private var shareableImage: ShareableImage?
     @State private var showShareError = false
 
     @State private var gratitudeInput = ""
@@ -44,7 +43,8 @@ struct JournalScreen: View {
                     inputText: $gratitudeInput,
                     editingIndex: editingGratitudeIndex,
                     onSubmit: { submitGratitude() },
-                    onChipTap: { index in chipTapped(section: .gratitude, index: index) }
+                    onChipTap: { index in chipTapped(section: .gratitude, index: index) },
+                    onAddNew: { addNewTapped(section: .gratitude) }
                 )
 
                 SequentialSectionView(
@@ -56,7 +56,8 @@ struct JournalScreen: View {
                     inputText: $needInput,
                     editingIndex: editingNeedIndex,
                     onSubmit: { submitNeed() },
-                    onChipTap: { index in chipTapped(section: .need, index: index) }
+                    onChipTap: { index in chipTapped(section: .need, index: index) },
+                    onAddNew: { addNewTapped(section: .need) }
                 )
 
                 SequentialSectionView(
@@ -68,7 +69,8 @@ struct JournalScreen: View {
                     inputText: $personInput,
                     editingIndex: editingPersonIndex,
                     onSubmit: { submitPerson() },
-                    onChipTap: { index in chipTapped(section: .person, index: index) }
+                    onChipTap: { index in chipTapped(section: .person, index: index) },
+                    onAddNew: { addNewTapped(section: .person) }
                 )
 
                 bibleNotesSection
@@ -96,10 +98,11 @@ struct JournalScreen: View {
                 .accessibilityIdentifier("Share")
             }
         }
-        .sheet(isPresented: $showShareSheet) {
-            if let image = shareImage {
-                ShareSheet(activityItems: [image])
-            }
+        .sheet(item: $shareableImage) { item in
+            ShareSheet(
+                activityItems: [item.image],
+                applicationActivities: [SaveToPhotosActivity(image: item.image)]
+            )
         }
         .alert("Unable to share", isPresented: $showShareError) {
             Button("OK") {
@@ -212,6 +215,20 @@ struct JournalScreen: View {
         case gratitude, need, person
     }
 
+    private func addNewTapped(section: ChipSection) {
+        switch section {
+        case .gratitude:
+            editingGratitudeIndex = nil
+            gratitudeInput = ""
+        case .need:
+            editingNeedIndex = nil
+            needInput = ""
+        case .person:
+            editingPersonIndex = nil
+            personInput = ""
+        }
+    }
+
     private func chipTapped(section: ChipSection, index: Int) {
         switch section {
         case .gratitude:
@@ -258,8 +275,7 @@ struct JournalScreen: View {
     private func shareTapped() {
         let payload = viewModel.exportSnapshot()
         if let image = JournalShareRenderer.renderImage(from: payload) {
-            shareImage = image
-            showShareSheet = true
+            shareableImage = ShareableImage(image: image)
         } else {
             showShareError = true
         }
