@@ -86,7 +86,9 @@ struct NaturalLanguageSummarizer: Summarizer {
         let range = text.startIndex..<text.endIndex
         let options: NLTagger.Options = [.joinNames, .omitPunctuation, .omitWhitespace]
 
-        tagger.enumerateTags(in: range, unit: .word, scheme: .nameTypeOrLexicalClass, options: options) { tag, tokenRange in
+        tagger.enumerateTags(
+            in: range, unit: .word, scheme: .nameTypeOrLexicalClass, options: options
+        ) { tag, tokenRange in
             let word = String(text[tokenRange])
             guard word.count >= minNounLength else { return true }
 
