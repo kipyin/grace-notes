@@ -35,7 +35,10 @@ struct JournalScreen: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                dateSection
+                DateSectionView(
+                    entryDate: viewModel.entryDate,
+                    completedToday: viewModel.completedToday
+                )
 
                 SequentialSectionView(
                     title: String(localized: "Gratitudes"),
@@ -79,8 +82,20 @@ struct JournalScreen: View {
                     onAddNew: { addNewTapped(section: .person) }
                 )
 
-                bibleNotesSection
-                reflectionsSection
+                EditableTextSection(
+                    title: String(localized: "Reading Notes"),
+                    text: Binding(
+                        get: { viewModel.bibleNotes },
+                        set: { viewModel.updateBibleNotes($0) }
+                    )
+                )
+                EditableTextSection(
+                    title: String(localized: "Reflections"),
+                    text: Binding(
+                        get: { viewModel.reflections },
+                        set: { viewModel.updateReflections($0) }
+                    )
+                )
 
                 if let saveErrorMessage = viewModel.saveErrorMessage {
                     Text(saveErrorMessage)
@@ -122,7 +137,7 @@ struct JournalScreen: View {
             if showSavedToPhotosToast {
                 VStack {
                     Spacer()
-                    savedToPhotosToast
+                    SavedToPhotosToastView()
                 }
             }
         }
@@ -147,217 +162,31 @@ struct JournalScreen: View {
         }
     }
 
-    private var savedToPhotosToast: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(AppTheme.complete)
-            Text(String(localized: "Saved to Photos"))
-                .font(AppTheme.warmPaperBody)
-                .foregroundStyle(AppTheme.textPrimary)
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(AppTheme.paper)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-        .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(AppTheme.border, lineWidth: 1)
-        )
-        .padding(.bottom, 32)
-    }
-
-    private var dateSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Date")
-                .font(AppTheme.warmPaperHeader)
-                .foregroundStyle(AppTheme.textPrimary)
-            HStack {
-                Text(viewModel.entryDate.formatted(date: .abbreviated, time: .omitted))
-                    .font(AppTheme.warmPaperBody)
-                    .foregroundStyle(AppTheme.textPrimary)
-                if viewModel.completedToday {
-                    Label("Completed for today", systemImage: "checkmark.circle.fill")
-                        .font(AppTheme.warmPaperBody)
-                        .foregroundStyle(AppTheme.complete)
-                } else {
-                    Label("In progress", systemImage: "pencil.circle")
-                        .font(AppTheme.warmPaperBody)
-                        .foregroundStyle(AppTheme.textMuted)
-                }
-            }
-        }
-    }
-
-    private var bibleNotesSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Reading Notes")
-                .font(AppTheme.warmPaperHeader)
-                .foregroundStyle(AppTheme.textPrimary)
-            TextEditor(text: Binding(
-                get: { viewModel.bibleNotes },
-                set: { viewModel.updateBibleNotes($0) }
-            ))
-            .font(AppTheme.warmPaperBody)
-            .foregroundStyle(AppTheme.textPrimary)
-            .scrollContentBackground(.hidden)
-            .frame(minHeight: 120)
-            .warmPaperInputStyle()
-        }
-    }
-
-    private var reflectionsSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Reflections")
-                .font(AppTheme.warmPaperHeader)
-                .foregroundStyle(AppTheme.textPrimary)
-            TextEditor(text: Binding(
-                get: { viewModel.reflections },
-                set: { viewModel.updateReflections($0) }
-            ))
-            .font(AppTheme.warmPaperBody)
-            .foregroundStyle(AppTheme.textPrimary)
-            .scrollContentBackground(.hidden)
-            .frame(minHeight: 120)
-            .warmPaperInputStyle()
-        }
-    }
-
     private func submitGratitude() async {
-        let succeeded: Bool
-        if let index = editingGratitudeIndex {
-            succeeded = await viewModel.updateGratitude(at: index, fullText: gratitudeInput)
-            if succeeded { editingGratitudeIndex = nil }
-        } else {
-            succeeded = await viewModel.addGratitude(gratitudeInput)
-        }
-        if succeeded { gratitudeInput = "" }
+        await JournalScreenChipHandling.submitChipSection(
+            editingIndex: $editingGratitudeIndex,
+            input: $gratitudeInput,
+            update: viewModel.updateGratitude,
+            add: viewModel.addGratitude
+        )
     }
 
     private func submitNeed() async {
-        let succeeded: Bool
-        if let index = editingNeedIndex {
-            succeeded = await viewModel.updateNeed(at: index, fullText: needInput)
-            if succeeded { editingNeedIndex = nil }
-        } else {
-            succeeded = await viewModel.addNeed(needInput)
-        }
-        if succeeded { needInput = "" }
+        await JournalScreenChipHandling.submitChipSection(
+            editingIndex: $editingNeedIndex,
+            input: $needInput,
+            update: viewModel.updateNeed,
+            add: viewModel.addNeed
+        )
     }
 
     private func submitPerson() async {
-        let succeeded: Bool
-        if let index = editingPersonIndex {
-            succeeded = await viewModel.updatePerson(at: index, fullText: personInput)
-            if succeeded { editingPersonIndex = nil }
-        } else {
-            succeeded = await viewModel.addPerson(personInput)
-        }
-        if succeeded { personInput = "" }
-    }
-
-    private enum ChipSection {
-        case gratitude, need, person
-    }
-
-    private func addNewTapped(section: ChipSection) {
-        switch section {
-        case .gratitude:
-            editingGratitudeIndex = nil
-            gratitudeInput = ""
-        case .need:
-            editingNeedIndex = nil
-            needInput = ""
-        case .person:
-            editingPersonIndex = nil
-            personInput = ""
-        }
-    }
-
-    private func deleteChip(section: ChipSection, index: Int) {
-        switch section {
-        case .gratitude:
-            _ = viewModel.removeGratitude(at: index)
-            if editingGratitudeIndex == index {
-                editingGratitudeIndex = nil
-                gratitudeInput = ""
-            } else if let editing = editingGratitudeIndex, editing > index {
-                editingGratitudeIndex = editing - 1
-            }
-        case .need:
-            _ = viewModel.removeNeed(at: index)
-            if editingNeedIndex == index {
-                editingNeedIndex = nil
-                needInput = ""
-            } else if let editing = editingNeedIndex, editing > index {
-                editingNeedIndex = editing - 1
-            }
-        case .person:
-            _ = viewModel.removePerson(at: index)
-            if editingPersonIndex == index {
-                editingPersonIndex = nil
-                personInput = ""
-            } else if let editing = editingPersonIndex, editing > index {
-                editingPersonIndex = editing - 1
-            }
-        }
-    }
-
-    private func chipTapped(section: ChipSection, index: Int) {
-        switch section {
-        case .gratitude:
-            Task {
-                var canSwitch = true
-                if let currentIndex = editingGratitudeIndex, !gratitudeInput.isEmpty {
-                    let succeeded = await viewModel.updateGratitude(at: currentIndex, fullText: gratitudeInput)
-                    canSwitch = succeeded
-                    if succeeded { gratitudeInput = "" }
-                } else if !gratitudeInput.isEmpty, viewModel.gratitudes.count < JournalViewModel.slotCount {
-                    let succeeded = await viewModel.addGratitude(gratitudeInput)
-                    canSwitch = succeeded
-                    if succeeded { gratitudeInput = "" }
-                }
-                if canSwitch, let fullText = viewModel.fullTextForGratitude(at: index) {
-                    gratitudeInput = fullText
-                    editingGratitudeIndex = index
-                }
-            }
-
-        case .need:
-            Task {
-                var canSwitch = true
-                if let currentIndex = editingNeedIndex, !needInput.isEmpty {
-                    let succeeded = await viewModel.updateNeed(at: currentIndex, fullText: needInput)
-                    canSwitch = succeeded
-                    if succeeded { needInput = "" }
-                } else if !needInput.isEmpty, viewModel.needs.count < JournalViewModel.slotCount {
-                    let succeeded = await viewModel.addNeed(needInput)
-                    canSwitch = succeeded
-                    if succeeded { needInput = "" }
-                }
-                if canSwitch, let fullText = viewModel.fullTextForNeed(at: index) {
-                    needInput = fullText
-                    editingNeedIndex = index
-                }
-            }
-
-        case .person:
-            Task {
-                var canSwitch = true
-                if let currentIndex = editingPersonIndex, !personInput.isEmpty {
-                    let succeeded = await viewModel.updatePerson(at: currentIndex, fullText: personInput)
-                    canSwitch = succeeded
-                    if succeeded { personInput = "" }
-                } else if !personInput.isEmpty, viewModel.people.count < JournalViewModel.slotCount {
-                    let succeeded = await viewModel.addPerson(personInput)
-                    canSwitch = succeeded
-                    if succeeded { personInput = "" }
-                }
-                if canSwitch, let fullText = viewModel.fullTextForPerson(at: index) {
-                    personInput = fullText
-                    editingPersonIndex = index
-                }
-            }
-        }
+        await JournalScreenChipHandling.submitChipSection(
+            editingIndex: $editingPersonIndex,
+            input: $personInput,
+            update: viewModel.updatePerson,
+            add: viewModel.addPerson
+        )
     }
 
     private func shareTapped() {
