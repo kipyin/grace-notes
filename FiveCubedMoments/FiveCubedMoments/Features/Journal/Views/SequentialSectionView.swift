@@ -74,20 +74,18 @@ struct SequentialSectionView: View {
 
     private var progressText: String {
         let formatKey = String(localized: "%d of %d")
-        let editingFormatKey = String(localized: "%d of %d — editing")
         let currentSlot: Int
         if let idx = editingIndex {
             currentSlot = idx + 1
-            return String(format: editingFormatKey, currentSlot, slotCount)
         } else {
             currentSlot = min(items.count + 1, slotCount)
-            return String(format: formatKey, currentSlot, slotCount)
         }
+        return String(format: formatKey, currentSlot, slotCount)
     }
 
     private var showAddChip: Bool {
         guard onAddNew != nil, !items.isEmpty else { return false }
-        return editingIndex != nil || items.count < slotCount
+        return items.count < slotCount
     }
 
     var body: some View {
