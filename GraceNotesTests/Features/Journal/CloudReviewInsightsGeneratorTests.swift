@@ -149,26 +149,80 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
         XCTAssertLessThanOrEqual(insights.continuityPrompt.count, 160)
     }
 
-    private func makeEntry(on date: Date) -> JournalEntry {
-        JournalEntry(
-            entryDate: date,
-            gratitudes: [JournalItem(fullText: "Family", chipLabel: "Family")],
-            needs: [JournalItem(fullText: "Rest", chipLabel: "Rest")],
-            people: [JournalItem(fullText: "Alex", chipLabel: "Alex")]
+    func test_generateInsights_parsesMarkdownFencedJSONPayload() async throws {
+        let generator = CloudReviewInsightsGenerator(
+            apiKey: "test-key",
+            urlSession: urlSession
         )
+        let innerPayload: [String: Any] = [
+            "narrativeSummary": "This week you reflected on Rest and Family.",
+            "resurfacingMessage": "You mentioned Rest 2 times this week.",
+            "continuityPrompt": "What can protect your Rest tomorrow?",
+            "recurringGratitudes": [["label": "Family", "count": 2]],
+            "recurringNeeds": [["label": "Rest", "count": 2]],
+            "recurringPeople": []
+        ]
+
+        let contentData = try JSONSerialization.data(withJSONObject: innerPayload)
+        let content = String(data: contentData, encoding: .utf8) ?? "{}"
+        setMockResponse(withRawContent: "```json\n\(content)\n```")
+
+        let insights = try await generator.generateInsights(
+            from: [makeEntry(on: date(year: 2026, month: 3, day: 17))],
+            referenceDate: date(year: 2026, month: 3, day: 18),
+            calendar: calendar
+        )
+
+        XCTAssertEqual(insights.recurringNeeds.first?.label, "Rest")
+        XCTAssertTrue(insights.continuityPrompt.contains("Rest"))
     }
 
-    private func setMockResponse(withInnerPayload innerPayload: [String: Any]) {
-        MockURLProtocol.mockResponse = { _ in
-            let contentData: Data
-            do {
-                contentData = try JSONSerialization.data(withJSONObject: innerPayload)
-            } catch {
-                return (nil, nil, error)
-            }
-            let content = String(data: contentData, encoding: .utf8) ?? "{}"
+    func test_generateInsights_genericContinuityPrompt_isReplacedWithThemePrompt() async throws {
+        let generator = CloudReviewInsightsGenerator(
+            apiKey: "test-key",
+            urlSession: urlSession
+        )
+        let innerPayload: [String: Any] = [
+            "narrativeSummary": "You kept a calm rhythm this week.",
+            "resurfacingMessage": "You mentioned Rest 3 times this week.",
+            "continuityPrompt": "Take it one day at a time.",
+            "recurringGratitudes": [["label": "Family", "count": 2]],
+            "recurringNeeds": [["label": "Rest", "count": 3]],
+            "recurringPeople": []
+        ]
+
+        setMockResponse(withInnerPayload: innerPayload)
+
+        let insights = try await generator.generateInsights(
+            from: [makeEntry(on: date(year: 2026, month: 3, day: 17))],
+            referenceDate: date(year: 2026, month: 3, day: 18),
+            calendar: calendar
+        )
+
+        XCTAssertTrue(insights.continuityPrompt.contains("Rest"))
+        XCTAssertFalse(insights.continuityPrompt.contains("one day at a time"))
+    }
+
+    func test_generateInsights_requestPrompt_includesInsightQualityRules() async throws {
+        let generator = CloudReviewInsightsGenerator(
+            apiKey: "test-key",
+            urlSession: urlSession
+        )
+        var capturedRequestBody: Data?
+
+        MockURLProtocol.mockResponse = { request in
+            capturedRequestBody = request.httpBody
             let response: [String: Any] = [
-                "choices": [["message": ["content": content]]]
+                "choices": [["message": ["content": """
+                {
+                  "narrativeSummary": "You reflected on Rest.",
+                  "resurfacingMessage": "You mentioned Rest 2 times this week.",
+                  "continuityPrompt": "What can protect your Rest tomorrow?",
+                  "recurringGratitudes": [],
+                  "recurringNeeds": [{"label":"Rest","count":2}],
+                  "recurringPeople": []
+                }
+                """]]]
             ]
             let data: Data
             do {
@@ -184,9 +238,80 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
             )!
             return (data, http, nil)
         }
+
+        _ = try await generator.generateInsights(
+            from: [makeEntry(on: date(year: 2026, month: 3, day: 17))],
+            referenceDate: date(year: 2026, month: 3, day: 18),
+            calendar: calendar
+        )
+
+        guard let capturedRequestBody else {
+            return XCTFail("Expected request body to be captured")
+        }
+        let requestObject = try JSONSerialization.jsonObject(with: capturedRequestBody)
+        guard let requestDict = requestObject as? [String: Any],
+              let messages = requestDict["messages"] as? [[String: Any]],
+              let prompt = messages.first?["content"] as? String
+        else {
+            return XCTFail("Expected prompt content in request")
+        }
+
+        XCTAssertTrue(prompt.contains("Ground messages in the provided week context"))
+        XCTAssertTrue(prompt.contains("continuityPrompt must be a specific follow-up question"))
     }
 
-    private func date(year: Int, month: Int, day: Int) -> Date {
+}
+
+private extension CloudReviewInsightsGeneratorTests {
+    func makeEntry(on date: Date) -> JournalEntry {
+        JournalEntry(
+            entryDate: date,
+            gratitudes: [JournalItem(fullText: "Family", chipLabel: "Family")],
+            needs: [JournalItem(fullText: "Rest", chipLabel: "Rest")],
+            people: [JournalItem(fullText: "Alex", chipLabel: "Alex")]
+        )
+    }
+
+    func setMockResponse(withInnerPayload innerPayload: [String: Any]) {
+        MockURLProtocol.mockResponse = { _ in
+            let contentData: Data
+            do {
+                contentData = try JSONSerialization.data(withJSONObject: innerPayload)
+            } catch {
+                return (nil, nil, error)
+            }
+            let content = String(data: contentData, encoding: .utf8) ?? "{}"
+            return makeMockAPIResponse(content: content)
+        }
+    }
+
+    func setMockResponse(withRawContent content: String) {
+        MockURLProtocol.mockResponse = { _ in
+            makeMockAPIResponse(content: content)
+        }
+    }
+
+    // swiftlint:disable:next large_tuple
+    func makeMockAPIResponse(content: String) -> (Data?, HTTPURLResponse?, Error?) {
+        let response: [String: Any] = [
+            "choices": [["message": ["content": content]]]
+        ]
+        let data: Data
+        do {
+            data = try JSONSerialization.data(withJSONObject: response)
+        } catch {
+            return (nil, nil, error)
+        }
+        let http = HTTPURLResponse(
+            url: URL(string: "https://example.com")!,
+            statusCode: 200,
+            httpVersion: nil,
+            headerFields: nil
+        )!
+        return (data, http, nil)
+    }
+
+    func date(year: Int, month: Int, day: Int) -> Date {
         var components = DateComponents()
         components.year = year
         components.month = month
