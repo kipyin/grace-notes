@@ -28,8 +28,6 @@ final class JournalUITests: XCTestCase {
         XCTAssertTrue(gratitudeField.waitForExistence(timeout: 5))
         gratitudeField.tap()
         gratitudeField.typeText("History test gratitude")
-        // Wait for autosave
-        sleep(1)
 
         // Switch to History tab
         app.tabBars.buttons["History"].tap()
@@ -61,7 +59,6 @@ final class JournalUITests: XCTestCase {
         XCTAssertTrue(gratitudeField.waitForExistence(timeout: 5))
         gratitudeField.tap()
         gratitudeField.typeText("Share test entry")
-        sleep(1)
 
         app.tabBars.buttons["History"].tap()
         XCTAssertTrue(app.staticTexts["History"].waitForExistence(timeout: 5))
