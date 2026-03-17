@@ -1,20 +1,28 @@
 import SwiftUI
+import SwiftData
 
 struct SettingsScreen: View {
     /// Default false to align with SummarizerProvider; first launch uses on-device NL summarization.
     @AppStorage("useCloudSummarization") private var useCloudSummarization = false
+    @AppStorage(ReviewInsightsProvider.useAIReviewInsightsKey) private var useAIReviewInsights = false
+    @AppStorage("iCloudSyncEnabled") private var iCloudSyncEnabled = true
     @AppStorage("confirmChipDeletion") private var confirmChipDeletion = true
     @AppStorage(ReminderSettings.enabledKey) private var dailyReminderEnabled = false
     @AppStorage(ReminderSettings.timeIntervalKey)
     private var dailyReminderTimeInterval = ReminderSettings.defaultTimeInterval
+    @Environment(\.modelContext) private var modelContext
 
     @State private var reminderDraftTime = ReminderSettings.date(from: ReminderSettings.defaultTimeInterval)
     @State private var isReminderTimePickerExpanded = false
     @State private var isSavingReminderTime = false
     @State private var reminderErrorMessage: String?
     @State private var showReminderError = false
+    @State private var exportErrorMessage: String?
+    @State private var showExportError = false
+    @State private var exportFile: ShareableFile?
 
     private let reminderScheduler = ReminderScheduler()
+    private let dataExportService = JournalDataExportService()
 
     var body: some View {
         List {
@@ -44,6 +52,21 @@ struct SettingsScreen: View {
             } footer: {
                 Text("When on, chip labels use an online service for better summaries. "
                     + "When off, labels use on-device processing only.")
+                    .font(AppTheme.warmPaperBody)
+                    .foregroundStyle(AppTheme.textMuted)
+            }
+
+            Section {
+                Toggle("Use AI review insights", isOn: $useAIReviewInsights)
+                    .font(AppTheme.warmPaperBody)
+                    .foregroundStyle(AppTheme.textPrimary)
+            } header: {
+                Text("Review Insights")
+                    .font(AppTheme.warmPaperHeader)
+                    .foregroundStyle(AppTheme.textPrimary)
+            } footer: {
+                Text("When on, weekly review insights may send your recent journal text "
+                    + "to the configured cloud AI service. When off, review insights stay on-device.")
                     .font(AppTheme.warmPaperBody)
                     .foregroundStyle(AppTheme.textMuted)
             }
@@ -107,10 +130,35 @@ struct SettingsScreen: View {
                     .font(AppTheme.warmPaperBody)
                     .foregroundStyle(AppTheme.textMuted)
             }
+
+            Section {
+                Toggle("Sync with iCloud", isOn: $iCloudSyncEnabled)
+                    .font(AppTheme.warmPaperBody)
+                    .foregroundStyle(AppTheme.textPrimary)
+
+                Button("Export journal data (JSON)") {
+                    exportJournalData()
+                }
+                .font(AppTheme.warmPaperBody)
+                .foregroundStyle(AppTheme.accent)
+            } header: {
+                Text("Data & Privacy")
+                    .font(AppTheme.warmPaperHeader)
+                    .foregroundStyle(AppTheme.textPrimary)
+            } footer: {
+                Text("Journal entries are stored locally and can sync through your iCloud private "
+                    + "database when enabled. Sync changes apply on next app launch. "
+                    + "Export creates a full JSON backup you can keep.")
+                    .font(AppTheme.warmPaperBody)
+                    .foregroundStyle(AppTheme.textMuted)
+            }
         }
         .scrollContentBackground(.hidden)
         .background(AppTheme.background)
         .navigationTitle("Settings")
+        .sheet(item: $exportFile) { file in
+            ShareSheet(activityItems: [file.url])
+        }
         .task {
             reminderDraftTime = savedReminderTime
             await syncReminderSchedule()
@@ -124,6 +172,11 @@ struct SettingsScreen: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text(reminderErrorMessage ?? "Please try again.")
+        }
+        .alert("Unable to export data", isPresented: $showExportError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(exportErrorMessage ?? "Please try again.")
         }
     }
 
@@ -180,4 +233,19 @@ struct SettingsScreen: View {
             break
         }
     }
+
+    private func exportJournalData() {
+        do {
+            let fileURL = try dataExportService.exportArchiveFile(context: modelContext)
+            exportFile = ShareableFile(url: fileURL)
+        } catch {
+            exportErrorMessage = "Unable to export your journal data right now."
+            showExportError = true
+        }
+    }
+}
+
+private struct ShareableFile: Identifiable {
+    let url: URL
+    var id: String { url.absoluteString }
 }
