@@ -1,9 +1,9 @@
 disabled_rules: []
 opt_in_rules: []
 included:
-  - FiveCubedMoments
-  - FiveCubedMomentsTests
-  - FiveCubedMomentsUITests
+  - GraceNotes/GraceNotes
+  - GraceNotesTests
+  - GraceNotesUITests
 excluded:
   - .build
   - DerivedData

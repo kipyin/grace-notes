@@ -29,5 +29,5 @@ DerivedData/
 .cursor/
 
 # Local secrets (do not commit real keys)
-FiveCubedMoments/Secrets.plist
-FiveCubedMoments/FiveCubedMoments/Services/Summarization/ApiSecrets.local.swift
+GraceNotes/Secrets.plist
+GraceNotes/GraceNotes/Services/Summarization/ApiSecrets.local.swift

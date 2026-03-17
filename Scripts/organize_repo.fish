@@ -1,12 +1,12 @@
 #!/usr/bin/env fish
 
 # Run this from the repo root, where you see:
-#   FiveCubedMoments/
-#   FiveCubedMoments.xcodeproj/
-#   FiveCubedMomentsTests/
-#   FiveCubedMomentsUITests/
+#   GraceNotes/
+#   GraceNotes.xcodeproj/
+#   GraceNotesTests/
+#   GraceNotesUITests/
 
-echo "Organizing FiveCubedMoments repo..."
+echo "Organizing GraceNotes repo..."
 
 # 1. Create .github/workflows if not present
 mkdir -p .github/workflows
@@ -31,8 +31,8 @@ if not test -f .github/workflows/ios-ci.yml
         echo "      - name: Build and test"
         echo "        run: |"
         echo "          xcodebuild \\"
-        echo "            -project FiveCubedMoments/FiveCubedMoments.xcodeproj \\"
-        echo "            -scheme FiveCubedMoments \\"
+        echo "            -project GraceNotes/GraceNotes.xcodeproj \\"
+        echo "            -scheme GraceNotes \\"
         echo "            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \\"
         echo "            test"
     end > .github/workflows/ios-ci.yml
@@ -43,16 +43,16 @@ end
 mkdir -p Scripts Tools
 
 # 3. Ensure main app folder exists
-mkdir -p FiveCubedMoments
+mkdir -p GraceNotes
 
 # 4. Move Xcode project into app folder (if not already there)
-if test -d "FiveCubedMoments.xcodeproj"
-    echo "Moving FiveCubedMoments.xcodeproj into FiveCubedMoments/"
-    mv FiveCubedMoments.xcodeproj FiveCubedMoments/
+if test -d "GraceNotes.xcodeproj"
+    echo "Moving GraceNotes.xcodeproj into GraceNotes/"
+    mv GraceNotes.xcodeproj GraceNotes/
 end
 
 # 5. Create app source structure
-set APP_SRC "FiveCubedMoments/FiveCubedMoments"
+set APP_SRC "GraceNotes/GraceNotes"
 
 mkdir -p \
     "$APP_SRC/Application" \
@@ -66,29 +66,29 @@ mkdir -p \
     "$APP_SRC/Resources"
 
 # 6. Move existing top-level Swift files into Application/ as a starting point
-set has_swift (ls FiveCubedMoments/*.swift 2> /dev/null)
+set has_swift (ls GraceNotes/*.swift 2> /dev/null)
 if test (count $has_swift) -gt 0
     echo "Moving top-level Swift files into Application/"
-    mv FiveCubedMoments/*.swift "$APP_SRC/Application/"
+    mv GraceNotes/*.swift "$APP_SRC/Application/"
 end
 
 # 7. Create placeholder Swift files if they don't exist yet
 
-# FiveCubedMomentsApp.swift
-if not test -f "$APP_SRC/Application/FiveCubedMomentsApp.swift"
+# GraceNotesApp.swift
+if not test -f "$APP_SRC/Application/GraceNotesApp.swift"
     begin
         echo "import SwiftUI"
         echo
         echo "@main"
-        echo "struct FiveCubedMomentsApp: App {"
+        echo "struct GraceNotesApp: App {"
         echo "    var body: some Scene {"
         echo "        WindowGroup {"
         echo "            JournalScreen()"
         echo "        }"
         echo "    }"
         echo "}"
-    end > "$APP_SRC/Application/FiveCubedMomentsApp.swift"
-    echo "Created $APP_SRC/Application/FiveCubedMomentsApp.swift"
+    end > "$APP_SRC/Application/GraceNotesApp.swift"
+    echo "Created $APP_SRC/Application/GraceNotesApp.swift"
 end
 
 # JournalScreen.swift
@@ -101,7 +101,7 @@ if not test -f "$APP_SRC/Features/Journal/Views/JournalScreen.swift"
         echo
         echo "    var body: some View {"
         echo "        NavigationStack {"
-        echo "            Text(\"Five Cubed Moments\")"
+        echo "            Text(\"Grace Notes\")"
         echo "                .navigationTitle(\"Today\")"
         echo "        }"
         echo "    }"
@@ -182,14 +182,14 @@ if not test -f "$APP_SRC/Data/Persistence/SwiftData/PersistenceController.swift"
 end
 
 # 8. Organize tests: mirror by feature
-mkdir -p FiveCubedMomentsTests/Features/Journal
-mkdir -p FiveCubedMomentsUITests
+mkdir -p GraceNotesTests/Features/Journal
+mkdir -p GraceNotesUITests
 
 # Basic placeholder unit test
-if not test -f "FiveCubedMomentsTests/Features/Journal/JournalViewModelTests.swift"
+if not test -f "GraceNotesTests/Features/Journal/JournalViewModelTests.swift"
     begin
         echo "import XCTest"
-        echo "@testable import FiveCubedMoments"
+        echo "@testable import GraceNotes"
         echo
         echo "final class JournalViewModelTests: XCTestCase {"
         echo "    func test_initialState_isValid() {"
@@ -198,12 +198,12 @@ if not test -f "FiveCubedMomentsTests/Features/Journal/JournalViewModelTests.swi
         echo "        XCTAssertNotNil(vm)"
         echo "    }"
         echo "}"
-    end > "FiveCubedMomentsTests/Features/Journal/JournalViewModelTests.swift"
-    echo "Created FiveCubedMomentsTests/Features/Journal/JournalViewModelTests.swift"
+    end > "GraceNotesTests/Features/Journal/JournalViewModelTests.swift"
+    echo "Created GraceNotesTests/Features/Journal/JournalViewModelTests.swift"
 end
 
 # Basic placeholder UI test
-if not test -f "FiveCubedMomentsUITests/JournalUITests.swift"
+if not test -f "GraceNotesUITests/JournalUITests.swift"
     begin
         echo "import XCTest"
         echo
@@ -214,11 +214,11 @@ if not test -f "FiveCubedMomentsUITests/JournalUITests.swift"
         echo "        // TODO: Add basic UI assertions"
         echo "    }"
         echo "}"
-    end > "FiveCubedMomentsUITests/JournalUITests.swift"
-    echo "Created FiveCubedMomentsUITests/JournalUITests.swift"
+    end > "GraceNotesUITests/JournalUITests.swift"
+    echo "Created GraceNotesUITests/JournalUITests.swift"
 end
 
 echo "Done. Next steps:"
-echo "1) open FiveCubedMoments/FiveCubedMoments.xcodeproj"
+echo "1) open GraceNotes/GraceNotes.xcodeproj"
 echo "2) In Xcode, fix any missing file references and add new files to the targets."
 echo "3) Run the app and tests to confirm everything builds."

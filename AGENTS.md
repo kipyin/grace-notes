@@ -4,7 +4,7 @@
 
 ### Project overview
 
-**Five Cubed Moments** is a native iOS journaling app (SwiftUI + SwiftData). It is a single Xcode project with zero third-party dependencies. See `README.md` for features and project structure.
+**Grace Notes** is a native iOS journaling app (SwiftUI + SwiftData). It is a single Xcode project with zero third-party dependencies. See `README.md` for features and project structure.
 
 ### Platform constraint
 
@@ -19,14 +19,14 @@ This project **requires macOS + Xcode 15+** to build, run, and test. The Cloud A
 
 - `xcodebuild build` / `xcodebuild test` — requires macOS + Xcode + iOS Simulator.
 - Running the app in the iOS Simulator — requires macOS.
-- Unit tests (`FiveCubedMomentsTests`) and UI tests (`FiveCubedMomentsUITests`) — require Xcode test runner.
+- Unit tests (`GraceNotesTests`) and UI tests (`GraceNotesUITests`) — require Xcode test runner.
 
 ### Build and test commands (macOS only)
 
 ```bash
 xcodebuild \
-  -project FiveCubedMoments/FiveCubedMoments.xcodeproj \
-  -scheme FiveCubedMoments \
+  -project GraceNotes/GraceNotes.xcodeproj \
+  -scheme GraceNotes \
   -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
   test
 ```

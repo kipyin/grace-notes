@@ -1,10 +1,10 @@
-# Five Cubed Moments
+# Grace Notes
 
-A 5³ journaling iOS app for daily gratitude, reflection, and people in mind.
+A journaling iOS app for daily gratitude, reflection, and people in mind.
 
 ## Overview
 
-Five Cubed Moments guides you through a simple daily rhythm: 5 gratitudes, 5 needs, 5 people in mind, reading notes, and space for what you're thinking and learning. The app offers a quiet, low-friction place for gratitude and reflection, with a gentle framing that feels welcoming rather than pushy.
+Grace Notes (`感恩记`) guides you through a simple daily rhythm: 5 gratitudes, 5 needs, 5 people in mind, reading notes, and space for what you're thinking and learning. The app offers a quiet, low-friction place for gratitude and reflection, with a gentle framing that feels welcoming rather than pushy.
 
 ## What's new in 0.2.3
 
@@ -16,7 +16,7 @@ Five Cubed Moments guides you through a simple daily rhythm: 5 gratitudes, 5 nee
 
 ## Features
 
-- **Daily journaling** – Today's 5³ entry with five gratitudes, five needs, five people in mind, reading notes, and reflections. Entries auto-create and save as you type.
+- **Daily journaling** - Today's entry with five gratitudes, five needs, five people in mind, reading notes, and reflections. Entries auto-create and save as you type.
 - **Sequential input** – Type a full sentence, press Enter; the app summarizes it to a chip label. Tap a chip to edit its text. Supports 5 gratitudes, 5 needs, 5 people.
 - **Review** – Browse past entries by month with weekly recurring-theme insights and continuity prompts.
 - **Structured Review modes** – Switch between Insight and Timeline modes for cleaner weekly reflection and archive browsing.
@@ -35,7 +35,7 @@ Five Cubed Moments guides you through a simple daily rhythm: 5 gratitudes, 5 nee
 ## Getting Started
 
 1. Clone the repository.
-2. Open `FiveCubedMoments/FiveCubedMoments.xcodeproj` in Xcode.
+2. Open `GraceNotes/GraceNotes.xcodeproj` in Xcode.
 3. For code signing, select your development team in the project's Signing & Capabilities (if needed).
 4. Select a simulator or device and run (⌘R). For a preview with sample journal entries, use the *FiveCubedMoments (Demo)* scheme.
 
@@ -62,7 +62,7 @@ Use the root `Makefile` for common local workflows:
 
 Cloud summarization is optional and defaults to off. To enable it safely:
 
-1. Set `FIVE_CUBED_CLOUD_API_KEY` in your local environment **or**
+1. Set `GRACE_NOTES_CLOUD_API_KEY` in your local environment **or**
 2. Set `CloudSummarizationAPIKey` in your local `Info.plist`.
 
 Keep real keys out of git. The checked-in placeholder value (`YOUR_KEY_HERE`) causes automatic fallback to
@@ -70,8 +70,9 @@ on-device summarization.
 
 ## Project Structure
 
-- `FiveCubedMoments/Application` – App entry point
-- `FiveCubedMoments/Features/Journal` – Journal UI, view models, and sharing
-- `FiveCubedMoments/Data` – Models and persistence (SwiftData)
-- `FiveCubedMoments/DesignSystem` – Theming and shared styling
-- `FiveCubedMoments/Services` – Summarization (Natural Language + optional cloud API for chip labels)
+- `GraceNotes/GraceNotes/Application` - App entry point
+- `GraceNotes/GraceNotes/Features/Journal` - Journal UI, view models, and sharing
+- `GraceNotes/GraceNotes/Data` - Models and persistence (SwiftData)
+- `GraceNotes/GraceNotes/DesignSystem` - Theming and shared styling
+- `GraceNotes/GraceNotes/Services` - Summarization (Natural Language + optional cloud API for chip labels)
+
