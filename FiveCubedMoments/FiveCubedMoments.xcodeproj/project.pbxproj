@@ -37,12 +37,12 @@
 		};
 		37D873422F66C99500955D3E /* FiveCubedMomentsTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = FiveCubedMomentsTests;
+			path = ../FiveCubedMomentsTests;
 			sourceTree = "<group>";
 		};
 		37D8734C2F66C99500955D3E /* FiveCubedMomentsUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = FiveCubedMomentsUITests;
+			path = ../FiveCubedMomentsUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
