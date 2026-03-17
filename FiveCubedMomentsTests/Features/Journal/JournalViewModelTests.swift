@@ -6,6 +6,11 @@ import SwiftData
 final class JournalViewModelTests: XCTestCase {
     private var calendar: Calendar!
 
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        try skipIfKnownHostedSwiftDataCrash()
+    }
+
     override func setUp() {
         super.setUp()
         calendar = Calendar(identifier: .gregorian)
@@ -210,7 +215,9 @@ final class JournalViewModelTests: XCTestCase {
 
     private func makeInMemoryContext() throws -> ModelContext {
         let schema = Schema([JournalEntry.self])
-        let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let storeURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("FiveCubedMomentsTests-\(UUID().uuidString).store")
+        let configuration = ModelConfiguration(schema: schema, url: storeURL)
         let container = try ModelContainer(for: schema, configurations: configuration)
         return ModelContext(container)
     }

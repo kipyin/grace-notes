@@ -33,9 +33,29 @@ final class PersistenceController {
             container = try ModelContainer(for: schema, configurations: configuration)
             PerformanceTrace.end("PersistenceController.init", startedAt: startupTrace)
         } catch {
-            PerformanceTrace.end("PersistenceController.init.failed", startedAt: startupTrace)
-            fatalError("Failed to create SwiftData container: \(error)")
+            if !inMemory, cloudSyncEnabled {
+                do {
+                    let fallbackConfiguration = Self.makeConfiguration(
+                        schema: schema,
+                        inMemory: false,
+                        cloudSyncEnabled: false
+                    )
+                    container = try ModelContainer(for: schema, configurations: fallbackConfiguration)
+                    Self.disableCloudSyncAfterFallback()
+                    PerformanceTrace.end("PersistenceController.init.fallback", startedAt: startupTrace)
+                } catch {
+                    PerformanceTrace.end("PersistenceController.init.failed", startedAt: startupTrace)
+                    fatalError("Failed to create SwiftData container (including local fallback): \(error)")
+                }
+            } else {
+                PerformanceTrace.end("PersistenceController.init.failed", startedAt: startupTrace)
+                fatalError("Failed to create SwiftData container: \(error)")
+            }
         }
+    }
+
+    private static func disableCloudSyncAfterFallback() {
+        UserDefaults.standard.set(false, forKey: iCloudSyncEnabledKey)
     }
 
     private static func makeConfiguration(

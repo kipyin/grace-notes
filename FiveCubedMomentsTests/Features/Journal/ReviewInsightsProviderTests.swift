@@ -8,6 +8,7 @@ final class ReviewInsightsProviderTests: XCTestCase {
         super.setUp()
         calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.firstWeekday = 2
         UserDefaults.standard.removeObject(forKey: ReviewInsightsProvider.useAIReviewInsightsKey)
     }
 
