@@ -4,6 +4,7 @@ import SwiftUI
 struct DateSectionView: View {
     let entryDate: Date
     let completedToday: Bool
+    let streakSummary: StreakSummary
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -23,6 +24,15 @@ struct DateSectionView: View {
                         .font(AppTheme.warmPaperBody)
                         .foregroundStyle(AppTheme.textMuted)
                 }
+            }
+
+            HStack(spacing: 12) {
+                Label("Basic \(streakSummary.basicCurrent)", systemImage: "flame")
+                    .font(AppTheme.warmPaperBody)
+                    .foregroundStyle(streakSummary.basicDoneToday ? AppTheme.complete : AppTheme.textMuted)
+                Label("Perfect \(streakSummary.perfectCurrent)", systemImage: "star.fill")
+                    .font(AppTheme.warmPaperBody)
+                    .foregroundStyle(streakSummary.perfectDoneToday ? AppTheme.complete : AppTheme.textMuted)
             }
         }
     }

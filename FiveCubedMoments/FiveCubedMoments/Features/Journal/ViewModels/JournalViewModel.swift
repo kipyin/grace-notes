@@ -25,6 +25,7 @@ final class JournalViewModel {
     var bibleNotes: String = ""
     var reflections: String = ""
     private(set) var saveErrorMessage: String?
+    private(set) var streakSummary: StreakSummary = .empty
 
     static let slotCount = JournalEntry.slotCount
 
@@ -32,6 +33,7 @@ final class JournalViewModel {
     @ObservationIgnored private let nowProvider: () -> Date
     @ObservationIgnored private let repository: JournalRepository
     @ObservationIgnored private let summarizerProvider: SummarizerProvider
+    @ObservationIgnored private let streakCalculator: StreakCalculator
     @ObservationIgnored private let autosaveTrigger = PassthroughSubject<Void, Never>()
     @ObservationIgnored private var cancellables: Set<AnyCancellable> = []
 
@@ -44,12 +46,14 @@ final class JournalViewModel {
         calendar: Calendar = .current,
         nowProvider: @escaping () -> Date = Date.init,
         repository: JournalRepository? = nil,
-        summarizerProvider: SummarizerProvider = .shared
+        summarizerProvider: SummarizerProvider = .shared,
+        streakCalculator: StreakCalculator? = nil
     ) {
         self.calendar = calendar
         self.nowProvider = nowProvider
         self.repository = repository ?? JournalRepository(calendar: calendar)
         self.summarizerProvider = summarizerProvider
+        self.streakCalculator = streakCalculator ?? StreakCalculator(calendar: calendar)
 
         autosaveTrigger
             .debounce(for: .milliseconds(400), scheduler: RunLoop.main)
@@ -72,6 +76,7 @@ final class JournalViewModel {
         do {
             if let existing = try repository.fetchEntry(for: date, context: context) {
                 hydrate(from: existing)
+                refreshStreakSummary()
                 return
             }
         } catch {
@@ -117,8 +122,23 @@ final class JournalViewModel {
         do {
             try context.save()
             saveErrorMessage = nil
+            refreshStreakSummary()
         } catch {
             saveErrorMessage = String(localized: "Unable to save your journal entry.")
+        }
+    }
+
+    private func refreshStreakSummary() {
+        guard let context = modelContext else {
+            streakSummary = .empty
+            return
+        }
+
+        do {
+            let entries = try repository.fetchAllEntries(context: context)
+            streakSummary = streakCalculator.summary(from: entries, now: nowProvider())
+        } catch {
+            streakSummary = .empty
         }
     }
 
