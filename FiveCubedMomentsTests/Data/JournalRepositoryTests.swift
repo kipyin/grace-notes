@@ -9,7 +9,7 @@ final class JournalRepositoryTests: XCTestCase {
     override func setUp() {
         super.setUp()
         calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone(secondsFromGMT: 0)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
     }
 
     func test_fetchAllEntries_returnsSortedByDateDescending() throws {
