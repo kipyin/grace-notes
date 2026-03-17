@@ -540,6 +540,7 @@
       }
     },
     "When on, chip labels use an online service for better summaries. When off, labels use on-device processing only." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -556,6 +557,7 @@
       }
     },
     "When on, long-pressing a chip shows a confirmation before deleting. When off, long-press deletes immediately." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

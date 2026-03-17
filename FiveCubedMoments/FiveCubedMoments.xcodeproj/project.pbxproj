@@ -35,12 +35,12 @@
 			path = FiveCubedMoments;
 			sourceTree = "<group>";
 		};
-		37D873422F66C99500955D3E /* FiveCubedMomentsTests */ = {
+		37D873422F66C99500955D3E /* ../FiveCubedMomentsTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = ../FiveCubedMomentsTests;
 			sourceTree = "<group>";
 		};
-		37D8734C2F66C99500955D3E /* FiveCubedMomentsUITests */ = {
+		37D8734C2F66C99500955D3E /* ../FiveCubedMomentsUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = ../FiveCubedMomentsUITests;
 			sourceTree = "<group>";
@@ -76,8 +76,8 @@
 			isa = PBXGroup;
 			children = (
 				37D873322F66C99400955D3E /* FiveCubedMoments */,
-				37D873422F66C99500955D3E /* FiveCubedMomentsTests */,
-				37D8734C2F66C99500955D3E /* FiveCubedMomentsUITests */,
+				37D873422F66C99500955D3E /* ../FiveCubedMomentsTests */,
+				37D8734C2F66C99500955D3E /* ../FiveCubedMomentsUITests */,
 				37D873312F66C99400955D3E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -132,7 +132,7 @@
 				37D873412F66C99500955D3E /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				37D873422F66C99500955D3E /* FiveCubedMomentsTests */,
+				37D873422F66C99500955D3E /* ../FiveCubedMomentsTests */,
 			);
 			name = FiveCubedMomentsTests;
 			packageProductDependencies = (
@@ -155,7 +155,7 @@
 				37D8734B2F66C99500955D3E /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				37D8734C2F66C99500955D3E /* FiveCubedMomentsUITests */,
+				37D8734C2F66C99500955D3E /* ../FiveCubedMomentsUITests */,
 			);
 			name = FiveCubedMomentsUITests;
 			packageProductDependencies = (
@@ -297,6 +297,20 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		37CE845F2F68EFE30099A6F0 /* Demo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = FiveCubedMomentsTests;
+			};
+			name = Demo;
+		};
+		37CE84602F68EFE30099A6F0 /* Demo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = FiveCubedMomentsUITests;
+			};
+			name = Demo;
+		};
 		37D873512F66C99500955D3E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -423,6 +437,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = C2ST94AYSS;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
@@ -458,6 +473,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = C2ST94AYSS;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
@@ -566,6 +582,105 @@
 			};
 			name = Release;
 		};
+		8EED0A12313A958000DE0001 /* Demo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG USE_DEMO_DATABASE $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Demo;
+		};
+		8EED0A13313A958000DE0001 /* Demo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = C2ST94AYSS;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "5³ Moments";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fivecubedmoments.FiveCubedMoments;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Demo;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -574,6 +689,7 @@
 			buildConfigurations = (
 				37D873512F66C99500955D3E /* Debug */,
 				37D873522F66C99500955D3E /* Release */,
+				8EED0A12313A958000DE0001 /* Demo */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -583,6 +699,7 @@
 			buildConfigurations = (
 				37D873542F66C99500955D3E /* Debug */,
 				37D873552F66C99500955D3E /* Release */,
+				8EED0A13313A958000DE0001 /* Demo */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -592,6 +709,7 @@
 			buildConfigurations = (
 				37D873572F66C99500955D3E /* Debug */,
 				37D873582F66C99500955D3E /* Release */,
+				37CE845F2F68EFE30099A6F0 /* Demo */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -601,6 +719,7 @@
 			buildConfigurations = (
 				37D8735A2F66C99500955D3E /* Debug */,
 				37D8735B2F66C99500955D3E /* Release */,
+				37CE84602F68EFE30099A6F0 /* Demo */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

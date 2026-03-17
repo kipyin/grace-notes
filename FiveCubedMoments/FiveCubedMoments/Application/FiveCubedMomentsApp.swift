@@ -10,7 +10,18 @@ import SwiftData
 
 @main
 struct FiveCubedMomentsApp: App {
-    private let persistenceController = PersistenceController.shared
+    private let persistenceController: PersistenceController
+
+    init() {
+        let controller = PersistenceController.shared
+        if PersistenceController.isDemoDatabaseEnabled {
+#if USE_DEMO_DATABASE
+            let context = ModelContext(controller.container)
+            DemoDataSeeder.seedIfNeeded(context: context)
+#endif
+        }
+        persistenceController = controller
+    }
 
     var body: some Scene {
         WindowGroup {
