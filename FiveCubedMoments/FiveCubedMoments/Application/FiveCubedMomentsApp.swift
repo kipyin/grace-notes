@@ -17,46 +17,54 @@ struct FiveCubedMomentsApp: App {
     }
 
     private let persistenceController: PersistenceController
+    private let isRunningTests: Bool
     @State private var hasRunDeferredStartupTasks = false
     @State private var selectedTab: AppTab = .today
 
     init() {
         let startupTrace = PerformanceTrace.begin("App.init")
         persistenceController = PersistenceController.shared
+        isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
         PerformanceTrace.end("App.init", startedAt: startupTrace)
     }
 
     var body: some Scene {
         WindowGroup {
-            TabView(selection: $selectedTab) {
-                NavigationStack {
-                    JournalScreen()
-                }
-                .tabItem {
-                    Label("Today", systemImage: "doc.text")
-                }
-                .tag(AppTab.today)
-                NavigationStack {
-                    if selectedTab == .history {
-                        HistoryScreen()
-                    } else {
-                        Color.clear
-                            .onAppear {
-                                PerformanceTrace.instant("HistoryScreen.deferredUntilSelected")
+            Group {
+                if isRunningTests {
+                    Color.clear
+                } else {
+                    TabView(selection: $selectedTab) {
+                        NavigationStack {
+                            JournalScreen()
+                        }
+                        .tabItem {
+                            Label("Today", systemImage: "doc.text")
+                        }
+                        .tag(AppTab.today)
+                        NavigationStack {
+                            if selectedTab == .history {
+                                HistoryScreen()
+                            } else {
+                                Color.clear
+                                    .onAppear {
+                                        PerformanceTrace.instant("HistoryScreen.deferredUntilSelected")
+                                    }
                             }
+                        }
+                        .tabItem {
+                            Label("History", systemImage: "clock.arrow.circlepath")
+                        }
+                        .tag(AppTab.history)
+                        NavigationStack {
+                            SettingsScreen()
+                        }
+                        .tabItem {
+                            Label("Settings", systemImage: "gearshape")
+                        }
+                        .tag(AppTab.settings)
                     }
                 }
-                .tabItem {
-                    Label("History", systemImage: "clock.arrow.circlepath")
-                }
-                .tag(AppTab.history)
-                NavigationStack {
-                    SettingsScreen()
-                }
-                .tabItem {
-                    Label("Settings", systemImage: "gearshape")
-                }
-                .tag(AppTab.settings)
             }
             .preferredColorScheme(.light)
             .background(AppTheme.background)
