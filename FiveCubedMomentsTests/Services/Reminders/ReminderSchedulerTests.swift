@@ -31,7 +31,10 @@ final class ReminderSchedulerTests: XCTestCase {
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!
         let center = MockUserNotificationCenter(status: .authorized)
         let scheduler = ReminderScheduler(notificationCenter: center, calendar: calendar)
-        let reminderTime = date(year: 2026, month: 3, day: 17, hour: 19, minute: 45, calendar: calendar)
+        let reminderTime = date(
+            components: DateComponents(year: 2026, month: 3, day: 17, hour: 19, minute: 45),
+            calendar: calendar
+        )
 
         let result = await scheduler.syncDailyReminder(enabled: true, time: reminderTime)
 
@@ -67,20 +70,8 @@ final class ReminderSchedulerTests: XCTestCase {
         XCTAssertEqual(center.removedIdentifiers, [ReminderSettings.notificationIdentifier])
     }
 
-    private func date(
-        year: Int,
-        month: Int,
-        day: Int,
-        hour: Int,
-        minute: Int,
-        calendar: Calendar
-    ) -> Date {
-        var components = DateComponents()
-        components.year = year
-        components.month = month
-        components.day = day
-        components.hour = hour
-        components.minute = minute
+    private func date(components: DateComponents, calendar: Calendar) -> Date {
+        var components = components
         components.timeZone = calendar.timeZone
         return calendar.date(from: components)!
     }

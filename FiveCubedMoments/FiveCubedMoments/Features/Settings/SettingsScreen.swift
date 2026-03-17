@@ -5,7 +5,8 @@ struct SettingsScreen: View {
     @AppStorage("useCloudSummarization") private var useCloudSummarization = false
     @AppStorage("confirmChipDeletion") private var confirmChipDeletion = true
     @AppStorage(ReminderSettings.enabledKey) private var dailyReminderEnabled = false
-    @AppStorage(ReminderSettings.timeIntervalKey) private var dailyReminderTimeInterval = ReminderSettings.defaultTimeInterval
+    @AppStorage(ReminderSettings.timeIntervalKey)
+    private var dailyReminderTimeInterval = ReminderSettings.defaultTimeInterval
 
     @State private var reminderDraftTime = ReminderSettings.date(from: ReminderSettings.defaultTimeInterval)
     @State private var isReminderTimePickerExpanded = false

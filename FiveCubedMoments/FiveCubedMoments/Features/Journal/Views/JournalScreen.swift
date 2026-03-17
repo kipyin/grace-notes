@@ -90,8 +90,8 @@ struct JournalScreen: View {
                 EditableTextSection(
                     title: String(localized: "Reading Notes"),
                     text: Binding(
-                        get: { viewModel.bibleNotes },
-                        set: { viewModel.updateBibleNotes($0) }
+                        get: { viewModel.readingNotes },
+                        set: { viewModel.updateReadingNotes($0) }
                     )
                 )
                 EditableTextSection(
@@ -177,7 +177,9 @@ struct JournalScreen: View {
             PerformanceTrace.end("JournalScreen.loadTask", startedAt: loadTrace)
         }
     }
+}
 
+private extension JournalScreen {
     private func submitGratitude() async {
         await JournalScreenChipHandling.submitChipSection(
             editingIndex: $editingGratitudeIndex,
@@ -220,91 +222,104 @@ struct JournalScreen: View {
         case gratitude, need, person
     }
 
-    private func addNewTapped(section: ChipSection) {
+    private struct ChipSectionAdapter {
+        let input: Binding<String>
+        let editingIndex: Binding<Int?>
+        let remove: (Int) -> Bool
+        let operations: ChipSectionOperations
+    }
+
+    private func chipSectionAdapter(for section: ChipSection) -> ChipSectionAdapter {
         switch section {
         case .gratitude:
-            JournalScreenChipHandling.clearChipInput(input: $gratitudeInput, editingIndex: $editingGratitudeIndex)
+            return makeGratitudeAdapter()
         case .need:
-            JournalScreenChipHandling.clearChipInput(input: $needInput, editingIndex: $editingNeedIndex)
+            return makeNeedAdapter()
         case .person:
-            JournalScreenChipHandling.clearChipInput(input: $personInput, editingIndex: $editingPersonIndex)
+            return makePersonAdapter()
         }
+    }
+
+    private func makeGratitudeAdapter() -> ChipSectionAdapter {
+        ChipSectionAdapter(
+            input: $gratitudeInput,
+            editingIndex: $editingGratitudeIndex,
+            remove: { index in viewModel.removeGratitude(at: index) },
+            operations: ChipSectionOperations(
+                updateImmediate: { index, text in
+                    viewModel.updateGratitudeImmediate(at: index, fullText: text)
+                },
+                addImmediate: viewModel.addGratitudeImmediate,
+                fullText: { index in viewModel.fullTextForGratitude(at: index) },
+                count: viewModel.gratitudes.count,
+                summarizeAndUpdateChip: { index in
+                    scheduleSummarization(for: .gratitude, index: index)
+                }
+            )
+        )
+    }
+
+    private func makeNeedAdapter() -> ChipSectionAdapter {
+        ChipSectionAdapter(
+            input: $needInput,
+            editingIndex: $editingNeedIndex,
+            remove: { index in viewModel.removeNeed(at: index) },
+            operations: ChipSectionOperations(
+                updateImmediate: { index, text in
+                    viewModel.updateNeedImmediate(at: index, fullText: text)
+                },
+                addImmediate: viewModel.addNeedImmediate,
+                fullText: { index in viewModel.fullTextForNeed(at: index) },
+                count: viewModel.needs.count,
+                summarizeAndUpdateChip: { index in
+                    scheduleSummarization(for: .need, index: index)
+                }
+            )
+        )
+    }
+
+    private func makePersonAdapter() -> ChipSectionAdapter {
+        ChipSectionAdapter(
+            input: $personInput,
+            editingIndex: $editingPersonIndex,
+            remove: { index in viewModel.removePerson(at: index) },
+            operations: ChipSectionOperations(
+                updateImmediate: { index, text in
+                    viewModel.updatePersonImmediate(at: index, fullText: text)
+                },
+                addImmediate: viewModel.addPersonImmediate,
+                fullText: { index in viewModel.fullTextForPerson(at: index) },
+                count: viewModel.people.count,
+                summarizeAndUpdateChip: { index in
+                    scheduleSummarization(for: .person, index: index)
+                }
+            )
+        )
+    }
+
+    private func addNewTapped(section: ChipSection) {
+        let adapter = chipSectionAdapter(for: section)
+        JournalScreenChipHandling.clearChipInput(input: adapter.input, editingIndex: adapter.editingIndex)
     }
 
     private func deleteChip(section: ChipSection, index: Int) {
-        switch section {
-        case .gratitude:
-            JournalScreenChipHandling.performDelete(
-                index: index,
-                remove: { viewModel.removeGratitude(at: $0) },
-                input: $gratitudeInput,
-                editingIndex: $editingGratitudeIndex
-            )
-        case .need:
-            JournalScreenChipHandling.performDelete(
-                index: index,
-                remove: { viewModel.removeNeed(at: $0) },
-                input: $needInput,
-                editingIndex: $editingNeedIndex
-            )
-        case .person:
-            JournalScreenChipHandling.performDelete(
-                index: index,
-                remove: { viewModel.removePerson(at: $0) },
-                input: $personInput,
-                editingIndex: $editingPersonIndex
-            )
-        }
+        let adapter = chipSectionAdapter(for: section)
+        JournalScreenChipHandling.performDelete(
+            index: index,
+            remove: adapter.remove,
+            input: adapter.input,
+            editingIndex: adapter.editingIndex
+        )
     }
 
     private func chipTapped(section: ChipSection, index: Int) {
-        switch section {
-        case .gratitude:
-            JournalScreenChipHandling.performChipTap(
-                tapIndex: index,
-                input: $gratitudeInput,
-                editingIndex: $editingGratitudeIndex,
-                operations: ChipSectionOperations(
-                    updateImmediate: viewModel.updateGratitudeImmediate,
-                    addImmediate: viewModel.addGratitudeImmediate,
-                    fullText: viewModel.fullTextForGratitude,
-                    count: viewModel.gratitudes.count,
-                    summarizeAndUpdateChip: { idx in
-                        scheduleSummarization(for: .gratitude, index: idx)
-                    }
-                )
-            )
-        case .need:
-            JournalScreenChipHandling.performChipTap(
-                tapIndex: index,
-                input: $needInput,
-                editingIndex: $editingNeedIndex,
-                operations: ChipSectionOperations(
-                    updateImmediate: viewModel.updateNeedImmediate,
-                    addImmediate: viewModel.addNeedImmediate,
-                    fullText: viewModel.fullTextForNeed,
-                    count: viewModel.needs.count,
-                    summarizeAndUpdateChip: { idx in
-                        scheduleSummarization(for: .need, index: idx)
-                    }
-                )
-            )
-        case .person:
-            JournalScreenChipHandling.performChipTap(
-                tapIndex: index,
-                input: $personInput,
-                editingIndex: $editingPersonIndex,
-                operations: ChipSectionOperations(
-                    updateImmediate: viewModel.updatePersonImmediate,
-                    addImmediate: viewModel.addPersonImmediate,
-                    fullText: viewModel.fullTextForPerson,
-                    count: viewModel.people.count,
-                    summarizeAndUpdateChip: { idx in
-                        scheduleSummarization(for: .person, index: idx)
-                    }
-                )
-            )
-        }
+        let adapter = chipSectionAdapter(for: section)
+        JournalScreenChipHandling.performChipTap(
+            tapIndex: index,
+            input: adapter.input,
+            editingIndex: adapter.editingIndex,
+            operations: adapter.operations
+        )
     }
 
     private func scheduleSummarization(for section: ChipSection, index: Int) {

@@ -63,7 +63,6 @@ enum JournalScreenChipHandling {
     ) {
         let trimmed = input.wrappedValue.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        // Fix 2: If switching from existing chip with no text change, skip update entirely.
         if let currentIndex = editingIndex.wrappedValue, !trimmed.isEmpty {
             let stored = operations.fullText(currentIndex) ?? ""
             if trimmed == stored {

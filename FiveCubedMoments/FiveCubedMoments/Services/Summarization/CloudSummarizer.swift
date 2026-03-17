@@ -80,13 +80,13 @@ struct CloudSummarizer: Summarizer {
         request.timeoutInterval = 10
 
         let promptText = prompt(for: section, sentence: sentence)
-        let body: [String: Any] = [
-            "model": model,
-            "messages": [["role": "user", "content": promptText]],
-            "max_tokens": 20,
-            "temperature": 0.3
-        ]
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        let body = CloudChatRequest(
+            model: model,
+            messages: [CloudChatMessage(role: "user", content: promptText)],
+            maxTokens: 20,
+            temperature: 0.3
+        )
+        request.httpBody = try JSONEncoder().encode(body)
 
         let (data, response) = try await urlSession.data(for: request)
         guard let http = response as? HTTPURLResponse else {
@@ -97,11 +97,8 @@ struct CloudSummarizer: Summarizer {
             throw CloudSummarizerError.httpError(statusCode: http.statusCode)
         }
 
-        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let choices = json["choices"] as? [[String: Any]],
-              let first = choices.first,
-              let message = first["message"] as? [String: Any],
-              let content = message["content"] as? String
+        guard let responseBody = try? JSONDecoder().decode(CloudChatResponse.self, from: data),
+              let content = responseBody.choices.first?.message.content
         else {
             throw CloudSummarizerError.invalidJSON
         }
@@ -112,6 +109,33 @@ struct CloudSummarizer: Summarizer {
         }
         return parsed
     }
+}
+
+private struct CloudChatRequest: Encodable {
+    let model: String
+    let messages: [CloudChatMessage]
+    let maxTokens: Int
+    let temperature: Double
+
+    enum CodingKeys: String, CodingKey {
+        case model
+        case messages
+        case maxTokens = "max_tokens"
+        case temperature
+    }
+}
+
+private struct CloudChatResponse: Decodable {
+    let choices: [CloudChatChoice]
+}
+
+private struct CloudChatChoice: Decodable {
+    let message: CloudChatMessage
+}
+
+private struct CloudChatMessage: Codable {
+    let role: String
+    let content: String
 }
 
 private enum CloudSummarizerError: Error {

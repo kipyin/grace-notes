@@ -16,12 +16,12 @@ struct JournalShareCardView: View {
             sectionIfNonEmpty(String(localized: "Needs"), items: payload.needs)
             sectionIfNonEmpty(String(localized: "People in Mind"), items: payload.people)
 
-            if !payload.bibleNotes.isEmpty {
+            if !payload.readingNotes.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Reading Notes")
+                    Text(String(localized: "Reading Notes"))
                         .font(AppTheme.warmPaperHeader)
                         .foregroundStyle(AppTheme.textPrimary)
-                    Text(payload.bibleNotes)
+                    Text(payload.readingNotes)
                         .font(AppTheme.warmPaperBody)
                         .foregroundStyle(AppTheme.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -30,7 +30,7 @@ struct JournalShareCardView: View {
 
             if !payload.reflections.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Reflections")
+                    Text(String(localized: "Reflections"))
                         .font(AppTheme.warmPaperHeader)
                         .foregroundStyle(AppTheme.textPrimary)
                     Text(payload.reflections)
