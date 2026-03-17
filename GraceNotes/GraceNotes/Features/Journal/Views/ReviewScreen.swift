@@ -136,7 +136,12 @@ struct ReviewScreen: View {
         }
 
         let refreshKey = currentInsightsRefreshKey
-        let shouldRefresh = force || reviewInsights == nil || lastInsightsRefreshKey != refreshKey
+        let shouldRefresh = ReviewInsightsRefreshPolicy.shouldRefresh(
+            force: force,
+            hasInsights: reviewInsights != nil,
+            previousKey: lastInsightsRefreshKey,
+            currentKey: refreshKey
+        )
         guard shouldRefresh else { return }
 
         isLoadingInsights = true
@@ -152,17 +157,6 @@ struct ReviewScreen: View {
     private func monthYearString(from date: Date) -> String {
         date.formatted(.dateTime.month(.wide).year())
     }
-}
-
-private struct ReviewInsightsRefreshKey: Hashable {
-    let weekStart: Date
-    let useAIReviewInsights: Bool
-    let entrySnapshots: [ReviewEntrySnapshot]
-}
-
-private struct ReviewEntrySnapshot: Hashable {
-    let id: UUID
-    let updatedAt: Date
 }
 
 enum HistoryEntryGrouping {
