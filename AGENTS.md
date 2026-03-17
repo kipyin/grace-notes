@@ -31,6 +31,8 @@ xcodebuild \
   test
 ```
 
+(CI uses a dynamic destination so it works across different macOS/Xcode runner images.)
+
 See `.github/workflows/ios-ci.yml` for CI configuration.
 
 ### Lint command
