@@ -10,8 +10,15 @@ import SwiftData
 
 @main
 struct FiveCubedMomentsApp: App {
+    private enum AppTab: Hashable {
+        case today
+        case history
+        case settings
+    }
+
     private let persistenceController: PersistenceController
     @State private var hasRunDeferredStartupTasks = false
+    @State private var selectedTab: AppTab = .today
 
     init() {
         let startupTrace = PerformanceTrace.begin("App.init")
@@ -21,25 +28,35 @@ struct FiveCubedMomentsApp: App {
 
     var body: some Scene {
         WindowGroup {
-            TabView {
+            TabView(selection: $selectedTab) {
                 NavigationStack {
                     JournalScreen()
                 }
                 .tabItem {
                     Label("Today", systemImage: "doc.text")
                 }
+                .tag(AppTab.today)
                 NavigationStack {
-                    HistoryScreen()
+                    if selectedTab == .history {
+                        HistoryScreen()
+                    } else {
+                        Color.clear
+                            .onAppear {
+                                PerformanceTrace.instant("HistoryScreen.deferredUntilSelected")
+                            }
+                    }
                 }
                 .tabItem {
                     Label("History", systemImage: "clock.arrow.circlepath")
                 }
+                .tag(AppTab.history)
                 NavigationStack {
                     SettingsScreen()
                 }
                 .tabItem {
                     Label("Settings", systemImage: "gearshape")
                 }
+                .tag(AppTab.settings)
             }
             .preferredColorScheme(.light)
             .background(AppTheme.background)

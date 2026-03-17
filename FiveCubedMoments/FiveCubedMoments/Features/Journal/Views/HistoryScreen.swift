@@ -23,8 +23,13 @@ struct HistoryScreen: View {
         }
         .navigationTitle("History")
         .background(AppTheme.background)
+        .onAppear {
+            PerformanceTrace.instant("HistoryScreen.onAppear")
+        }
         .task(id: entries.map(\.id)) {
+            let groupingTrace = PerformanceTrace.begin("HistoryScreen.groupEntries")
             groupedEntries = Self.groupedByMonth(entries: entries, calendar: calendar)
+            PerformanceTrace.end("HistoryScreen.groupEntries", startedAt: groupingTrace)
         }
     }
 

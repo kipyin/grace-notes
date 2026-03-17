@@ -77,14 +77,22 @@ final class JournalViewModel {
         modelContext = context
         let dayStart = calendar.startOfDay(for: date)
 
+        let fetchTrace = PerformanceTrace.begin("JournalViewModel.loadEntry.fetchEntry")
         do {
             if let existing = try repository.fetchEntry(for: date, context: context) {
+                PerformanceTrace.end("JournalViewModel.loadEntry.fetchEntry", startedAt: fetchTrace)
+                let hydrateTrace = PerformanceTrace.begin("JournalViewModel.loadEntry.hydrate")
                 hydrate(from: existing)
-                refreshStreakSummary(forceReload: true)
+                PerformanceTrace.end("JournalViewModel.loadEntry.hydrate", startedAt: hydrateTrace)
+                let streakTrace = PerformanceTrace.begin("JournalViewModel.loadEntry.streakRefresh")
+                refreshStreakSummary(forceReload: !hasLoadedStreakCache)
+                PerformanceTrace.end("JournalViewModel.loadEntry.streakRefresh", startedAt: streakTrace)
                 PerformanceTrace.end("JournalViewModel.loadEntry.existing", startedAt: loadTrace)
                 return
             }
+            PerformanceTrace.end("JournalViewModel.loadEntry.fetchEntry.miss", startedAt: fetchTrace)
         } catch {
+            PerformanceTrace.end("JournalViewModel.loadEntry.fetchEntry.failed", startedAt: fetchTrace)
             saveErrorMessage = String(localized: "Unable to load today's entry.")
             PerformanceTrace.end("JournalViewModel.loadEntry.failed", startedAt: loadTrace)
             return
@@ -97,8 +105,12 @@ final class JournalViewModel {
             updatedAt: now
         )
         context.insert(newEntry)
+        let hydrateTrace = PerformanceTrace.begin("JournalViewModel.loadEntry.hydrate")
         hydrate(from: newEntry)
+        PerformanceTrace.end("JournalViewModel.loadEntry.hydrate", startedAt: hydrateTrace)
+        let streakTrace = PerformanceTrace.begin("JournalViewModel.loadEntry.streakRefresh")
         refreshStreakSummary(forceReload: !hasLoadedStreakCache)
+        PerformanceTrace.end("JournalViewModel.loadEntry.streakRefresh", startedAt: streakTrace)
         PerformanceTrace.end("JournalViewModel.loadEntry.newUnsaved", startedAt: loadTrace)
     }
 
