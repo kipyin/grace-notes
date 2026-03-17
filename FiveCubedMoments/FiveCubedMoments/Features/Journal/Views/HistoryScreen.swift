@@ -3,7 +3,6 @@ import SwiftData
 
 struct HistoryScreen: View {
     @Query(sort: \JournalEntry.entryDate, order: .reverse) private var entries: [JournalEntry]
-    @State private var groupedEntries: [(key: Date, entries: [JournalEntry])] = []
 
     private let calendar = Calendar.current
     private static let monthYearFormatter: DateFormatter = {
@@ -12,6 +11,10 @@ struct HistoryScreen: View {
         formatter.dateFormat = "MMMM yyyy"
         return formatter
     }()
+
+    private var groupedEntries: [(key: Date, entries: [JournalEntry])] {
+        HistoryEntryGrouping.groupedByMonth(entries: entries, calendar: calendar)
+    }
 
     var body: some View {
         Group {
@@ -23,14 +26,6 @@ struct HistoryScreen: View {
         }
         .navigationTitle("History")
         .background(AppTheme.background)
-        .onAppear {
-            PerformanceTrace.instant("HistoryScreen.onAppear")
-        }
-        .task(id: entries.map(\.id)) {
-            let groupingTrace = PerformanceTrace.begin("HistoryScreen.groupEntries")
-            groupedEntries = Self.groupedByMonth(entries: entries, calendar: calendar)
-            PerformanceTrace.end("HistoryScreen.groupEntries", startedAt: groupingTrace)
-        }
     }
 
     private var emptyState: some View {
@@ -66,7 +61,13 @@ struct HistoryScreen: View {
         .background(AppTheme.background)
     }
 
-    private static func groupedByMonth(
+    private func monthYearString(from date: Date) -> String {
+        Self.monthYearFormatter.string(from: date)
+    }
+}
+
+enum HistoryEntryGrouping {
+    static func groupedByMonth(
         entries: [JournalEntry],
         calendar: Calendar
     ) -> [(key: Date, entries: [JournalEntry])] {
@@ -74,11 +75,10 @@ struct HistoryScreen: View {
             let components = calendar.dateComponents([.year, .month], from: entry.entryDate)
             return calendar.date(from: components) ?? entry.entryDate
         }
-        return grouped.keys.sorted(by: >).map { ($0, grouped[$0]!) }
-    }
-
-    private func monthYearString(from date: Date) -> String {
-        Self.monthYearFormatter.string(from: date)
+        return grouped.keys.sorted(by: >).map { month in
+            let groupedEntries = grouped[month] ?? []
+            return (month, groupedEntries)
+        }
     }
 }
 

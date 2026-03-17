@@ -177,7 +177,9 @@ struct JournalScreen: View {
             PerformanceTrace.end("JournalScreen.loadTask", startedAt: loadTrace)
         }
     }
+}
 
+private extension JournalScreen {
     private func submitGratitude() async {
         await JournalScreenChipHandling.submitChipSection(
             editingIndex: $editingGratitudeIndex,
