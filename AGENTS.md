@@ -31,7 +31,7 @@ xcodebuild \
   test
 ```
 
-(CI uses a dynamic destination so it works across different macOS/Xcode runner images.)
+(CI uses a dynamic destination so it works across different macOS/Xcode runner images. CI runs `build` only; test execution fails with "executable couldn't be located" on the GitHub runner. Run tests locally with the command above.)
 
 See `.github/workflows/ios-ci.yml` for CI configuration.
 
