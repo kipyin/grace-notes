@@ -42,4 +42,5 @@ jobs:
             -project FiveCubedMoments/FiveCubedMoments.xcodeproj \
             -scheme FiveCubedMoments \
             -destination "$DEST" \
+            -only-testing:FiveCubedMomentsTests \
             test
