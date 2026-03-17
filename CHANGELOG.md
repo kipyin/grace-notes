@@ -26,9 +26,15 @@
 - Settings now include AI review-insights toggle, iCloud sync preference, and data trust/privacy messaging
 - Review screen now offers segmented **Insights** and **Timeline** modes for less cluttered navigation
 - Journal completion now supports tiered levels (`Quick check-in`, `Standard reflection`, `Full 5³`) surfaced in Today + Review UI
+- Review insights now refresh on entry updates (`updatedAt`) and only auto-fetch in Insights mode
+- Settings JSON export now runs asynchronously with in-app progress feedback (reduced main-thread blocking)
+- Cloud review request now includes explicit response constraints (`max_tokens`, `temperature`)
 
 ### Fixed
-- (none)
+- Review-insight fallback week boundaries now match week-of-year logic used by deterministic/cloud generators
+- Review screen naming now matches product terminology in code (`ReviewScreen`)
+- Cloud review payloads are now sanitized/clamped (message length, theme counts, non-empty positive themes)
+- Shared iCloud sync defaults key now references a single source (`PersistenceController.iCloudSyncEnabledKey`)
 
 ### Developer
 - Added `StreakCalculator` service and `StreakSummary` value type for derived, read-time streak metrics
@@ -36,6 +42,8 @@
 - Removed unused localization key `"%d of %d — editing"`
 - Added tests for deterministic review insights, cloud review insights decoding, provider fallback behavior, and JSON export payload integrity
 - Added completion-level test coverage for Journal model and ViewModel states
+- Improved test naming consistency for deterministic review insights suite
+- Strengthened cloud review tests with meaningful thrown-error assertions and payload clamping checks
 
 ## [0.2.2] - Unreleased
 
