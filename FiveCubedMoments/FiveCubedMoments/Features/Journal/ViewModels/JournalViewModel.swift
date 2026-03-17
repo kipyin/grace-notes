@@ -41,6 +41,9 @@ final class JournalViewModel {
     @ObservationIgnored private var journalEntry: JournalEntry?
     @ObservationIgnored private var hasLoadedToday = false
     @ObservationIgnored private var isHydrating = false
+    @ObservationIgnored private var hasRecordedFirstSave = false
+    @ObservationIgnored private var hasLoadedStreakCache = false
+    @ObservationIgnored private var cachedEntriesForStreak: [JournalEntry] = []
 
     init(
         calendar: Calendar = .current,
@@ -70,17 +73,20 @@ final class JournalViewModel {
     }
 
     func loadEntry(for date: Date, using context: ModelContext) {
+        let loadTrace = PerformanceTrace.begin("JournalViewModel.loadEntry")
         modelContext = context
         let dayStart = calendar.startOfDay(for: date)
 
         do {
             if let existing = try repository.fetchEntry(for: date, context: context) {
                 hydrate(from: existing)
-                refreshStreakSummary()
+                refreshStreakSummary(forceReload: true)
+                PerformanceTrace.end("JournalViewModel.loadEntry.existing", startedAt: loadTrace)
                 return
             }
         } catch {
             saveErrorMessage = String(localized: "Unable to load today's entry.")
+            PerformanceTrace.end("JournalViewModel.loadEntry.failed", startedAt: loadTrace)
             return
         }
 
@@ -92,7 +98,8 @@ final class JournalViewModel {
         )
         context.insert(newEntry)
         hydrate(from: newEntry)
-        persistChanges()
+        refreshStreakSummary(forceReload: !hasLoadedStreakCache)
+        PerformanceTrace.end("JournalViewModel.loadEntry.newUnsaved", startedAt: loadTrace)
     }
 
     private func hydrate(from entry: JournalEntry) {
@@ -110,6 +117,7 @@ final class JournalViewModel {
 
     private func persistChanges() {
         guard !isHydrating, let context = modelContext, let entry = journalEntry else { return }
+        let saveTrace = PerformanceTrace.begin("JournalViewModel.persistChanges")
 
         entry.gratitudes = gratitudes
         entry.needs = needs
@@ -123,22 +131,45 @@ final class JournalViewModel {
             try context.save()
             saveErrorMessage = nil
             refreshStreakSummary()
+            if !hasRecordedFirstSave {
+                hasRecordedFirstSave = true
+                PerformanceTrace.end("JournalViewModel.firstSave", startedAt: saveTrace)
+            } else {
+                PerformanceTrace.end("JournalViewModel.persistChanges", startedAt: saveTrace)
+            }
         } catch {
             saveErrorMessage = String(localized: "Unable to save your journal entry.")
+            PerformanceTrace.end("JournalViewModel.persistChanges.failed", startedAt: saveTrace)
         }
     }
 
-    private func refreshStreakSummary() {
+    private func refreshStreakSummary(forceReload: Bool = false) {
         guard let context = modelContext else {
             streakSummary = .empty
             return
         }
 
+        let streakTrace = PerformanceTrace.begin("JournalViewModel.refreshStreakSummary")
         do {
-            let entries = try repository.fetchAllEntries(context: context)
-            streakSummary = streakCalculator.summary(from: entries, now: nowProvider())
+            if forceReload || !hasLoadedStreakCache {
+                cachedEntriesForStreak = try repository.fetchAllEntries(context: context)
+                hasLoadedStreakCache = true
+            }
+
+            if let entry = journalEntry {
+                if let index = cachedEntriesForStreak.firstIndex(where: { $0.id == entry.id }) {
+                    cachedEntriesForStreak[index] = entry
+                } else {
+                    cachedEntriesForStreak.append(entry)
+                    cachedEntriesForStreak.sort { $0.entryDate > $1.entryDate }
+                }
+            }
+
+            streakSummary = streakCalculator.summary(from: cachedEntriesForStreak, now: nowProvider())
+            PerformanceTrace.end("JournalViewModel.refreshStreakSummary", startedAt: streakTrace)
         } catch {
             streakSummary = .empty
+            PerformanceTrace.end("JournalViewModel.refreshStreakSummary.failed", startedAt: streakTrace)
         }
     }
 
@@ -159,13 +190,18 @@ final class JournalViewModel {
     }
 
     private func summarizeForChip(_ text: String, section: SummarizationSection) async -> SummarizationResult {
-        let summarizer = summarizerProvider.currentSummarizer()
-        do {
-            return try await summarizer.summarize(text, section: section)
-        } catch {
-            return (try? await NaturalLanguageSummarizer().summarize(text, section: section))
-                ?? makeInterimResult(for: text)
-        }
+        await Task.detached(priority: .utility) { [summarizerProvider] in
+            let summarizer = summarizerProvider.currentSummarizer()
+            do {
+                return try await summarizer.summarize(text, section: section)
+            } catch {
+                return (try? await NaturalLanguageSummarizer().summarize(text, section: section))
+                    ?? SummarizationResult(
+                        label: String(text.prefix(interimLabelMaxChars)),
+                        isTruncated: text.count > interimLabelMaxChars
+                    )
+            }
+        }.value
     }
 
     private func makeInterimResult(for text: String) -> SummarizationResult {

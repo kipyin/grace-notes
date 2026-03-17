@@ -9,7 +9,9 @@ struct NaturalLanguageSummarizer: Summarizer {
     private let maxKeywordLabelChars = 20
 
     func summarize(_ sentence: String, section: SummarizationSection) async throws -> SummarizationResult {
-        summarizeSync(sentence, section: section)
+        try await Task.detached(priority: .utility) {
+            NaturalLanguageSummarizer().summarizeSync(sentence, section: section)
+        }.value
     }
 
     private func isPrimarilyChinese(_ text: String) -> Bool {

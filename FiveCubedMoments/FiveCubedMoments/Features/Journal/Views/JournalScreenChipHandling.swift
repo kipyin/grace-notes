@@ -8,7 +8,7 @@ struct ChipSectionOperations {
     let addImmediate: (String) -> Int?
     let fullText: (Int) -> String?
     let count: Int
-    let summarizeAndUpdateChip: (Int) async -> Void
+    let summarizeAndUpdateChip: (Int) -> Void
 }
 
 @MainActor
@@ -79,14 +79,14 @@ enum JournalScreenChipHandling {
         if let currentIndex = editingIndex.wrappedValue, !trimmed.isEmpty {
             if let updatedIndex = operations.updateImmediate(currentIndex, input.wrappedValue) {
                 input.wrappedValue = ""
-                Task { await operations.summarizeAndUpdateChip(updatedIndex) }
+                operations.summarizeAndUpdateChip(updatedIndex)
             } else {
                 canSwitch = false
             }
         } else if !trimmed.isEmpty, operations.count < JournalViewModel.slotCount {
             if let newIndex = operations.addImmediate(input.wrappedValue) {
                 input.wrappedValue = ""
-                Task { await operations.summarizeAndUpdateChip(newIndex) }
+                operations.summarizeAndUpdateChip(newIndex)
             } else {
                 canSwitch = false
             }

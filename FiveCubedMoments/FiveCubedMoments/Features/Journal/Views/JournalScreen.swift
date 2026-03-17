@@ -10,6 +10,10 @@ struct JournalScreen: View {
     @State private var showShareError = false
     @State private var showSavedToPhotosToast = false
     @State private var savedToPhotosDismissTask: Task<Void, Never>?
+    @State private var hasTrackedInitialLoad = false
+    @State private var gratitudeSummarizationTask: Task<Void, Never>?
+    @State private var needSummarizationTask: Task<Void, Never>?
+    @State private var personSummarizationTask: Task<Void, Never>?
 
     @State private var gratitudeInput = ""
     @State private var needInput = ""
@@ -154,12 +158,23 @@ struct JournalScreen: View {
                 }
             }
         }
+        .onDisappear {
+            gratitudeSummarizationTask?.cancel()
+            needSummarizationTask?.cancel()
+            personSummarizationTask?.cancel()
+        }
         .task {
+            if !hasTrackedInitialLoad {
+                hasTrackedInitialLoad = true
+                PerformanceTrace.instant("JournalScreen.firstTaskStarted")
+            }
+            let loadTrace = PerformanceTrace.begin("JournalScreen.loadTask")
             if let date = entryDate {
                 viewModel.loadEntry(for: date, using: modelContext)
             } else {
                 viewModel.loadTodayIfNeeded(using: modelContext)
             }
+            PerformanceTrace.end("JournalScreen.loadTask", startedAt: loadTrace)
         }
     }
 
@@ -255,7 +270,7 @@ struct JournalScreen: View {
                     fullText: viewModel.fullTextForGratitude,
                     count: viewModel.gratitudes.count,
                     summarizeAndUpdateChip: { idx in
-                        await viewModel.summarizeAndUpdateChip(section: SummarizationSection.gratitude, index: idx)
+                        scheduleSummarization(for: .gratitude, index: idx)
                     }
                 )
             )
@@ -270,7 +285,7 @@ struct JournalScreen: View {
                     fullText: viewModel.fullTextForNeed,
                     count: viewModel.needs.count,
                     summarizeAndUpdateChip: { idx in
-                        await viewModel.summarizeAndUpdateChip(section: SummarizationSection.need, index: idx)
+                        scheduleSummarization(for: .need, index: idx)
                     }
                 )
             )
@@ -285,10 +300,30 @@ struct JournalScreen: View {
                     fullText: viewModel.fullTextForPerson,
                     count: viewModel.people.count,
                     summarizeAndUpdateChip: { idx in
-                        await viewModel.summarizeAndUpdateChip(section: SummarizationSection.person, index: idx)
+                        scheduleSummarization(for: .person, index: idx)
                     }
                 )
             )
+        }
+    }
+
+    private func scheduleSummarization(for section: ChipSection, index: Int) {
+        switch section {
+        case .gratitude:
+            gratitudeSummarizationTask?.cancel()
+            gratitudeSummarizationTask = Task {
+                await viewModel.summarizeAndUpdateChip(section: .gratitude, index: index)
+            }
+        case .need:
+            needSummarizationTask?.cancel()
+            needSummarizationTask = Task {
+                await viewModel.summarizeAndUpdateChip(section: .need, index: index)
+            }
+        case .person:
+            personSummarizationTask?.cancel()
+            personSummarizationTask = Task {
+                await viewModel.summarizeAndUpdateChip(section: .person, index: index)
+            }
         }
     }
 }

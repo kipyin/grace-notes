@@ -1,16 +1,16 @@
 import Foundation
 
-struct SummarizationResult {
+struct SummarizationResult: Sendable {
     let label: String
     let isTruncated: Bool
 }
 
-enum SummarizationSection {
+enum SummarizationSection: Sendable {
     case gratitude
     case need
     case person
 }
 
-protocol Summarizer {
+protocol Summarizer: Sendable {
     func summarize(_ sentence: String, section: SummarizationSection) async throws -> SummarizationResult
 }

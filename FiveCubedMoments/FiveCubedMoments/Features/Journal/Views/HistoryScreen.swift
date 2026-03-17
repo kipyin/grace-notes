@@ -3,8 +3,15 @@ import SwiftData
 
 struct HistoryScreen: View {
     @Query(sort: \JournalEntry.entryDate, order: .reverse) private var entries: [JournalEntry]
+    @State private var groupedEntries: [(key: Date, entries: [JournalEntry])] = []
 
     private let calendar = Calendar.current
+    private static let monthYearFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale.current
+        formatter.dateFormat = "MMMM yyyy"
+        return formatter
+    }()
 
     var body: some View {
         Group {
@@ -16,6 +23,9 @@ struct HistoryScreen: View {
         }
         .navigationTitle("History")
         .background(AppTheme.background)
+        .task(id: entries.map(\.id)) {
+            groupedEntries = Self.groupedByMonth(entries: entries, calendar: calendar)
+        }
     }
 
     private var emptyState: some View {
@@ -29,7 +39,7 @@ struct HistoryScreen: View {
 
     private var historyList: some View {
         List {
-            ForEach(groupedByMonth, id: \.key) { group in
+            ForEach(groupedEntries, id: \.key) { group in
                 Section {
                     ForEach(group.entries, id: \.id) { entry in
                         NavigationLink {
@@ -51,7 +61,10 @@ struct HistoryScreen: View {
         .background(AppTheme.background)
     }
 
-    private var groupedByMonth: [(key: Date, entries: [JournalEntry])] {
+    private static func groupedByMonth(
+        entries: [JournalEntry],
+        calendar: Calendar
+    ) -> [(key: Date, entries: [JournalEntry])] {
         let grouped = Dictionary(grouping: entries) { entry -> Date in
             let components = calendar.dateComponents([.year, .month], from: entry.entryDate)
             return calendar.date(from: components) ?? entry.entryDate
@@ -60,10 +73,7 @@ struct HistoryScreen: View {
     }
 
     private func monthYearString(from date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale.current
-        formatter.dateFormat = "MMMM yyyy"
-        return formatter.string(from: date)
+        Self.monthYearFormatter.string(from: date)
     }
 }
 

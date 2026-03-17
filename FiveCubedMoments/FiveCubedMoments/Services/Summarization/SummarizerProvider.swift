@@ -4,7 +4,7 @@ private let placeholderApiKey = "YOUR_KEY_HERE"
 
 /// Provides the current summarizer based on user settings.
 /// For testing, pass a fixed summarizer; otherwise reads UserDefaults.
-struct SummarizerProvider {
+struct SummarizerProvider: Sendable {
     /// UserDefaults key for cloud summarization setting. Exposed for tests to avoid key drift.
     static let useCloudUserDefaultsKey = "useCloudSummarization"
 
