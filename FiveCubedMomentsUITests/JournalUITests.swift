@@ -33,9 +33,9 @@ final class JournalUITests: XCTestCase {
         app.tabBars.buttons["History"].tap()
         XCTAssertTrue(app.staticTexts["History"].waitForExistence(timeout: 5))
 
-        // Tap first entry if any exist
+        // Wait for at least one row (today's auto-created entry or the updated one)
         let firstRow = app.cells.firstMatch
-        guard firstRow.waitForExistence(timeout: 3) else { return }
+        XCTAssertTrue(firstRow.waitForExistence(timeout: 5))
         firstRow.tap()
 
         // Verify we're on the entry screen (shows Gratitudes section)
@@ -64,10 +64,11 @@ final class JournalUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["History"].waitForExistence(timeout: 5))
 
         let firstRow = app.cells.firstMatch
-        guard firstRow.waitForExistence(timeout: 3) else { return }
+        XCTAssertTrue(firstRow.waitForExistence(timeout: 5))
         firstRow.tap()
 
         XCTAssertTrue(app.staticTexts["Gratitudes"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.textFields["Gratitude 1"].value as? String, "Share test entry")
         XCTAssertTrue(app.buttons["Share"].waitForExistence(timeout: 5))
     }
 }
