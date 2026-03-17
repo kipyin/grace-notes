@@ -180,15 +180,16 @@
     "Exporting…" : {
 
     },
-    "Grace Notes" : {
-
-    },
     "Full 5³ complete" : {
 
     },
-    "Get one daily local reminder to complete today's 5³." : {
+    "Get one daily local reminder to complete today's entry." : {
+
     },
     "Get Started" : {
+
+    },
+    "Grace Notes" : {
 
     },
     "Gratitudes" : {
@@ -452,7 +453,8 @@
     "Sync with iCloud" : {
 
     },
-    "Take a moment to complete today's 5³." : {
+    "Take a moment to complete today's entry." : {
+
     },
     "This Week" : {
 
@@ -578,8 +580,21 @@
         }
       }
     },
-    "Welcome to Five Cubed Moments" : {
-
+    "Welcome to Grace Notes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome to Grace Notes"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "欢迎使用感恩记"
+          }
+        }
+      }
     },
     "What do you need today?" : {
       "localizations" : {

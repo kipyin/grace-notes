@@ -30,6 +30,7 @@
 - Review insights now refresh on entry updates (`updatedAt`) and only auto-fetch in Insights mode
 - Settings JSON export now runs asynchronously with in-app progress feedback (reduced main-thread blocking)
 - Cloud review request now includes explicit response constraints (`max_tokens`, `temperature`)
+- Onboarding copy now uses Grace Notes naming and non-`5³` progress wording (`Welcome to Grace Notes`, `fuller reflection sessions`)
 
 ### Fixed
 - Review-insight fallback week boundaries now match week-of-year logic used by deterministic/cloud generators
@@ -46,6 +47,7 @@
 - Added completion-level test coverage for Journal model and ViewModel states
 - Improved test naming consistency for deterministic review insights suite
 - Strengthened cloud review tests with meaningful thrown-error assertions and payload clamping checks
+- Updated iCloud entitlement container identifiers to the Grace Notes bundle naming
 
 ## [0.2.2] - Unreleased
 
