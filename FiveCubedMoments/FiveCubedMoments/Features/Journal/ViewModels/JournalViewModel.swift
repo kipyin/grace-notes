@@ -25,11 +25,11 @@ final class JournalViewModel {
     private(set) var streakSummary: StreakSummary = .empty
 
     static let slotCount = JournalEntry.slotCount
-    private static let interimLabelMaxChars = 20
+    static let interimLabelMaxChars = 20
     @ObservationIgnored private let calendar: Calendar
     @ObservationIgnored private let nowProvider: () -> Date
     @ObservationIgnored private let repository: JournalRepository
-    @ObservationIgnored private let summarizerProvider: SummarizerProvider
+    @ObservationIgnored let summarizerProvider: SummarizerProvider
     @ObservationIgnored private let streakCalculator: StreakCalculator
     @ObservationIgnored private let autosaveTrigger = PassthroughSubject<Void, Never>()
     @ObservationIgnored private var cancellables: Set<AnyCancellable> = []
@@ -39,8 +39,6 @@ final class JournalViewModel {
     @ObservationIgnored private var hasLoadedToday = false
     @ObservationIgnored private var isHydrating = false
     @ObservationIgnored private var hasRecordedFirstSave = false
-    @ObservationIgnored private var hasLoadedStreakCache = false
-    @ObservationIgnored private var cachedEntriesForStreak: [JournalEntry] = []
 
     init(
         calendar: Calendar = .current,
@@ -82,7 +80,7 @@ final class JournalViewModel {
                 hydrate(from: existing)
                 PerformanceTrace.end("JournalViewModel.loadEntry.hydrate", startedAt: hydrateTrace)
                 let streakTrace = PerformanceTrace.begin("JournalViewModel.loadEntry.streakRefresh")
-                refreshStreakSummary(forceReload: !hasLoadedStreakCache)
+                refreshStreakSummary()
                 PerformanceTrace.end("JournalViewModel.loadEntry.streakRefresh", startedAt: streakTrace)
                 PerformanceTrace.end("JournalViewModel.loadEntry.existing", startedAt: loadTrace)
                 return
@@ -106,7 +104,7 @@ final class JournalViewModel {
         hydrate(from: newEntry)
         PerformanceTrace.end("JournalViewModel.loadEntry.hydrate", startedAt: hydrateTrace)
         let streakTrace = PerformanceTrace.begin("JournalViewModel.loadEntry.streakRefresh")
-        refreshStreakSummary(forceReload: !hasLoadedStreakCache)
+        refreshStreakSummary()
         PerformanceTrace.end("JournalViewModel.loadEntry.streakRefresh", startedAt: streakTrace)
         PerformanceTrace.end("JournalViewModel.loadEntry.newUnsaved", startedAt: loadTrace)
     }
@@ -152,7 +150,7 @@ final class JournalViewModel {
         }
     }
 
-    private func refreshStreakSummary(forceReload: Bool = false) {
+    private func refreshStreakSummary() {
         guard let context = modelContext else {
             streakSummary = .empty
             return
@@ -160,21 +158,8 @@ final class JournalViewModel {
 
         let streakTrace = PerformanceTrace.begin("JournalViewModel.refreshStreakSummary")
         do {
-            if forceReload || !hasLoadedStreakCache {
-                cachedEntriesForStreak = try repository.fetchAllEntries(context: context)
-                hasLoadedStreakCache = true
-            }
-
-            if let entry = journalEntry {
-                if let index = cachedEntriesForStreak.firstIndex(where: { $0.id == entry.id }) {
-                    cachedEntriesForStreak[index] = entry
-                } else {
-                    cachedEntriesForStreak.append(entry)
-                    cachedEntriesForStreak.sort { $0.entryDate > $1.entryDate }
-                }
-            }
-
-            streakSummary = streakCalculator.summary(from: cachedEntriesForStreak, now: nowProvider())
+            var entriesForStreak = try repository.fetchAllEntries(context: context)
+            streakSummary = streakCalculator.summary(from: entriesForStreak, now: nowProvider())
             PerformanceTrace.end("JournalViewModel.refreshStreakSummary", startedAt: streakTrace)
         } catch {
             streakSummary = .empty
@@ -182,7 +167,7 @@ final class JournalViewModel {
         }
     }
 
-    private func scheduleAutosave() {
+    func scheduleAutosave() {
         guard !isHydrating else { return }
         autosaveTrigger.send(())
     }

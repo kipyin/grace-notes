@@ -28,14 +28,24 @@ final class JournalEntry {
     ) {
         self.id = id
         self.entryDate = entryDate // Callers must pass start-of-day
-        self.gratitudes = gratitudes
-        self.needs = needs
-        self.people = people
+        self.gratitudes = Self.normalizedItems(gratitudes)
+        self.needs = Self.normalizedItems(needs)
+        self.people = Self.normalizedItems(people)
         self.readingNotes = readingNotes
         self.reflections = reflections
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.completedAt = completedAt
+    }
+
+    private static func normalizedItems(_ items: [JournalItem]) -> [JournalItem] {
+        items.map { item in
+            var normalized = item
+            if normalized.chipLabel == nil {
+                normalized.chipLabel = normalized.fullText
+            }
+            return normalized
+        }
     }
 
     /// Whether this entry meets completion criteria. Used by History and Journal.

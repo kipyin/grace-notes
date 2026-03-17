@@ -30,14 +30,13 @@ struct JournalRepository {
             PerformanceTrace.end("JournalRepository.fetchEntry.invalidDate", startedAt: trace)
             return nil
         }
-        var descriptor = FetchDescriptor<JournalEntry>(
-            predicate: #Predicate { entry in
-                entry.entryDate >= dayStart && entry.entryDate < nextDay
-            }
-        )
-        descriptor.fetchLimit = 1
         do {
-            let entry = try context.fetch(descriptor).first
+            let descriptor = FetchDescriptor<JournalEntry>(
+                sortBy: [SortDescriptor(\.entryDate, order: .reverse)]
+            )
+            let entry = try context.fetch(descriptor).first {
+                $0.entryDate >= dayStart && $0.entryDate < nextDay
+            }
             PerformanceTrace.end("JournalRepository.fetchEntry", startedAt: trace)
             return entry
         } catch {
