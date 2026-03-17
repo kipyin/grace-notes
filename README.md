@@ -39,6 +39,17 @@ Five Cubed Moments guides you through a simple daily rhythm: 5 gratitudes, 5 nee
 3. For code signing, select your development team in the project's Signing & Capabilities (if needed).
 4. Select a simulator or device and run (⌘R).
 
+## Automation
+
+Use the root `Makefile` for common local workflows:
+
+- `make lint` – Run SwiftLint checks.
+- `make build` – Build the app (requires macOS + Xcode).
+- `make test` – Run tests for the default scheme (requires macOS + Xcode + iOS Simulator).
+- `make test-demo` – Run tests for the demo scheme.
+- `make test-all` – Run tests for both schemes.
+- `make ci` – Run lint and tests for both schemes.
+
 ## Tech Stack
 
 - Swift and SwiftUI
