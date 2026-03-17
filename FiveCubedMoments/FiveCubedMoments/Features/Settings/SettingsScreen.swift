@@ -7,6 +7,12 @@ struct SettingsScreen: View {
     @AppStorage(ReminderSettings.enabledKey) private var dailyReminderEnabled = false
     @AppStorage(ReminderSettings.timeIntervalKey) private var dailyReminderTimeInterval = ReminderSettings.defaultTimeInterval
 
+    @State private var reminderDraftTime = ReminderSettings.date(from: ReminderSettings.defaultTimeInterval)
+    @State private var isReminderTimePickerExpanded = false
+    @State private var isSavingReminderTime = false
+    @State private var reminderErrorMessage: String?
+    @State private var showReminderError = false
+
     private let reminderScheduler = ReminderScheduler()
 
     var body: some View {
@@ -46,14 +52,50 @@ struct SettingsScreen: View {
                     .font(AppTheme.warmPaperBody)
                     .foregroundStyle(AppTheme.textPrimary)
                 if dailyReminderEnabled {
-                    DatePicker(
-                        "Reminder time",
-                        selection: reminderTimeBinding,
-                        displayedComponents: .hourAndMinute
-                    )
-                    .datePickerStyle(.wheel)
-                    .font(AppTheme.warmPaperBody)
-                    .foregroundStyle(AppTheme.textPrimary)
+                    Button {
+                        if !isReminderTimePickerExpanded {
+                            reminderDraftTime = savedReminderTime
+                        }
+                        isReminderTimePickerExpanded.toggle()
+                    } label: {
+                        HStack {
+                            Text("Reminder time")
+                            Spacer()
+                            Text(savedReminderTime, style: .time)
+                                .foregroundStyle(AppTheme.textMuted)
+                            Image(systemName: isReminderTimePickerExpanded ? "chevron.up" : "chevron.down")
+                                .foregroundStyle(AppTheme.textMuted)
+                        }
+                        .font(AppTheme.warmPaperBody)
+                    }
+                    .buttonStyle(.plain)
+
+                    if isReminderTimePickerExpanded {
+                        DatePicker(
+                            "Reminder time",
+                            selection: $reminderDraftTime,
+                            displayedComponents: .hourAndMinute
+                        )
+                        .datePickerStyle(.wheel)
+                        .font(AppTheme.warmPaperBody)
+                        .foregroundStyle(AppTheme.textPrimary)
+
+                        Button {
+                            Task {
+                                await confirmReminderTime()
+                            }
+                        } label: {
+                            if isSavingReminderTime {
+                                ProgressView()
+                                    .frame(maxWidth: .infinity)
+                            } else {
+                                Text("Done")
+                                    .frame(maxWidth: .infinity)
+                            }
+                        }
+                        .font(AppTheme.warmPaperBody)
+                        .disabled(isSavingReminderTime)
+                    }
                 }
             } header: {
                 Text("Reminders")
@@ -69,31 +111,72 @@ struct SettingsScreen: View {
         .background(AppTheme.background)
         .navigationTitle("Settings")
         .task {
+            reminderDraftTime = savedReminderTime
             await syncReminderSchedule()
         }
-        .onChange(of: dailyReminderEnabled) { _, _ in
+        .onChange(of: dailyReminderEnabled) { _, newValue in
             Task {
-                await syncReminderSchedule()
+                await updateReminderEnabledState(isEnabled: newValue)
             }
         }
-        .onChange(of: dailyReminderTimeInterval) { _, _ in
-            Task {
-                await syncReminderSchedule()
-            }
+        .alert("Unable to update reminder", isPresented: $showReminderError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(reminderErrorMessage ?? "Please try again.")
         }
     }
 
-    private var reminderTimeBinding: Binding<Date> {
-        Binding(
-            get: { ReminderSettings.date(from: dailyReminderTimeInterval) },
-            set: { dailyReminderTimeInterval = $0.timeIntervalSinceReferenceDate }
-        )
+    private var savedReminderTime: Date {
+        ReminderSettings.date(from: dailyReminderTimeInterval)
     }
 
     private func syncReminderSchedule() async {
-        await reminderScheduler.syncDailyReminder(
+        _ = await reminderScheduler.syncDailyReminder(
             enabled: dailyReminderEnabled,
-            time: ReminderSettings.date(from: dailyReminderTimeInterval)
+            time: savedReminderTime
         )
+    }
+
+    private func updateReminderEnabledState(isEnabled: Bool) async {
+        if !isEnabled {
+            isReminderTimePickerExpanded = false
+            await syncReminderSchedule()
+            return
+        }
+
+        reminderDraftTime = savedReminderTime
+        let result = await reminderScheduler.syncDailyReminder(enabled: true, time: savedReminderTime)
+        if case .permissionDenied = result {
+            reminderErrorMessage = "Allow notifications in Settings to enable daily reminders."
+            showReminderError = true
+            dailyReminderEnabled = false
+        } else if case .failed = result {
+            reminderErrorMessage = "Unable to schedule your reminder right now."
+            showReminderError = true
+            dailyReminderEnabled = false
+        }
+    }
+
+    private func confirmReminderTime() async {
+        guard !isSavingReminderTime else {
+            return
+        }
+        isSavingReminderTime = true
+        defer { isSavingReminderTime = false }
+
+        let result = await reminderScheduler.syncDailyReminder(enabled: true, time: reminderDraftTime)
+        switch result {
+        case .scheduled:
+            dailyReminderTimeInterval = reminderDraftTime.timeIntervalSinceReferenceDate
+            isReminderTimePickerExpanded = false
+        case .permissionDenied:
+            reminderErrorMessage = "Allow notifications in Settings to confirm a reminder time."
+            showReminderError = true
+        case .failed:
+            reminderErrorMessage = "Unable to save that reminder time right now."
+            showReminderError = true
+        case .disabled:
+            break
+        }
     }
 }

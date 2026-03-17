@@ -1,6 +1,13 @@
 import Foundation
 import UserNotifications
 
+enum ReminderSyncResult: Equatable {
+    case scheduled
+    case disabled
+    case permissionDenied
+    case failed
+}
+
 protocol UserNotificationCenterClient {
     func authorizationStatus() async -> UNAuthorizationStatus
     func requestAuthorization(options: UNAuthorizationOptions) async throws -> Bool
@@ -27,40 +34,50 @@ struct ReminderScheduler {
         self.calendar = calendar
     }
 
-    func syncDailyReminder(enabled: Bool, time: Date) async {
+    func syncDailyReminder(enabled: Bool, time: Date) async -> ReminderSyncResult {
         if !enabled {
             removeReminder()
-            return
+            return .disabled
         }
 
-        guard await hasNotificationPermission() else {
+        switch await notificationPermissionOutcome() {
+        case .granted:
+            let wasScheduled = await scheduleReminder(at: time)
+            return wasScheduled ? .scheduled : .failed
+        case .denied:
             removeReminder()
-            return
+            return .permissionDenied
+        case .failed:
+            removeReminder()
+            return .failed
         }
-
-        await scheduleReminder(at: time)
     }
 
-    private func hasNotificationPermission() async -> Bool {
+    private func notificationPermissionOutcome() async -> NotificationPermissionOutcome {
         let status = await notificationCenter.authorizationStatus()
         switch status {
         case .authorized, .provisional, .ephemeral:
-            return true
+            return .granted
         case .notDetermined:
-            return (try? await notificationCenter.requestAuthorization(options: [.alert, .sound])) ?? false
+            do {
+                let isAuthorized = try await notificationCenter.requestAuthorization(options: [.alert, .sound])
+                return isAuthorized ? .granted : .denied
+            } catch {
+                return .failed
+            }
         case .denied:
-            return false
+            return .denied
         @unknown default:
-            return false
+            return .failed
         }
     }
 
-    private func scheduleReminder(at time: Date) async {
+    private func scheduleReminder(at time: Date) async -> Bool {
         removeReminder()
 
         let content = UNMutableNotificationContent()
-        content.title = "Five Cubed Moments"
-        content.body = "Take a moment to complete today's 5³."
+        content.title = String(localized: "Five Cubed Moments")
+        content.body = String(localized: "Take a moment to complete today's 5³.")
         content.sound = .default
 
         let timeComponents = ReminderSettings.timeComponents(from: time, calendar: calendar)
@@ -71,7 +88,12 @@ struct ReminderScheduler {
             trigger: trigger
         )
 
-        try? await notificationCenter.add(request)
+        do {
+            try await notificationCenter.add(request)
+            return true
+        } catch {
+            return false
+        }
     }
 
     private func removeReminder() {
@@ -79,4 +101,10 @@ struct ReminderScheduler {
             withIdentifiers: [ReminderSettings.notificationIdentifier]
         )
     }
+}
+
+private enum NotificationPermissionOutcome {
+    case granted
+    case denied
+    case failed
 }

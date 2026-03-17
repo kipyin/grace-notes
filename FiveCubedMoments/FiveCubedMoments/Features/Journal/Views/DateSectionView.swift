@@ -27,10 +27,24 @@ struct DateSectionView: View {
             }
 
             HStack(spacing: 12) {
-                Label("Basic \(streakSummary.basicCurrent)", systemImage: "flame")
+                Label(
+                    String(
+                        format: String(localized: "Basic %lld"),
+                        locale: .current,
+                        Int64(streakSummary.basicCurrent)
+                    ),
+                    systemImage: "flame"
+                )
                     .font(AppTheme.warmPaperBody)
                     .foregroundStyle(streakSummary.basicDoneToday ? AppTheme.complete : AppTheme.textMuted)
-                Label("Perfect \(streakSummary.perfectCurrent)", systemImage: "star.fill")
+                Label(
+                    String(
+                        format: String(localized: "Perfect %lld"),
+                        locale: .current,
+                        Int64(streakSummary.perfectCurrent)
+                    ),
+                    systemImage: "star.fill"
+                )
                     .font(AppTheme.warmPaperBody)
                     .foregroundStyle(streakSummary.perfectDoneToday ? AppTheme.complete : AppTheme.textMuted)
             }
