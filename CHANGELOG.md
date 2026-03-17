@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.2.3] - Unreleased
+## [0.3.0] - Unreleased
 
 ### Added
 - Daily local reminder support in Settings with a reminder toggle, time picker, and persisted reminder preferences
@@ -37,6 +37,7 @@
 - Review screen naming now matches product terminology in code (`ReviewScreen`)
 - Cloud review payloads are now sanitized/clamped (message length, theme counts, non-empty positive themes)
 - Shared iCloud sync defaults key now references a single source (`PersistenceController.iCloudSyncEnabledKey`)
+- Chinese localization now fully covers Review, Settings, and Onboarding screens (including deterministic review insight copy)
 
 ### Developer
 - Demo build configuration and scheme (`FiveCubedMoments (Demo)`) with `USE_DEMO_DATABASE` for running with pre-seeded sample data; `DemoDataSeeder` and `PerformanceTrace` utilities
