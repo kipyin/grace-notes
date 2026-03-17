@@ -13,7 +13,11 @@ final class PersistenceController {
 #endif
     }()
     static var isCloudSyncEnabled: Bool {
+#if USE_DEMO_DATABASE
+        false
+#else
         UserDefaults.standard.object(forKey: iCloudSyncEnabledKey) as? Bool ?? true
+#endif
     }
 
     let container: ModelContainer
@@ -67,7 +71,8 @@ final class PersistenceController {
             return ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         }
 #if USE_DEMO_DATABASE
-        return ModelConfiguration(schema: schema, url: demoStoreURL)
+        let cloudDatabase: ModelConfiguration.CloudKitDatabase = cloudSyncEnabled ? .automatic : .none
+        return ModelConfiguration(schema: schema, url: demoStoreURL, cloudKitDatabase: cloudDatabase)
 #else
         let cloudDatabase: ModelConfiguration.CloudKitDatabase = cloudSyncEnabled ? .automatic : .none
         return ModelConfiguration(schema: schema, cloudKitDatabase: cloudDatabase)

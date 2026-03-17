@@ -10,16 +10,18 @@ enum JournalCompletionLevel: String, Equatable {
 
 @Model
 final class JournalEntry {
-    var id: UUID
-    var entryDate: Date
-    var gratitudes: [JournalItem]
-    var needs: [JournalItem]
-    var people: [JournalItem]
-    @Attribute(originalName: "bibleNotes") var readingNotes: String
-    var reflections: String
-    var createdAt: Date
-    var updatedAt: Date
-    var completedAt: Date?
+    // CloudKit-backed SwiftData models need declaration-time defaults
+    // for every non-optional property.
+    var id: UUID = UUID()
+    var entryDate: Date = Date.now
+    var gratitudes: [JournalItem] = []
+    var needs: [JournalItem] = []
+    var people: [JournalItem] = []
+    @Attribute(originalName: "bibleNotes") var readingNotes: String = ""
+    var reflections: String = ""
+    var createdAt: Date = Date.now
+    var updatedAt: Date = Date.now
+    var completedAt: Date? = nil
 
     init(
         id: UUID = UUID(),
