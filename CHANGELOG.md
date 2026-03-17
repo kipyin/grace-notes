@@ -14,6 +14,7 @@
 ### Developer
 - Rebranded project/app/test paths from `FiveCubedMoments*` to `GraceNotes*` and aligned Xcode schemes/module naming
 - Updated iCloud entitlement container identifiers to the Grace Notes bundle naming
+- Removed `GRACE_NOTES_CLOUD_API_KEY` fallback; cloud key now resolves from Info.plist or placeholder only
 
 ## [0.2.3] - 2026-03-17
 
