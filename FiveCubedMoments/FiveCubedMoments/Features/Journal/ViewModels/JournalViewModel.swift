@@ -188,15 +188,8 @@ final class JournalViewModel {
 }
 
 extension JournalViewModel {
-    private static let exportDateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.locale = Locale.current
-        formatter.dateStyle = .long
-        return formatter
-    }()
-
     func exportSnapshot() -> JournalExportPayload {
-        let dateStr = Self.exportDateFormatter.string(from: entryDate)
+        let dateStr = entryDate.formatted(date: .long, time: .omitted)
         return JournalExportPayload(
             dateFormatted: dateStr,
             gratitudes: gratitudes.map(\.fullText),
