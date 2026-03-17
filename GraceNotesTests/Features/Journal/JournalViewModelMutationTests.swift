@@ -174,6 +174,37 @@ final class JournalViewModelMutationTests: XCTestCase {
         XCTAssertEqual(viewModel.people[0].fullText, "Alice")
     }
 
+    func test_moveGratitude_validMove_reordersItems() async throws {
+        let context = try makeInMemoryContext()
+        let now = Date(timeIntervalSince1970: 1_742_147_200)
+        let viewModel = makeViewModel(now: now)
+
+        viewModel.loadEntry(for: now, using: context)
+        await viewModel.addGratitude("First")
+        await viewModel.addGratitude("Second")
+        await viewModel.addGratitude("Third")
+
+        let moved = viewModel.moveGratitude(from: 0, to: 3)
+
+        XCTAssertTrue(moved)
+        XCTAssertEqual(viewModel.gratitudes.map(\.fullText), ["Second", "Third", "First"])
+    }
+
+    func test_moveNeed_invalidDestination_returnsFalse() async throws {
+        let context = try makeInMemoryContext()
+        let now = Date(timeIntervalSince1970: 1_742_147_200)
+        let viewModel = makeViewModel(now: now)
+
+        viewModel.loadEntry(for: now, using: context)
+        await viewModel.addNeed("Need one")
+        await viewModel.addNeed("Need two")
+
+        let moved = viewModel.moveNeed(from: 1, to: 99)
+
+        XCTAssertFalse(moved)
+        XCTAssertEqual(viewModel.needs.map(\.fullText), ["Need one", "Need two"])
+    }
+
     private func makeViewModel(now: Date) -> JournalViewModel {
         JournalViewModel(
             calendar: calendar,

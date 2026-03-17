@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 private struct AddChipView: View {
     let onTap: () -> Void
@@ -39,8 +40,10 @@ struct SequentialSectionView: View {
     let editingIndex: Int?
     let onSubmit: () -> Void
     let onChipTap: (Int) -> Void
+    let onMoveChip: ((Int, Int) -> Void)?
     let onDeleteChip: ((Int) -> Void)?
     let onAddNew: (() -> Void)?
+    @State private var draggingItemID: UUID?
 
     init(
         title: String,
@@ -52,6 +55,7 @@ struct SequentialSectionView: View {
         editingIndex: Int?,
         onSubmit: @escaping () -> Void,
         onChipTap: @escaping (Int) -> Void,
+        onMoveChip: ((Int, Int) -> Void)? = nil,
         onDeleteChip: ((Int) -> Void)? = nil,
         onAddNew: (() -> Void)? = nil
     ) {
@@ -64,6 +68,7 @@ struct SequentialSectionView: View {
         self.editingIndex = editingIndex
         self.onSubmit = onSubmit
         self.onChipTap = onChipTap
+        self.onMoveChip = onMoveChip
         self.onDeleteChip = onDeleteChip
         self.onAddNew = onAddNew
     }
@@ -107,6 +112,19 @@ struct SequentialSectionView: View {
                                 onTap: { onChipTap(index) },
                                 onDelete: onDeleteChip.map { handler in { handler(index) } }
                             )
+                            .onDrag {
+                                draggingItemID = item.id
+                                return NSItemProvider(object: item.id.uuidString as NSString)
+                            }
+                            .onDrop(
+                                of: [UTType.text],
+                                delegate: ChipReorderDropDelegate(
+                                    targetIndex: index,
+                                    items: items,
+                                    draggingItemID: $draggingItemID,
+                                    onMoveChip: onMoveChip
+                                )
+                            )
                         }
                         if showAddChip, let addNew = onAddNew {
                             AddChipView(onTap: addNew)
@@ -129,5 +147,30 @@ struct SequentialSectionView: View {
                 .font(AppTheme.warmPaperBody)
                 .foregroundStyle(AppTheme.textMuted)
         }
+    }
+}
+
+private struct ChipReorderDropDelegate: DropDelegate {
+    let targetIndex: Int
+    let items: [JournalItem]
+    @Binding var draggingItemID: UUID?
+    let onMoveChip: ((Int, Int) -> Void)?
+
+    func dropEntered(info: DropInfo) {
+        guard let onMoveChip, let draggingItemID else { return }
+        guard let sourceIndex = items.firstIndex(where: { $0.id == draggingItemID }) else { return }
+        guard sourceIndex != targetIndex else { return }
+
+        let destinationOffset = targetIndex > sourceIndex ? targetIndex + 1 : targetIndex
+        onMoveChip(sourceIndex, destinationOffset)
+    }
+
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        DropProposal(operation: .move)
+    }
+
+    func performDrop(info: DropInfo) -> Bool {
+        draggingItemID = nil
+        return true
     }
 }
