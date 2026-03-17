@@ -130,7 +130,11 @@ private struct CloudChatResponse: Decodable {
 }
 
 private struct CloudChatChoice: Decodable {
-    let message: CloudChatMessage
+    let message: CloudChatResponseMessage
+}
+
+private struct CloudChatResponseMessage: Decodable {
+    let content: String
 }
 
 private struct CloudChatMessage: Codable {

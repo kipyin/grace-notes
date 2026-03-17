@@ -23,6 +23,12 @@ struct NaturalLanguageSummarizer: Summarizer {
         let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return SummarizationResult(label: "", isTruncated: false) }
 
+        if section == .person, let detectedName = detectLatinPersonalName(in: trimmed) {
+            let isTruncated = detectedName.count > maxKeywordLabelChars
+            let capped = isTruncated ? firstTokensUpToMaxChars(detectedName, maxChars: maxKeywordLabelChars) : detectedName
+            return SummarizationResult(label: capped, isTruncated: isTruncated)
+        }
+
         var rawLabel: String
         var isTruncated: Bool
 
@@ -138,7 +144,11 @@ struct NaturalLanguageSummarizer: Summarizer {
         }
 
         let label = words.prefix(take).joined(separator: " ")
-        return SummarizationResult(label: label, isTruncated: words.count > maxFallbackWords)
+        if label.count > maxKeywordLabelChars {
+            let capped = firstTokensUpToMaxChars(label, maxChars: maxKeywordLabelChars)
+            return SummarizationResult(label: capped, isTruncated: true)
+        }
+        return SummarizationResult(label: label, isTruncated: false)
     }
 
     private func firstTokensUpToMaxChars(_ text: String, maxChars: Int) -> String {
@@ -161,5 +171,16 @@ struct NaturalLanguageSummarizer: Summarizer {
             return false
         }
         return tokens.isEmpty ? String(text.prefix(maxChars)) : tokens.joined(separator: " ")
+    }
+
+    private func detectLatinPersonalName(in text: String) -> String? {
+        let pattern = #"\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+\b"#
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return nil }
+        let nsRange = NSRange(text.startIndex..<text.endIndex, in: text)
+        guard let match = regex.firstMatch(in: text, range: nsRange),
+              let range = Range(match.range, in: text) else {
+            return nil
+        }
+        return String(text[range])
     }
 }
