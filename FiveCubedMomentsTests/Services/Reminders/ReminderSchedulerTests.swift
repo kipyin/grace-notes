@@ -7,8 +7,9 @@ final class ReminderSchedulerTests: XCTestCase {
         let center = MockUserNotificationCenter()
         let scheduler = ReminderScheduler(notificationCenter: center)
 
-        await scheduler.syncDailyReminder(enabled: false, time: Date())
+        let result = await scheduler.syncDailyReminder(enabled: false, time: Date())
 
+        XCTAssertEqual(result, .disabled)
         XCTAssertEqual(center.removedIdentifiers, [ReminderSettings.notificationIdentifier])
         XCTAssertNil(center.lastAddedRequest)
     }
@@ -17,8 +18,9 @@ final class ReminderSchedulerTests: XCTestCase {
         let center = MockUserNotificationCenter(status: .denied)
         let scheduler = ReminderScheduler(notificationCenter: center)
 
-        await scheduler.syncDailyReminder(enabled: true, time: Date())
+        let result = await scheduler.syncDailyReminder(enabled: true, time: Date())
 
+        XCTAssertEqual(result, .permissionDenied)
         XCTAssertNil(center.lastAddedRequest)
         XCTAssertEqual(center.removedIdentifiers, [ReminderSettings.notificationIdentifier])
         XCTAssertFalse(center.didRequestAuthorization)
@@ -31,8 +33,9 @@ final class ReminderSchedulerTests: XCTestCase {
         let scheduler = ReminderScheduler(notificationCenter: center, calendar: calendar)
         let reminderTime = date(year: 2026, month: 3, day: 17, hour: 19, minute: 45, calendar: calendar)
 
-        await scheduler.syncDailyReminder(enabled: true, time: reminderTime)
+        let result = await scheduler.syncDailyReminder(enabled: true, time: reminderTime)
 
+        XCTAssertEqual(result, .scheduled)
         let request = try? XCTUnwrap(center.lastAddedRequest)
         XCTAssertEqual(request?.identifier, ReminderSettings.notificationIdentifier)
         let trigger = request?.trigger as? UNCalendarNotificationTrigger
@@ -46,10 +49,22 @@ final class ReminderSchedulerTests: XCTestCase {
         let center = MockUserNotificationCenter(status: .notDetermined, shouldGrantRequestAuthorization: true)
         let scheduler = ReminderScheduler(notificationCenter: center)
 
-        await scheduler.syncDailyReminder(enabled: true, time: Date())
+        let result = await scheduler.syncDailyReminder(enabled: true, time: Date())
 
+        XCTAssertEqual(result, .scheduled)
         XCTAssertTrue(center.didRequestAuthorization)
         XCTAssertNotNil(center.lastAddedRequest)
+    }
+
+    func test_syncDailyReminder_addFailure_returnsFailedAndDoesNotPersistRequest() async {
+        let center = MockUserNotificationCenter(status: .authorized, shouldFailAdd: true)
+        let scheduler = ReminderScheduler(notificationCenter: center)
+
+        let result = await scheduler.syncDailyReminder(enabled: true, time: Date())
+
+        XCTAssertEqual(result, .failed)
+        XCTAssertNil(center.lastAddedRequest)
+        XCTAssertEqual(center.removedIdentifiers, [ReminderSettings.notificationIdentifier])
     }
 
     private func date(
@@ -74,6 +89,7 @@ final class ReminderSchedulerTests: XCTestCase {
 private final class MockUserNotificationCenter: UserNotificationCenterClient {
     private let status: UNAuthorizationStatus
     private let shouldGrantRequestAuthorization: Bool
+    private let shouldFailAdd: Bool
 
     private(set) var didRequestAuthorization = false
     private(set) var removedIdentifiers: [String]?
@@ -81,10 +97,12 @@ private final class MockUserNotificationCenter: UserNotificationCenterClient {
 
     init(
         status: UNAuthorizationStatus = .authorized,
-        shouldGrantRequestAuthorization: Bool = false
+        shouldGrantRequestAuthorization: Bool = false,
+        shouldFailAdd: Bool = false
     ) {
         self.status = status
         self.shouldGrantRequestAuthorization = shouldGrantRequestAuthorization
+        self.shouldFailAdd = shouldFailAdd
     }
 
     func authorizationStatus() async -> UNAuthorizationStatus {
@@ -97,10 +115,17 @@ private final class MockUserNotificationCenter: UserNotificationCenterClient {
     }
 
     func add(_ request: UNNotificationRequest) async throws {
+        if shouldFailAdd {
+            throw MockNotificationError.addFailed
+        }
         lastAddedRequest = request
     }
 
     func removePendingNotificationRequests(withIdentifiers identifiers: [String]) {
         removedIdentifiers = identifiers
     }
+}
+
+private enum MockNotificationError: Error {
+    case addFailed
 }

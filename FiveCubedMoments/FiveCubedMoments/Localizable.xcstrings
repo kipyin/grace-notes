@@ -43,6 +43,9 @@
         }
       }
     },
+    "Basic %lld" : {
+
+    },
     "Cancel" : {
       "localizations" : {
         "en" : {
@@ -107,6 +110,9 @@
         }
       }
     },
+    "Daily reminder" : {
+
+    },
     "Date" : {
       "localizations" : {
         "en" : {
@@ -154,6 +160,9 @@
           }
         }
       }
+    },
+    "Get one daily local reminder to complete today's 5³." : {
+
     },
     "Gratitudes" : {
       "localizations" : {
@@ -267,6 +276,9 @@
         }
       }
     },
+    "Perfect %lld" : {
+
+    },
     "Reading Notes" : {
       "localizations" : {
         "en" : {
@@ -298,6 +310,12 @@
           }
         }
       }
+    },
+    "Reminder time" : {
+
+    },
+    "Reminders" : {
+
     },
     "Saved to Photos" : {
       "localizations" : {
