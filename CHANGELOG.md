@@ -18,6 +18,7 @@
 - Sprint-ready planning doc for review + onboarding execution (`review-onboarding-sprint-plan-2026-03-17.md`)
 
 ### Changed
+- JournalEntry model: `bibleNotes` → `readingNotes` with `@Attribute(originalName:)` for schema migration; CloudKit-compatible declaration-time defaults
 - JournalViewModel now computes and exposes a `streakSummary` whenever entries are loaded/saved
 - Basic streak logic now counts only meaningful journal activity (not auto-created blank entries)
 - Sequential section add chip `(+)` now stays hidden when all five entries are filled, including while editing an existing chip
@@ -37,6 +38,7 @@
 - Shared iCloud sync defaults key now references a single source (`PersistenceController.iCloudSyncEnabledKey`)
 
 ### Developer
+- Demo build configuration and scheme (`FiveCubedMoments (Demo)`) with `USE_DEMO_DATABASE` for running with pre-seeded sample data; `DemoDataSeeder` and `PerformanceTrace` utilities
 - Added `StreakCalculator` service and `StreakSummary` value type for derived, read-time streak metrics
 - Added reminder and streak test coverage for permission flows, time scheduling, skipped-day breaks, and day-boundary normalization
 - Removed unused localization key `"%d of %d — editing"`
