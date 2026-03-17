@@ -8,12 +8,20 @@
 - Streak tracking with derived `basic` and `perfect` streaks computed from existing `JournalEntry` data
 - Journal header streak display showing current Basic and Perfect streak values
 - New unit tests for reminder scheduling behavior and streak calculation edge cases
+- Product strategy implementation plan doc (`PRODUCT_STRATEGY_IMPLEMENTATION_PLAN_2026-03-17.md`)
+- Weekly review insights domain with deterministic recurring-theme generation
+- Cloud AI weekly review insights generator with provider fallback to deterministic insights
+- Review tab summary card showing weekly narrative, recurring themes, resurfacing, and continuity prompt
+- Data export service for full journal JSON archive from Settings
+- iCloud/CloudKit capability wiring (`FiveCubedMoments.entitlements`) and cloud-capable SwiftData configuration path
 
 ### Changed
 - JournalViewModel now computes and exposes a `streakSummary` whenever entries are loaded/saved
 - Basic streak logic now counts only meaningful journal activity (not auto-created blank entries)
 - Sequential section add chip `(+)` now stays hidden when all five entries are filled, including while editing an existing chip
 - Progress footer now always uses plain count text (for example, `2 of 5`) without the `- editing` suffix
+- Tab/navigation copy updated from **History** to **Review**
+- Settings now include AI review-insights toggle, iCloud sync preference, and data trust/privacy messaging
 
 ### Fixed
 - (none)
@@ -22,6 +30,7 @@
 - Added `StreakCalculator` service and `StreakSummary` value type for derived, read-time streak metrics
 - Added reminder and streak test coverage for permission flows, time scheduling, skipped-day breaks, and day-boundary normalization
 - Removed unused localization key `"%d of %d — editing"`
+- Added tests for deterministic review insights, cloud review insights decoding, provider fallback behavior, and JSON export payload integrity
 
 ## [0.2.2] - Unreleased
 
