@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.2.3] - Unreleased
+
+### Added
+- Daily local reminder support in Settings with a reminder toggle, time picker, and persisted reminder preferences
+- Reminder scheduling service (`ReminderScheduler`) with focused reminder settings constants (`ReminderSettings`)
+- Streak tracking with derived `basic` and `perfect` streaks computed from existing `JournalEntry` data
+- Journal header streak display showing current Basic and Perfect streak values
+- New unit tests for reminder scheduling behavior and streak calculation edge cases
+
+### Changed
+- JournalViewModel now computes and exposes a `streakSummary` whenever entries are loaded/saved
+- Basic streak logic now counts only meaningful journal activity (not auto-created blank entries)
+
+### Fixed
+- (none)
+
+### Developer
+- Added `StreakCalculator` service and `StreakSummary` value type for derived, read-time streak metrics
+- Added reminder and streak test coverage for permission flows, time scheduling, skipped-day breaks, and day-boundary normalization
+
 ## [0.2.2] - Unreleased
 
 ### Added
