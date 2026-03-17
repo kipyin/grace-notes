@@ -101,4 +101,30 @@ final class JournalScreenChipHandlingTests: XCTestCase {
         XCTAssertNil(editingIndex)
         XCTAssertEqual(input, "")
     }
+
+    func test_performMove_whenEditingMovedItem_updatesEditingIndexToDestination() {
+        var editingIndex: Int? = 0
+
+        JournalScreenChipHandling.performMove(
+            from: 0,
+            to: 3,
+            move: { _, _ in true },
+            editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 })
+        )
+
+        XCTAssertEqual(editingIndex, 2)
+    }
+
+    func test_performMove_whenEditingItemBetweenRange_shiftsEditingIndex() {
+        var editingIndex: Int? = 2
+
+        JournalScreenChipHandling.performMove(
+            from: 0,
+            to: 3,
+            move: { _, _ in true },
+            editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 })
+        )
+
+        XCTAssertEqual(editingIndex, 1)
+    }
 }

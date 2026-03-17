@@ -302,6 +302,35 @@ extension JournalViewModel {
         return true
     }
 
+    /// Returns true if an item moved to a new position.
+    func moveGratitude(from sourceIndex: Int, to destinationOffset: Int) -> Bool {
+        moveItem(in: &gratitudes, from: sourceIndex, to: destinationOffset)
+    }
+
+    /// Returns true if an item moved to a new position.
+    func moveNeed(from sourceIndex: Int, to destinationOffset: Int) -> Bool {
+        moveItem(in: &needs, from: sourceIndex, to: destinationOffset)
+    }
+
+    /// Returns true if an item moved to a new position.
+    func movePerson(from sourceIndex: Int, to destinationOffset: Int) -> Bool {
+        moveItem(in: &people, from: sourceIndex, to: destinationOffset)
+    }
+
+    private func moveItem(in items: inout [JournalItem], from sourceIndex: Int, to destinationOffset: Int) -> Bool {
+        guard sourceIndex >= 0, sourceIndex < items.count else { return false }
+        guard destinationOffset >= 0, destinationOffset <= items.count else { return false }
+
+        let noOpOffset = sourceIndex + 1
+        guard destinationOffset != sourceIndex, destinationOffset != noOpOffset else { return false }
+
+        let movedItem = items.remove(at: sourceIndex)
+        let insertIndex = destinationOffset > sourceIndex ? destinationOffset - 1 : destinationOffset
+        items.insert(movedItem, at: insertIndex)
+        scheduleAutosave()
+        return true
+    }
+
     func updateReadingNotes(_ value: String) {
         readingNotes = value
         scheduleAutosave()

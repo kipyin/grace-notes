@@ -53,6 +53,25 @@ enum JournalScreenChipHandling {
         }
     }
 
+    /// Reorders a chip and remaps editing index to keep editing state on the same item.
+    static func performMove(
+        from sourceIndex: Int,
+        to destinationOffset: Int,
+        move: @MainActor (Int, Int) -> Bool,
+        editingIndex: Binding<Int?>
+    ) {
+        guard move(sourceIndex, destinationOffset) else { return }
+        guard let currentEditing = editingIndex.wrappedValue else { return }
+
+        if let remapped = remappedEditingIndex(
+            currentEditing,
+            sourceIndex: sourceIndex,
+            destinationOffset: destinationOffset
+        ) {
+            editingIndex.wrappedValue = remapped
+        }
+    }
+
     /// Performs the chip-tap-to-edit flow: commits any pending input, then loads the tapped chip into the editor.
     /// Switch is immediate; summarization runs in background when input changed.
     static func performChipTap(
@@ -95,5 +114,27 @@ enum JournalScreenChipHandling {
             input.wrappedValue = full
             editingIndex.wrappedValue = tapIndex
         }
+    }
+
+    private static func remappedEditingIndex(
+        _ editingIndex: Int,
+        sourceIndex: Int,
+        destinationOffset: Int
+    ) -> Int? {
+        let destinationIndex = destinationOffset > sourceIndex ? destinationOffset - 1 : destinationOffset
+
+        if editingIndex == sourceIndex {
+            return destinationIndex
+        }
+
+        if sourceIndex < destinationIndex, editingIndex > sourceIndex, editingIndex <= destinationIndex {
+            return editingIndex - 1
+        }
+
+        if destinationIndex < sourceIndex, editingIndex >= destinationIndex, editingIndex < sourceIndex {
+            return editingIndex + 1
+        }
+
+        return editingIndex
     }
 }
