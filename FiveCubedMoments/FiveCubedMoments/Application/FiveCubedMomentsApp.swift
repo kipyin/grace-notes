@@ -53,7 +53,7 @@ struct FiveCubedMomentsApp: App {
                             }
                         }
                         .tabItem {
-                            Label("History", systemImage: "clock.arrow.circlepath")
+                            Label("Review", systemImage: "clock.arrow.circlepath")
                         }
                         .tag(AppTab.history)
                         NavigationStack {
