@@ -85,113 +85,133 @@ enum DemoDataSeeder {
         let fourDaysAgo = calendar.date(byAdding: .day, value: -4, to: today) ?? today
 
         return [
-            DemoEntryPayload(
-                entryDate: today,
-                gratitudes: [
-                    item("感恩 morning coffee 讓我開始美好的一天", "Morning coffee 美好開始"),
-                    item("Thanks to 小明 for helping with the project", "小明幫 project"),
-                    item("和 Sarah 的 lunch meeting 很愉快", "Sarah lunch 愉快"),
-                    item("Family dinner with lots of laughter", "Family dinner"),
-                    item("天氣很好，散步很舒服", "天氣好散步")
-                ],
-                needs: [
-                    item("需要 more sleep 和規律作息", "More sleep 規律"),
-                    item("想 find time for 運動", "Find time 運動"),
-                    item("Need clearer priorities at work", "Clear priorities"),
-                    item("今天需要安靜專注", "安靜專注"),
-                    item("More water during the day", "Drink more water")
-                ],
-                people: [
-                    item("和媽媽的 weekly call", "媽媽 weekly call"),
-                    item("Coffee with 老闆討論 promotion", "老闆 coffee talk"),
-                    item("Pray for my brother's travel", "Brother travel"),
-                    item("Check in with mentor after lunch", "Mentor check-in"),
-                    item("Send encouragement to team", "Encourage team")
-                ],
-                bibleNotes: "John 15 reminded me to remain connected and let daily habits flow from that place.",
-                reflections: "Today I feel grounded and hopeful. I want to move slowly, stay kind, and finish what matters most.",
-                completedAt: now
-            ),
-            DemoEntryPayload(
-                entryDate: yesterday,
-                gratitudes: [
-                    item("Grateful for quiet morning time", "Quiet morning"),
-                    item("感恩同事主動幫忙", "同事幫忙"),
-                    item("Nice walk after dinner", "Evening walk")
-                ],
-                needs: [
-                    item("Need to rest my eyes", "Rest eyes"),
-                    item("想要更好的時間管理", "時間管理"),
-                    item("Need to follow up on one message", "Follow up"),
-                    item("需要提早睡覺", "提早睡")
-                ],
-                people: [
-                    item("Pray for my friend interview", "Friend interview"),
-                    item("Call dad tonight", "Call dad")
-                ],
-                bibleNotes: "",
-                reflections: "A little tired, but still thankful.",
-                completedAt: nil
-            ),
-            DemoEntryPayload(
-                entryDate: twoDaysAgo,
-                gratitudes: [],
-                needs: [],
-                people: [],
-                bibleNotes: "",
-                reflections: "",
-                completedAt: nil
-            ),
-            DemoEntryPayload(
-                entryDate: threeDaysAgo,
-                gratitudes: [
-                    item("感謝朋友幫忙搬家", "朋友幫忙"),
-                    item("感謝今天的陽光", "今日陽光"),
-                    item("感謝午餐很美味", "午餐美味"),
-                    item("感謝有時間禱告", "禱告時間"),
-                    item("感謝身體恢復中", "身體恢復")
-                ],
-                needs: [
-                    item("想找時間運動", "找時間運動"),
-                    item("需要多休息", "多休息"),
-                    item("需要整理房間", "整理房間"),
-                    item("想減少滑手機", "少滑手機"),
-                    item("需要補充水分", "補充水分")
-                ],
-                people: [
-                    item("感謝媽媽的提醒", "媽媽提醒"),
-                    item("想關心同事近況", "關心同事"),
-                    item("為教會小組代禱", "小組代禱"),
-                    item("感謝鄰居借工具", "鄰居借工具"),
-                    item("想約朋友散步", "約朋友散步")
-                ],
-                bibleNotes: "詩篇提醒我在忙碌裡仍然可以安靜等候。",
-                reflections: "今天節奏很滿，但仍有很多值得感恩的片刻。",
-                completedAt: now
-            ),
-            DemoEntryPayload(
-                entryDate: fourDaysAgo,
-                gratitudes: [
-                    item("Grateful for morning prayer", "Morning prayer"),
-                    item("Thankful for smooth commute", "Smooth commute"),
-                    item("感恩 coffee break", "Coffee break"),
-                    item("Great feedback from teammate", "Team feedback")
-                ],
-                needs: [
-                    item("Need one focused work block", "Focused block"),
-                    item("需要 more patience", "More patience"),
-                    item("Need to prep tomorrow plan", "Prep tomorrow")
-                ],
-                people: [
-                    item("Check on grandma", "Grandma check"),
-                    item("Message project partner", "Partner message"),
-                    item("Pray for pastor", "Pray pastor")
-                ],
-                bibleNotes: "A short note on practicing patience during interruptions.",
-                reflections: "I handled less than planned but stayed calm.",
-                completedAt: nil
-            )
+            makeTodayPayload(entryDate: today, completedAt: now),
+            makeYesterdayPayload(entryDate: yesterday),
+            makeBlankPayload(entryDate: twoDaysAgo),
+            makeThreeDaysAgoPayload(entryDate: threeDaysAgo, completedAt: now),
+            makeFourDaysAgoPayload(entryDate: fourDaysAgo)
         ]
+    }
+
+    private static func makeTodayPayload(entryDate: Date, completedAt: Date) -> DemoEntryPayload {
+        DemoEntryPayload(
+            entryDate: entryDate,
+            gratitudes: [
+                item("感恩 morning coffee 讓我開始美好的一天", "Morning coffee 美好開始"),
+                item("Thanks to 小明 for helping with the project", "小明幫 project"),
+                item("和 Sarah 的 lunch meeting 很愉快", "Sarah lunch 愉快"),
+                item("Family dinner with lots of laughter", "Family dinner"),
+                item("天氣很好，散步很舒服", "天氣好散步")
+            ],
+            needs: [
+                item("需要 more sleep 和規律作息", "More sleep 規律"),
+                item("想 find time for 運動", "Find time 運動"),
+                item("Need clearer priorities at work", "Clear priorities"),
+                item("今天需要安靜專注", "安靜專注"),
+                item("More water during the day", "Drink more water")
+            ],
+            people: [
+                item("和媽媽的 weekly call", "媽媽 weekly call"),
+                item("Coffee with 老闆討論 promotion", "老闆 coffee talk"),
+                item("Pray for my brother's travel", "Brother travel"),
+                item("Check in with mentor after lunch", "Mentor check-in"),
+                item("Send encouragement to team", "Encourage team")
+            ],
+            bibleNotes: "John 15 reminded me to remain connected and let daily habits flow from that place.",
+            reflections: "Today I feel grounded and hopeful. I want to move slowly, stay kind, and finish what matters most.",
+            completedAt: completedAt
+        )
+    }
+
+    private static func makeYesterdayPayload(entryDate: Date) -> DemoEntryPayload {
+        DemoEntryPayload(
+            entryDate: entryDate,
+            gratitudes: [
+                item("Grateful for quiet morning time", "Quiet morning"),
+                item("感恩同事主動幫忙", "同事幫忙"),
+                item("Nice walk after dinner", "Evening walk")
+            ],
+            needs: [
+                item("Need to rest my eyes", "Rest eyes"),
+                item("想要更好的時間管理", "時間管理"),
+                item("Need to follow up on one message", "Follow up"),
+                item("需要提早睡覺", "提早睡")
+            ],
+            people: [
+                item("Pray for my friend interview", "Friend interview"),
+                item("Call dad tonight", "Call dad")
+            ],
+            bibleNotes: "",
+            reflections: "A little tired, but still thankful.",
+            completedAt: nil
+        )
+    }
+
+    private static func makeBlankPayload(entryDate: Date) -> DemoEntryPayload {
+        DemoEntryPayload(
+            entryDate: entryDate,
+            gratitudes: [],
+            needs: [],
+            people: [],
+            bibleNotes: "",
+            reflections: "",
+            completedAt: nil
+        )
+    }
+
+    private static func makeThreeDaysAgoPayload(entryDate: Date, completedAt: Date) -> DemoEntryPayload {
+        DemoEntryPayload(
+            entryDate: entryDate,
+            gratitudes: [
+                item("感謝朋友幫忙搬家", "朋友幫忙"),
+                item("感謝今天的陽光", "今日陽光"),
+                item("感謝午餐很美味", "午餐美味"),
+                item("感謝有時間禱告", "禱告時間"),
+                item("感謝身體恢復中", "身體恢復")
+            ],
+            needs: [
+                item("想找時間運動", "找時間運動"),
+                item("需要多休息", "多休息"),
+                item("需要整理房間", "整理房間"),
+                item("想減少滑手機", "少滑手機"),
+                item("需要補充水分", "補充水分")
+            ],
+            people: [
+                item("感謝媽媽的提醒", "媽媽提醒"),
+                item("想關心同事近況", "關心同事"),
+                item("為教會小組代禱", "小組代禱"),
+                item("感謝鄰居借工具", "鄰居借工具"),
+                item("想約朋友散步", "約朋友散步")
+            ],
+            bibleNotes: "詩篇提醒我在忙碌裡仍然可以安靜等候。",
+            reflections: "今天節奏很滿，但仍有很多值得感恩的片刻。",
+            completedAt: completedAt
+        )
+    }
+
+    private static func makeFourDaysAgoPayload(entryDate: Date) -> DemoEntryPayload {
+        DemoEntryPayload(
+            entryDate: entryDate,
+            gratitudes: [
+                item("Grateful for morning prayer", "Morning prayer"),
+                item("Thankful for smooth commute", "Smooth commute"),
+                item("感恩 coffee break", "Coffee break"),
+                item("Great feedback from teammate", "Team feedback")
+            ],
+            needs: [
+                item("Need one focused work block", "Focused block"),
+                item("需要 more patience", "More patience"),
+                item("Need to prep tomorrow plan", "Prep tomorrow")
+            ],
+            people: [
+                item("Check on grandma", "Grandma check"),
+                item("Message project partner", "Partner message"),
+                item("Pray for pastor", "Pray pastor")
+            ],
+            bibleNotes: "A short note on practicing patience during interruptions.",
+            reflections: "I handled less than planned but stayed calm.",
+            completedAt: nil
+        )
     }
 
     private static func item(_ fullText: String, _ chipLabel: String) -> JournalItem {
