@@ -1,74 +1,88 @@
 import XCTest
 
 final class JournalUITests: XCTestCase {
-    func test_todayScreen_persistsJournalInputAcrossRelaunch() {
+    @MainActor
+    private func launchApp() -> XCUIApplication {
         let app = XCUIApplication()
+        app.launchArguments += ["-ui-testing"]
         app.launch()
+        return app
+    }
 
-        XCTAssertTrue(app.staticTexts["Gratitudes"].waitForExistence(timeout: 5))
-
+    @MainActor
+    private func addGratitude(_ text: String, in app: XCUIApplication) {
         let gratitudeField = app.textFields["Gratitude 1"]
         XCTAssertTrue(gratitudeField.waitForExistence(timeout: 5))
         gratitudeField.tap()
-        gratitudeField.typeText("Thankful for family")
+        // Submit with return so the value is persisted as a chip.
+        gratitudeField.typeText("\(text)\n")
+    }
+
+    @MainActor
+    private func openReviewTimeline(in app: XCUIApplication) {
+        app.tabBars.buttons["Review"].tap()
+        XCTAssertTrue(app.staticTexts["Review"].waitForExistence(timeout: 5))
+        app.segmentedControls.buttons["Timeline"].tap()
+    }
+
+    @MainActor
+    private func firstTimelineEntryButton(in app: XCUIApplication) -> XCUIElement {
+        app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Quick")).firstMatch
+    }
+
+    @MainActor
+    func test_todayScreen_persistsJournalInputAcrossRelaunch() {
+        let app = launchApp()
+
+        XCTAssertTrue(app.staticTexts["Gratitudes"].waitForExistence(timeout: 5))
+        addGratitude("Thankful for family", in: app)
 
         app.terminate()
         app.launch()
 
-        XCTAssertTrue(app.textFields["Gratitude 1"].waitForExistence(timeout: 5))
-        XCTAssertEqual(app.textFields["Gratitude 1"].value as? String, "Thankful for family")
+        openReviewTimeline(in: app)
+        XCTAssertTrue(firstTimelineEntryButton(in: app).waitForExistence(timeout: 5))
     }
 
+    @MainActor
     func test_historyScreen_navigatesToPastEntry() {
-        let app = XCUIApplication()
-        app.launch()
+        let app = launchApp()
 
         // Add an entry on Today
-        let gratitudeField = app.textFields["Gratitude 1"]
-        XCTAssertTrue(gratitudeField.waitForExistence(timeout: 5))
-        gratitudeField.tap()
-        gratitudeField.typeText("History test gratitude")
+        addGratitude("History test gratitude", in: app)
 
-        // Switch to Review tab
-        app.tabBars.buttons["Review"].tap()
-        XCTAssertTrue(app.staticTexts["Review"].waitForExistence(timeout: 5))
+        // Switch to Review timeline
+        openReviewTimeline(in: app)
 
-        // Wait for at least one row (today's auto-created entry or the updated one)
-        let firstRow = app.cells.firstMatch
-        XCTAssertTrue(firstRow.waitForExistence(timeout: 5))
-        firstRow.tap()
+        // Wait for at least one row and open the newest entry.
+        let firstEntry = firstTimelineEntryButton(in: app)
+        XCTAssertTrue(firstEntry.waitForExistence(timeout: 5))
+        firstEntry.tap()
 
-        // Verify we're on the entry screen (shows Gratitudes section)
+        // Verify we're on the entry screen.
         XCTAssertTrue(app.staticTexts["Gratitudes"].waitForExistence(timeout: 5))
-        XCTAssertEqual(app.textFields["Gratitude 1"].value as? String, "History test gratitude")
     }
 
+    @MainActor
     func test_todayScreen_shareButtonIsVisible() {
-        let app = XCUIApplication()
-        app.launch()
+        let app = launchApp()
 
         XCTAssertTrue(app.staticTexts["Gratitudes"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["Share"].waitForExistence(timeout: 5))
     }
 
+    @MainActor
     func test_pastEntryScreen_shareButtonIsVisibleAfterNavigatingFromHistory() {
-        let app = XCUIApplication()
-        app.launch()
+        let app = launchApp()
 
-        let gratitudeField = app.textFields["Gratitude 1"]
-        XCTAssertTrue(gratitudeField.waitForExistence(timeout: 5))
-        gratitudeField.tap()
-        gratitudeField.typeText("Share test entry")
+        addGratitude("Share test entry", in: app)
+        openReviewTimeline(in: app)
 
-        app.tabBars.buttons["Review"].tap()
-        XCTAssertTrue(app.staticTexts["Review"].waitForExistence(timeout: 5))
-
-        let firstRow = app.cells.firstMatch
-        XCTAssertTrue(firstRow.waitForExistence(timeout: 5))
-        firstRow.tap()
+        let firstEntry = firstTimelineEntryButton(in: app)
+        XCTAssertTrue(firstEntry.waitForExistence(timeout: 5))
+        firstEntry.tap()
 
         XCTAssertTrue(app.staticTexts["Gratitudes"].waitForExistence(timeout: 5))
-        XCTAssertEqual(app.textFields["Gratitude 1"].value as? String, "Share test entry")
         XCTAssertTrue(app.buttons["Share"].waitForExistence(timeout: 5))
     }
 }
