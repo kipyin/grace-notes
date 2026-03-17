@@ -24,6 +24,7 @@ struct SettingsScreen: View {
 
     private let reminderScheduler = ReminderScheduler()
     private let dataExportService = JournalDataExportService()
+    private let isCloudSyncAvailable = !PersistenceController.isDemoDatabaseEnabled
 
     var body: some View {
         List {
@@ -136,6 +137,7 @@ struct SettingsScreen: View {
                 Toggle("Sync with iCloud", isOn: $iCloudSyncEnabled)
                     .font(AppTheme.warmPaperBody)
                     .foregroundStyle(AppTheme.textPrimary)
+                    .disabled(!isCloudSyncAvailable)
 
                 Button("Export journal data (JSON)") {
                     exportJournalData()
@@ -148,9 +150,7 @@ struct SettingsScreen: View {
                     .font(AppTheme.warmPaperHeader)
                     .foregroundStyle(AppTheme.textPrimary)
             } footer: {
-                Text("Journal entries are stored locally and can sync through your iCloud private "
-                    + "database when enabled. Sync changes apply on next app launch. "
-                    + "Export creates a full JSON backup you can keep.")
+                Text(dataPrivacyFooterText)
                     .font(AppTheme.warmPaperBody)
                     .foregroundStyle(AppTheme.textMuted)
             }
@@ -193,6 +193,16 @@ struct SettingsScreen: View {
 
     private var savedReminderTime: Date {
         ReminderSettings.date(from: dailyReminderTimeInterval)
+    }
+
+    private var dataPrivacyFooterText: String {
+        if !isCloudSyncAvailable {
+            return "This demo build keeps journal entries on this device only. Export creates a full JSON backup you can keep."
+        }
+
+        return "Journal entries are stored locally and can sync through your iCloud private "
+            + "database when enabled. Sync changes apply on next app launch. "
+            + "Export creates a full JSON backup you can keep."
     }
 
     private func syncReminderSchedule() async {

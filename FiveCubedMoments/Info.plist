@@ -6,6 +6,10 @@
 	<string>YOUR_KEY_HERE</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Save your journal card image to your photo library.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Fonts/PlayfairDisplay-Variable.ttf</string>
