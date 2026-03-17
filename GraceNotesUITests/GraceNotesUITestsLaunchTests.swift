@@ -9,11 +9,6 @@ import XCTest
 
 final class GraceNotesUITestsLaunchTests: XCTestCase {
 
-    // swiftlint:disable:next static_over_final_class
-    override class var runsForEachTargetApplicationUIConfiguration: Bool {
-        true
-    }
-
     override func setUpWithError() throws {
         continueAfterFailure = false
     }

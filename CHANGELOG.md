@@ -8,9 +8,11 @@
 ### Changed
 - Updated release and automation docs to align with current Grace Notes naming, release cadence, and test workflow.
 - Refined test and project configuration references to use current targets/schemes and simulator defaults.
+- `Makefile` test targets now pass `-parallel-testing-enabled NO` to reduce simulator launch contention during full-suite execution.
 
 ### Fixed
 - Removed remaining legacy entitlement and test-path references so project assets consistently use `GraceNotes*` naming.
+- Stabilized UI test execution by removing the template launch performance case and reducing launch-test configuration fan-out that caused intermittent simulator preflight launch denials.
 
 ### Developer
 - Consolidated test-suite updates across Journal and repository coverage after the naming migration cleanup.

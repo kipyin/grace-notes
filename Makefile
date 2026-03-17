@@ -5,6 +5,7 @@ DESTINATION := platform=iOS Simulator,name=iPhone 17,OS=latest
 ISOLATED_DERIVED_DATA := /tmp/GraceNotes-TestDerivedData
 UNIT_TEST_BUNDLE := GraceNotesTests
 UI_TEST_BUNDLE := GraceNotesUITests
+XCODE_TEST_FLAGS := -parallel-testing-enabled NO
 
 .PHONY: help lint build test test-unit test-ui test-isolated test-demo test-all ci
 
@@ -27,19 +28,19 @@ build:
 	xcodebuild -project "$(PROJECT)" -scheme "$(SCHEME)" -destination '$(DESTINATION)' build
 
 test:
-	xcodebuild -project "$(PROJECT)" -scheme "$(SCHEME)" -destination '$(DESTINATION)' test
+	xcodebuild -project "$(PROJECT)" -scheme "$(SCHEME)" -destination '$(DESTINATION)' $(XCODE_TEST_FLAGS) test
 
 test-unit:
-	xcodebuild -project "$(PROJECT)" -scheme "$(SCHEME)" -destination '$(DESTINATION)' -only-testing:"$(UNIT_TEST_BUNDLE)" test
+	xcodebuild -project "$(PROJECT)" -scheme "$(SCHEME)" -destination '$(DESTINATION)' $(XCODE_TEST_FLAGS) -only-testing:"$(UNIT_TEST_BUNDLE)" test
 
 test-ui:
-	xcodebuild -project "$(PROJECT)" -scheme "$(SCHEME)" -destination '$(DESTINATION)' -only-testing:"$(UI_TEST_BUNDLE)" test
+	xcodebuild -project "$(PROJECT)" -scheme "$(SCHEME)" -destination '$(DESTINATION)' $(XCODE_TEST_FLAGS) -only-testing:"$(UI_TEST_BUNDLE)" test
 
 test-isolated:
-	xcodebuild -project "$(PROJECT)" -scheme "$(SCHEME)" -destination '$(DESTINATION)' -derivedDataPath "$(ISOLATED_DERIVED_DATA)" test
+	xcodebuild -project "$(PROJECT)" -scheme "$(SCHEME)" -destination '$(DESTINATION)' $(XCODE_TEST_FLAGS) -derivedDataPath "$(ISOLATED_DERIVED_DATA)" test
 
 test-demo:
-	xcodebuild -project "$(PROJECT)" -scheme "$(DEMO_SCHEME)" -destination '$(DESTINATION)' test
+	xcodebuild -project "$(PROJECT)" -scheme "$(DEMO_SCHEME)" -destination '$(DESTINATION)' $(XCODE_TEST_FLAGS) test
 
 test-all: test test-demo
 
