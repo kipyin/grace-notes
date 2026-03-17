@@ -18,7 +18,7 @@ jobs:
       - name: Build and test
         run: |
           # Pick first available iPhone simulator (avoids hardcoded name/OS mismatch across runner images)
-          DEST=$(xcrun simctl list devices -j \
+          if ! DEST=$(xcrun simctl list devices -j \
             | python3 -c "
           import json, sys
           d = json.load(sys.stdin)
@@ -31,8 +31,7 @@ jobs:
                 print(f\"platform=iOS Simulator,id={dev['udid']}\")
                 sys.exit(0)
           sys.exit(1)
-          ")
-          if [ $? -ne 0 ] || [ -z "$DEST" ]; then
+          "); then
             echo "No iPhone simulator found"
             xcrun simctl list devices available
             exit 1

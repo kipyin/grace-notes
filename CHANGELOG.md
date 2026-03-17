@@ -18,7 +18,7 @@
 - SwiftLint config (`.swiftlint.yml`): type_body_length, cyclomatic_complexity, identifier_name, line_length
 - Code quality: identifier renames (vm→viewModel, c→container, t→tag, r/g/b→red/green/blue); line-length fixes; static_over_final_class in UI test launch
 - JournalScreen refactor: extract subviews and chip handlers; reduce chipTapped complexity
-- Off-main-actor summarization for cloud/NL; `@MainActor` annotations for concurrency
+- Background summarization Task (runs on main actor); @MainActor annotations for concurrency
 - Tests: SummarizerProvider, CloudSummarizer, completedToday, slot limit; JournalViewModelTests updates
 - Docs: code quality analysis plan, implementation path, viewing chips performance plan
 - CI: simulator id-only destination; unit-test-only execution; test target path fixes; TimeZone unwrap in test setUp
