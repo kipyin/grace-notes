@@ -5,12 +5,6 @@ struct HistoryScreen: View {
     @Query(sort: \JournalEntry.entryDate, order: .reverse) private var entries: [JournalEntry]
 
     private let calendar = Calendar.current
-    private static let monthYearFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.locale = Locale.current
-        formatter.dateFormat = "MMMM yyyy"
-        return formatter
-    }()
 
     private var groupedEntries: [(key: Date, entries: [JournalEntry])] {
         HistoryEntryGrouping.groupedByMonth(entries: entries, calendar: calendar)
@@ -62,7 +56,7 @@ struct HistoryScreen: View {
     }
 
     private func monthYearString(from date: Date) -> String {
-        Self.monthYearFormatter.string(from: date)
+        date.formatted(.dateTime.month(.wide).year())
     }
 }
 

@@ -18,7 +18,7 @@ struct JournalShareCardView: View {
 
             if !payload.readingNotes.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Reading Notes")
+                    Text(String(localized: "Reading Notes"))
                         .font(AppTheme.warmPaperHeader)
                         .foregroundStyle(AppTheme.textPrimary)
                     Text(payload.readingNotes)
@@ -30,7 +30,7 @@ struct JournalShareCardView: View {
 
             if !payload.reflections.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Reflections")
+                    Text(String(localized: "Reflections"))
                         .font(AppTheme.warmPaperHeader)
                         .foregroundStyle(AppTheme.textPrimary)
                     Text(payload.reflections)
