@@ -90,8 +90,8 @@ struct JournalScreen: View {
                 EditableTextSection(
                     title: String(localized: "Reading Notes"),
                     text: Binding(
-                        get: { viewModel.bibleNotes },
-                        set: { viewModel.updateBibleNotes($0) }
+                        get: { viewModel.readingNotes },
+                        set: { viewModel.updateReadingNotes($0) }
                     )
                 )
                 EditableTextSection(

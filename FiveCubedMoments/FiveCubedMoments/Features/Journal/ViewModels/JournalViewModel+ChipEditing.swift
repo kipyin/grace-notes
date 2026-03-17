@@ -274,8 +274,8 @@ extension JournalViewModel {
         return true
     }
 
-    func updateBibleNotes(_ value: String) {
-        bibleNotes = value
+    func updateReadingNotes(_ value: String) {
+        readingNotes = value
         scheduleAutosave()
     }
 

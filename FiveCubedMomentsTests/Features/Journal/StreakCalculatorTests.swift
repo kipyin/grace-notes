@@ -83,7 +83,7 @@ final class StreakCalculatorTests: XCTestCase {
         gratitudes: [JournalItem] = [],
         needs: [JournalItem] = [],
         people: [JournalItem] = [],
-        bibleNotes: String = "",
+        readingNotes: String = "",
         reflections: String = "",
         completedAt: Date? = nil
     ) -> JournalEntry {
@@ -92,7 +92,7 @@ final class StreakCalculatorTests: XCTestCase {
             gratitudes: gratitudes,
             needs: needs,
             people: people,
-            bibleNotes: bibleNotes,
+            readingNotes: readingNotes,
             reflections: reflections,
             completedAt: completedAt
         )
@@ -107,7 +107,7 @@ final class StreakCalculatorTests: XCTestCase {
             gratitudes: items,
             needs: items,
             people: items,
-            bibleNotes: "Psalm 23",
+            readingNotes: "Psalm 23",
             reflections: "Today was meaningful",
             completedAt: date
         )

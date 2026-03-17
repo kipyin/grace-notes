@@ -23,7 +23,7 @@ final class JournalViewModelCompletionAndLimitsTests: XCTestCase {
             _ = await viewModel.addNeed("Need \(index)")
             _ = await viewModel.addPerson("Person \(index)")
         }
-        viewModel.updateBibleNotes("Psalm 23")
+        viewModel.updateReadingNotes("Psalm 23")
         viewModel.updateReflections("Today was meaningful")
 
         XCTAssertTrue(viewModel.completedToday)
@@ -38,7 +38,7 @@ final class JournalViewModelCompletionAndLimitsTests: XCTestCase {
         _ = await viewModel.addGratitude("One")
         _ = await viewModel.addNeed("One")
         _ = await viewModel.addPerson("One")
-        viewModel.updateBibleNotes("Notes")
+        viewModel.updateReadingNotes("Notes")
         viewModel.updateReflections("Reflections")
 
         XCTAssertFalse(viewModel.completedToday)

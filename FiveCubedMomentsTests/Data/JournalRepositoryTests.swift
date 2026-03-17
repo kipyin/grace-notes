@@ -46,7 +46,7 @@ final class JournalRepositoryTests: XCTestCase {
             gratitudes: [JournalItem(fullText: "Test", chipLabel: nil)],
             needs: [],
             people: [],
-            bibleNotes: "",
+            readingNotes: "",
             reflections: "",
             createdAt: now,
             updatedAt: now

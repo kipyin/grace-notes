@@ -8,7 +8,7 @@ final class JournalEntry {
     var gratitudes: [JournalItem]
     var needs: [JournalItem]
     var people: [JournalItem]
-    var bibleNotes: String
+    @Attribute(originalName: "bibleNotes") var readingNotes: String
     var reflections: String
     var createdAt: Date
     var updatedAt: Date
@@ -20,7 +20,7 @@ final class JournalEntry {
         gratitudes: [JournalItem] = [],
         needs: [JournalItem] = [],
         people: [JournalItem] = [],
-        bibleNotes: String = "",
+        readingNotes: String = "",
         reflections: String = "",
         createdAt: Date = .now,
         updatedAt: Date = .now,
@@ -31,7 +31,7 @@ final class JournalEntry {
         self.gratitudes = gratitudes
         self.needs = needs
         self.people = people
-        self.bibleNotes = bibleNotes
+        self.readingNotes = readingNotes
         self.reflections = reflections
         self.createdAt = createdAt
         self.updatedAt = updatedAt
@@ -44,22 +44,22 @@ final class JournalEntry {
             gratitudesCount: gratitudes.count,
             needsCount: needs.count,
             peopleCount: people.count,
-            bibleNotes: bibleNotes,
+            readingNotes: readingNotes,
             reflections: reflections
         )
     }
 
     /// Shared completion criteria used by JournalEntry and JournalViewModel.
     /// An entry is complete when it has at least `slotCount` gratitudes, needs, and people,
-    /// plus non-empty (after trimming) bibleNotes and reflections.
+    /// plus non-empty (after trimming) reading notes and reflections.
     static func criteriaMet(
         gratitudesCount: Int,
         needsCount: Int,
         peopleCount: Int,
-        bibleNotes: String,
+        readingNotes: String,
         reflections: String
     ) -> Bool {
-        let notesTrimmed = bibleNotes.trimmingCharacters(in: .whitespacesAndNewlines)
+        let notesTrimmed = readingNotes.trimmingCharacters(in: .whitespacesAndNewlines)
         let reflectionsTrimmed = reflections.trimmingCharacters(in: .whitespacesAndNewlines)
         return gratitudesCount >= slotCount &&
             needsCount >= slotCount &&

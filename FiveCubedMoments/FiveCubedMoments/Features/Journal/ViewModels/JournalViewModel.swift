@@ -8,7 +8,7 @@ struct JournalExportPayload {
     let gratitudes: [String]
     let needs: [String]
     let people: [String]
-    let bibleNotes: String
+    let readingNotes: String
     let reflections: String
 }
 
@@ -19,7 +19,7 @@ final class JournalViewModel {
     var gratitudes: [JournalItem] = []
     var needs: [JournalItem] = []
     var people: [JournalItem] = []
-    var bibleNotes: String = ""
+    var readingNotes: String = ""
     var reflections: String = ""
     private(set) var saveErrorMessage: String?
     private(set) var streakSummary: StreakSummary = .empty
@@ -120,7 +120,7 @@ final class JournalViewModel {
         gratitudes = entry.gratitudes
         needs = entry.needs
         people = entry.people
-        bibleNotes = entry.bibleNotes
+        readingNotes = entry.readingNotes
         reflections = entry.reflections
     }
 
@@ -131,7 +131,7 @@ final class JournalViewModel {
         entry.gratitudes = gratitudes
         entry.needs = needs
         entry.people = people
-        entry.bibleNotes = bibleNotes.trimmingCharacters(in: .whitespacesAndNewlines)
+        entry.readingNotes = readingNotes.trimmingCharacters(in: .whitespacesAndNewlines)
         entry.reflections = reflections.trimmingCharacters(in: .whitespacesAndNewlines)
         entry.updatedAt = nowProvider()
         entry.completedAt = entry.isComplete ? (entry.completedAt ?? nowProvider()) : nil
@@ -193,7 +193,7 @@ final class JournalViewModel {
             gratitudesCount: gratitudes.count,
             needsCount: needs.count,
             peopleCount: people.count,
-            bibleNotes: bibleNotes,
+            readingNotes: readingNotes,
             reflections: reflections
         )
     }
@@ -214,7 +214,7 @@ extension JournalViewModel {
             gratitudes: gratitudes.map(\.fullText),
             needs: needs.map(\.fullText),
             people: people.map(\.fullText),
-            bibleNotes: bibleNotes.trimmingCharacters(in: .whitespacesAndNewlines),
+            readingNotes: readingNotes.trimmingCharacters(in: .whitespacesAndNewlines),
             reflections: reflections.trimmingCharacters(in: .whitespacesAndNewlines)
         )
     }
