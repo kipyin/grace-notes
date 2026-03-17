@@ -37,8 +37,7 @@ struct SettingsScreen: View {
                     .font(AppTheme.warmPaperHeader)
                     .foregroundStyle(AppTheme.textPrimary)
             } footer: {
-                Text(String(localized: "When on, long-pressing a chip shows a confirmation before deleting. "
-                    + "When off, long-press deletes immediately."))
+                Text(String(localized: "When on, long-pressing a chip shows a confirmation before deleting. When off, long-press deletes immediately."))
                     .font(AppTheme.warmPaperBody)
                     .foregroundStyle(AppTheme.textMuted)
             }
@@ -52,8 +51,7 @@ struct SettingsScreen: View {
                     .font(AppTheme.warmPaperHeader)
                     .foregroundStyle(AppTheme.textPrimary)
             } footer: {
-                Text(String(localized: "When on, chip labels use an online service for better summaries. "
-                    + "When off, labels use on-device processing only."))
+                Text(String(localized: "When on, chip labels use an online service for better summaries. When off, labels use on-device processing only."))
                     .font(AppTheme.warmPaperBody)
                     .foregroundStyle(AppTheme.textMuted)
             }
@@ -67,8 +65,7 @@ struct SettingsScreen: View {
                     .font(AppTheme.warmPaperHeader)
                     .foregroundStyle(AppTheme.textPrimary)
             } footer: {
-                Text(String(localized: "When on, weekly review insights may send your recent journal text "
-                    + "to the configured cloud AI service. When off, review insights stay on-device."))
+                Text(String(localized: "When on, weekly review insights may send your recent journal text to the configured cloud AI service. When off, review insights stay on-device."))
                     .font(AppTheme.warmPaperBody)
                     .foregroundStyle(AppTheme.textMuted)
             }
@@ -85,7 +82,7 @@ struct SettingsScreen: View {
                         isReminderTimePickerExpanded.toggle()
                     } label: {
                         HStack {
-                                Text(String(localized: "Reminder time"))
+                            Text(String(localized: "Reminder time"))
                             Spacer()
                             Text(savedReminderTime, style: .time)
                                 .foregroundStyle(AppTheme.textMuted)
