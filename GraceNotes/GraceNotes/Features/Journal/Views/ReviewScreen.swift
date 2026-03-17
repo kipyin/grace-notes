@@ -22,12 +22,29 @@ struct ReviewScreen: View {
     @State private var reviewInsights: ReviewInsights?
     @State private var isLoadingInsights = false
     @State private var selectedMode: ReviewMode = .insights
+    @State private var lastInsightsRefreshKey: ReviewInsightsRefreshKey?
+    @AppStorage(ReviewInsightsProvider.useAIReviewInsightsKey) private var useAIReviewInsights = false
 
     private let calendar = Calendar.current
     private let reviewInsightsProvider = ReviewInsightsProvider.shared
 
     private var groupedEntries: [(key: Date, entries: [JournalEntry])] {
         HistoryEntryGrouping.groupedByMonth(entries: entries, calendar: calendar)
+    }
+
+    private var currentInsightsRefreshKey: ReviewInsightsRefreshKey {
+        ReviewInsightsRefreshKey(
+            weekStart: currentWeekStart,
+            useAIReviewInsights: useAIReviewInsights,
+            entrySnapshots: entries.map {
+                ReviewEntrySnapshot(id: $0.id, updatedAt: $0.updatedAt)
+            }
+        )
+    }
+
+    private var currentWeekStart: Date {
+        let components = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: Date())
+        return calendar.date(from: components) ?? calendar.startOfDay(for: Date())
     }
 
     var body: some View {
@@ -43,7 +60,7 @@ struct ReviewScreen: View {
         .onAppear {
             PerformanceTrace.instant("ReviewScreen.onAppear")
         }
-        .task(id: entries.map(\.updatedAt)) {
+        .task(id: currentInsightsRefreshKey) {
             guard selectedMode == .insights else { return }
             await refreshReviewInsights()
         }
@@ -109,19 +126,43 @@ struct ReviewScreen: View {
     }
 
     @MainActor
-    private func refreshReviewInsights() async {
+    private func refreshReviewInsights(force: Bool = false) async {
+        guard selectedMode == .insights else { return }
+        guard !entries.isEmpty else {
+            reviewInsights = nil
+            isLoadingInsights = false
+            lastInsightsRefreshKey = nil
+            return
+        }
+
+        let refreshKey = currentInsightsRefreshKey
+        let shouldRefresh = force || reviewInsights == nil || lastInsightsRefreshKey != refreshKey
+        guard shouldRefresh else { return }
+
         isLoadingInsights = true
         reviewInsights = await reviewInsightsProvider.generateInsights(
             from: entries,
             referenceDate: Date(),
             calendar: calendar
         )
+        lastInsightsRefreshKey = refreshKey
         isLoadingInsights = false
     }
 
     private func monthYearString(from date: Date) -> String {
         date.formatted(.dateTime.month(.wide).year())
     }
+}
+
+private struct ReviewInsightsRefreshKey: Hashable {
+    let weekStart: Date
+    let useAIReviewInsights: Bool
+    let entrySnapshots: [ReviewEntrySnapshot]
+}
+
+private struct ReviewEntrySnapshot: Hashable {
+    let id: UUID
+    let updatedAt: Date
 }
 
 enum HistoryEntryGrouping {
