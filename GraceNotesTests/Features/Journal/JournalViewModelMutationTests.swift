@@ -142,6 +142,21 @@ final class JournalViewModelMutationTests: XCTestCase {
         XCTAssertEqual(viewModel.needs[0].chipLabel, originalLabel)
     }
 
+    func test_renamePersonLabel_whenUnchanged_returnsFalse() async throws {
+        let context = try makeInMemoryContext()
+        let now = Date(timeIntervalSince1970: 1_742_147_200)
+        let viewModel = makeViewModel(now: now)
+
+        viewModel.loadEntry(for: now, using: context)
+        await viewModel.addPerson("Pray for Alice this week")
+        let existingLabel = viewModel.people[0].chipLabel ?? ""
+
+        let didRename = viewModel.renamePersonLabel(at: 0, to: existingLabel)
+
+        XCTAssertFalse(didRename)
+        XCTAssertEqual(viewModel.people[0].chipLabel, existingLabel)
+    }
+
     func test_removeGratitude_validIndex_removesAndPersists() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)

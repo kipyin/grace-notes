@@ -109,26 +109,7 @@ struct SequentialSectionView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                            ChipView(
-                                label: item.displayLabel,
-                                isTruncated: item.isTruncated,
-                                onTap: { onChipTap(index) },
-                                onRenameLabel: onRenameChip.map { handler in { handler(index, $0) } },
-                                onDelete: onDeleteChip.map { handler in { handler(index) } }
-                            )
-                            .onDrag {
-                                draggingItemID = item.id
-                                return NSItemProvider(object: item.id.uuidString as NSString)
-                            }
-                            .onDrop(
-                                of: [UTType.text],
-                                delegate: ChipReorderDropDelegate(
-                                    targetIndex: index,
-                                    items: items,
-                                    draggingItemID: $draggingItemID,
-                                    onMoveChip: onMoveChip
-                                )
-                            )
+                            chipView(for: item, at: index)
                         }
                         if showAddChip, let addNew = onAddNew {
                             AddChipView(onTap: addNew)
@@ -152,21 +133,46 @@ struct SequentialSectionView: View {
                 .foregroundStyle(AppTheme.textMuted)
         }
     }
+
+    @ViewBuilder
+    private func chipView(for item: JournalItem, at index: Int) -> some View {
+        let chip = ChipView(
+            label: item.displayLabel,
+            isTruncated: item.isTruncated,
+            onTap: { onChipTap(index) },
+            onRenameLabel: onRenameChip.map { handler in { handler(index, $0) } },
+            onDelete: onDeleteChip.map { handler in { handler(index) } }
+        )
+
+        if let onMoveChip {
+            chip
+                .onDrag {
+                    draggingItemID = item.id
+                    return NSItemProvider(object: item.id.uuidString as NSString)
+                }
+                .onDrop(
+                    of: [UTType.text],
+                    delegate: ChipReorderDropDelegate(
+                        targetIndex: index,
+                        items: items,
+                        draggingItemID: $draggingItemID,
+                        onMoveChip: onMoveChip
+                    )
+                )
+        } else {
+            chip
+        }
+    }
 }
 
-private struct ChipReorderDropDelegate: DropDelegate {
+struct ChipReorderDropDelegate: DropDelegate {
     let targetIndex: Int
     let items: [JournalItem]
     @Binding var draggingItemID: UUID?
     let onMoveChip: ((Int, Int) -> Void)?
 
     func dropEntered(info: DropInfo) {
-        guard let onMoveChip, let draggingItemID else { return }
-        guard let sourceIndex = items.firstIndex(where: { $0.id == draggingItemID }) else { return }
-        guard sourceIndex != targetIndex else { return }
-
-        let destinationOffset = targetIndex > sourceIndex ? targetIndex + 1 : targetIndex
-        onMoveChip(sourceIndex, destinationOffset)
+        // Intentionally no-op: apply reorder only on successful drop.
     }
 
     func dropUpdated(info: DropInfo) -> DropProposal? {
@@ -174,7 +180,14 @@ private struct ChipReorderDropDelegate: DropDelegate {
     }
 
     func performDrop(info: DropInfo) -> Bool {
-        draggingItemID = nil
+        guard let draggingItemID else { return false }
+        defer { self.draggingItemID = nil }
+        guard let onMoveChip else { return false }
+        guard let sourceIndex = items.firstIndex(where: { $0.id == draggingItemID }) else { return false }
+        guard sourceIndex != targetIndex else { return true }
+
+        let destinationOffset = targetIndex > sourceIndex ? targetIndex + 1 : targetIndex
+        onMoveChip(sourceIndex, destinationOffset)
         return true
     }
 }

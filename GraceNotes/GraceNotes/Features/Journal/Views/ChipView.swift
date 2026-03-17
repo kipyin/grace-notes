@@ -52,6 +52,10 @@ struct ChipView: View {
                 guard onDelete != nil else { return }
                 onDelete?()
             }
+            .accessibilityAction(named: "Rename label") {
+                guard onRenameLabel != nil else { return }
+                beginRename()
+            }
             .alert("Rename label", isPresented: $showRenamePrompt) {
                 TextField("Label", text: $renameDraft)
                 Button("Cancel", role: .cancel) {}

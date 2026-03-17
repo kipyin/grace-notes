@@ -8,6 +8,7 @@
 ### Changed
 - Updated release and automation docs to align with current Grace Notes naming, release cadence, and test workflow.
 - Refined test and project configuration references to use current targets/schemes and simulator defaults.
+- Chips now use context-menu actions for rename/delete, support drag-to-reorder, and no longer expose a delete-confirmation toggle in Settings.
 
 ### Fixed
 - Removed remaining legacy entitlement and test-path references so project assets consistently use `GraceNotes*` naming.
@@ -107,7 +108,7 @@
 ## [0.2.1] - 2026-03-16
 
 ### Changed
-- Chip deletion UX: long-press to delete with optional confirmation (Settings: "Confirm chip deletion"); removed deletion mode, wiggle, minus badge, double-tap
+- Chip deletion UX: long-press to delete with optional confirmation (Settings: "Confirm chip deletion"); removed deletion mode, wiggle, minus badge, double-tap (later superseded in 0.3.1 by context-menu delete without the setting)
 - Journal screen dismisses keyboard immediately when scrolling
 
 ### Fixed

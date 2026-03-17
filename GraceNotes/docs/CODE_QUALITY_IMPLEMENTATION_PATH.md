@@ -61,8 +61,8 @@ This document provides a **thorough analysis** and **prioritized implementation 
 | | `fatalError` on container creation failure. No recovery path. Documented as app startup failure — acceptable for now; consider surfacing to user in future. | |
 | **JournalShareRenderer failure** | `JournalScreen.swift:365–368` | Good |
 | | Returns `nil` on render failure; UI shows "Unable to share" alert. | |
-| **confirmChipDeletion used in ChipView** | `ChipView.swift:9` | Good |
-| | Reads from `@AppStorage`; SummarizerProvider does not reference it. ChipView and Settings are the only consumers. Consistent. | |
+| **Chip deletion confirmation setting lifecycle** | `ChipView.swift`, `SettingsScreen.swift` | Resolved |
+| | `confirmChipDeletion` was removed in 0.3.1 when chip delete moved fully into context-menu actions with no extra confirmation step. | |
 
 **Verdict:** Robustness is solid. No critical gaps.
 
