@@ -72,7 +72,7 @@ struct StreakCalculator {
 
 extension JournalEntry {
     var hasMeaningfulContent: Bool {
-        let hasWrittenNotes = !bibleNotes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let hasWrittenNotes = !readingNotes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         let hasWrittenReflection = !reflections.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         return !gratitudes.isEmpty || !needs.isEmpty || !people.isEmpty || hasWrittenNotes || hasWrittenReflection
     }

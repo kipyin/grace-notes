@@ -42,7 +42,7 @@ final class JournalViewModelTests: XCTestCase {
             gratitudes: [JournalItem(fullText: "Family", chipLabel: nil)],
             needs: [JournalItem(fullText: "Wisdom", chipLabel: nil)],
             people: [JournalItem(fullText: "Friend", chipLabel: nil)],
-            bibleNotes: "Psalm 23",
+            readingNotes: "Psalm 23",
             reflections: "Trusting God",
             createdAt: now,
             updatedAt: now
@@ -56,7 +56,7 @@ final class JournalViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.gratitudes[0].fullText, "Family")
         XCTAssertEqual(viewModel.needs[0].fullText, "Wisdom")
         XCTAssertEqual(viewModel.people[0].fullText, "Friend")
-        XCTAssertEqual(viewModel.bibleNotes, "Psalm 23")
+        XCTAssertEqual(viewModel.readingNotes, "Psalm 23")
         XCTAssertEqual(viewModel.reflections, "Trusting God")
     }
 
@@ -70,7 +70,7 @@ final class JournalViewModelTests: XCTestCase {
             gratitudes: [JournalItem(fullText: "Past gratitude", chipLabel: nil)],
             needs: [JournalItem(fullText: "Past need", chipLabel: nil)],
             people: [JournalItem(fullText: "Past person", chipLabel: nil)],
-            bibleNotes: "Past notes",
+            readingNotes: "Past notes",
             reflections: "Past reflection",
             createdAt: pastDate,
             updatedAt: pastDate
@@ -84,7 +84,7 @@ final class JournalViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.gratitudes[0].fullText, "Past gratitude")
         XCTAssertEqual(viewModel.needs[0].fullText, "Past need")
         XCTAssertEqual(viewModel.people[0].fullText, "Past person")
-        XCTAssertEqual(viewModel.bibleNotes, "Past notes")
+        XCTAssertEqual(viewModel.readingNotes, "Past notes")
         XCTAssertEqual(viewModel.reflections, "Past reflection")
     }
 
@@ -100,7 +100,7 @@ final class JournalViewModelTests: XCTestCase {
             gratitudes: [JournalItem(fullText: "Today", chipLabel: nil)],
             needs: [],
             people: [],
-            bibleNotes: "",
+            readingNotes: "",
             reflections: "",
             createdAt: now,
             updatedAt: now
@@ -110,7 +110,7 @@ final class JournalViewModelTests: XCTestCase {
             gratitudes: [JournalItem(fullText: "Past", chipLabel: nil)],
             needs: [],
             people: [],
-            bibleNotes: "",
+            readingNotes: "",
             reflections: "",
             createdAt: pastDate,
             updatedAt: pastDate
@@ -142,7 +142,7 @@ final class JournalViewModelTests: XCTestCase {
         await viewModel.addPerson("Alice")
         await viewModel.addGratitude("   ") // whitespace-only should be rejected
         await viewModel.addNeed("") // empty should be rejected
-        viewModel.updateBibleNotes("  Matthew 5  ")
+        viewModel.updateReadingNotes("  Matthew 5  ")
         viewModel.updateReflections("  Be patient today  ")
 
         let payload = viewModel.exportSnapshot()
@@ -150,7 +150,7 @@ final class JournalViewModelTests: XCTestCase {
         XCTAssertEqual(payload.gratitudes, ["Family"])
         XCTAssertEqual(payload.needs, ["Peace"])
         XCTAssertEqual(payload.people, ["Alice"])
-        XCTAssertEqual(payload.bibleNotes, "Matthew 5")
+        XCTAssertEqual(payload.readingNotes, "Matthew 5")
         XCTAssertEqual(payload.reflections, "Be patient today")
     }
 
@@ -171,7 +171,7 @@ final class JournalViewModelTests: XCTestCase {
         XCTAssertEqual(payload.gratitudes, ["One gratitude"])
         XCTAssertEqual(payload.needs, [])
         XCTAssertEqual(payload.people, [])
-        XCTAssertTrue(payload.bibleNotes.isEmpty)
+        XCTAssertTrue(payload.readingNotes.isEmpty)
         XCTAssertTrue(payload.reflections.isEmpty)
         XCTAssertFalse(payload.dateFormatted.isEmpty)
     }
@@ -189,7 +189,7 @@ final class JournalViewModelTests: XCTestCase {
         await viewModel.addGratitude("  Family  ")
         await viewModel.addNeed("Peace")
         await viewModel.addPerson("Alice")
-        viewModel.updateBibleNotes("  Matthew 5  ")
+        viewModel.updateReadingNotes("  Matthew 5  ")
         viewModel.updateReflections("  Be patient today  ")
 
         try await Task.sleep(nanoseconds: 800_000_000)
@@ -200,7 +200,7 @@ final class JournalViewModelTests: XCTestCase {
         XCTAssertEqual(entries[0].gratitudes.map(\.fullText), ["Family"])
         XCTAssertEqual(entries[0].needs.map(\.fullText), ["Peace"])
         XCTAssertEqual(entries[0].people.map(\.fullText), ["Alice"])
-        XCTAssertEqual(entries[0].bibleNotes, "Matthew 5")
+        XCTAssertEqual(entries[0].readingNotes, "Matthew 5")
         XCTAssertEqual(entries[0].reflections, "Be patient today")
     }
 

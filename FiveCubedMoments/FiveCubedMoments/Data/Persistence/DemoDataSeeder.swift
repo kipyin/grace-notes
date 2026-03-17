@@ -45,7 +45,7 @@ enum DemoDataSeeder {
             existing.gratitudes = payload.gratitudes
             existing.needs = payload.needs
             existing.people = payload.people
-            existing.bibleNotes = payload.bibleNotes
+            existing.readingNotes = payload.readingNotes
             existing.reflections = payload.reflections
             existing.updatedAt = now
             existing.completedAt = payload.completedAt
@@ -58,7 +58,7 @@ enum DemoDataSeeder {
                 gratitudes: payload.gratitudes,
                 needs: payload.needs,
                 people: payload.people,
-                bibleNotes: payload.bibleNotes,
+                readingNotes: payload.readingNotes,
                 reflections: payload.reflections,
                 createdAt: now,
                 updatedAt: now,
@@ -117,7 +117,7 @@ enum DemoDataSeeder {
                 item("Check in with mentor after lunch", "Mentor check-in"),
                 item("Send encouragement to team", "Encourage team")
             ],
-            bibleNotes: "John 15 reminded me to remain connected and let daily habits flow from that place.",
+            readingNotes: "John 15 reminded me to remain connected and let daily habits flow from that place.",
             reflections: "Today I feel grounded and hopeful. "
                 + "I want to move slowly, stay kind, and finish what matters most.",
             completedAt: completedAt
@@ -142,7 +142,7 @@ enum DemoDataSeeder {
                 item("Pray for my friend interview", "Friend interview"),
                 item("Call dad tonight", "Call dad")
             ],
-            bibleNotes: "",
+            readingNotes: "",
             reflections: "A little tired, but still thankful.",
             completedAt: nil
         )
@@ -154,7 +154,7 @@ enum DemoDataSeeder {
             gratitudes: [],
             needs: [],
             people: [],
-            bibleNotes: "",
+            readingNotes: "",
             reflections: "",
             completedAt: nil
         )
@@ -184,7 +184,7 @@ enum DemoDataSeeder {
                 item("感謝鄰居借工具", "鄰居借工具"),
                 item("想約朋友散步", "約朋友散步")
             ],
-            bibleNotes: "詩篇提醒我在忙碌裡仍然可以安靜等候。",
+            readingNotes: "詩篇提醒我在忙碌裡仍然可以安靜等候。",
             reflections: "今天節奏很滿，但仍有很多值得感恩的片刻。",
             completedAt: completedAt
         )
@@ -209,7 +209,7 @@ enum DemoDataSeeder {
                 item("Message project partner", "Partner message"),
                 item("Pray for pastor", "Pray pastor")
             ],
-            bibleNotes: "A short note on practicing patience during interruptions.",
+            readingNotes: "A short note on practicing patience during interruptions.",
             reflections: "I handled less than planned but stayed calm.",
             completedAt: nil
         )
@@ -225,7 +225,7 @@ private struct DemoEntryPayload {
     let gratitudes: [JournalItem]
     let needs: [JournalItem]
     let people: [JournalItem]
-    let bibleNotes: String
+    let readingNotes: String
     let reflections: String
     let completedAt: Date?
 }
