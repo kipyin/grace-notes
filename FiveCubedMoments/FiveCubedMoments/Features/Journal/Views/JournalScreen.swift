@@ -5,19 +5,19 @@ import UIKit
 
 struct JournalScreen: View {
     @Environment(\.modelContext) private var modelContext
-    @State private var viewModel = JournalViewModel()
+    @State var viewModel = JournalViewModel()
     @State private var shareableImage: ShareableImage?
     @State private var showShareError = false
     @State private var showSavedToPhotosToast = false
     @State private var savedToPhotosDismissTask: Task<Void, Never>?
 
-    @State private var gratitudeInput = ""
-    @State private var needInput = ""
-    @State private var personInput = ""
+    @State var gratitudeInput = ""
+    @State var needInput = ""
+    @State var personInput = ""
 
-    @State private var editingGratitudeIndex: Int?
-    @State private var editingNeedIndex: Int?
-    @State private var editingPersonIndex: Int?
+    @State var editingGratitudeIndex: Int?
+    @State var editingNeedIndex: Int?
+    @State var editingPersonIndex: Int?
 
     var entryDate: Date?
 
