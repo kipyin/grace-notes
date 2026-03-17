@@ -34,6 +34,16 @@ Five Cubed Moments guides you through a simple daily rhythm: 5 gratitudes, 5 nee
 - Natural Language framework for summarization
 - MVVM-style architecture
 
+## Cloud Summarization Key Setup (Optional)
+
+Cloud summarization is optional and defaults to off. To enable it safely:
+
+1. Set `FIVE_CUBED_CLOUD_API_KEY` in your local environment **or**
+2. Set `CloudSummarizationAPIKey` in your local `Info.plist`.
+
+Keep real keys out of git. The checked-in placeholder value (`YOUR_KEY_HERE`) causes automatic fallback to
+on-device summarization.
+
 ## Project Structure
 
 - `FiveCubedMoments/Application` – App entry point
