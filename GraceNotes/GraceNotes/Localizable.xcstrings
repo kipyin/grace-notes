@@ -17,6 +17,22 @@
         }
       }
     },
+    "%1$@ to %2$@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ to %2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ 至 %2$@"
+          }
+        }
+      }
+    },
     "%d of %d" : {
       "localizations" : {
         "en" : {
@@ -1229,6 +1245,22 @@
         }
       }
     },
+    "This week your reflection often returned to %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This week your reflection often returned to %@."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本周你的反思常常回到 %@。"
+          }
+        }
+      }
+    },
     "Timeline" : {
       "localizations" : {
         "en" : {
@@ -1501,6 +1533,22 @@
         }
       }
     },
+    "What is one gentle next step you can take tomorrow?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What is one gentle next step you can take tomorrow?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "明天你可以采取的一个温和小步骤是什么？"
+          }
+        }
+      }
+    },
     "What is one small step you can take to support %@ tomorrow?" : {
       "localizations" : {
         "en" : {
@@ -1593,6 +1641,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "今天你在想谁？"
+          }
+        }
+      }
+    },
+    "You are building momentum by returning to reflection this week." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You are building momentum by returning to reflection this week."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本周你持续回到反思中，正在稳步建立节奏。"
           }
         }
       }

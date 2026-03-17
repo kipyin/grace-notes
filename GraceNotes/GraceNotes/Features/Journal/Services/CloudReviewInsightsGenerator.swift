@@ -5,9 +5,8 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
     private let model: String
     private let apiKey: String
     private let urlSession: URLSession
+    private let sanitizer = CloudReviewInsightsSanitizer()
     private let maxEntriesForContext = 14
-    private let maxThemesPerList = 3
-    private let maxMessageLength = 160
 
     init(
         baseURL: String = "https://chat.cloudapi.vip/v1",
@@ -33,14 +32,16 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
             .suffix(maxEntriesForContext)
 
         let contexts = weeklyEntries.map(makeContextEntry)
-        let payload = sanitizePayload(try await callAPI(
-            request: CloudReviewInsightsRequest(
-                model: model,
-                messages: [CloudReviewMessage(role: "user", content: prompt(for: contexts))],
-                maxTokens: 350,
-                temperature: 0.2
+        let payload = sanitizer.sanitizePayload(
+            try await callAPI(
+                request: CloudReviewInsightsRequest(
+                    model: model,
+                    messages: [CloudReviewMessage(role: "user", content: prompt(for: contexts))],
+                    maxTokens: 350,
+                    temperature: 0.2
+                )
             )
-        ))
+        )
 
         return ReviewInsights(
             source: .cloudAI,
@@ -94,6 +95,9 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
 
         Rules:
         - Keep tone gentle and non-judgmental.
+        - Ground messages in the provided week context. Avoid generic wellness phrases.
+        - If recurring themes exist, reference at least one concrete theme label in narrativeSummary.
+        - continuityPrompt must be a specific follow-up question tied to the week's themes.
         - Keep each message under 160 characters.
         - Return at most 3 items per recurring list.
         - Counts must be positive integers.
@@ -129,47 +133,12 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
             throw CloudReviewInsightsError.missingContent
         }
 
-        let parsedData = Data(content.utf8)
+        let parsedData = Data(sanitizer.extractJSONPayload(from: content).utf8)
         do {
             return try JSONDecoder().decode(CloudReviewInsightsPayload.self, from: parsedData)
         } catch {
             throw CloudReviewInsightsError.invalidPayload
         }
-    }
-
-    private func sanitizePayload(_ payload: CloudReviewInsightsPayload) -> CloudReviewInsightsPayload {
-        let fallbackNarrative = "You kept a steady reflection rhythm this week."
-        let fallbackResurfacing = "You are building momentum by returning to reflection this week."
-        let fallbackContinuity = "What is one gentle next step you can take tomorrow?"
-
-        return CloudReviewInsightsPayload(
-            narrativeSummary: sanitizeMessage(payload.narrativeSummary, fallback: fallbackNarrative),
-            resurfacingMessage: sanitizeMessage(payload.resurfacingMessage, fallback: fallbackResurfacing),
-            continuityPrompt: sanitizeMessage(payload.continuityPrompt, fallback: fallbackContinuity),
-            recurringGratitudes: sanitizeThemes(payload.recurringGratitudes),
-            recurringNeeds: sanitizeThemes(payload.recurringNeeds),
-            recurringPeople: sanitizeThemes(payload.recurringPeople)
-        )
-    }
-
-    private func sanitizeMessage(_ message: String, fallback: String) -> String {
-        let trimmed = message.trimmingCharacters(in: .whitespacesAndNewlines)
-        let source = trimmed.isEmpty ? fallback : trimmed
-        return String(source.prefix(maxMessageLength))
-    }
-
-    private func sanitizeThemes(_ themes: [CloudReviewTheme]) -> [CloudReviewTheme] {
-        themes
-            .compactMap(sanitizeTheme)
-            .prefix(maxThemesPerList)
-            .map { $0 }
-    }
-
-    private func sanitizeTheme(_ theme: CloudReviewTheme) -> CloudReviewTheme? {
-        let trimmedLabel = theme.label.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedLabel.isEmpty else { return nil }
-        guard theme.count > 0 else { return nil }
-        return CloudReviewTheme(label: String(trimmedLabel.prefix(maxMessageLength)), count: theme.count)
     }
 }
 
@@ -213,7 +182,7 @@ private struct CloudReviewContextEntry: Encodable {
     let reflections: String
 }
 
-private struct CloudReviewInsightsPayload: Decodable {
+struct CloudReviewInsightsPayload: Decodable {
     let narrativeSummary: String
     let resurfacingMessage: String
     let continuityPrompt: String
@@ -222,7 +191,7 @@ private struct CloudReviewInsightsPayload: Decodable {
     let recurringPeople: [CloudReviewTheme]
 }
 
-private struct CloudReviewTheme: Decodable {
+struct CloudReviewTheme: Decodable {
     let label: String
     let count: Int
 }

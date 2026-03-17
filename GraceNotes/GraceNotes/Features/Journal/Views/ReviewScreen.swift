@@ -22,12 +22,38 @@ struct ReviewScreen: View {
     @State private var reviewInsights: ReviewInsights?
     @State private var isLoadingInsights = false
     @State private var selectedMode: ReviewMode = .insights
+    @State private var lastInsightsRefreshKey: ReviewInsightsRefreshKey?
+    @AppStorage(ReviewInsightsProvider.useAIReviewInsightsKey) private var useAIReviewInsights = false
 
     private let calendar = Calendar.current
     private let reviewInsightsProvider = ReviewInsightsProvider.shared
 
     private var groupedEntries: [(key: Date, entries: [JournalEntry])] {
         HistoryEntryGrouping.groupedByMonth(entries: entries, calendar: calendar)
+    }
+
+    private var currentInsightsRefreshKey: ReviewInsightsRefreshKey {
+        ReviewInsightsRefreshKey(
+            weekStart: currentWeekStart,
+            useAIReviewInsights: useAIReviewInsights,
+            entrySnapshots: weeklyEntriesForRefresh.map {
+                ReviewEntrySnapshot(id: $0.id, updatedAt: $0.updatedAt)
+            }
+        )
+    }
+
+    private var currentWeekRange: Range<Date> {
+        let weekEnd = calendar.date(byAdding: .day, value: 7, to: currentWeekStart) ?? currentWeekStart
+        return currentWeekStart..<weekEnd
+    }
+
+    private var weeklyEntriesForRefresh: [JournalEntry] {
+        entries.filter { currentWeekRange.contains($0.entryDate) }
+    }
+
+    private var currentWeekStart: Date {
+        let components = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: Date())
+        return calendar.date(from: components) ?? calendar.startOfDay(for: Date())
     }
 
     var body: some View {
@@ -43,7 +69,7 @@ struct ReviewScreen: View {
         .onAppear {
             PerformanceTrace.instant("ReviewScreen.onAppear")
         }
-        .task(id: entries.map(\.updatedAt)) {
+        .task(id: currentInsightsRefreshKey) {
             guard selectedMode == .insights else { return }
             await refreshReviewInsights()
         }
@@ -109,18 +135,52 @@ struct ReviewScreen: View {
     }
 
     @MainActor
-    private func refreshReviewInsights() async {
+    private func refreshReviewInsights(force: Bool = false) async {
+        guard selectedMode == .insights else { return }
+        guard !entries.isEmpty else {
+            reviewInsights = nil
+            isLoadingInsights = false
+            lastInsightsRefreshKey = nil
+            return
+        }
+
+        let refreshKey = currentInsightsRefreshKey
+        let shouldRefresh = ReviewInsightsRefreshPolicy.shouldRefresh(
+            force: force,
+            hasInsights: reviewInsights != nil,
+            previousKey: lastInsightsRefreshKey,
+            currentKey: refreshKey
+        )
+        guard shouldRefresh else { return }
+
         isLoadingInsights = true
-        reviewInsights = await reviewInsightsProvider.generateInsights(
+        let generatedInsights = await reviewInsightsProvider.generateInsights(
             from: entries,
             referenceDate: Date(),
             calendar: calendar
         )
+        guard !Task.isCancelled else {
+            if refreshKey == currentInsightsRefreshKey {
+                isLoadingInsights = false
+            }
+            return
+        }
+        guard refreshKey == currentInsightsRefreshKey else {
+            return
+        }
+
+        reviewInsights = generatedInsights
+        lastInsightsRefreshKey = shouldCacheRefreshKey(for: generatedInsights) ? refreshKey : nil
         isLoadingInsights = false
     }
 
     private func monthYearString(from date: Date) -> String {
         date.formatted(.dateTime.month(.wide).year())
+    }
+
+    private func shouldCacheRefreshKey(for insights: ReviewInsights) -> Bool {
+        guard useAIReviewInsights else { return true }
+        return insights.source == .cloudAI
     }
 }
 
@@ -206,6 +266,10 @@ private struct ReviewSummaryCard: View {
                     Spacer()
                 }
 
+                Text(weekRangeText(insights))
+                    .font(AppTheme.warmPaperBody)
+                    .foregroundStyle(AppTheme.textMuted)
+
                 if let narrativeSummary = insights.narrativeSummary, !narrativeSummary.isEmpty {
                     Text(narrativeSummary)
                         .font(AppTheme.warmPaperBody)
@@ -246,6 +310,18 @@ private struct ReviewSummaryCard: View {
         case .deterministic:
             return String(localized: "On-device")
         }
+    }
+
+    private func weekRangeText(_ insights: ReviewInsights) -> String {
+        let calendar = Calendar.current
+        let inclusiveEnd = calendar.date(byAdding: .day, value: -1, to: insights.weekEnd) ?? insights.weekEnd
+        let startText = insights.weekStart.formatted(.dateTime.month(.abbreviated).day())
+        let endText = inclusiveEnd.formatted(.dateTime.month(.abbreviated).day())
+        return String(
+            format: String(localized: "%1$@ to %2$@"),
+            startText,
+            endText
+        )
     }
 }
 

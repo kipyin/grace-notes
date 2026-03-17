@@ -76,14 +76,7 @@ struct GraceNotesApp: App {
             }
             .tag(AppTab.today)
             NavigationStack {
-                if selectedTab == .history {
-                    ReviewScreen()
-                } else {
-                    Color.clear
-                        .onAppear {
-                            PerformanceTrace.instant("ReviewScreen.deferredUntilSelected")
-                        }
-                }
+                DeferredReviewRoot(isSelected: selectedTab == .history)
             }
             .tabItem {
                 Label(String(localized: "Review"), systemImage: "clock.arrow.circlepath")
@@ -111,5 +104,31 @@ struct GraceNotesApp: App {
         let context = ModelContext(persistenceController.container)
         DemoDataSeeder.seedIfNeeded(context: context)
 #endif
+    }
+}
+
+private struct DeferredReviewRoot: View {
+    let isSelected: Bool
+    @State private var hasOpenedReviewTab = false
+
+    var body: some View {
+        Group {
+            if hasOpenedReviewTab {
+                ReviewScreen()
+            } else {
+                Color.clear
+                    .navigationTitle(String(localized: "Review"))
+            }
+        }
+        .onChange(of: isSelected) { _, selected in
+            guard selected, !hasOpenedReviewTab else { return }
+            hasOpenedReviewTab = true
+            PerformanceTrace.instant("ReviewScreen.deferredUntilSelected")
+        }
+        .task {
+            guard isSelected, !hasOpenedReviewTab else { return }
+            hasOpenedReviewTab = true
+            PerformanceTrace.instant("ReviewScreen.deferredUntilSelected")
+        }
     }
 }
