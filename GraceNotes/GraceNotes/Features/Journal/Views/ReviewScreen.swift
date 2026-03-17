@@ -36,10 +36,19 @@ struct ReviewScreen: View {
         ReviewInsightsRefreshKey(
             weekStart: currentWeekStart,
             useAIReviewInsights: useAIReviewInsights,
-            entrySnapshots: entries.map {
+            entrySnapshots: weeklyEntriesForRefresh.map {
                 ReviewEntrySnapshot(id: $0.id, updatedAt: $0.updatedAt)
             }
         )
+    }
+
+    private var currentWeekRange: Range<Date> {
+        let weekEnd = calendar.date(byAdding: .day, value: 7, to: currentWeekStart) ?? currentWeekStart
+        return currentWeekStart..<weekEnd
+    }
+
+    private var weeklyEntriesForRefresh: [JournalEntry] {
+        entries.filter { currentWeekRange.contains($0.entryDate) }
     }
 
     private var currentWeekStart: Date {
@@ -145,17 +154,33 @@ struct ReviewScreen: View {
         guard shouldRefresh else { return }
 
         isLoadingInsights = true
-        reviewInsights = await reviewInsightsProvider.generateInsights(
+        let generatedInsights = await reviewInsightsProvider.generateInsights(
             from: entries,
             referenceDate: Date(),
             calendar: calendar
         )
-        lastInsightsRefreshKey = refreshKey
+        guard !Task.isCancelled else {
+            if refreshKey == currentInsightsRefreshKey {
+                isLoadingInsights = false
+            }
+            return
+        }
+        guard refreshKey == currentInsightsRefreshKey else {
+            return
+        }
+
+        reviewInsights = generatedInsights
+        lastInsightsRefreshKey = shouldCacheRefreshKey(for: generatedInsights) ? refreshKey : nil
         isLoadingInsights = false
     }
 
     private func monthYearString(from date: Date) -> String {
         date.formatted(.dateTime.month(.wide).year())
+    }
+
+    private func shouldCacheRefreshKey(for insights: ReviewInsights) -> Bool {
+        guard useAIReviewInsights else { return true }
+        return insights.source == .cloudAI
     }
 }
 

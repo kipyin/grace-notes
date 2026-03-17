@@ -105,7 +105,7 @@ struct CloudReviewInsightsSanitizer {
     ) -> String {
         let message = sanitizeMessage(summary, fallback: fallback)
         guard !allThemes.isEmpty else { return message }
-        guard mentionsAnyTheme(message, themes: allThemes) || !seemsGeneric(message) else {
+        guard mentionsAnyTheme(message, themes: allThemes) else {
             let previewThemes = allThemes.prefix(2).map(\.label)
             let joined = ListFormatter.localizedString(byJoining: previewThemes)
             let replacement = String(

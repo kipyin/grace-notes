@@ -44,7 +44,7 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
         XCTAssertEqual(insights.source, .cloudAI)
         XCTAssertEqual(insights.recurringNeeds.first?.label, "Rest")
         XCTAssertEqual(insights.recurringNeeds.first?.count, 3)
-        XCTAssertEqual(insights.narrativeSummary, "You kept a calm rhythm this week.")
+        XCTAssertTrue(insights.narrativeSummary?.contains("Rest") == true)
     }
 
     func test_generateInsights_invalidPayload_throws() async {
@@ -201,6 +201,31 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
 
         XCTAssertTrue(insights.continuityPrompt.contains("Rest"))
         XCTAssertFalse(insights.continuityPrompt.contains("one day at a time"))
+    }
+
+    func test_generateInsights_themeLessNarrative_isReplacedWithThemeGroundedNarrative() async throws {
+        let generator = CloudReviewInsightsGenerator(
+            apiKey: "test-key",
+            urlSession: urlSession
+        )
+        let innerPayload: [String: Any] = [
+            "narrativeSummary": "You kept a calm rhythm this week.",
+            "resurfacingMessage": "You mentioned Rest 3 times this week.",
+            "continuityPrompt": "What can protect your Rest tomorrow?",
+            "recurringGratitudes": [["label": "Family", "count": 2]],
+            "recurringNeeds": [["label": "Rest", "count": 3]],
+            "recurringPeople": []
+        ]
+
+        setMockResponse(withInnerPayload: innerPayload)
+
+        let insights = try await generator.generateInsights(
+            from: [makeEntry(on: date(year: 2026, month: 3, day: 17))],
+            referenceDate: date(year: 2026, month: 3, day: 18),
+            calendar: calendar
+        )
+
+        XCTAssertTrue(insights.narrativeSummary?.contains("Rest") == true)
     }
 
     func test_generateInsights_requestPrompt_includesInsightQualityRules() async throws {
