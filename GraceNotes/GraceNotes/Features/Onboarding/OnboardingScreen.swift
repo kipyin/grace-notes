@@ -7,7 +7,7 @@ struct OnboardingScreen: View {
     private let pages: [OnboardingPage] = [
         OnboardingPage(
             title: "A calm daily rhythm",
-            message: "Five Cubed Moments helps you reflect with gentle structure: gratitude, needs, and people in mind."
+            message: "Grace Notes helps you reflect with gentle structure: gratitude, needs, and people in mind."
         ),
         OnboardingPage(
             title: "Review that gives insight",
@@ -16,13 +16,13 @@ struct OnboardingScreen: View {
         ),
         OnboardingPage(
             title: "Progress over perfection",
-            message: "Low-energy days still count. Start small and build toward full 5³ sessions over time."
+            message: "Low-energy days still count. Start small and build toward fuller reflection sessions over time."
         )
     ]
 
     var body: some View {
         VStack(spacing: 20) {
-            Text("Welcome to Five Cubed Moments")
+            Text("Welcome to Grace Notes")
                 .font(AppTheme.warmPaperHeader)
                 .foregroundStyle(AppTheme.textPrimary)
                 .padding(.top, 24)
