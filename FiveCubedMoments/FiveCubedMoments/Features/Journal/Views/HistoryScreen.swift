@@ -2,9 +2,17 @@ import SwiftUI
 import SwiftData
 
 struct HistoryScreen: View {
+    private enum ReviewMode: String, CaseIterable, Identifiable {
+        case insights = "Insights"
+        case timeline = "Timeline"
+
+        var id: String { rawValue }
+    }
+
     @Query(sort: \JournalEntry.entryDate, order: .reverse) private var entries: [JournalEntry]
     @State private var reviewInsights: ReviewInsights?
     @State private var isLoadingInsights = false
+    @State private var selectedMode: ReviewMode = .insights
 
     private let calendar = Calendar.current
     private let reviewInsightsProvider = ReviewInsightsProvider.shared
@@ -43,25 +51,39 @@ struct HistoryScreen: View {
     private var historyList: some View {
         List {
             Section {
-                ReviewSummaryCard(insights: reviewInsights, isLoading: isLoadingInsights)
-                    .listRowInsets(EdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8))
-                    .listRowBackground(AppTheme.background)
+                Picker("Review mode", selection: $selectedMode) {
+                    ForEach(ReviewMode.allCases) { mode in
+                        Text(mode.rawValue).tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .padding(.vertical, 4)
+                .listRowBackground(AppTheme.background)
             }
 
-            ForEach(groupedEntries, id: \.key) { group in
+            switch selectedMode {
+            case .insights:
                 Section {
-                    ForEach(group.entries, id: \.id) { entry in
-                        NavigationLink {
-                            JournalScreen(entryDate: entry.entryDate)
-                        } label: {
-                            HistoryRow(entry: entry)
+                    ReviewSummaryCard(insights: reviewInsights, isLoading: isLoadingInsights)
+                        .listRowInsets(EdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8))
+                        .listRowBackground(AppTheme.background)
+                }
+            case .timeline:
+                ForEach(groupedEntries, id: \.key) { group in
+                    Section {
+                        ForEach(group.entries, id: \.id) { entry in
+                            NavigationLink {
+                                JournalScreen(entryDate: entry.entryDate)
+                            } label: {
+                                HistoryRow(entry: entry)
+                            }
+                            .listRowBackground(AppTheme.paper)
                         }
-                        .listRowBackground(AppTheme.paper)
+                    } header: {
+                        Text(monthYearString(from: group.key))
+                            .font(AppTheme.warmPaperHeader)
+                            .foregroundStyle(AppTheme.textPrimary)
                     }
-                } header: {
-                    Text(monthYearString(from: group.key))
-                        .font(AppTheme.warmPaperHeader)
-                        .foregroundStyle(AppTheme.textPrimary)
                 }
             }
         }
@@ -106,7 +128,7 @@ private struct HistoryRow: View {
     let entry: JournalEntry
 
     var body: some View {
-        HStack {
+        HStack(spacing: 8) {
             Text(entry.entryDate.formatted(date: .abbreviated, time: .omitted))
                 .font(AppTheme.warmPaperBody)
                 .foregroundStyle(AppTheme.textPrimary)
@@ -115,6 +137,14 @@ private struct HistoryRow: View {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundStyle(AppTheme.complete)
                     .font(.caption)
+            } else if entry.hasMeaningfulContent {
+                Text("Quick")
+                    .font(AppTheme.warmPaperBody.weight(.semibold))
+                    .foregroundStyle(AppTheme.textMuted)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(AppTheme.background)
+                    .clipShape(Capsule())
             }
         }
     }
@@ -134,6 +164,20 @@ private struct ReviewSummaryCard: View {
                 ProgressView()
                     .tint(AppTheme.accent)
             } else if let insights {
+                HStack {
+                    Text("Source")
+                        .font(AppTheme.warmPaperBody.weight(.semibold))
+                        .foregroundStyle(AppTheme.textPrimary)
+                    Text(insightSourceText(insights.source))
+                        .font(AppTheme.warmPaperBody)
+                        .foregroundStyle(AppTheme.textMuted)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(AppTheme.background)
+                        .clipShape(Capsule())
+                    Spacer()
+                }
+
                 if let narrativeSummary = insights.narrativeSummary, !narrativeSummary.isEmpty {
                     Text(narrativeSummary)
                         .font(AppTheme.warmPaperBody)
@@ -165,6 +209,15 @@ private struct ReviewSummaryCard: View {
         .padding(16)
         .background(AppTheme.paper)
         .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    private func insightSourceText(_ source: ReviewInsightSource) -> String {
+        switch source {
+        case .cloudAI:
+            return "AI"
+        case .deterministic:
+            return "On-device"
+        }
     }
 }
 
