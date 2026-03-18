@@ -17,6 +17,38 @@
         }
       }
     },
+    "Add new item in %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add new item in %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 %@ 中新增一项"
+          }
+        }
+      }
+    },
+    "Adds another item in %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adds another item in %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 %@ 中再添加一项"
+          }
+        }
+      }
+    },
     "How could you make space for %@ again next week?" : {
       "localizations" : {
         "en" : {

@@ -1,5 +1,6 @@
 import Foundation
 
+// swiftlint:disable file_length function_body_length
 struct WeeklyInsightCandidateBuilder {
     let defaultContinuityPrompt = String(
         localized: "What feels most important to carry into next week?"
@@ -66,10 +67,9 @@ struct WeeklyInsightCandidateBuilder {
     }
 
     func fallbackInsight(
-        for entries: [JournalEntry],
         reflectionDayCount: Int
     ) -> ReviewWeeklyInsight {
-        if entries.isEmpty {
+        if reflectionDayCount == 0 {
             return ReviewWeeklyInsight(
                 pattern: .sparseFallback,
                 observation: String(
@@ -139,14 +139,19 @@ private extension WeeklyInsightCandidateBuilder {
 
         let insight = ReviewWeeklyInsight(
             pattern: .recurringPeople,
-            observation: String(
-                format: String(localized: "You kept %1$@ in mind on %2$lld day(s) this week."),
-                topPerson.displayLabel,
-                topPerson.dayCount
+            observation: renderLocalizedTemplate(
+                "You kept %1$@ in mind on %2$lld day(s) this week.",
+                replacements: [
+                    ("%1$@", topPerson.displayLabel),
+                    ("%2$lld", topPerson.dayCount.formatted())
+                ]
             ),
-            action: String(
-                format: String(localized: "Would a short check-in with %@ feel supportive this week?"),
-                topPerson.displayLabel
+            action: renderLocalizedTemplate(
+                "Would a short check-in with %@ feel supportive this week?",
+                replacements: [
+                    ("%@", topPerson.displayLabel),
+                    ("%1$@", topPerson.displayLabel)
+                ]
             ),
             primaryTheme: topPerson.displayLabel,
             mentionCount: topPerson.mentionCount,
@@ -170,14 +175,19 @@ private extension WeeklyInsightCandidateBuilder {
         if chosen.isNeed {
             let insight = ReviewWeeklyInsight(
                 pattern: .recurringTheme,
-                observation: String(
-                    format: String(localized: "A need kept resurfacing: %1$@ on %2$lld day(s) this week."),
-                    chosen.theme.displayLabel,
-                    chosen.theme.dayCount
+                observation: renderLocalizedTemplate(
+                    "A need kept resurfacing: %1$@ on %2$lld day(s) this week.",
+                    replacements: [
+                        ("%1$@", chosen.theme.displayLabel),
+                        ("%2$lld", chosen.theme.dayCount.formatted())
+                    ]
                 ),
-                action: String(
-                    format: String(localized: "What is one small step that could support %@ tomorrow?"),
-                    chosen.theme.displayLabel
+                action: renderLocalizedTemplate(
+                    "What is one small step that could support %@ tomorrow?",
+                    replacements: [
+                        ("%@", chosen.theme.displayLabel),
+                        ("%1$@", chosen.theme.displayLabel)
+                    ]
                 ),
                 primaryTheme: chosen.theme.displayLabel,
                 mentionCount: chosen.theme.mentionCount,
@@ -189,14 +199,19 @@ private extension WeeklyInsightCandidateBuilder {
 
         let insight = ReviewWeeklyInsight(
             pattern: .recurringTheme,
-            observation: String(
-                format: String(localized: "You kept noticing %1$@ on %2$lld day(s) this week."),
-                chosen.theme.displayLabel,
-                chosen.theme.dayCount
+            observation: renderLocalizedTemplate(
+                "You kept noticing %1$@ on %2$lld day(s) this week.",
+                replacements: [
+                    ("%1$@", chosen.theme.displayLabel),
+                    ("%2$lld", chosen.theme.dayCount.formatted())
+                ]
             ),
-            action: String(
-                format: String(localized: "How could you make space for %@ again next week?"),
-                chosen.theme.displayLabel
+            action: renderLocalizedTemplate(
+                "How could you make space for %@ again next week?",
+                replacements: [
+                    ("%@", chosen.theme.displayLabel),
+                    ("%1$@", chosen.theme.displayLabel)
+                ]
             ),
             primaryTheme: chosen.theme.displayLabel,
             mentionCount: chosen.theme.mentionCount,
@@ -220,15 +235,19 @@ private extension WeeklyInsightCandidateBuilder {
 
         let insight = ReviewWeeklyInsight(
             pattern: .needsGratitudeGap,
-            observation: String(
-                format: String(
-                    localized: "You often named %@ as a need, but it did not appear in your gratitudes yet."
-                ),
-                topNeedWithoutMatch.displayLabel
+            observation: renderLocalizedTemplate(
+                "You often named %@ as a need, but it did not appear in your gratitudes yet.",
+                replacements: [
+                    ("%@", topNeedWithoutMatch.displayLabel),
+                    ("%1$@", topNeedWithoutMatch.displayLabel)
+                ]
             ),
-            action: String(
-                format: String(localized: "What is one tiny way to turn %@ into a gratitude this week?"),
-                topNeedWithoutMatch.displayLabel
+            action: renderLocalizedTemplate(
+                "What is one tiny way to turn %@ into a gratitude this week?",
+                replacements: [
+                    ("%@", topNeedWithoutMatch.displayLabel),
+                    ("%1$@", topNeedWithoutMatch.displayLabel)
+                ]
             ),
             primaryTheme: topNeedWithoutMatch.displayLabel,
             mentionCount: topNeedWithoutMatch.mentionCount,
@@ -249,14 +268,19 @@ private extension WeeklyInsightCandidateBuilder {
 
         let insight = ReviewWeeklyInsight(
             pattern: .continuityShift,
-            observation: String(
-                format: String(localized: "Your focus shifted from %1$@ last week to %2$@ this week."),
-                previousTop.displayLabel,
-                currentTop.displayLabel
+            observation: renderLocalizedTemplate(
+                "Your focus shifted from %1$@ last week to %2$@ this week.",
+                replacements: [
+                    ("%1$@", previousTop.displayLabel),
+                    ("%2$@", currentTop.displayLabel)
+                ]
             ),
-            action: String(
-                format: String(localized: "Is this shift toward %@ something you want to keep building?"),
-                currentTop.displayLabel
+            action: renderLocalizedTemplate(
+                "Is this shift toward %@ something you want to keep building?",
+                replacements: [
+                    ("%@", currentTop.displayLabel),
+                    ("%1$@", currentTop.displayLabel)
+                ]
             ),
             primaryTheme: currentTop.displayLabel,
             mentionCount: currentTop.mentionCount,
@@ -357,6 +381,17 @@ private extension WeeklyInsightCandidateBuilder {
 
         return totalChips <= 2 && totalLongText < 40
     }
+
+    func renderLocalizedTemplate(
+        _ key: String,
+        replacements: [(token: String, value: String)]
+    ) -> String {
+        var message = String(localized: key)
+        for replacement in replacements {
+            message = message.replacingOccurrences(of: replacement.token, with: replacement.value)
+        }
+        return message
+    }
 }
 
 struct ThemeSummary {
@@ -383,3 +418,4 @@ struct CandidateInputs {
     let previousContinuity: [ThemeSummary]
     let calendar: Calendar
 }
+// swiftlint:enable file_length function_body_length

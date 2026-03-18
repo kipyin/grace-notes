@@ -132,6 +132,10 @@ final class DeterministicReviewInsightsTests: XCTestCase {
 
         XCTAssertEqual(insights.weeklyInsights.count, 1)
         XCTAssertEqual(insights.weeklyInsights.first?.pattern, .sparseFallback)
+        XCTAssertEqual(
+            insights.weeklyInsights.first?.observation,
+            "Start with one reflection today to build your weekly review."
+        )
     }
 
     func test_generateInsights_limitsInsightCountToTwo() async throws {

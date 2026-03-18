@@ -68,6 +68,46 @@ final class OnDeviceHybridSummarizerTests: XCTestCase {
 
         XCTAssertEqual(result.label, "Deterministic fallback")
     }
+
+    func test_summarize_personSection_keepsShortNameFromNLP() async throws {
+        let nlp = StubSummarizer(result: SummarizationResult(label: "Al", isTruncated: false))
+        let fallback = StubSummarizer(result: SummarizationResult(label: "Fallback", isTruncated: false))
+        let sut = OnDeviceHybridSummarizer(nlpSummarizer: nlp, deterministicSummarizer: fallback)
+
+        let result = try await sut.summarize("Had lunch with Al after work at the park", section: .person)
+
+        XCTAssertEqual(result.label, "Al")
+    }
+
+    func test_summarize_needSection_keepsShortAcronymFromNLP() async throws {
+        let nlp = StubSummarizer(result: SummarizationResult(label: "AI", isTruncated: false))
+        let fallback = StubSummarizer(result: SummarizationResult(label: "Fallback", isTruncated: false))
+        let sut = OnDeviceHybridSummarizer(nlpSummarizer: nlp, deterministicSummarizer: fallback)
+
+        let result = try await sut.summarize(
+            "Need to reserve one focused block for AI project planning today",
+            section: .need
+        )
+
+        XCTAssertEqual(result.label, "AI")
+    }
+
+    func test_summarize_rethrowsCancellationError() async {
+        let fallback = StubSummarizer(result: SummarizationResult(label: "Fallback", isTruncated: false))
+        let sut = OnDeviceHybridSummarizer(
+            nlpSummarizer: CancelledStubSummarizer(),
+            deterministicSummarizer: fallback
+        )
+
+        do {
+            _ = try await sut.summarize("Need rest", section: .need)
+            XCTFail("Expected cancellation error")
+        } catch is CancellationError {
+            // expected
+        } catch {
+            XCTFail("Expected CancellationError, got \(error)")
+        }
+    }
 }
 
 private struct StubSummarizer: Summarizer {
@@ -81,6 +121,12 @@ private struct StubSummarizer: Summarizer {
 private struct ThrowingStubSummarizer: Summarizer {
     func summarize(_ sentence: String, section: SummarizationSection) async throws -> SummarizationResult {
         throw StubSummarizerError.failed
+    }
+}
+
+private struct CancelledStubSummarizer: Summarizer {
+    func summarize(_ sentence: String, section: SummarizationSection) async throws -> SummarizationResult {
+        throw CancellationError()
     }
 }
 

@@ -196,7 +196,12 @@ final class JournalViewModel {
     /// Localized progress text for the chips-only milestone.
     var chipsProgressText: String {
         let formatKey = String(localized: "%d of %d")
-        return String(format: formatKey, chipsFilledCount, chipsFiveCubedSlotCount)
+        return String(
+            format: formatKey,
+            locale: Locale.current,
+            chipsFilledCount,
+            chipsFiveCubedSlotCount
+        )
     }
 
     var completionLevel: JournalCompletionLevel {

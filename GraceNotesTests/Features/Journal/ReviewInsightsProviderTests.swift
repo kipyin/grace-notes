@@ -137,6 +137,32 @@ final class ReviewInsightsProviderTests: XCTestCase {
         )
     }
 
+    func test_generateInsights_aiEnabled_withoutCurrentWeekContent_returnsDeterministicStarterInsight() async {
+        UserDefaults.standard.set(true, forKey: ReviewInsightsProvider.useAIReviewInsightsKey)
+        let cloud = StubReviewInsightsGenerator(result: .failure(StubError.failed))
+        let provider = ReviewInsightsProvider(
+            deterministicGenerator: DeterministicReviewInsightsGenerator(),
+            cloudGenerator: cloud
+        )
+        let previousWeekEntry = JournalEntry(
+            entryDate: date(year: 2026, month: 3, day: 10),
+            gratitudes: [JournalItem(fullText: "Family", chipLabel: "Family")]
+        )
+
+        let insights = await provider.generateInsights(
+            from: [previousWeekEntry],
+            referenceDate: date(year: 2026, month: 3, day: 18),
+            calendar: calendar
+        )
+
+        XCTAssertEqual(insights.source, .deterministic)
+        XCTAssertEqual(insights.weeklyInsights.first?.pattern, .sparseFallback)
+        XCTAssertEqual(
+            insights.weeklyInsights.first?.observation,
+            "Start with one reflection today to build your weekly review."
+        )
+    }
+
     private func makeInsights(
         source: ReviewInsightSource,
         weeklyInsights: [ReviewWeeklyInsight] = []
