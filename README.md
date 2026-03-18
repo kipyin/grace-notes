@@ -6,13 +6,13 @@ A journaling iOS app for daily gratitude, reflection, and people in mind.
 
 Grace Notes (`感恩记`) guides you through a simple daily rhythm: 5 gratitudes, 5 needs, 5 people in mind, reading notes, and space for what you're thinking and learning. The app offers a quiet, low-friction place for gratitude and reflection, with a gentle framing that feels welcoming rather than pushy.
 
-## What's new in 0.2.3
+## What's new in 0.3.1
 
-- Review evolved from a plain history list into a clearer **Insights / Timeline** experience.
-- Weekly review insights now support optional cloud AI with stronger fallback and output safety guards.
-- First-run onboarding introduces the ritual and low-pressure progress expectations.
-- Completion status now supports **Quick**, **Standard**, and **Full 5³** levels.
-- Settings now include trust controls for AI insights, iCloud sync preference, and full JSON export (async with progress UI).
+- Chip editing now uses context-menu actions for rename/delete, with drag-to-reorder support for better in-place organization.
+- AI-unavailable chip labels now use deterministic first-snippet fallback behavior for stable, readable results.
+- Review insights and cloud prompt handling were hardened with safer sanitization and stronger fallback coverage.
+- Full-suite automation is more reliable with simulator reset steps and serialized test execution defaults.
+- Release docs and project automation references now align with current Grace Notes naming and workflow.
 
 ## Features
 
