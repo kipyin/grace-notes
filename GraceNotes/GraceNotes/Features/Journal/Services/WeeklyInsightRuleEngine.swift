@@ -25,6 +25,45 @@ struct WeeklyInsightRuleEngine {
         previousWeekEntries: [JournalEntry],
         calendar: Calendar
     ) -> WeeklyInsightAnalysis {
+        let prepared = prepareAnalysisInputs(
+            currentWeekEntries: currentWeekEntries,
+            previousWeekEntries: previousWeekEntries,
+            calendar: calendar
+        )
+
+        let candidates = buildCandidates(inputs: prepared.candidateInputs)
+
+        let selectedInsights = selectInsights(
+            from: candidates,
+            fallback: fallbackInsight(
+                for: prepared.candidateInputs.entries,
+                reflectionDayCount: prepared.candidateInputs.currentDayCount
+            )
+        )
+
+        let narrativeSummary = narrativeSummary(from: selectedInsights)
+        let resurfacingMessage = selectedInsights.first?.observation
+            ?? String(localized: "Start with one reflection today to build your weekly review.")
+        let continuityPrompt = selectedInsights.compactMap(\.action).first ?? defaultContinuityPrompt
+
+        return WeeklyInsightAnalysis(
+            weeklyInsights: selectedInsights,
+            recurringGratitudes: prepared.recurringGratitudes,
+            recurringNeeds: prepared.recurringNeeds,
+            recurringPeople: prepared.recurringPeople,
+            narrativeSummary: narrativeSummary,
+            resurfacingMessage: resurfacingMessage,
+            continuityPrompt: continuityPrompt
+        )
+    }
+}
+
+private extension WeeklyInsightRuleEngine {
+    private func prepareAnalysisInputs(
+        currentWeekEntries: [JournalEntry],
+        previousWeekEntries: [JournalEntry],
+        calendar: Calendar
+    ) -> PreparedInputs {
         let sortedCurrentEntries = sortedEntries(currentWeekEntries)
         let sortedPreviousEntries = sortedEntries(previousWeekEntries)
         let currentDayCount = reflectionDayCount(from: sortedCurrentEntries, calendar: calendar)
@@ -45,79 +84,51 @@ struct WeeklyInsightRuleEngine {
             calendar: calendar
         )
 
-        let recurringGratitudes = topThemes(from: gratitudeStats)
-        let recurringNeeds = topThemes(from: needStats)
-        let recurringPeople = topThemes(from: peopleStats)
-
-        let currentContinuityStats = buildContinuityStats(from: sortedCurrentEntries, calendar: calendar)
-        let previousContinuityStats = buildContinuityStats(from: sortedPreviousEntries, calendar: calendar)
-
-        let candidates = buildCandidates(
+        let candidateInputs = CandidateInputs(
             entries: sortedCurrentEntries,
             currentDayCount: currentDayCount,
             needs: needStats,
             gratitudes: gratitudeStats,
             people: peopleStats,
-            currentContinuity: currentContinuityStats,
-            previousContinuity: previousContinuityStats,
+            currentContinuity: buildContinuityStats(from: sortedCurrentEntries, calendar: calendar),
+            previousContinuity: buildContinuityStats(from: sortedPreviousEntries, calendar: calendar),
             calendar: calendar
         )
 
-        let selectedInsights = selectInsights(
-            from: candidates,
-            fallback: fallbackInsight(for: sortedCurrentEntries, reflectionDayCount: currentDayCount)
-        )
-
-        let narrativeSummary = narrativeSummary(from: selectedInsights)
-        let resurfacingMessage = selectedInsights.first?.observation
-            ?? String(localized: "Start with one reflection today to build your weekly review.")
-        let continuityPrompt = selectedInsights.compactMap(\.action).first ?? defaultContinuityPrompt
-
-        return WeeklyInsightAnalysis(
-            weeklyInsights: selectedInsights,
-            recurringGratitudes: recurringGratitudes,
-            recurringNeeds: recurringNeeds,
-            recurringPeople: recurringPeople,
-            narrativeSummary: narrativeSummary,
-            resurfacingMessage: resurfacingMessage,
-            continuityPrompt: continuityPrompt
+        return PreparedInputs(
+            candidateInputs: candidateInputs,
+            recurringGratitudes: topThemes(from: gratitudeStats),
+            recurringNeeds: topThemes(from: needStats),
+            recurringPeople: topThemes(from: peopleStats)
         )
     }
-}
 
-private extension WeeklyInsightRuleEngine {
-    private func buildCandidates(
-        entries: [JournalEntry],
-        currentDayCount: Int,
-        needs: [ThemeSummary],
-        gratitudes: [ThemeSummary],
-        people: [ThemeSummary],
-        currentContinuity: [ThemeSummary],
-        previousContinuity: [ThemeSummary],
-        calendar: Calendar
-    ) -> [InsightCandidate] {
+    private func buildCandidates(inputs: CandidateInputs) -> [InsightCandidate] {
         var candidates: [InsightCandidate] = []
 
-        if let fullCompletion = fullCompletionCandidate(entries: entries, calendar: calendar) {
+        if let fullCompletion = fullCompletionCandidate(
+            entries: inputs.entries,
+            calendar: inputs.calendar
+        ) {
             candidates.append(fullCompletion)
         }
-        if let recurringPeople = recurringPeopleCandidate(from: people) {
+        if let recurringPeople = recurringPeopleCandidate(from: inputs.people) {
             candidates.append(recurringPeople)
         }
-        if let recurringTheme = recurringThemeCandidate(needs: needs, gratitudes: gratitudes) {
+        if let recurringTheme = recurringThemeCandidate(needs: inputs.needs, gratitudes: inputs.gratitudes) {
             candidates.append(recurringTheme)
         }
-        if let gap = needsGratitudeGapCandidate(needs: needs, gratitudes: gratitudes) {
+        if let gap = needsGratitudeGapCandidate(needs: inputs.needs, gratitudes: inputs.gratitudes) {
             candidates.append(gap)
         }
         if let shift = continuityShiftCandidate(
-            currentThemes: currentContinuity,
-            previousThemes: previousContinuity
+            currentThemes: inputs.currentContinuity,
+            previousThemes: inputs.previousContinuity
         ) {
             candidates.append(shift)
         }
 
-        if isSparseWeek(entries: entries, reflectionDayCount: currentDayCount) {
+        if isSparseWeek(entries: inputs.entries, reflectionDayCount: inputs.currentDayCount) {
             return []
         }
         return candidates
@@ -699,10 +710,8 @@ private extension WeeklyInsightRuleEngine {
             return true
         }
 
-        for gratitudeKey in gratitudeKeys {
-            if overlapScore(between: needKey, and: gratitudeKey) >= 1 {
-                return true
-            }
+        for gratitudeKey in gratitudeKeys where overlapScore(between: needKey, and: gratitudeKey) >= 1 {
+            return true
         }
         return false
     }
@@ -759,4 +768,22 @@ private struct ThemeSummary {
 private struct InsightCandidate {
     let score: Int
     let insight: ReviewWeeklyInsight
+}
+
+private struct CandidateInputs {
+    let entries: [JournalEntry]
+    let currentDayCount: Int
+    let needs: [ThemeSummary]
+    let gratitudes: [ThemeSummary]
+    let people: [ThemeSummary]
+    let currentContinuity: [ThemeSummary]
+    let previousContinuity: [ThemeSummary]
+    let calendar: Calendar
+}
+
+private struct PreparedInputs {
+    let candidateInputs: CandidateInputs
+    let recurringGratitudes: [ReviewInsightTheme]
+    let recurringNeeds: [ReviewInsightTheme]
+    let recurringPeople: [ReviewInsightTheme]
 }
