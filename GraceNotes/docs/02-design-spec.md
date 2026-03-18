@@ -58,4 +58,4 @@ Architecture should allow swapping or augmenting the summarizer with a cloud LLM
 
 ## 5. Mockup
 
-`docs/mockups/design-mockup.html` — Warm Paper + Sequential layout. Screenshot: `docs/mockups/screenshots/design-mockup.png`.
+`archive/2026-03-mockups/design-mockup.html` — Warm Paper + Sequential layout. Screenshot: `archive/2026-03-mockups/screenshots/design-mockup.png`.

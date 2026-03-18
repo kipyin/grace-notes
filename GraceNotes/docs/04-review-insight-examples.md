@@ -6,7 +6,7 @@ This document captures:
 1. product-quality examples of "good insights",
 2. technical language for implementation requirements.
 
-See also: `GraceNotes/docs/REVIEW_INSIGHT_QUALITY_CONTRACT.md` for the full contract.
+See also: `03-review-insight-quality-contract.md` for the full contract.
 
 ## 1) Product purpose
 

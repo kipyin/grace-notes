@@ -1,6 +1,6 @@
 # Grace Notes — Design Spec Implementation Plan
 
-This document outlines the implementation plan for the UI design specification in `DESIGN_SPEC.md`. The final design targets a **Warm Paper** theme with **Sequential input** and **Natural Language summarization** for Gratitudes, Needs, and People To Pray For sections.
+This document outlines the implementation plan for the UI design specification in `02-design-spec.md`. The final design targets a **Warm Paper** theme with **Sequential input** and **Natural Language summarization** for Gratitudes, Needs, and People To Pray For sections.
 
 ---
 
@@ -281,6 +281,6 @@ GraceNotes/GraceNotes/
 
 ## References
 
-- Design spec: `docs/DESIGN_SPEC.md`
-- Mockup: `docs/mockups/design-mockup.html`
+- Design spec: `../02-design-spec.md`
+- Mockup: `2026-03-mockups/design-mockup.html`
 - Apple Natural Language: [NLTagger](https://developer.apple.com/documentation/naturallanguage/nltagger), [NLTokenizer](https://developer.apple.com/documentation/naturallanguage/nltokenizer)

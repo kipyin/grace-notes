@@ -210,7 +210,7 @@ identifier_name:
 |---|------|-------|
 | 5.1 | Migrate to `@Observable` | ✅ Done. Replaced `ObservableObject` + `@Published` with `@Observable` in JournalViewModel. JournalScreen uses `@State` instead of `@StateObject`. |
 | 5.2 | Consolidate ViewModel add/update/remove | Skipped. AGENTS.md cautions against abstraction for its own sake; current explicit methods are clear. |
-| 5.3 | Document assumptions | ✅ Done. Added comments to `JournalEntry.slotCount`, `criteriaMet`; documented "gratitudes count ≤ 5" in DESIGN_SPEC.md. |
+| 5.3 | Document assumptions | ✅ Done. Added comments to `JournalEntry.slotCount`, `criteriaMet`; documented "gratitudes count ≤ 5" in 02-design-spec.md. |
 | 5.4 | PersistenceController error handling | ✅ Documented. Added comment explaining `fatalError` rationale and future improvement (surface to user). |
 
 ---
