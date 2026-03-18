@@ -16,16 +16,15 @@ struct GraceNotesApp: App {
         case settings
     }
 
-    private let persistenceController: PersistenceController
     private let isRunningUITests: Bool
     private let isRunningUnitTests: Bool
+    @StateObject private var startupCoordinator: StartupCoordinator
     @State private var hasRunDeferredStartupTasks = false
     @State private var selectedTab: AppTab = .today
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
     init() {
         let startupTrace = PerformanceTrace.begin("App.init")
-        persistenceController = PersistenceController.shared
         let processInfo = ProcessInfo.processInfo
         let isXCTestSession = processInfo.environment["XCTestConfigurationFilePath"] != nil
         let isUITestBundle = processInfo.environment["XCTestBundlePath"]?.contains("UITests") == true
@@ -37,33 +36,86 @@ struct GraceNotesApp: App {
             } ?? false
         isRunningUITests = isUITestBundle || hasUITestLaunchArgument || hasUITestEnvironmentFlag
         isRunningUnitTests = isXCTestSession && !isRunningUITests
+        if isRunningUITests {
+            _startupCoordinator = StateObject(wrappedValue: StartupCoordinator(timing: .uiTesting))
+        } else {
+            _startupCoordinator = StateObject(wrappedValue: StartupCoordinator())
+        }
         PerformanceTrace.end("App.init", startedAt: startupTrace)
     }
 
     var body: some Scene {
         WindowGroup {
-            Group {
-                if isRunningUnitTests {
-                    Color.clear
-                } else if isRunningUITests {
-                    mainTabView
-                } else if !hasCompletedOnboarding {
-                    OnboardingScreen {
-                        hasCompletedOnboarding = true
-                    }
-                } else {
-                    mainTabView
+            if isRunningUnitTests {
+                Color.clear
+            } else {
+                startupRootView
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var startupRootView: some View {
+        switch startupCoordinator.phase {
+        case .loading, .reassurance, .retryableFailure:
+            StartupLoadingView(
+                state: loadingSurfaceState,
+                isRetrying: startupCoordinator.isStartingUp,
+                onRetry: {
+                    startupCoordinator.retry()
                 }
+            )
+            .task {
+                startupCoordinator.startIfNeeded()
             }
             .preferredColorScheme(.light)
             .background(AppTheme.background)
-            .toolbarBackground(AppTheme.background, for: .tabBar)
-            .tint(AppTheme.accent)
-            .task {
-                await runDeferredStartupTasksIfNeeded()
-            }
+        case .ready(let controller):
+            readyContent
+                .preferredColorScheme(.light)
+                .background(AppTheme.background)
+                .toolbarBackground(AppTheme.background, for: .tabBar)
+                .tint(AppTheme.accent)
+                .task {
+                    await runDeferredStartupTasksIfNeeded(using: controller)
+                }
+                .modelContainer(controller.container)
         }
-        .modelContainer(persistenceController.container)
+    }
+
+    private var loadingSurfaceState: StartupLoadingView.State {
+        switch startupCoordinator.phase {
+        case .loading:
+            return .loading(
+                message: startupCoordinator.startupMessage,
+                isReassurance: false
+            )
+        case .reassurance:
+            return .loading(
+                message: startupCoordinator.startupMessage,
+                isReassurance: true
+            )
+        case .retryableFailure(let message):
+            return .retryableFailure(message: message)
+        case .ready:
+            return .loading(
+                message: "We are setting up your private journal space...",
+                isReassurance: false
+            )
+        }
+    }
+
+    @ViewBuilder
+    private var readyContent: some View {
+        if isRunningUITests {
+            mainTabView
+        } else if !hasCompletedOnboarding {
+            OnboardingScreen {
+                hasCompletedOnboarding = true
+            }
+        } else {
+            mainTabView
+        }
     }
 
     private var mainTabView: some View {
@@ -93,7 +145,7 @@ struct GraceNotesApp: App {
     }
 
     @MainActor
-    private func runDeferredStartupTasksIfNeeded() async {
+    private func runDeferredStartupTasksIfNeeded(using controller: PersistenceController) async {
         guard !hasRunDeferredStartupTasks else { return }
         hasRunDeferredStartupTasks = true
 
@@ -101,7 +153,7 @@ struct GraceNotesApp: App {
         guard PersistenceController.isDemoDatabaseEnabled else { return }
         PerformanceTrace.instant("Starting deferred demo seeding")
         await Task.yield()
-        let context = ModelContext(persistenceController.container)
+        let context = ModelContext(controller.container)
         DemoDataSeeder.seedIfNeeded(context: context)
 #endif
     }

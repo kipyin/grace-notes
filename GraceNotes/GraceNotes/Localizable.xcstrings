@@ -960,6 +960,9 @@
         }
       }
     },
+    "Retry" : {
+
+    },
     "Review" : {
       "localizations" : {
         "en" : {
@@ -1247,6 +1250,9 @@
           }
         }
       }
+    },
+    "Thanks for hanging in with us." : {
+
     },
     "This demo build keeps journal entries on this device only. Export creates a full JSON backup you can keep." : {
       "localizations" : {
