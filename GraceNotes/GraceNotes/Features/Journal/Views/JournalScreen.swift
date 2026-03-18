@@ -197,15 +197,12 @@ private extension JournalScreen {
     private func submitGratitude() {
         submit(section: .gratitude)
     }
-
     private func submitNeed() {
         submit(section: .need)
     }
-
     private func submitPerson() {
         submit(section: .person)
     }
-
     private func shareTapped() {
         let payload = viewModel.exportSnapshot()
         if let image = JournalShareRenderer.renderImage(from: payload) {
@@ -214,13 +211,9 @@ private extension JournalScreen {
             showShareError = true
         }
     }
-
-    // MARK: - Chip section actions (in-file for private @State access)
-
     private enum ChipSection {
         case gratitude, need, person
     }
-
     private struct ChipSectionAdapter {
         let input: Binding<String>
         let editingIndex: Binding<Int?>
@@ -231,7 +224,6 @@ private extension JournalScreen {
         let remove: (Int) -> Bool
         let operations: ChipSectionOperations
     }
-
     private func chipSectionAdapter(for section: ChipSection) -> ChipSectionAdapter {
         switch section {
         case .gratitude:
@@ -242,7 +234,6 @@ private extension JournalScreen {
             return makePersonAdapter()
         }
     }
-
     private func makeGratitudeAdapter() -> ChipSectionAdapter {
         ChipSectionAdapter(
             input: $gratitudeInput,
@@ -265,7 +256,6 @@ private extension JournalScreen {
             )
         )
     }
-
     private func makeNeedAdapter() -> ChipSectionAdapter {
         ChipSectionAdapter(
             input: $needInput,
@@ -288,7 +278,6 @@ private extension JournalScreen {
             )
         )
     }
-
     private func makePersonAdapter() -> ChipSectionAdapter {
         ChipSectionAdapter(
             input: $personInput,
@@ -311,7 +300,6 @@ private extension JournalScreen {
             )
         )
     }
-
     private func addNewTapped(section: ChipSection) {
         let adapter = chipSectionAdapter(for: section)
         let handled = JournalScreenChipHandling.handleAddChipTap(
