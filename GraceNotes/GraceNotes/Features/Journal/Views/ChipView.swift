@@ -35,35 +35,35 @@ struct ChipView: View {
                     Button {
                         beginRename()
                     } label: {
-                        Label("Rename label", systemImage: "pencil")
+                        Label(String(localized: "Rename label"), systemImage: "pencil")
                     }
                 }
                 if onDelete != nil {
                     Button(role: .destructive) {
                         onDelete?()
                     } label: {
-                        Label("Delete", systemImage: "trash")
+                        Label(String(localized: "Delete"), systemImage: "trash")
                     }
                 }
             }
             .accessibilityElement(children: .combine)
             .accessibilityAddTraits(.isButton)
-            .accessibilityAction(named: "Delete") {
+            .accessibilityAction(named: Text(String(localized: "Delete"))) {
                 guard onDelete != nil else { return }
                 onDelete?()
             }
-            .accessibilityAction(named: "Rename label") {
+            .accessibilityAction(named: Text(String(localized: "Rename label"))) {
                 guard onRenameLabel != nil else { return }
                 beginRename()
             }
-            .alert("Rename label", isPresented: $showRenamePrompt) {
-                TextField("Label", text: $renameDraft)
-                Button("Cancel", role: .cancel) {}
-                Button("Save") {
+            .alert(String(localized: "Rename label"), isPresented: $showRenamePrompt) {
+                TextField(String(localized: "Label"), text: $renameDraft)
+                Button(String(localized: "Cancel"), role: .cancel) {}
+                Button(String(localized: "Save")) {
                     commitRename()
                 }
             } message: {
-                Text("This only changes the chip label.")
+                Text(String(localized: "This only changes the chip label."))
             }
     }
 

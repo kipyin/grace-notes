@@ -129,7 +129,7 @@ final class JournalViewModelMutationTests: XCTestCase {
         XCTAssertEqual(viewModel.gratitudes[0].chipLabel, "New gratitude")
     }
 
-    func test_renameGratitudeLabel_updatesLabelWithoutChangingFullText() async throws {
+    func test_renameGratitudeLabel_capsLabelAndPreservesFullText() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
         let viewModel = makeViewModel(now: now)
@@ -141,7 +141,24 @@ final class JournalViewModelMutationTests: XCTestCase {
 
         XCTAssertTrue(didRename)
         XCTAssertEqual(viewModel.gratitudes[0].fullText, "I am grateful for my family.")
-        XCTAssertEqual(viewModel.gratitudes[0].chipLabel, "Family support always")
+        XCTAssertEqual(viewModel.gratitudes[0].chipLabel, "Family support alway")
+        XCTAssertTrue(viewModel.gratitudes[0].isTruncated)
+    }
+
+    func test_renameNeedLabel_shortLabelClearsTruncation() throws {
+        try skipIfKnownHostedSwiftDataCrash()
+        let context = try makeInMemoryContext()
+        let now = Date(timeIntervalSince1970: 1_742_147_200)
+        let viewModel = makeViewModel(now: now)
+
+        viewModel.loadEntry(for: now, using: context)
+        viewModel.needs = [JournalItem(fullText: "I need rest.", chipLabel: "Long label previously", isTruncated: true)]
+
+        let didRename = viewModel.renameNeedLabel(at: 0, to: "Rest")
+
+        XCTAssertTrue(didRename)
+        XCTAssertEqual(viewModel.needs[0].chipLabel, "Rest")
+        XCTAssertFalse(viewModel.needs[0].isTruncated)
     }
 
     func test_renameNeedLabel_rejectsWhitespaceLabel() async throws {

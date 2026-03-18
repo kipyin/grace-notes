@@ -22,7 +22,7 @@ help:
 	@echo "  make reset-simulators - Shutdown and erase all simulators"
 	@echo "  make verify-agent-log - Run warning-mode agent-log validation"
 	@echo "  make verify-agent-log-strict - Run strict agent-log validation"
-	@echo "  make ci     - Run lint and test-all"
+	@echo "  make ci     - Run lint and full-suite tests with simulator resets"
 
 lint:
 	swiftlint lint
@@ -50,9 +50,7 @@ reset-simulators:
 	xcrun simctl erase all || true
 
 test-all:
-	$(MAKE) reset-simulators
 	$(MAKE) test
-	$(MAKE) reset-simulators
 	$(MAKE) test-demo
 
 verify-agent-log:
@@ -61,4 +59,9 @@ verify-agent-log:
 verify-agent-log-strict:
 	./Scripts/validate-agent-log.sh --strict
 
-ci: lint test-all
+ci:
+	$(MAKE) lint
+	$(MAKE) reset-simulators
+	$(MAKE) test
+	$(MAKE) reset-simulators
+	$(MAKE) test-demo

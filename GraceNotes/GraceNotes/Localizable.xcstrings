@@ -641,7 +641,20 @@
       }
     },
     "Label" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Label"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "标签"
+          }
+        }
+      }
     },
     "Low-energy days still count. Start small and build toward fuller reflection sessions over time." : {
       "localizations" : {
@@ -932,7 +945,20 @@
       }
     },
     "Rename label" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rename label"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重命名标签"
+          }
+        }
+      }
     },
     "Review" : {
       "localizations" : {
@@ -999,7 +1025,20 @@
       }
     },
     "Save" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存"
+          }
+        }
+      }
     },
     "Save to Photos" : {
       "localizations" : {
@@ -1226,7 +1265,20 @@
       }
     },
     "This only changes the chip label." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This only changes the chip label."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这只会更改标签文本。"
+          }
+        }
+      }
     },
     "This Week" : {
       "localizations" : {

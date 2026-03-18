@@ -276,9 +276,10 @@ extension JournalViewModel {
         let trimmed = rawLabel.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return false }
         let isTruncated = trimmed.count > Self.interimLabelMaxChars
-        guard item.chipLabel != trimmed || item.isTruncated != isTruncated else { return false }
+        let cappedLabel = String(trimmed.prefix(Self.interimLabelMaxChars))
+        guard item.chipLabel != cappedLabel || item.isTruncated != isTruncated else { return false }
 
-        item.chipLabel = trimmed
+        item.chipLabel = cappedLabel
         item.isTruncated = isTruncated
         scheduleAutosave()
         return true
