@@ -97,6 +97,9 @@ final class JournalUITests: XCTestCase {
         let gratitudeField = app.textFields["Gratitude 1"]
         XCTAssertTrue(gratitudeField.waitForExistence(timeout: 5))
 
+        // Add first chip so (+) button becomes visible (showAddChip requires !items.isEmpty).
+        addGratitude("First chip", in: app)
+
         gratitudeField.tap()
         gratitudeField.typeText("Draft gratitude in progress")
 
