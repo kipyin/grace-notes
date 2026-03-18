@@ -8,20 +8,74 @@ related_issue: 31,33,32
 
 # Testing Handoff
 
-## Decision
+## Risk Map
 
-Slice 1 (`#31`) now uses a coordinator-driven startup flow that renders a startup surface immediately, performs persistence bootstrap off the main actor, transitions to reassurance when startup lingers, and offers retry only when persistence startup throws.
+- **Critical: First-launch trust path (`#31`)**
+  - Startup surface must render immediately and never leave users on a blank/frozen frame.
+  - Long-running startup must progress from loading to reassurance.
+  - Throwing startup must stay recoverable and retry cleanly without overlapping attempts.
+- **Critical: Reminder permission trust path (`#33`)**
+  - Permission prompt must only happen from explicit action in drill-in flow.
+  - Settings summary must reflect actual system status, not optimistic intent.
+  - Denied state must provide clear recovery (`Open Settings`) and refresh on return.
+- **Medium: Regression boundaries**
+  - Startup restructuring must not break onboarding/main transition behavior.
+  - Reminder flow changes must not regress non-reminder settings interactions.
 
-## Validation Checklist
+## Test Strategy by Level
 
-- [x] Fresh launch shows startup UI immediately with visible progress copy.
-- [x] Startup copy begins with "We are setting up your private journal space...".
-- [x] Reassurance state appears when startup exceeds the reassurance threshold.
-- [x] Retry UI appears only for thrown startup failures and starts a clean retry attempt.
-- [x] Unit test mode still short-circuits app launch (`Color.clear`).
-- [x] UI test mode remains deterministic (`-ui-testing` / `FIVECUBED_UI_TESTING`) and bypasses onboarding after startup readiness.
-- [x] Focused coordinator tests pass (`StartupCoordinatorTests`, 5 tests).
-- [x] `swiftlint lint` run completed (1 pre-existing warning in `JournalScreen.swift`, no new serious violations).
+- **Unit**
+  - `StartupCoordinatorTests` for startup state transitions, copy rotation, and retry protections.
+  - `ReminderSchedulerTests` for authorization outcomes, request scheduling/removal, and disabled behavior.
+  - `ReminderSettingsFlowModelTests` for drill-in flow state, enable/disable behavior, and implicit reschedule.
+- **Integration / Build Validation**
+  - `xcodebuild test` with focused `-only-testing` suites for `#31/#33` risk paths.
+  - `swiftlint lint` from repo root to confirm style/quality baseline did not regress.
+- **UI / Manual**
+  - Explicit manual scenarios for first launch, delayed startup, startup failure/retry, enable/deny reminder flows, and return-from-settings refresh.
+
+## Execution Results
+
+- `swiftlint lint` (repo root): **pass**
+  - 1 pre-existing warning remains in `JournalScreen.swift` (`file_length`, 405 lines).
+  - No new serious violations.
+- Focused simulator tests: **pass**
+  - Initial command failed due unavailable destination (`iPhone 15` not installed locally).
+  - Re-ran with available destination:
+    - `xcodebuild -project GraceNotes/GraceNotes.xcodeproj -scheme GraceNotes -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.3.1' -only-testing:GraceNotesTests/StartupCoordinatorTests -only-testing:GraceNotesTests/ReminderSchedulerTests -only-testing:GraceNotesTests/ReminderSettingsFlowModelTests test`
+  - Result: `** TEST SUCCEEDED **`
+  - Focused test counts validated from output:
+    - `StartupCoordinatorTests`: 6 passed
+    - `ReminderSchedulerTests`: 11 passed
+    - `ReminderSettingsFlowModelTests`: 9 passed
+    - Total focused initiative tests: 26 passed
+
+## Defects and Fixes
+
+- **No new functional defects found** in automated initiative-targeted suites.
+- **Execution environment issue (fixed during run):**
+  - Requested simulator (`iPhone 15`) was unavailable.
+  - Resolved by rerunning on installed simulator (`iPhone 17`, iOS 26.3.1).
+- **Pre-existing technical debt observed (not introduced by this test pass):**
+  - Swift 6 actor-isolation/data-race warnings in existing tests (`StartupCoordinatorTests`, `ReminderSchedulerTests` and related call sites).
+  - Non-blocking today, but elevated future risk when strict concurrency enforcement is tightened.
+
+## Coverage Adequacy Assessment
+
+- **Automated coverage adequacy: Good for core initiative risks**
+  - Critical startup and reminder state-machine behaviors are directly covered at unit level and pass.
+  - Retry/overlap protections and denied-status behavior are explicitly exercised.
+- **Manual coverage adequacy: Incomplete for release sign-off**
+  - Runtime OS permission UX and settings round-trip behavior still require manual simulator/device validation.
+  - Existing manual checklist remains the required final gate.
+
+## Go/No-Go Testing Recommendation
+
+- **Slice 1 (`#31`) engineering readiness:** **Go**
+  - Automated risk coverage is strong and passing.
+- **Combined `#31/#33` release readiness:** **Conditional Go**
+  - Proceed if and only if manual permission-path QA below is completed and passes.
+  - If manual denied/recovery flows cannot be verified this cycle, treat combined ship as **No-Go** and ship Slice 1 independently.
 
 ## Manual QA Steps
 
@@ -55,6 +109,31 @@ Slice 1 (`#31`) now uses a coordinator-driven startup flow that renders a startu
    - Verify Share button remains available.
    - Verify Settings screen loads and non-reminder toggles remain functional.
 
+6. **Reminder first enable path**
+   - Open Settings and tap Daily reminder row.
+   - Confirm drill-in copy is concise and no system prompt appears on load.
+   - Tap `Enable`.
+   - Confirm system prompt appears only after explicit enable action.
+   - Grant notifications and confirm drill-in enters enabled state with time controls visible.
+   - Return to main Settings and confirm row summary shows selected reminder time.
+
+7. **Denied and recovery path**
+   - Deny notification permission when prompted (or pre-deny in iOS Settings).
+   - Confirm drill-in shows denied guidance and `Open Settings`.
+   - Tap `Open Settings`, allow notifications, then return to app.
+   - Confirm drill-in and main Settings summary refresh automatically on app foreground and now show reminder state from live system status.
+
+8. **Disable and reschedule path**
+   - From enabled state, change reminder time in the wheel picker.
+   - Confirm update saves implicitly (no explicit Save button) and appears in drill-in/main Settings summary.
+   - Tap `Turn off`.
+   - Confirm pending reminder request is removed and summary returns to Off state without prompting.
+
+## Open Questions
+
+- Can we schedule a dedicated manual permission-path pass on both a clean simulator state and at least one physical device before release freeze?
+- Do we want to open a follow-up initiative to address Swift 6 concurrency warnings in test targets before language-mode tightening?
+
 ## Next Owner
 
-`Test Lead` for full simulator pass of manual startup paths, then `Release Manager` for Slice 1 ship decision independent of Slice 2.
+`Test Lead` to complete the manual permission-path checklist, then `Release Manager` for final combined ship decision.

@@ -8,10 +8,10 @@ Grace Notes (`感恩记`) guides you through a simple daily rhythm: 5 gratitudes
 
 ## What's new in 0.3.2
 
-- This patch publishes release `0.3.2` as a metadata/documentation alignment update.
-- App build settings now use `0.3.2` as the marketing version.
-- Release docs were refreshed so roadmap and changelog status stay in sync.
-- No net-new user-facing features are introduced in this patch.
+- First-launch startup now shows an immediate loading surface with calm rotating copy, reassurance, and retry-safe recovery instead of appearing frozen.
+- Daily reminder setup now uses a dedicated drill-in flow with explicit permission prompting and clearer denied/off guidance.
+- Reminder status now reflects live notification authorization plus pending schedule state rather than optimistic toggle intent.
+- Input-pipeline stabilization fixes preserve typed text and keep keyboard momentum when committing entries and adding chips.
 
 ## Features
 
