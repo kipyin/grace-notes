@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.3.2] - 2026-03-18
+
+### Added
+- (none)
+
+### Changed
+- `make test-all` now hard-resets simulators before each scheme run to reduce Xcode simulator preflight contention between `GraceNotes` and `GraceNotes (Demo)` UI-test passes.
+- Settings privacy/help copy strings were flattened into valid single-line localized literals to restore successful Swift compilation.
+- `ChipReorderDropDelegate` now exposes direct helper entry points (`dropEntered()`, `dropUpdated()`, `performDrop()`) while preserving `DropDelegate` conformance, which keeps reorder behavior testable across SDK API changes.
+- Cloud review insight tests now use a non-cached `URLSession` test configuration and resilient request-body capture (`httpBody` or `httpBodyStream`) for prompt assertion coverage.
+
+### Fixed
+- Repaired test/build breakages caused by stale symbol usage and missing return paths in chip-editing view-model logic.
+- Updated chip reorder tests for newer SwiftUI drag/drop APIs where `DropInfo` is no longer mockable as a protocol type.
+- Corrected deterministic summarizer test expectations to match the current 20-character chip-label budget behavior.
+
+### Developer
+- Added simulator reset helper target (`make reset-simulators`) and wired it into full-suite automation.
+- Tightened cloud insight prompt-quality test synchronization by waiting for captured request traffic before asserting request payload content.
+
 ## [0.3.1] - 2026-03-17
 
 ### Added

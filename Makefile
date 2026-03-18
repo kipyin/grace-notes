@@ -7,7 +7,7 @@ UNIT_TEST_BUNDLE := GraceNotesTests
 UI_TEST_BUNDLE := GraceNotesUITests
 XCODE_TEST_FLAGS := -parallel-testing-enabled NO
 
-.PHONY: help lint build test test-unit test-ui test-isolated test-demo test-all ci
+.PHONY: help lint build test test-unit test-ui test-isolated test-demo test-all ci reset-simulators
 
 help:
 	@echo "Available targets:"
@@ -19,6 +19,7 @@ help:
 	@echo "  make test-isolated - Run tests with isolated DerivedData to avoid Xcode contention"
 	@echo "  make test-demo - Run tests for demo scheme (macOS + Xcode + iOS Simulator required)"
 	@echo "  make test-all  - Run tests for both schemes"
+	@echo "  make reset-simulators - Shutdown and erase all simulators"
 	@echo "  make ci     - Run lint and test-all"
 
 lint:
@@ -42,6 +43,14 @@ test-isolated:
 test-demo:
 	xcodebuild -project "$(PROJECT)" -scheme "$(DEMO_SCHEME)" -destination '$(DESTINATION)' $(XCODE_TEST_FLAGS) test
 
-test-all: test test-demo
+reset-simulators:
+	xcrun simctl shutdown all || true
+	xcrun simctl erase all || true
+
+test-all:
+	$(MAKE) reset-simulators
+	$(MAKE) test
+	$(MAKE) reset-simulators
+	$(MAKE) test-demo
 
 ci: lint test-all
