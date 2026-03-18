@@ -33,7 +33,6 @@ struct WeeklyInsightRuleEngine {
         let selectedInsights = candidateBuilder.selectInsights(
             from: candidates,
             fallback: candidateBuilder.fallbackInsight(
-                for: prepared.candidateInputs.entries,
                 reflectionDayCount: prepared.candidateInputs.currentDayCount
             )
         )

@@ -13,7 +13,7 @@ struct DateSectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.spacingTight) {
-            Text("Date")
+            Text(String(localized: "Date"))
                 .font(AppTheme.warmPaperHeader)
                 .foregroundStyle(AppTheme.textPrimary)
             if dynamicTypeSize.isAccessibilitySize {

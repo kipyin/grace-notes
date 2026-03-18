@@ -21,9 +21,15 @@ struct OnDeviceHybridSummarizer: Summarizer {
             return SummarizationResult(label: "", isTruncated: false)
         }
 
-        if let nlpResult = try? await nlpSummarizer.summarize(trimmedSentence, section: section),
-           shouldUseNLPResult(nlpResult, originalText: trimmedSentence, section: section) {
-            return nlpResult
+        do {
+            let nlpResult = try await nlpSummarizer.summarize(trimmedSentence, section: section)
+            if shouldUseNLPResult(nlpResult, originalText: trimmedSentence, section: section) {
+                return nlpResult
+            }
+        } catch let error as CancellationError {
+            throw error
+        } catch {
+            // Fall through to deterministic summarizer for non-cancellation NLP failures.
         }
 
         return try await deterministicSummarizer.summarize(trimmedSentence, section: section)
@@ -44,11 +50,28 @@ struct OnDeviceHybridSummarizer: Summarizer {
             return false
         }
 
-        if !containsHanCharacters(label), label.count < 3, originalText.count > 10 {
+        if !containsHanCharacters(label),
+           label.count < 3,
+           originalText.count > 10,
+           !canKeepShortLabel(label, section: section) {
             return false
         }
 
         return true
+    }
+
+    private func canKeepShortLabel(_ label: String, section: SummarizationSection) -> Bool {
+        if section == .person {
+            return true
+        }
+
+        let lettersOnly = label.unicodeScalars.allSatisfy { CharacterSet.letters.contains($0) }
+        guard lettersOnly else { return false }
+        if label == label.uppercased() {
+            return true
+        }
+
+        return false
     }
 
     private func looksLikeSectionKeywordOnly(_ label: String, section: SummarizationSection) -> Bool {

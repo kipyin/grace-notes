@@ -3,6 +3,7 @@ import UniformTypeIdentifiers
 import UIKit
 
 private struct AddChipView: View {
+    let sectionTitle: String
     let onTap: () -> Void
 
     var body: some View {
@@ -17,8 +18,20 @@ private struct AddChipView: View {
                 .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusLarge))
         }
         .buttonStyle(WarmPaperPressStyle())
-        .accessibilityLabel("Add new")
-        .accessibilityHint("Adds another item in this section")
+        .accessibilityLabel(
+            String(
+                format: String(localized: "Add new item in %@"),
+                locale: Locale.current,
+                sectionTitle
+            )
+        )
+        .accessibilityHint(
+            String(
+                format: String(localized: "Adds another item in %@"),
+                locale: Locale.current,
+                sectionTitle
+            )
+        )
     }
 }
 
@@ -128,7 +141,7 @@ struct SequentialSectionView: View {
                             chipView(for: item, at: index)
                         }
                         if showAddChip, let addNew = onAddNew {
-                            AddChipView(onTap: addNew)
+                            AddChipView(sectionTitle: title, onTap: addNew)
                         }
                     }
                     .padding(.trailing, AppTheme.spacingRegular)
@@ -136,9 +149,7 @@ struct SequentialSectionView: View {
                         HorizontalScrollMetricsReader { metrics in
                             let currentMetrics = chipScrollMetrics
                             if currentMetrics != metrics {
-                                DispatchQueue.main.async {
-                                    chipScrollMetrics = metrics
-                                }
+                                chipScrollMetrics = metrics
                             }
                         }
                     }

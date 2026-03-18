@@ -30,8 +30,12 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
             .filter { weekRange.contains($0.entryDate) }
             .sorted { $0.entryDate < $1.entryDate }
             .suffix(maxEntriesForContext)
+        let meaningfulWeeklyEntries = weeklyEntries.filter(\.hasMeaningfulContent)
+        guard !meaningfulWeeklyEntries.isEmpty else {
+            throw CloudReviewInsightsError.insufficientContext
+        }
 
-        let contexts = weeklyEntries.map(makeContextEntry)
+        let contexts = meaningfulWeeklyEntries.map(makeContextEntry)
         let payload = sanitizer.sanitizePayload(
             try await callAPI(
                 request: CloudReviewInsightsRequest(
@@ -232,4 +236,5 @@ private enum CloudReviewInsightsError: Error {
     case httpError(statusCode: Int)
     case missingContent
     case invalidPayload
+    case insufficientContext
 }
