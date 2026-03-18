@@ -8,13 +8,6 @@ final class PersistenceController {
     )
 
     static let iCloudSyncEnabledKey = "iCloudSyncEnabled"
-    static let isDemoDatabaseEnabled: Bool = {
-#if USE_DEMO_DATABASE
-        true
-#else
-        false
-#endif
-    }()
     static var isCloudSyncEnabled: Bool {
 #if USE_DEMO_DATABASE
         false

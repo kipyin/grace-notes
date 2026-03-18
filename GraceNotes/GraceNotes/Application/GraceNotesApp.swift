@@ -172,7 +172,6 @@ struct GraceNotesApp: App {
         hasRunDeferredStartupTasks = true
 
 #if USE_DEMO_DATABASE
-        guard PersistenceController.isDemoDatabaseEnabled else { return }
         PerformanceTrace.instant("Starting deferred demo seeding")
         await Task.yield()
         let context = ModelContext(controller.container)
