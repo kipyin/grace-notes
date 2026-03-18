@@ -176,6 +176,29 @@ final class JournalViewModel {
         return completionLevel == .fullFiveCubed
     }
 
+    /// Total chip slots across gratitudes, needs, and people (5 x 3 = 15).
+    var chipsFiveCubedSlotCount: Int {
+        JournalViewModel.slotCount * 3
+    }
+
+    /// Number of chips currently filled across gratitudes, needs, and people.
+    var chipsFilledCount: Int {
+        gratitudes.count + needs.count + people.count
+    }
+
+    /// Whether all chip slots are filled, regardless of notes/reflections completion.
+    var isChipsFiveCubedComplete: Bool {
+        gratitudes.count >= JournalViewModel.slotCount &&
+            needs.count >= JournalViewModel.slotCount &&
+            people.count >= JournalViewModel.slotCount
+    }
+
+    /// Localized progress text for the chips-only milestone.
+    var chipsProgressText: String {
+        let formatKey = String(localized: "%d of %d")
+        return String(format: formatKey, chipsFilledCount, chipsFiveCubedSlotCount)
+    }
+
     var completionLevel: JournalCompletionLevel {
         JournalEntry.completionLevel(
             gratitudesCount: gratitudes.count,

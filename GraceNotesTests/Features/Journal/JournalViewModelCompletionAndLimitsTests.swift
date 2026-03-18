@@ -61,7 +61,7 @@ final class JournalViewModelCompletionAndLimitsTests: XCTestCase {
         XCTAssertFalse(viewModel.completedToday)
     }
 
-    func test_completionLevel_withThreeByThreeByThree_returnsStandardReflection() async throws {
+    func test_completionLevel_withThreeByThreeByThree_returnsQuickCheckIn() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
         let viewModel = makeViewModel(now: now)
@@ -73,8 +73,46 @@ final class JournalViewModelCompletionAndLimitsTests: XCTestCase {
             _ = await viewModel.addPerson("Person \(index)")
         }
 
+        XCTAssertEqual(viewModel.completionLevel, .quickCheckIn)
+        XCTAssertFalse(viewModel.completedToday)
+    }
+
+    func test_isChipsFiveCubedComplete_withFiveByFiveByFive_returnsTrue() async throws {
+        let context = try makeInMemoryContext()
+        let now = Date(timeIntervalSince1970: 1_742_147_200)
+        let viewModel = makeViewModel(now: now)
+
+        viewModel.loadEntry(for: now, using: context)
+        for index in 1...JournalViewModel.slotCount {
+            _ = await viewModel.addGratitude("Gratitude \(index)")
+            _ = await viewModel.addNeed("Need \(index)")
+            _ = await viewModel.addPerson("Person \(index)")
+        }
+
+        XCTAssertTrue(viewModel.isChipsFiveCubedComplete)
+        XCTAssertEqual(viewModel.chipsFilledCount, 15)
+        XCTAssertEqual(viewModel.chipsProgressText, "15 of 15")
         XCTAssertEqual(viewModel.completionLevel, .standardReflection)
         XCTAssertFalse(viewModel.completedToday)
+    }
+
+    func test_isChipsFiveCubedComplete_withMissingChip_returnsFalse() async throws {
+        let context = try makeInMemoryContext()
+        let now = Date(timeIntervalSince1970: 1_742_147_200)
+        let viewModel = makeViewModel(now: now)
+
+        viewModel.loadEntry(for: now, using: context)
+        for index in 1...JournalViewModel.slotCount {
+            _ = await viewModel.addGratitude("Gratitude \(index)")
+            _ = await viewModel.addNeed("Need \(index)")
+        }
+        for index in 1..<(JournalViewModel.slotCount) {
+            _ = await viewModel.addPerson("Person \(index)")
+        }
+
+        XCTAssertFalse(viewModel.isChipsFiveCubedComplete)
+        XCTAssertEqual(viewModel.chipsFilledCount, 14)
+        XCTAssertEqual(viewModel.chipsProgressText, "14 of 15")
     }
 
     func test_addGratitude_atSlotLimit_returnsFalseAndDoesNotAdd() async throws {

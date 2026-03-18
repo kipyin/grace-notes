@@ -112,14 +112,14 @@ final class JournalEntry {
         let reflectionsTrimmed = reflections.trimmingCharacters(in: .whitespacesAndNewlines)
         let hasWrittenNotes = !notesTrimmed.isEmpty
         let hasWrittenReflections = !reflectionsTrimmed.isEmpty
-        let totalChipCount = gratitudesCount + needsCount + peopleCount
-        let isStandardBySections = gratitudesCount >= 3 && needsCount >= 3 && peopleCount >= 3
-        let isStandardByMix = totalChipCount >= 6 && (hasWrittenNotes || hasWrittenReflections)
-        if isStandardBySections || isStandardByMix {
+        let hasAllFifteenChips = gratitudesCount >= slotCount &&
+            needsCount >= slotCount &&
+            peopleCount >= slotCount
+        if hasAllFifteenChips {
             return .standardReflection
         }
 
-        if totalChipCount > 0 || hasWrittenNotes || hasWrittenReflections {
+        if gratitudesCount > 0 || needsCount > 0 || peopleCount > 0 || hasWrittenNotes || hasWrittenReflections {
             return .quickCheckIn
         }
 
