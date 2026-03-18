@@ -5,6 +5,7 @@ import UIKit
 
 struct JournalScreen: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var viewModel = JournalViewModel()
     @State private var shareableImage: ShareableImage?
     @State private var showShareError = false
@@ -14,6 +15,10 @@ struct JournalScreen: View {
     @State private var gratitudeSummarizationTask: Task<Void, Never>?
     @State private var needSummarizationTask: Task<Void, Never>?
     @State private var personSummarizationTask: Task<Void, Never>?
+    @State private var statusCelebrationDismissTask: Task<Void, Never>?
+    @State private var celebratingLevel: JournalCompletionLevel?
+    @State private var hasInitializedCompletionTracking = false
+    @State private var previousCompletionLevel: JournalCompletionLevel = .none
 
     @State private var gratitudeInput = ""
     @State private var needInput = ""
@@ -47,7 +52,9 @@ struct JournalScreen: View {
             VStack(alignment: .leading, spacing: AppTheme.spacingSection) {
                 DateSectionView(
                     entryDate: viewModel.entryDate,
-                    completionLevel: viewModel.completionLevel
+                    completionLevel: viewModel.completionLevel,
+                    chipsProgressText: viewModel.chipsProgressText,
+                    celebratingLevel: celebratingLevel
                 )
 
                 VStack(alignment: .leading, spacing: AppTheme.spacingSection) {
@@ -185,6 +192,26 @@ struct JournalScreen: View {
             gratitudeSummarizationTask?.cancel()
             needSummarizationTask?.cancel()
             personSummarizationTask?.cancel()
+            statusCelebrationDismissTask?.cancel()
+        }
+        .onChange(of: viewModel.completionLevel) { _, newLevel in
+            if !hasInitializedCompletionTracking {
+                previousCompletionLevel = newLevel
+                hasInitializedCompletionTracking = true
+                return
+            }
+
+            let previousRank = rank(for: previousCompletionLevel)
+            let newRank = rank(for: newLevel)
+
+            if newRank > previousRank, newLevel != .none {
+                triggerStatusCelebration(for: newLevel)
+            } else if newRank < previousRank {
+                statusCelebrationDismissTask?.cancel()
+                celebratingLevel = nil
+            }
+
+            previousCompletionLevel = newLevel
         }
         .task {
             if !hasTrackedInitialLoad {
@@ -197,6 +224,8 @@ struct JournalScreen: View {
             } else {
                 viewModel.loadTodayIfNeeded(using: modelContext)
             }
+            previousCompletionLevel = viewModel.completionLevel
+            hasInitializedCompletionTracking = true
             PerformanceTrace.end("JournalScreen.loadTask", startedAt: loadTrace)
         }
     }
@@ -403,6 +432,73 @@ private extension JournalScreen {
             if !focus.wrappedValue {
                 focus.wrappedValue = true
             }
+        }
+    }
+
+    private func triggerStatusCelebration(for level: JournalCompletionLevel) {
+        statusCelebrationDismissTask?.cancel()
+        triggerStatusHaptics(for: level)
+
+        let entranceAnimation = reduceMotion ? nil : AppTheme.celebrationEntranceAnimation(for: level)
+        withAnimation(entranceAnimation) {
+            celebratingLevel = level
+        }
+
+        statusCelebrationDismissTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(AppTheme.celebrationVisibleSeconds(for: level)))
+            let exitAnimation = reduceMotion ? nil : AppTheme.celebrationExitAnimation(for: level)
+            withAnimation(exitAnimation) {
+                celebratingLevel = nil
+            }
+        }
+    }
+
+    private func triggerStatusHaptics(for level: JournalCompletionLevel) {
+        switch level {
+        case .quickCheckIn:
+            let light = UIImpactFeedbackGenerator(style: .light)
+            light.prepare()
+            light.impactOccurred(intensity: reduceMotion ? 0.45 : 0.65)
+        case .standardReflection:
+            let notification = UINotificationFeedbackGenerator()
+            notification.prepare()
+            notification.notificationOccurred(.success)
+
+            let medium = UIImpactFeedbackGenerator(style: .medium)
+            medium.prepare()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+                medium.impactOccurred(intensity: self.reduceMotion ? 0.6 : 0.85)
+            }
+        case .fullFiveCubed:
+            let notification = UINotificationFeedbackGenerator()
+            notification.prepare()
+            notification.notificationOccurred(.success)
+
+            let emphasis = UIImpactFeedbackGenerator(style: .rigid)
+            emphasis.prepare()
+            let firstDelay = reduceMotion ? 0.0 : 0.08
+            let secondDelay = reduceMotion ? 0.1 : 0.18
+            DispatchQueue.main.asyncAfter(deadline: .now() + firstDelay) {
+                emphasis.impactOccurred(intensity: self.reduceMotion ? 0.75 : 1.0)
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + secondDelay) {
+                emphasis.impactOccurred(intensity: self.reduceMotion ? 0.55 : 0.8)
+            }
+        case .none:
+            break
+        }
+    }
+
+    private func rank(for level: JournalCompletionLevel) -> Int {
+        switch level {
+        case .none:
+            return 0
+        case .quickCheckIn:
+            return 1
+        case .standardReflection:
+            return 2
+        case .fullFiveCubed:
+            return 3
         }
     }
 }

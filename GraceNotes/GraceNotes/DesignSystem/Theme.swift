@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 enum AppTheme {
     // MARK: - Colors
@@ -8,11 +9,35 @@ enum AppTheme {
     static let textPrimary = Color(hex: 0x2C2C2C)
     static let textMuted = Color(hex: 0x5C5346)
     static let accent = Color(hex: 0xC77B5B)
+    static let accentText = Color(hex: 0x8A4A34)
     static let onAccent = Color(hex: 0x1F1A16)
     static let complete = Color(hex: 0x8B9A7D)
     static let completeText = Color(hex: 0x5F6D54)
+    static let reflectionStartedBackground = Color(hex: 0xF5EDE4)
+    static let reflectionStartedBorder = Color(hex: 0xD9C7B5)
+    static let reflectionStartedText = Color(hex: 0x6A5646)
+    static let reflectionStartedGlow = Color(hex: 0xE1CBB4)
+    static let fullFifteenBackgroundStart = Color(hex: 0xF2E8D9)
+    static let fullFifteenBackgroundEnd = Color(hex: 0xEED9C0)
+    static let fullFifteenBorder = Color(hex: 0xD2B28E)
+    static let fullFifteenText = Color(hex: 0x6E452A)
+    static let fullFifteenMetaText = Color(hex: 0x84583B)
+    static let fullFifteenGlow = Color(hex: 0xD7AB7B)
+    static let perfectRhythmBackgroundStart = Color(hex: 0xE8EEDC)
+    static let perfectRhythmBackgroundEnd = Color(hex: 0xDDE8C9)
+    static let perfectRhythmBorder = Color(hex: 0x9AAE78)
+    static let perfectRhythmText = Color(hex: 0x4E6040)
+    static let perfectRhythmGlow = Color(hex: 0xA2BA83)
     static let error = Color(hex: 0xA3564A)
     static let border = Color(hex: 0xE5DDD4)
+    static let settingsBackground = Color.adaptive(lightHex: 0xF8F4EF, darkHex: 0x151311)
+    static let settingsPaper = Color.adaptive(lightHex: 0xF5EDE4, darkHex: 0x201C18)
+    static let settingsTextPrimary = Color.adaptive(lightHex: 0x2C2C2C, darkHex: 0xF2E8DE)
+    static let settingsTextMuted = Color.adaptive(lightHex: 0x5C5346, darkHex: 0xC5B7A8)
+    static let reminderPrimaryActionBackground = Color.adaptive(lightHex: 0x8A4A34, darkHex: 0xCD977D)
+    static let reminderPrimaryActionForeground = Color.adaptive(lightHex: 0xF8F4EF, darkHex: 0x1F1712)
+    static let reminderSecondaryActionTint = Color.adaptive(lightHex: 0x8A4A34, darkHex: 0xD8A58B)
+    static let reminderDestructiveActionTint = Color.adaptive(lightHex: 0xA3564A, darkHex: 0xD48C80)
 
     /// Alias for accent; kept for backward compatibility.
     static let primaryColor = accent
@@ -35,6 +60,60 @@ enum AppTheme {
     static let floatingTabBarClearance: CGFloat = 84
     static let cornerRadiusMedium: CGFloat = 14
     static let cornerRadiusLarge: CGFloat = 16
+
+    // MARK: - Motion
+
+    static func celebrationVisibleSeconds(for level: JournalCompletionLevel) -> Double {
+        switch level {
+        case .quickCheckIn:
+            return 0.65
+        case .standardReflection:
+            return 0.95
+        case .fullFiveCubed:
+            return 1.2
+        case .none:
+            return 0
+        }
+    }
+
+    static func celebrationEntranceAnimation(for level: JournalCompletionLevel) -> Animation {
+        switch level {
+        case .quickCheckIn:
+            return .easeOut(duration: 0.16)
+        case .standardReflection:
+            return .spring(response: 0.34, dampingFraction: 0.76)
+        case .fullFiveCubed:
+            return .spring(response: 0.42, dampingFraction: 0.68)
+        case .none:
+            return .easeOut(duration: 0.12)
+        }
+    }
+
+    static func celebrationExitAnimation(for level: JournalCompletionLevel) -> Animation {
+        switch level {
+        case .quickCheckIn:
+            return .easeOut(duration: 0.14)
+        case .standardReflection:
+            return .easeOut(duration: 0.2)
+        case .fullFiveCubed:
+            return .easeOut(duration: 0.24)
+        case .none:
+            return .easeOut(duration: 0.12)
+        }
+    }
+
+    static func celebrationPulseAnimation(for level: JournalCompletionLevel) -> Animation {
+        switch level {
+        case .quickCheckIn:
+            return .easeOut(duration: 0.14)
+        case .standardReflection:
+            return .easeOut(duration: 0.2)
+        case .fullFiveCubed:
+            return .easeOut(duration: 0.24)
+        case .none:
+            return .easeOut(duration: 0.12)
+        }
+    }
 }
 
 // MARK: - Input Styling
@@ -83,5 +162,23 @@ private extension Color {
         let green = Double((hex >> 8) & 0xFF) / 255
         let blue = Double(hex & 0xFF) / 255
         self.init(red: red, green: green, blue: blue)
+    }
+
+    static func adaptive(lightHex: UInt, darkHex: UInt) -> Color {
+        Color(
+            UIColor { traitCollection in
+                let colorHex = traitCollection.userInterfaceStyle == .dark ? darkHex : lightHex
+                return UIColor(hex: colorHex)
+            }
+        )
+    }
+}
+
+private extension UIColor {
+    convenience init(hex: UInt) {
+        let red = CGFloat((hex >> 16) & 0xFF) / 255
+        let green = CGFloat((hex >> 8) & 0xFF) / 255
+        let blue = CGFloat(hex & 0xFF) / 255
+        self.init(red: red, green: green, blue: blue, alpha: 1)
     }
 }

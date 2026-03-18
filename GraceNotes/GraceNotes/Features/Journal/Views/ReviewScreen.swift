@@ -236,11 +236,11 @@ struct ReviewScreen: View {
     private func completionText(for completionLevel: JournalCompletionLevel) -> String {
         switch completionLevel {
         case .fullFiveCubed:
-            return String(localized: "Full")
+            return String(localized: "Perfect Daily Rhythm")
         case .standardReflection:
-            return String(localized: "Standard")
+            return String(localized: "Full 15 Complete")
         case .quickCheckIn:
-            return String(localized: "Quick")
+            return String(localized: "Reflection Started")
         case .none:
             return String(localized: "No completion level")
         }
@@ -282,21 +282,21 @@ private struct HistoryRow: View {
         switch entry.completionLevel {
         case .fullFiveCubed:
             statusChip(
-                text: String(localized: "Full"),
+                text: String(localized: "Perfect Daily Rhythm"),
                 textColor: AppTheme.textPrimary,
                 backgroundColor: AppTheme.complete.opacity(0.18),
                 borderColor: AppTheme.completeText
             )
         case .standardReflection:
             statusChip(
-                text: String(localized: "Standard"),
+                text: String(localized: "Full 15 Complete"),
                 textColor: AppTheme.textPrimary,
                 backgroundColor: AppTheme.accent.opacity(0.18),
                 borderColor: AppTheme.accent
             )
         case .quickCheckIn:
             statusChip(
-                text: String(localized: "Quick"),
+                text: String(localized: "Reflection Started"),
                 textColor: AppTheme.textPrimary,
                 backgroundColor: AppTheme.background,
                 borderColor: AppTheme.textMuted
