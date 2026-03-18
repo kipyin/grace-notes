@@ -38,8 +38,7 @@ struct SettingsScreen: View {
             } footer: {
                 Text(
                     String(
-                        localized: "When on, chip labels use an online service for better summaries. \
-                        When off, labels use on-device processing only."
+                        localized: "When on, chip labels use an online service for better summaries. When off, labels use on-device processing only."
                     )
                 )
                     .font(AppTheme.warmPaperBody)
@@ -57,8 +56,7 @@ struct SettingsScreen: View {
             } footer: {
                 Text(
                     String(
-                        localized: "When on, weekly review insights may send your recent journal text to \
-                        the configured cloud AI service. When off, review insights stay on-device."
+                        localized: "When on, weekly review insights may send your recent journal text to the configured cloud AI service. When off, review insights stay on-device."
                     )
                 )
                     .font(AppTheme.warmPaperBody)
@@ -190,15 +188,12 @@ struct SettingsScreen: View {
     private var dataPrivacyFooterText: String {
         if !isCloudSyncAvailable {
             return String(
-                localized: "This demo build keeps journal entries on this device only. \
-                Export creates a full JSON backup you can keep."
+                localized: "This demo build keeps journal entries on this device only. Export creates a full JSON backup you can keep."
             )
         }
 
         return String(
-            localized: "Journal entries are stored locally and can sync through your iCloud private \
-            database when enabled. Sync changes apply on next app launch. Export creates a full JSON \
-            backup you can keep."
+            localized: "Journal entries are stored locally and can sync through your iCloud private database when enabled. Sync changes apply on next app launch. Export creates a full JSON backup you can keep."
         )
     }
 

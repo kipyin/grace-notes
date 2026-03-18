@@ -1,6 +1,8 @@
 import Foundation
 
 extension JournalViewModel {
+    private static let interimLabelMaxChars = 20
+
     private var deterministicChipLabelSummarizer: DeterministicChipLabelSummarizer {
         DeterministicChipLabelSummarizer()
     }
@@ -26,7 +28,7 @@ extension JournalViewModel {
         id: UUID = UUID()
     ) -> JournalItem {
         let interim = makeInterimResult(for: fullText, section: section)
-        JournalItem(
+        return JournalItem(
             fullText: fullText,
             chipLabel: interim.label,
             isTruncated: interim.isTruncated,
