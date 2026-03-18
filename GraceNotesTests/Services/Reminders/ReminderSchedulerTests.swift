@@ -3,6 +3,49 @@ import UserNotifications
 @testable import GraceNotes
 
 final class ReminderSchedulerTests: XCTestCase {
+    func test_currentReminderStatus_authorizedWithPendingRequest_returnsEnabled() async {
+        let center = MockUserNotificationCenter(
+            status: .authorized,
+            pendingIdentifiers: [ReminderSettings.notificationIdentifier]
+        )
+        let scheduler = ReminderScheduler(notificationCenter: center)
+
+        let status = await scheduler.currentReminderStatus()
+
+        XCTAssertEqual(status, .enabled)
+        XCTAssertFalse(center.didRequestAuthorization)
+    }
+
+    func test_currentReminderStatus_authorizedWithoutPendingRequest_returnsOff() async {
+        let center = MockUserNotificationCenter(status: .authorized, pendingIdentifiers: [])
+        let scheduler = ReminderScheduler(notificationCenter: center)
+
+        let status = await scheduler.currentReminderStatus()
+
+        XCTAssertEqual(status, .off)
+        XCTAssertFalse(center.didRequestAuthorization)
+    }
+
+    func test_currentReminderStatus_notDetermined_returnsNotDeterminedWithoutPrompt() async {
+        let center = MockUserNotificationCenter(status: .notDetermined, pendingIdentifiers: [])
+        let scheduler = ReminderScheduler(notificationCenter: center)
+
+        let status = await scheduler.currentReminderStatus()
+
+        XCTAssertEqual(status, .notDetermined)
+        XCTAssertFalse(center.didRequestAuthorization)
+    }
+
+    func test_currentReminderStatus_denied_returnsDeniedWithoutPrompt() async {
+        let center = MockUserNotificationCenter(status: .denied, pendingIdentifiers: [])
+        let scheduler = ReminderScheduler(notificationCenter: center)
+
+        let status = await scheduler.currentReminderStatus()
+
+        XCTAssertEqual(status, .denied)
+        XCTAssertFalse(center.didRequestAuthorization)
+    }
+
     func test_syncDailyReminder_disabled_removesPendingRequest() async {
         let center = MockUserNotificationCenter()
         let scheduler = ReminderScheduler(notificationCenter: center)
@@ -59,6 +102,27 @@ final class ReminderSchedulerTests: XCTestCase {
         XCTAssertNotNil(center.lastAddedRequest)
     }
 
+    func test_rescheduleEnabledReminder_notDetermined_doesNotPromptAndReturnsDenied() async {
+        let center = MockUserNotificationCenter(status: .notDetermined, shouldGrantRequestAuthorization: true)
+        let scheduler = ReminderScheduler(notificationCenter: center)
+
+        let result = await scheduler.rescheduleEnabledReminder(at: Date())
+
+        XCTAssertEqual(result, .permissionDenied)
+        XCTAssertFalse(center.didRequestAuthorization)
+        XCTAssertNil(center.lastAddedRequest)
+    }
+
+    func test_disableDailyReminder_removesPendingRequest() async {
+        let center = MockUserNotificationCenter(status: .authorized)
+        let scheduler = ReminderScheduler(notificationCenter: center)
+
+        let result = await scheduler.disableDailyReminder()
+
+        XCTAssertEqual(result, .disabled)
+        XCTAssertEqual(center.removedIdentifiers, [ReminderSettings.notificationIdentifier])
+    }
+
     func test_syncDailyReminder_addFailure_returnsFailedAndDoesNotPersistRequest() async {
         let center = MockUserNotificationCenter(status: .authorized, shouldFailAdd: true)
         let scheduler = ReminderScheduler(notificationCenter: center)
@@ -79,6 +143,7 @@ final class ReminderSchedulerTests: XCTestCase {
 
 private final class MockUserNotificationCenter: UserNotificationCenterClient {
     private let status: UNAuthorizationStatus
+    private let pendingIdentifiers: [String]
     private let shouldGrantRequestAuthorization: Bool
     private let shouldFailAdd: Bool
 
@@ -88,16 +153,22 @@ private final class MockUserNotificationCenter: UserNotificationCenterClient {
 
     init(
         status: UNAuthorizationStatus = .authorized,
+        pendingIdentifiers: [String] = [],
         shouldGrantRequestAuthorization: Bool = false,
         shouldFailAdd: Bool = false
     ) {
         self.status = status
+        self.pendingIdentifiers = pendingIdentifiers
         self.shouldGrantRequestAuthorization = shouldGrantRequestAuthorization
         self.shouldFailAdd = shouldFailAdd
     }
 
     func authorizationStatus() async -> UNAuthorizationStatus {
         status
+    }
+
+    func pendingReminderRequestIdentifiers() async -> [String] {
+        pendingIdentifiers
     }
 
     func requestAuthorization(options: UNAuthorizationOptions) async throws -> Bool {

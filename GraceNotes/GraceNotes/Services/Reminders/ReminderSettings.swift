@@ -1,7 +1,6 @@
 import Foundation
 
 struct ReminderSettings {
-    static let enabledKey = "dailyReminderEnabled"
     static let timeIntervalKey = "dailyReminderTimeInterval"
     static let notificationIdentifier = "dailyJournalReminder"
 

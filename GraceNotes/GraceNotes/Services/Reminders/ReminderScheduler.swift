@@ -8,8 +8,24 @@ enum ReminderSyncResult: Equatable {
     case failed
 }
 
+enum ReminderLiveStatus: Equatable {
+    case enabled
+    case off
+    case notDetermined
+    case denied
+    case unavailable
+}
+
+protocol ReminderScheduling {
+    func currentReminderStatus() async -> ReminderLiveStatus
+    func enableDailyReminder(at time: Date) async -> ReminderSyncResult
+    func disableDailyReminder() async -> ReminderSyncResult
+    func rescheduleEnabledReminder(at time: Date) async -> ReminderSyncResult
+}
+
 protocol UserNotificationCenterClient {
     func authorizationStatus() async -> UNAuthorizationStatus
+    func pendingReminderRequestIdentifiers() async -> [String]
     func requestAuthorization(options: UNAuthorizationOptions) async throws -> Bool
     func add(_ request: UNNotificationRequest) async throws
     func removePendingNotificationRequests(withIdentifiers identifiers: [String])
@@ -19,6 +35,11 @@ extension UNUserNotificationCenter: UserNotificationCenterClient {
     func authorizationStatus() async -> UNAuthorizationStatus {
         let settings = await notificationSettings()
         return settings.authorizationStatus
+    }
+
+    func pendingReminderRequestIdentifiers() async -> [String] {
+        let requests = await pendingNotificationRequests()
+        return requests.map(\.identifier)
     }
 }
 
@@ -34,13 +55,23 @@ struct ReminderScheduler {
         self.calendar = calendar
     }
 
-    func syncDailyReminder(enabled: Bool, time: Date) async -> ReminderSyncResult {
-        if !enabled {
-            removeReminder()
-            return .disabled
+    func currentReminderStatus() async -> ReminderLiveStatus {
+        let authorizationStatus = await notificationCenter.authorizationStatus()
+        switch authorizationStatus {
+        case .authorized, .provisional, .ephemeral:
+            let identifiers = await notificationCenter.pendingReminderRequestIdentifiers()
+            return identifiers.contains(ReminderSettings.notificationIdentifier) ? .enabled : .off
+        case .notDetermined:
+            return .notDetermined
+        case .denied:
+            return .denied
+        @unknown default:
+            return .unavailable
         }
+    }
 
-        switch await notificationPermissionOutcome() {
+    func enableDailyReminder(at time: Date) async -> ReminderSyncResult {
+        switch await notificationPermissionOutcome(allowPermissionPrompt: true) {
         case .granted:
             let wasScheduled = await scheduleReminder(at: time)
             return wasScheduled ? .scheduled : .failed
@@ -53,12 +84,45 @@ struct ReminderScheduler {
         }
     }
 
-    private func notificationPermissionOutcome() async -> NotificationPermissionOutcome {
+    func disableDailyReminder() async -> ReminderSyncResult {
+        removeReminder()
+        return .disabled
+    }
+
+    /// Reschedules only when authorization is already available.
+    func rescheduleEnabledReminder(at time: Date) async -> ReminderSyncResult {
+        switch await notificationPermissionOutcome(allowPermissionPrompt: false) {
+        case .granted:
+            let wasScheduled = await scheduleReminder(at: time)
+            return wasScheduled ? .scheduled : .failed
+        case .denied:
+            removeReminder()
+            return .permissionDenied
+        case .failed:
+            removeReminder()
+            return .failed
+        }
+    }
+
+    func syncDailyReminder(enabled: Bool, time: Date) async -> ReminderSyncResult {
+        if !enabled {
+            return await disableDailyReminder()
+        }
+
+        return await enableDailyReminder(at: time)
+    }
+
+    private func notificationPermissionOutcome(
+        allowPermissionPrompt: Bool
+    ) async -> NotificationPermissionOutcome {
         let status = await notificationCenter.authorizationStatus()
         switch status {
         case .authorized, .provisional, .ephemeral:
             return .granted
         case .notDetermined:
+            guard allowPermissionPrompt else {
+                return .denied
+            }
             do {
                 let isAuthorized = try await notificationCenter.requestAuthorization(options: [.alert, .sound])
                 return isAuthorized ? .granted : .denied
@@ -102,6 +166,8 @@ struct ReminderScheduler {
         )
     }
 }
+
+extension ReminderScheduler: ReminderScheduling {}
 
 private enum NotificationPermissionOutcome {
     case granted
