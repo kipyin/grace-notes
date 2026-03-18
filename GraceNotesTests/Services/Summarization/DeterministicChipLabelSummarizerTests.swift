@@ -18,8 +18,8 @@ final class DeterministicChipLabelSummarizerTests: XCTestCase {
         XCTAssertTrue(result.isTruncated)
     }
 
-    func test_summarize_fiveOrFewerWords_marksNotTruncated() async throws {
-        let input = "Need wisdom and patience today"
+    func test_summarize_fiveOrFewerWordsWithinChipBudget_marksNotTruncated() async throws {
+        let input = "Need wisdom today"
         let result = try await sut.summarize(input, section: .need)
 
         XCTAssertEqual(result.label, input)

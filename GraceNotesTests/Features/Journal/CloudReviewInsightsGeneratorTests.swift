@@ -9,9 +9,12 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
         super.setUp()
         let config = URLSessionConfiguration.ephemeral
         config.protocolClasses = [MockURLProtocol.self]
+        config.requestCachePolicy = .reloadIgnoringLocalCacheData
+        config.urlCache = nil
         urlSession = URLSession(configuration: config)
         calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        MockURLProtocol.mockResponse = nil
     }
 
     override func tearDown() {
@@ -234,9 +237,11 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
             urlSession: urlSession
         )
         var capturedRequestBody: Data?
+        let requestCaptured = expectation(description: "Cloud request body captured")
 
         MockURLProtocol.mockResponse = { request in
-            capturedRequestBody = request.httpBody
+            capturedRequestBody = request.httpBody ?? self.requestBody(from: request)
+            requestCaptured.fulfill()
             let response: [String: Any] = [
                 "choices": [["message": ["content": """
                 {
@@ -269,6 +274,7 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
             referenceDate: date(year: 2026, month: 3, day: 18),
             calendar: calendar
         )
+        await fulfillment(of: [requestCaptured], timeout: 1.0)
 
         guard let capturedRequestBody else {
             return XCTFail("Expected request body to be captured")
@@ -306,13 +312,13 @@ private extension CloudReviewInsightsGeneratorTests {
                 return (nil, nil, error)
             }
             let content = String(data: contentData, encoding: .utf8) ?? "{}"
-            return makeMockAPIResponse(content: content)
+            return self.makeMockAPIResponse(content: content)
         }
     }
 
     func setMockResponse(withRawContent content: String) {
         MockURLProtocol.mockResponse = { _ in
-            makeMockAPIResponse(content: content)
+            self.makeMockAPIResponse(content: content)
         }
     }
 
@@ -343,5 +349,28 @@ private extension CloudReviewInsightsGeneratorTests {
         components.day = day
         components.timeZone = calendar.timeZone
         return calendar.date(from: components)!
+    }
+
+    func requestBody(from request: URLRequest) -> Data? {
+        guard let stream = request.httpBodyStream else { return nil }
+        stream.open()
+        defer { stream.close() }
+
+        var data = Data()
+        let bufferSize = 1024
+        var buffer = [UInt8](repeating: 0, count: bufferSize)
+
+        while stream.hasBytesAvailable {
+            let bytesRead = stream.read(&buffer, maxLength: bufferSize)
+            if bytesRead < 0 {
+                return nil
+            }
+            if bytesRead == 0 {
+                break
+            }
+            data.append(buffer, count: bytesRead)
+        }
+
+        return data.isEmpty ? nil : data
     }
 }

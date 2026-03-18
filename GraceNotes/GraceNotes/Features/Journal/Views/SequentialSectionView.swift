@@ -172,14 +172,26 @@ struct ChipReorderDropDelegate: DropDelegate {
     let onMoveChip: ((Int, Int) -> Void)?
 
     func dropEntered(info: DropInfo) {
-        // Intentionally no-op: apply reorder only on successful drop.
+        dropEntered()
     }
 
     func dropUpdated(info: DropInfo) -> DropProposal? {
-        DropProposal(operation: .move)
+        dropUpdated()
     }
 
     func performDrop(info: DropInfo) -> Bool {
+        performDrop()
+    }
+
+    func dropEntered() {
+        // Intentionally no-op: apply reorder only on successful drop.
+    }
+
+    func dropUpdated() -> DropProposal? {
+        DropProposal(operation: .move)
+    }
+
+    func performDrop() -> Bool {
         guard let draggingItemID else { return false }
         defer { self.draggingItemID = nil }
         guard let onMoveChip else { return false }

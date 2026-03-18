@@ -1,5 +1,4 @@
 import SwiftUI
-import UniformTypeIdentifiers
 import XCTest
 @testable import GraceNotes
 
@@ -132,18 +131,6 @@ final class JournalScreenChipHandlingTests: XCTestCase {
 
 @MainActor
 final class ChipReorderDropDelegateTests: XCTestCase {
-    private struct MockDropInfo: DropInfo {
-        var location: CGPoint = .zero
-
-        func hasItemsConforming(to contentTypes: [UTType]) -> Bool {
-            true
-        }
-
-        func itemProviders(for contentTypes: [UTType]) -> [NSItemProvider] {
-            []
-        }
-    }
-
     func test_dropEntered_doesNotApplyMoveUntilDropCompletes() {
         let first = JournalItem(fullText: "First")
         let second = JournalItem(fullText: "Second")
@@ -158,10 +145,10 @@ final class ChipReorderDropDelegateTests: XCTestCase {
             onMoveChip: { _, _ in didMove = true }
         )
 
-        delegate.dropEntered(info: MockDropInfo())
+        delegate.dropEntered()
         XCTAssertFalse(didMove)
 
-        let didHandleDrop = delegate.performDrop(info: MockDropInfo())
+        let didHandleDrop = delegate.performDrop()
         XCTAssertTrue(didHandleDrop)
         XCTAssertTrue(didMove)
     }
@@ -177,7 +164,7 @@ final class ChipReorderDropDelegateTests: XCTestCase {
             onMoveChip: { _, _ in didMove = true }
         )
 
-        let didHandleDrop = delegate.performDrop(info: MockDropInfo())
+        let didHandleDrop = delegate.performDrop()
 
         XCTAssertFalse(didHandleDrop)
         XCTAssertFalse(didMove)
