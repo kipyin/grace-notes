@@ -100,6 +100,27 @@ final class DeterministicReviewInsightsTests: XCTestCase {
         XCTAssertNil(insights.narrativeSummary)
     }
 
+    func test_generateInsights_preservesOriginalMixedLanguageLabelWhileGroupingCaseInsensitively() async throws {
+        let reference = date(year: 2026, month: 3, day: 18)
+        let first = makeEntry(
+            on: date(year: 2026, month: 3, day: 17),
+            gratitudes: ["morning coffee 讓我安定"]
+        )
+        let second = makeEntry(
+            on: date(year: 2026, month: 3, day: 18),
+            gratitudes: ["Morning Coffee 讓我安定"]
+        )
+
+        let insights = try await generator.generateInsights(
+            from: [first, second],
+            referenceDate: reference,
+            calendar: calendar
+        )
+
+        XCTAssertEqual(insights.recurringGratitudes.first?.label, "morning coffee 讓我安定")
+        XCTAssertEqual(insights.recurringGratitudes.first?.count, 2)
+    }
+
     private func makeEntry(
         on date: Date,
         gratitudes: [String] = [],

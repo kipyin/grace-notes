@@ -57,17 +57,26 @@ struct DeterministicReviewInsightsGenerator: ReviewInsightsGenerating {
     }
 
     private func topThemes(from labels: [String]) -> [ReviewInsightTheme] {
-        let normalized = labels
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-            .map(normalizeThemeLabel)
-
         var counts: [String: Int] = [:]
-        for item in normalized {
-            counts[item, default: 0] += 1
+        var displayLabels: [String: String] = [:]
+
+        for label in labels {
+            let trimmedLabel = label.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmedLabel.isEmpty else { continue }
+
+            let normalizedLabel = normalizeThemeLabel(trimmedLabel)
+            counts[normalizedLabel, default: 0] += 1
+            if displayLabels[normalizedLabel] == nil {
+                // Preserve the user's original casing and mixed-language phrasing.
+                displayLabels[normalizedLabel] = trimmedLabel
+            }
         }
+
         return counts
-            .map { ReviewInsightTheme(label: denormalizeThemeLabel($0.key), count: $0.value) }
+            .map {
+                let label = displayLabels[$0.key] ?? $0.key
+                return ReviewInsightTheme(label: label, count: $0.value)
+            }
             .sorted {
                 if $0.count != $1.count {
                     return $0.count > $1.count
@@ -181,10 +190,5 @@ struct DeterministicReviewInsightsGenerator: ReviewInsightsGenerating {
     private func normalizeThemeLabel(_ value: String) -> String {
         value.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
             .trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    private func denormalizeThemeLabel(_ value: String) -> String {
-        guard let first = value.first else { return value }
-        return String(first).uppercased() + value.dropFirst()
     }
 }
