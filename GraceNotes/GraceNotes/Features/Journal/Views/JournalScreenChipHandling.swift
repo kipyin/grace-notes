@@ -14,27 +14,49 @@ struct ChipSectionOperations {
 @MainActor
 enum JournalScreenChipHandling {
 
-    /// Submits the current input as update or add, then clears input on success.
+    /// Submits the current input as an immediate update/add and clears the draft on success.
+    /// Returns true when a state transition was applied.
     static func submitChipSection(
         editingIndex: Binding<Int?>,
         input: Binding<String>,
-        update: (Int, String) async -> Bool,
-        add: (String) async -> Bool
-    ) async {
-        let succeeded: Bool
+        operations: ChipSectionOperations,
+        isTransitioning: Binding<Bool>
+    ) -> Bool {
+        guard beginTransition(isTransitioning) else { return false }
+        defer { endTransition(isTransitioning) }
+
+        let trimmed = input.wrappedValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return false }
+
         if let index = editingIndex.wrappedValue {
-            succeeded = await update(index, input.wrappedValue)
-            if succeeded { editingIndex.wrappedValue = nil }
+            guard let updatedIndex = operations.updateImmediate(index, input.wrappedValue) else { return false }
+            operations.summarizeAndUpdateChip(updatedIndex)
+            editingIndex.wrappedValue = nil
+            input.wrappedValue = ""
+            return true
         } else {
-            succeeded = await add(input.wrappedValue)
+            guard let newIndex = operations.addImmediate(input.wrappedValue) else { return false }
+            operations.summarizeAndUpdateChip(newIndex)
+            input.wrappedValue = ""
+            return true
         }
-        if succeeded { input.wrappedValue = "" }
     }
 
-    /// Clears the chip input field and editing state.
-    static func clearChipInput(input: Binding<String>, editingIndex: Binding<Int?>) {
+    /// Handles `(+)` tap without dropping an active draft.
+    /// Returns true when the interaction was accepted.
+    static func handleAddChipTap(
+        input: Binding<String>,
+        editingIndex: Binding<Int?>,
+        isTransitioning: Binding<Bool>
+    ) -> Bool {
+        guard beginTransition(isTransitioning) else { return false }
+        defer { endTransition(isTransitioning) }
+
+        let hasDraft = !input.wrappedValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        if hasDraft { return true }
+
         editingIndex.wrappedValue = nil
-        input.wrappedValue = ""
+        return true
     }
 
     /// Performs the delete-chip flow: removes the item and updates editing state.
@@ -78,8 +100,12 @@ enum JournalScreenChipHandling {
         tapIndex: Int,
         input: Binding<String>,
         editingIndex: Binding<Int?>,
-        operations: ChipSectionOperations
+        operations: ChipSectionOperations,
+        isTransitioning: Binding<Bool>
     ) {
+        guard beginTransition(isTransitioning) else { return }
+        defer { endTransition(isTransitioning) }
+
         let trimmed = input.wrappedValue.trimmingCharacters(in: .whitespacesAndNewlines)
 
         if let currentIndex = editingIndex.wrappedValue, !trimmed.isEmpty {
@@ -136,5 +162,17 @@ enum JournalScreenChipHandling {
         }
 
         return editingIndex
+    }
+
+    private static func beginTransition(_ isTransitioning: Binding<Bool>) -> Bool {
+        if isTransitioning.wrappedValue {
+            return false
+        }
+        isTransitioning.wrappedValue = true
+        return true
+    }
+
+    private static func endTransition(_ isTransitioning: Binding<Bool>) {
+        isTransitioning.wrappedValue = false
     }
 }

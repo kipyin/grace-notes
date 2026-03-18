@@ -22,6 +22,12 @@ struct JournalScreen: View {
     @State private var editingGratitudeIndex: Int?
     @State private var editingNeedIndex: Int?
     @State private var editingPersonIndex: Int?
+    @State private var isGratitudeTransitioning = false
+    @State private var isNeedTransitioning = false
+    @State private var isPersonTransitioning = false
+    @FocusState private var isGratitudeInputFocused: Bool
+    @FocusState private var isNeedInputFocused: Bool
+    @FocusState private var isPersonInputFocused: Bool
 
     var entryDate: Date?
 
@@ -53,7 +59,8 @@ struct JournalScreen: View {
                     inputAccessibilityIdentifier: "Gratitude 1",
                     inputText: $gratitudeInput,
                     editingIndex: editingGratitudeIndex,
-                    onSubmit: { Task { await submitGratitude() } },
+                    inputFocus: $isGratitudeInputFocused,
+                    onSubmit: submitGratitude,
                     onChipTap: { index in chipTapped(section: .gratitude, index: index) },
                     onRenameChip: { index, label in renameChip(section: .gratitude, index: index, label: label) },
                     onMoveChip: { from, toOffset in moveChip(section: .gratitude, from: from, toOffset: toOffset) },
@@ -69,7 +76,8 @@ struct JournalScreen: View {
                     inputAccessibilityIdentifier: "Need 1",
                     inputText: $needInput,
                     editingIndex: editingNeedIndex,
-                    onSubmit: { Task { await submitNeed() } },
+                    inputFocus: $isNeedInputFocused,
+                    onSubmit: submitNeed,
                     onChipTap: { index in chipTapped(section: .need, index: index) },
                     onRenameChip: { index, label in renameChip(section: .need, index: index, label: label) },
                     onMoveChip: { from, toOffset in moveChip(section: .need, from: from, toOffset: toOffset) },
@@ -85,7 +93,8 @@ struct JournalScreen: View {
                     inputAccessibilityIdentifier: "Person 1",
                     inputText: $personInput,
                     editingIndex: editingPersonIndex,
-                    onSubmit: { Task { await submitPerson() } },
+                    inputFocus: $isPersonInputFocused,
+                    onSubmit: submitPerson,
                     onChipTap: { index in chipTapped(section: .person, index: index) },
                     onRenameChip: { index, label in renameChip(section: .person, index: index, label: label) },
                     onMoveChip: { from, toOffset in moveChip(section: .person, from: from, toOffset: toOffset) },
@@ -186,31 +195,16 @@ struct JournalScreen: View {
 }
 
 private extension JournalScreen {
-    private func submitGratitude() async {
-        await JournalScreenChipHandling.submitChipSection(
-            editingIndex: $editingGratitudeIndex,
-            input: $gratitudeInput,
-            update: viewModel.updateGratitude,
-            add: viewModel.addGratitude
-        )
+    private func submitGratitude() {
+        submit(section: .gratitude)
     }
 
-    private func submitNeed() async {
-        await JournalScreenChipHandling.submitChipSection(
-            editingIndex: $editingNeedIndex,
-            input: $needInput,
-            update: viewModel.updateNeed,
-            add: viewModel.addNeed
-        )
+    private func submitNeed() {
+        submit(section: .need)
     }
 
-    private func submitPerson() async {
-        await JournalScreenChipHandling.submitChipSection(
-            editingIndex: $editingPersonIndex,
-            input: $personInput,
-            update: viewModel.updatePerson,
-            add: viewModel.addPerson
-        )
+    private func submitPerson() {
+        submit(section: .person)
     }
 
     private func shareTapped() {
@@ -231,6 +225,8 @@ private extension JournalScreen {
     private struct ChipSectionAdapter {
         let input: Binding<String>
         let editingIndex: Binding<Int?>
+        let isTransitioning: Binding<Bool>
+        let inputFocus: FocusState<Bool>.Binding
         let renameLabel: (Int, String) -> Bool
         let move: (Int, Int) -> Bool
         let remove: (Int) -> Bool
@@ -252,6 +248,8 @@ private extension JournalScreen {
         ChipSectionAdapter(
             input: $gratitudeInput,
             editingIndex: $editingGratitudeIndex,
+            isTransitioning: $isGratitudeTransitioning,
+            inputFocus: $isGratitudeInputFocused,
             renameLabel: { index, label in viewModel.renameGratitudeLabel(at: index, to: label) },
             move: { from, toOffset in viewModel.moveGratitude(from: from, to: toOffset) },
             remove: { index in viewModel.removeGratitude(at: index) },
@@ -273,6 +271,8 @@ private extension JournalScreen {
         ChipSectionAdapter(
             input: $needInput,
             editingIndex: $editingNeedIndex,
+            isTransitioning: $isNeedTransitioning,
+            inputFocus: $isNeedInputFocused,
             renameLabel: { index, label in viewModel.renameNeedLabel(at: index, to: label) },
             move: { from, toOffset in viewModel.moveNeed(from: from, to: toOffset) },
             remove: { index in viewModel.removeNeed(at: index) },
@@ -294,6 +294,8 @@ private extension JournalScreen {
         ChipSectionAdapter(
             input: $personInput,
             editingIndex: $editingPersonIndex,
+            isTransitioning: $isPersonTransitioning,
+            inputFocus: $isPersonInputFocused,
             renameLabel: { index, label in viewModel.renamePersonLabel(at: index, to: label) },
             move: { from, toOffset in viewModel.movePerson(from: from, to: toOffset) },
             remove: { index in viewModel.removePerson(at: index) },
@@ -313,7 +315,14 @@ private extension JournalScreen {
 
     private func addNewTapped(section: ChipSection) {
         let adapter = chipSectionAdapter(for: section)
-        JournalScreenChipHandling.clearChipInput(input: adapter.input, editingIndex: adapter.editingIndex)
+        let handled = JournalScreenChipHandling.handleAddChipTap(
+            input: adapter.input,
+            editingIndex: adapter.editingIndex,
+            isTransitioning: adapter.isTransitioning
+        )
+        if handled {
+            restoreInputFocus(adapter.inputFocus)
+        }
     }
 
     private func deleteChip(section: ChipSection, index: Int) {
@@ -347,8 +356,10 @@ private extension JournalScreen {
             tapIndex: index,
             input: adapter.input,
             editingIndex: adapter.editingIndex,
-            operations: adapter.operations
+            operations: adapter.operations,
+            isTransitioning: adapter.isTransitioning
         )
+        restoreInputFocus(adapter.inputFocus)
     }
 
     private func scheduleSummarization(for section: ChipSection, index: Int) {
@@ -368,6 +379,26 @@ private extension JournalScreen {
             personSummarizationTask = Task {
                 await viewModel.summarizeAndUpdateChip(section: .person, index: index)
             }
+        }
+    }
+
+    private func submit(section: ChipSection) {
+        let adapter = chipSectionAdapter(for: section)
+        let didSubmit = JournalScreenChipHandling.submitChipSection(
+            editingIndex: adapter.editingIndex,
+            input: adapter.input,
+            operations: adapter.operations,
+            isTransitioning: adapter.isTransitioning
+        )
+        if didSubmit {
+            restoreInputFocus(adapter.inputFocus)
+        }
+    }
+
+    private func restoreInputFocus(_ focus: FocusState<Bool>.Binding) {
+        Task { @MainActor in
+            await Task.yield()
+            focus.wrappedValue = true
         }
     }
 }

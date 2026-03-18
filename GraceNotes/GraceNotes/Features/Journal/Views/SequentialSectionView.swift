@@ -38,6 +38,7 @@ struct SequentialSectionView: View {
     let inputAccessibilityIdentifier: String?
     @Binding var inputText: String
     let editingIndex: Int?
+    let inputFocus: FocusState<Bool>.Binding?
     let onSubmit: () -> Void
     let onChipTap: (Int) -> Void
     let onRenameChip: ((Int, String) -> Void)?
@@ -54,6 +55,7 @@ struct SequentialSectionView: View {
         inputAccessibilityIdentifier: String? = nil,
         inputText: Binding<String>,
         editingIndex: Int?,
+        inputFocus: FocusState<Bool>.Binding? = nil,
         onSubmit: @escaping () -> Void,
         onChipTap: @escaping (Int) -> Void,
         onRenameChip: ((Int, String) -> Void)? = nil,
@@ -68,6 +70,7 @@ struct SequentialSectionView: View {
         self.inputAccessibilityIdentifier = inputAccessibilityIdentifier
         self._inputText = inputText
         self.editingIndex = editingIndex
+        self.inputFocus = inputFocus
         self.onSubmit = onSubmit
         self.onChipTap = onChipTap
         self.onRenameChip = onRenameChip
@@ -119,13 +122,24 @@ struct SequentialSectionView: View {
             }
 
             if showInput {
-                TextField(placeholder, text: $inputText)
-                    .font(AppTheme.warmPaperBody)
-                    .foregroundStyle(AppTheme.textPrimary)
-                    .textInputAutocapitalization(.sentences)
-                    .onSubmit { onSubmit() }
-                    .warmPaperInputStyle()
-                    .modifier(ConditionalAccessibilityIdentifier(identifier: inputAccessibilityIdentifier))
+                if let inputFocus {
+                    TextField(placeholder, text: $inputText)
+                        .font(AppTheme.warmPaperBody)
+                        .foregroundStyle(AppTheme.textPrimary)
+                        .textInputAutocapitalization(.sentences)
+                        .onSubmit { onSubmit() }
+                        .focused(inputFocus)
+                        .warmPaperInputStyle()
+                        .modifier(ConditionalAccessibilityIdentifier(identifier: inputAccessibilityIdentifier))
+                } else {
+                    TextField(placeholder, text: $inputText)
+                        .font(AppTheme.warmPaperBody)
+                        .foregroundStyle(AppTheme.textPrimary)
+                        .textInputAutocapitalization(.sentences)
+                        .onSubmit { onSubmit() }
+                        .warmPaperInputStyle()
+                        .modifier(ConditionalAccessibilityIdentifier(identifier: inputAccessibilityIdentifier))
+                }
             }
 
             Text(progressText)

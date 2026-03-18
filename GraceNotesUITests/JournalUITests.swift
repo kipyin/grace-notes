@@ -90,4 +90,38 @@ final class JournalUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Gratitudes"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["Share"].waitForExistence(timeout: 5))
     }
+
+    @MainActor
+    func test_todayScreen_addChipTap_preservesActiveDraftInput() {
+        let app = launchApp()
+        let gratitudeField = app.textFields["Gratitude 1"]
+        XCTAssertTrue(gratitudeField.waitForExistence(timeout: 5))
+
+        gratitudeField.tap()
+        gratitudeField.typeText("Draft gratitude in progress")
+
+        let addButton = app.buttons["Add new"].firstMatch
+        XCTAssertTrue(addButton.waitForExistence(timeout: 5))
+        addButton.tap()
+
+        XCTAssertEqual(gratitudeField.value as? String, "Draft gratitude in progress")
+    }
+
+    @MainActor
+    func test_todayScreen_submitKeepsKeyboardAvailableForNextEntry() {
+        let app = launchApp()
+        let gratitudeField = app.textFields["Gratitude 1"]
+        XCTAssertTrue(gratitudeField.waitForExistence(timeout: 5))
+
+        gratitudeField.tap()
+        gratitudeField.typeText("First gratitude entry\n")
+
+        XCTAssertTrue(
+            app.keyboards.firstMatch.waitForExistence(timeout: 2),
+            "Keyboard should remain available after submitting an entry."
+        )
+
+        gratitudeField.typeText("Second gratitude draft")
+        XCTAssertEqual(gratitudeField.value as? String, "Second gratitude draft")
+    }
 }
