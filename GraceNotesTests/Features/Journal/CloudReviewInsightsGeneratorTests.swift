@@ -48,6 +48,9 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
         XCTAssertEqual(insights.recurringNeeds.first?.label, "Rest")
         XCTAssertEqual(insights.recurringNeeds.first?.count, 3)
         XCTAssertTrue(insights.narrativeSummary?.contains("Rest") == true)
+        XCTAssertEqual(insights.weeklyInsights.count, 2)
+        XCTAssertEqual(insights.weeklyInsights.first?.observation, "You mentioned Rest 3 times this week.")
+        XCTAssertEqual(insights.weeklyInsights.first?.action, "What can protect your rest tomorrow?")
     }
 
     func test_generateInsights_invalidPayload_throws() async {
@@ -178,6 +181,8 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
 
         XCTAssertEqual(insights.recurringNeeds.first?.label, "Rest")
         XCTAssertTrue(insights.continuityPrompt.contains("Rest"))
+        XCTAssertEqual(insights.weeklyInsights.first?.observation, "You mentioned Rest 2 times this week.")
+        XCTAssertEqual(insights.weeklyInsights.first?.action, "What can protect your Rest tomorrow?")
     }
 
     func test_generateInsights_genericContinuityPrompt_isReplacedWithThemePrompt() async throws {
