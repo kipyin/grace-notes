@@ -56,6 +56,18 @@ final class OnDeviceHybridSummarizerTests: XCTestCase {
         XCTAssertEqual(result.label, "")
         XCTAssertFalse(result.isTruncated)
     }
+
+    func test_summarize_fallsBack_whenNLPThrows() async throws {
+        let fallback = StubSummarizer(result: SummarizationResult(label: "Deterministic fallback", isTruncated: false))
+        let sut = OnDeviceHybridSummarizer(
+            nlpSummarizer: ThrowingStubSummarizer(),
+            deterministicSummarizer: fallback
+        )
+
+        let result = try await sut.summarize("Need clearer priorities today", section: .need)
+
+        XCTAssertEqual(result.label, "Deterministic fallback")
+    }
 }
 
 private struct StubSummarizer: Summarizer {
@@ -64,4 +76,14 @@ private struct StubSummarizer: Summarizer {
     func summarize(_ sentence: String, section: SummarizationSection) async throws -> SummarizationResult {
         result
     }
+}
+
+private struct ThrowingStubSummarizer: Summarizer {
+    func summarize(_ sentence: String, section: SummarizationSection) async throws -> SummarizationResult {
+        throw StubSummarizerError.failed
+    }
+}
+
+private enum StubSummarizerError: Error {
+    case failed
 }
