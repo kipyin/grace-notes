@@ -21,44 +21,43 @@ struct SettingsScreen: View {
             Section {
                 Toggle(String(localized: "Use cloud summarization"), isOn: $useCloudSummarization)
                     .font(AppTheme.warmPaperBody)
-                    .foregroundStyle(AppTheme.textPrimary)
+                    .foregroundStyle(AppTheme.settingsTextPrimary)
             } header: {
                 Text(String(localized: "Summarization"))
                     .font(AppTheme.warmPaperHeader)
-                    .foregroundStyle(AppTheme.textPrimary)
+                    .foregroundStyle(AppTheme.settingsTextPrimary)
             } footer: {
                 Text(
                     String(
                         localized: """
-                        When on, chip labels use an online service for better summaries. \
-                        When off, labels use on-device processing only.
+                        On: chip labels use an online summarization service. \
+                        Off: labels are generated on-device.
                         """
                     )
                 )
                     .font(AppTheme.warmPaperBody)
-                    .foregroundStyle(AppTheme.textMuted)
+                    .foregroundStyle(AppTheme.settingsTextMuted)
             }
 
             Section {
                 Toggle(String(localized: "Use AI review insights"), isOn: $useAIReviewInsights)
                     .font(AppTheme.warmPaperBody)
-                    .foregroundStyle(AppTheme.textPrimary)
+                    .foregroundStyle(AppTheme.settingsTextPrimary)
             } header: {
                 Text(String(localized: "Review Insights"))
                     .font(AppTheme.warmPaperHeader)
-                    .foregroundStyle(AppTheme.textPrimary)
+                    .foregroundStyle(AppTheme.settingsTextPrimary)
             } footer: {
                 Text(
                     String(
                         localized: """
-                        When on, weekly review insights may send your recent journal text \
-                        to the configured cloud AI service. \
-                        When off, review insights stay on-device.
+                        On: weekly insights may send recent journal text to your configured cloud AI service. \
+                        Off: review insights stay on-device.
                         """
                     )
                 )
                     .font(AppTheme.warmPaperBody)
-                    .foregroundStyle(AppTheme.textMuted)
+                    .foregroundStyle(AppTheme.settingsTextMuted)
             }
 
             Section {
@@ -69,18 +68,18 @@ struct SettingsScreen: View {
                         Text(String(localized: "Daily reminder"))
                         Spacer()
                         Text(reminderState.summaryText)
-                            .foregroundStyle(AppTheme.textMuted)
+                            .foregroundStyle(AppTheme.settingsTextMuted)
                     }
                     .font(AppTheme.warmPaperBody)
                 }
             } header: {
                 Text(String(localized: "Reminders"))
                     .font(AppTheme.warmPaperHeader)
-                    .foregroundStyle(AppTheme.textPrimary)
+                    .foregroundStyle(AppTheme.settingsTextPrimary)
             } footer: {
-                Text(String(localized: "Get one daily local reminder to complete today's entry."))
+                Text(String(localized: "Get one local reminder each day to complete today's entry."))
                     .font(AppTheme.warmPaperBody)
-                    .foregroundStyle(AppTheme.textMuted)
+                    .foregroundStyle(AppTheme.settingsTextMuted)
             }
 
             Section {
@@ -88,20 +87,24 @@ struct SettingsScreen: View {
                     exportJournalData()
                 }
                 .font(AppTheme.warmPaperBody)
-                .foregroundStyle(AppTheme.accent)
+                .foregroundStyle(AppTheme.accentText)
                 .disabled(isExportingData)
             } header: {
                 Text(String(localized: "Data & Privacy"))
                     .font(AppTheme.warmPaperHeader)
-                    .foregroundStyle(AppTheme.textPrimary)
+                    .foregroundStyle(AppTheme.settingsTextPrimary)
             } footer: {
                 Text(dataPrivacyFooterText)
                     .font(AppTheme.warmPaperBody)
-                    .foregroundStyle(AppTheme.textMuted)
+                    .foregroundStyle(AppTheme.settingsTextMuted)
             }
         }
+        .listRowBackground(AppTheme.settingsPaper.opacity(0.9))
         .scrollContentBackground(.hidden)
-        .background(AppTheme.background)
+        .background(AppTheme.settingsBackground)
+        .safeAreaInset(edge: .bottom) {
+            Color.clear.frame(height: AppTheme.spacingSection + AppTheme.floatingTabBarClearance)
+        }
         .navigationTitle(String(localized: "Settings"))
         .sheet(item: $exportFile) { file in
             ShareSheet(activityItems: [file.url])
@@ -137,8 +140,8 @@ private extension SettingsScreen {
     var dataPrivacyFooterText: String {
         return String(
             localized: """
-            Journal entries stay private to your devices and account. \
-            Export creates a full JSON backup you can keep.
+            Entries stay private to your devices and account. \
+            Export creates a full JSON backup.
             """
         )
     }

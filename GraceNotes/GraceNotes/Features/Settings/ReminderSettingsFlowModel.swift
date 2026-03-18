@@ -63,7 +63,9 @@ final class ReminderSettingsFlowModel: ObservableObject {
             liveStatus = .denied
         case .failed:
             liveStatus = .unavailable
-            transientErrorMessage = String(localized: "Unable to schedule your reminder right now.")
+            transientErrorMessage = String(
+                localized: "Reminder couldn't be scheduled. Check notification permissions and try again."
+            )
         case .disabled:
             await refreshStatus()
         }
@@ -98,7 +100,9 @@ final class ReminderSettingsFlowModel: ObservableObject {
             )
         case .failed:
             liveStatus = .unavailable
-            transientErrorMessage = String(localized: "Unable to save that reminder time right now.")
+            transientErrorMessage = String(
+                localized: "Reminder time couldn't be saved. Try again in a moment."
+            )
         case .disabled:
             await refreshStatus()
         }
