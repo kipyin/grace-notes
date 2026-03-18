@@ -9,6 +9,7 @@ final class DeterministicReviewInsightsTests: XCTestCase {
         super.setUp()
         calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.firstWeekday = 2
         generator = DeterministicReviewInsightsGenerator()
     }
 
@@ -33,36 +34,29 @@ final class DeterministicReviewInsightsTests: XCTestCase {
         XCTAssertFalse(insights.recurringGratitudes.contains(where: { $0.label == "Travel" }))
     }
 
-    func test_generateInsights_ranksThemesByCountThenAlphabetically() async throws {
+    func test_generateInsights_generatesRecurringPeopleInsight() async throws {
         let reference = date(year: 2026, month: 3, day: 18)
         let first = makeEntry(
             on: date(year: 2026, month: 3, day: 17),
-            gratitudes: ["Family", "Coffee"],
-            needs: ["Rest"]
+            people: ["Mia"]
         )
         let second = makeEntry(
             on: date(year: 2026, month: 3, day: 18),
-            gratitudes: ["Coffee"],
-            needs: ["Rest"]
-        )
-        let third = makeEntry(
-            on: date(year: 2026, month: 3, day: 19),
-            gratitudes: ["Coffee"],
-            needs: ["Clarity"]
+            people: ["Mia"]
         )
 
         let insights = try await generator.generateInsights(
-            from: [first, second, third],
+            from: [first, second],
             referenceDate: reference,
             calendar: calendar
         )
 
-        XCTAssertEqual(insights.recurringGratitudes.prefix(2).map(\.label), ["Coffee", "Family"])
-        XCTAssertEqual(insights.recurringGratitudes.first?.count, 3)
-        XCTAssertEqual(insights.recurringNeeds.prefix(2).map(\.label), ["Rest", "Clarity"])
+        let recurringPersonInsight = insights.weeklyInsights.first { $0.pattern == .recurringPeople }
+        XCTAssertNotNil(recurringPersonInsight)
+        XCTAssertTrue(recurringPersonInsight?.observation.contains("Mia") == true)
     }
 
-    func test_generateInsights_resurfacingPrioritizesRecurringNeed() async throws {
+    func test_generateInsights_generatesNeedsGratitudeGapInsight() async throws {
         let reference = date(year: 2026, month: 3, day: 18)
         let first = makeEntry(
             on: date(year: 2026, month: 3, day: 17),
@@ -79,8 +73,102 @@ final class DeterministicReviewInsightsTests: XCTestCase {
             calendar: calendar
         )
 
-        XCTAssertEqual(insights.resurfacingMessage, "You mentioned Rest 2 times this week.")
-        XCTAssertTrue(insights.continuityPrompt.contains("Rest"))
+        let gapInsight = insights.weeklyInsights.first { $0.pattern == .needsGratitudeGap }
+        XCTAssertNotNil(gapInsight)
+        XCTAssertEqual(gapInsight?.primaryTheme, "Rest")
+    }
+
+    func test_generateInsights_generatesContinuityShiftInsight() async throws {
+        let reference = date(year: 2026, month: 3, day: 18)
+        let previousWeekEntries = [
+            makeEntry(on: date(year: 2026, month: 3, day: 9), needs: ["Rest"]),
+            makeEntry(on: date(year: 2026, month: 3, day: 10), needs: ["Rest"]),
+            makeEntry(on: date(year: 2026, month: 3, day: 11), needs: ["Rest"])
+        ]
+        let currentWeekEntries = [
+            makeEntry(on: date(year: 2026, month: 3, day: 17), gratitudes: ["Family connection"]),
+            makeEntry(on: date(year: 2026, month: 3, day: 18), gratitudes: ["Family connection"]),
+            makeEntry(on: date(year: 2026, month: 3, day: 19), gratitudes: ["Family connection"])
+        ]
+
+        let insights = try await generator.generateInsights(
+            from: previousWeekEntries + currentWeekEntries,
+            referenceDate: reference,
+            calendar: calendar
+        )
+
+        let shiftInsight = insights.weeklyInsights.first { $0.pattern == .continuityShift }
+        XCTAssertNotNil(shiftInsight)
+        XCTAssertTrue(shiftInsight?.observation.contains("Rest") == true)
+        XCTAssertTrue(shiftInsight?.observation.contains("Family connection") == true)
+    }
+
+    func test_generateInsights_generatesFullCompletionInsight_forSevenFullDays() async throws {
+        let reference = date(year: 2026, month: 3, day: 18)
+        let fullWeekEntries = (0...6).map { offset in
+            makeFullEntry(on: date(year: 2026, month: 3, day: 16 + offset))
+        }
+
+        let insights = try await generator.generateInsights(
+            from: fullWeekEntries,
+            referenceDate: reference,
+            calendar: calendar
+        )
+
+        let completionInsight = insights.weeklyInsights.first { $0.pattern == .fullCompletion }
+        XCTAssertNotNil(completionInsight)
+        XCTAssertEqual(completionInsight?.dayCount, 7)
+    }
+
+    func test_generateInsights_returnsSparseFallback_whenSignalsAreTooLow() async throws {
+        let reference = date(year: 2026, month: 3, day: 18)
+        let oneEmptyEntry = makeEntry(on: date(year: 2026, month: 3, day: 17))
+
+        let insights = try await generator.generateInsights(
+            from: [oneEmptyEntry],
+            referenceDate: reference,
+            calendar: calendar
+        )
+
+        XCTAssertEqual(insights.weeklyInsights.count, 1)
+        XCTAssertEqual(insights.weeklyInsights.first?.pattern, .sparseFallback)
+    }
+
+    func test_generateInsights_limitsInsightCountToTwo() async throws {
+        let reference = date(year: 2026, month: 3, day: 18)
+        let previousWeekEntries = [
+            makeEntry(on: date(year: 2026, month: 3, day: 9), needs: ["Rest"]),
+            makeEntry(on: date(year: 2026, month: 3, day: 10), needs: ["Rest"]),
+            makeEntry(on: date(year: 2026, month: 3, day: 11), needs: ["Rest"])
+        ]
+        let currentWeekEntries = [
+            makeEntry(
+                on: date(year: 2026, month: 3, day: 17),
+                gratitudes: ["Family"],
+                needs: ["Focus"],
+                people: ["Mia"]
+            ),
+            makeEntry(
+                on: date(year: 2026, month: 3, day: 18),
+                gratitudes: ["Family"],
+                needs: ["Focus"],
+                people: ["Mia"]
+            ),
+            makeEntry(
+                on: date(year: 2026, month: 3, day: 19),
+                gratitudes: ["Family"],
+                needs: ["Focus"],
+                people: ["Mia"]
+            )
+        ]
+
+        let insights = try await generator.generateInsights(
+            from: previousWeekEntries + currentWeekEntries,
+            referenceDate: reference,
+            calendar: calendar
+        )
+
+        XCTAssertLessThanOrEqual(insights.weeklyInsights.count, 2)
     }
 
     func test_generateInsights_withoutEntries_returnsStarterGuidance() async throws {
@@ -96,7 +184,7 @@ final class DeterministicReviewInsightsTests: XCTestCase {
             insights.resurfacingMessage,
             "Start with one reflection today to build your weekly review."
         )
-        XCTAssertEqual(insights.continuityPrompt, "What feels most important to carry into next week?")
+        XCTAssertEqual(insights.weeklyInsights.first?.pattern, .sparseFallback)
         XCTAssertNil(insights.narrativeSummary)
     }
 
@@ -121,17 +209,58 @@ final class DeterministicReviewInsightsTests: XCTestCase {
         XCTAssertEqual(insights.recurringGratitudes.first?.count, 2)
     }
 
+    func test_generateInsights_usesReadingNotesAndReflectionsAsExtraSignal() async throws {
+        let reference = date(year: 2026, month: 3, day: 18)
+        let first = makeEntry(
+            on: date(year: 2026, month: 3, day: 17),
+            readingNotes: "I kept thinking about boundaries and rest",
+            reflections: "Boundaries helped me protect focus."
+        )
+        let second = makeEntry(
+            on: date(year: 2026, month: 3, day: 18),
+            readingNotes: "Rest and boundaries came up again",
+            reflections: "I need better boundaries tomorrow."
+        )
+
+        let insights = try await generator.generateInsights(
+            from: [first, second],
+            referenceDate: reference,
+            calendar: calendar
+        )
+
+        XCTAssertFalse(insights.weeklyInsights.isEmpty)
+        XCTAssertTrue(insights.narrativeSummary?.isEmpty == false)
+    }
+
     private func makeEntry(
         on date: Date,
         gratitudes: [String] = [],
         needs: [String] = [],
-        people: [String] = []
+        people: [String] = [],
+        readingNotes: String = "",
+        reflections: String = ""
     ) -> JournalEntry {
         JournalEntry(
             entryDate: date,
             gratitudes: gratitudes.map { JournalItem(fullText: $0, chipLabel: $0) },
             needs: needs.map { JournalItem(fullText: $0, chipLabel: $0) },
-            people: people.map { JournalItem(fullText: $0, chipLabel: $0) }
+            people: people.map { JournalItem(fullText: $0, chipLabel: $0) },
+            readingNotes: readingNotes,
+            reflections: reflections
+        )
+    }
+
+    private func makeFullEntry(on date: Date) -> JournalEntry {
+        let gratitudes = (1...5).map { JournalItem(fullText: "Gratitude \($0)", chipLabel: "Gratitude \($0)") }
+        let needs = (1...5).map { JournalItem(fullText: "Need \($0)", chipLabel: "Need \($0)") }
+        let people = (1...5).map { JournalItem(fullText: "Person \($0)", chipLabel: "Person \($0)") }
+        return JournalEntry(
+            entryDate: date,
+            gratitudes: gratitudes,
+            needs: needs,
+            people: people,
+            readingNotes: "Reading notes",
+            reflections: "Reflections"
         )
     }
 

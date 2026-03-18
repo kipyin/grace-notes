@@ -101,6 +101,7 @@ final class ReviewInsightsProviderTests: XCTestCase {
             generatedAt: now,
             weekStart: now,
             weekEnd: now,
+            weeklyInsights: [],
             recurringGratitudes: [],
             recurringNeeds: [],
             recurringPeople: [],

@@ -49,18 +49,29 @@ struct ReviewInsightsProvider: Sendable {
         }
 
         let weekRange = weekDateRange(containing: referenceDate, calendar: calendar)
+        let fallbackInsight = ReviewWeeklyInsight(
+            pattern: .sparseFallback,
+            observation: String(
+                localized: "Start with one reflection today to build your weekly review."
+            ),
+            action: String(
+                localized: "What feels most important to carry into next week?"
+            ),
+            primaryTheme: nil,
+            mentionCount: nil,
+            dayCount: 0
+        )
         return ReviewInsights(
             source: .deterministic,
             generatedAt: referenceDate,
             weekStart: weekRange.lowerBound,
             weekEnd: weekRange.upperBound,
+            weeklyInsights: [fallbackInsight],
             recurringGratitudes: [],
             recurringNeeds: [],
             recurringPeople: [],
-            resurfacingMessage: String(
-                localized: "Start with one reflection today to build your weekly review."
-            ),
-            continuityPrompt: String(
+            resurfacingMessage: fallbackInsight.observation,
+            continuityPrompt: fallbackInsight.action ?? String(
                 localized: "What feels most important to carry into next week?"
             ),
             narrativeSummary: nil

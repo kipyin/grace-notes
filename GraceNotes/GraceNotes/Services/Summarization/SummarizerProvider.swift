@@ -16,16 +16,18 @@ struct SummarizerProvider: Sendable {
     }
 
     /// Returns the summarizer to use.
-    /// Uses cloud when enabled and a valid API key is configured; otherwise deterministic fallback labels.
+    /// Uses cloud when enabled and a valid API key is configured.
+    /// Otherwise, uses on-device NLP with deterministic fallback.
     func currentSummarizer() -> any Summarizer {
         if let fixed = fixedSummarizer {
             return fixed
         }
+        let onDeviceSummarizer = OnDeviceHybridSummarizer()
         let useCloud = UserDefaults.standard.object(forKey: Self.useCloudKey) as? Bool ?? false
         if useCloud, ApiSecrets.cloudApiKey != placeholderApiKey {
-            return CloudSummarizer(apiKey: ApiSecrets.cloudApiKey)
+            return CloudSummarizer(apiKey: ApiSecrets.cloudApiKey, fallback: onDeviceSummarizer)
         }
-        return DeterministicChipLabelSummarizer()
+        return onDeviceSummarizer
     }
 
     nonisolated(unsafe) static let shared = SummarizerProvider()

@@ -365,24 +365,28 @@ private struct ReviewSummaryCard: View {
                         .lineSpacing(4)
                 }
 
+                if !insights.weeklyInsights.isEmpty {
+                    ReviewWeeklyInsightsSection(items: insights.weeklyInsights)
+                } else {
+                    Text(insights.resurfacingMessage)
+                        .font(AppTheme.warmPaperMeta)
+                        .foregroundStyle(AppTheme.textMuted)
+                        .lineSpacing(2)
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(String(localized: "Continue with"))
+                            .font(AppTheme.warmPaperBody.weight(.semibold))
+                            .foregroundStyle(AppTheme.textPrimary)
+                        Text(insights.continuityPrompt)
+                            .font(AppTheme.warmPaperBody)
+                            .foregroundStyle(AppTheme.textPrimary)
+                            .lineSpacing(3)
+                    }
+                }
+
                 ReviewThemeRow(title: String(localized: "Recurring Gratitudes"), items: insights.recurringGratitudes)
                 ReviewThemeRow(title: String(localized: "Recurring Needs"), items: insights.recurringNeeds)
                 ReviewThemeRow(title: String(localized: "People in Mind"), items: insights.recurringPeople)
-
-                Text(insights.resurfacingMessage)
-                    .font(AppTheme.warmPaperMeta)
-                    .foregroundStyle(AppTheme.textMuted)
-                    .lineSpacing(2)
-
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(String(localized: "Continue with"))
-                        .font(AppTheme.warmPaperBody.weight(.semibold))
-                        .foregroundStyle(AppTheme.textPrimary)
-                    Text(insights.continuityPrompt)
-                        .font(AppTheme.warmPaperBody)
-                        .foregroundStyle(AppTheme.textPrimary)
-                        .lineSpacing(3)
-                }
             } else {
                 Text(String(localized: "Start writing this week to unlock review insights."))
                     .font(AppTheme.warmPaperBody)
@@ -413,6 +417,37 @@ private struct ReviewSummaryCard: View {
             startText,
             endText
         )
+    }
+}
+
+private struct ReviewWeeklyInsightsSection: View {
+    let items: [ReviewWeeklyInsight]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(String(localized: "Insights"))
+                .font(AppTheme.warmPaperBody.weight(.semibold))
+                .foregroundStyle(AppTheme.textPrimary)
+
+            ForEach(Array(items.enumerated()), id: \.offset) { indexedItem in
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(indexedItem.element.observation)
+                        .font(AppTheme.warmPaperBody)
+                        .foregroundStyle(AppTheme.textPrimary)
+                        .lineSpacing(2)
+
+                    if let action = indexedItem.element.action, !action.isEmpty {
+                        Text(action)
+                            .font(AppTheme.warmPaperMeta)
+                            .foregroundStyle(AppTheme.textMuted)
+                            .lineSpacing(2)
+                    }
+                }
+                .padding(10)
+                .background(AppTheme.background)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+        }
     }
 }
 
