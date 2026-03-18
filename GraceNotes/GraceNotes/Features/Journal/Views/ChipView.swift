@@ -3,6 +3,7 @@ import SwiftUI
 struct ChipView: View {
     let label: String
     let isTruncated: Bool
+    let isSelected: Bool
     let onTap: () -> Void
     let onRenameLabel: ((String) -> Void)?
     let onDelete: (() -> Void)?
@@ -16,12 +17,14 @@ struct ChipView: View {
     init(
         label: String,
         isTruncated: Bool,
+        isSelected: Bool = false,
         onTap: @escaping () -> Void,
         onRenameLabel: ((String) -> Void)? = nil,
         onDelete: (() -> Void)? = nil
     ) {
         self.label = label
         self.isTruncated = isTruncated
+        self.isSelected = isSelected
         self.onTap = onTap
         self.onRenameLabel = onRenameLabel
         self.onDelete = onDelete
@@ -76,7 +79,11 @@ struct ChipView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
                 .frame(maxWidth: isTruncated ? Self.maxLabelWidth : nil, alignment: .leading)
-                .background(Self.chipBackground)
+                .background(isSelected ? AppTheme.complete.opacity(0.32) : Self.chipBackground)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(isSelected ? AppTheme.textPrimary.opacity(0.35) : .clear, lineWidth: 1)
+                )
                 .clipShape(RoundedRectangle(cornerRadius: 16))
                 .mask(
                     Group {

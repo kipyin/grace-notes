@@ -153,6 +153,7 @@ struct SequentialSectionView: View {
         let chip = ChipView(
             label: item.displayLabel,
             isTruncated: item.isTruncated,
+            isSelected: editingIndex == index,
             onTap: { onChipTap(index) },
             onRenameLabel: onRenameChip.map { handler in { handler(index, $0) } },
             onDelete: onDeleteChip.map { handler in { handler(index) } }
