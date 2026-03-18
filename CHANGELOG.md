@@ -24,6 +24,11 @@
 - Corrected deterministic summarizer test expectations to match the current 20-character chip-label budget behavior.
 
 ### Developer
+- Reorganized GraceNotes docs into numbered structure (01–07), archived legacy plans to docs/archive.
+- Added release roadmap (07-release-roadmap.md) mapping strategy to version sequence.
+- Consolidated review insight examples into 04-review-insight-examples.md; removed obsolete doc/review-insight-examples-and-spec.md.
+- Added agent-log initiative structure and validate-agent-log script for issue #41.
+- Added role governance section to AGENTS.md; Makefile verify-agent-log targets.
 - Consolidated test-suite updates across Journal and repository coverage after the naming migration cleanup.
 - Continued maintenance pass on project metadata (`project.pbxproj`), `README.md`, and `Makefile` for release readiness.
 - Added simulator reset helper target (`make reset-simulators`) and wired it into full-suite automation.

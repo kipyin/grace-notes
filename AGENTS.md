@@ -41,6 +41,20 @@ Runs from the repo root; lints all `.swift` files recursively. Currently reports
 
 ---
 
+## Role governance
+
+Keep role behavior in `.cursor/rules/` as the single source of truth for role-specific instructions. Use short role names and mapped files:
+
+- `Strategist` -> `.cursor/rules/strategist.mdc`
+- `Architect` -> `.cursor/rules/architect.mdc`
+- `Release Manager` -> `.cursor/rules/release-manager.mdc`
+- `QA Reviewer` -> `.cursor/rules/qa-reviewer.mdc`
+- `Test Lead` -> `.cursor/rules/test-lead.mdc`
+
+Use `GraceNotes/docs/agent-log/` as the canonical source for role-to-role interaction, handoffs, and deferred pushback context.
+
+Keep `AGENTS.md` focused on global constraints that apply to every role, while `.cursor/rules/` defines role behavior.
+
 ## Code style
 
 The goal is not maximal abstraction or maximal cleverness. The goal is code that is small, calm, readable, and hard to break.

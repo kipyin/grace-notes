@@ -7,7 +7,7 @@ UNIT_TEST_BUNDLE := GraceNotesTests
 UI_TEST_BUNDLE := GraceNotesUITests
 XCODE_TEST_FLAGS := -parallel-testing-enabled NO
 
-.PHONY: help lint build test test-unit test-ui test-isolated test-demo test-all ci reset-simulators
+.PHONY: help lint build test test-unit test-ui test-isolated test-demo test-all ci reset-simulators verify-agent-log verify-agent-log-strict
 
 help:
 	@echo "Available targets:"
@@ -20,6 +20,8 @@ help:
 	@echo "  make test-demo - Run tests for demo scheme (macOS + Xcode + iOS Simulator required)"
 	@echo "  make test-all  - Run tests for both schemes"
 	@echo "  make reset-simulators - Shutdown and erase all simulators"
+	@echo "  make verify-agent-log - Run warning-mode agent-log validation"
+	@echo "  make verify-agent-log-strict - Run strict agent-log validation"
 	@echo "  make ci     - Run lint and test-all"
 
 lint:
@@ -52,5 +54,11 @@ test-all:
 	$(MAKE) test
 	$(MAKE) reset-simulators
 	$(MAKE) test-demo
+
+verify-agent-log:
+	./Scripts/validate-agent-log.sh
+
+verify-agent-log-strict:
+	./Scripts/validate-agent-log.sh --strict
 
 ci: lint test-all
