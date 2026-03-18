@@ -397,9 +397,14 @@ private extension JournalScreen {
     }
 
     private func restoreInputFocus(_ focus: FocusState<Bool>.Binding) {
+        // Apply focus immediately so keyboard spin-up starts without waiting a turn.
+        focus.wrappedValue = true
+
         Task { @MainActor in
             await Task.yield()
-            focus.wrappedValue = true
+            if !focus.wrappedValue {
+                focus.wrappedValue = true
+            }
         }
     }
 }
