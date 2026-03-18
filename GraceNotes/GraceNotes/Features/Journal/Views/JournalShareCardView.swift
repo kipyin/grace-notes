@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 
 struct JournalShareCardView: View {
@@ -54,12 +55,17 @@ struct JournalShareCardView: View {
                     .font(AppTheme.warmPaperHeader)
                     .foregroundStyle(AppTheme.textPrimary)
                 ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                    Text("\(index + 1). \(item)")
+                    Text(numberedLineText(index: index, item: item))
                         .font(AppTheme.warmPaperBody)
                         .foregroundStyle(AppTheme.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
         }
+    }
+
+    private func numberedLineText(index: Int, item: String) -> String {
+        let format = String(localized: "%lld. %@")
+        return String(format: format, locale: Locale.current, Int64(index + 1), item)
     }
 }
