@@ -140,6 +140,7 @@
       }
     },
     "Allow notifications in Settings to enable daily reminders." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -368,6 +369,7 @@
       }
     },
     "Done" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -382,6 +384,9 @@
           }
         }
       }
+    },
+    "Enable" : {
+
     },
     "Export journal data (JSON)" : {
       "localizations" : {
@@ -720,6 +725,15 @@
         }
       }
     },
+    "Notifications are denied." : {
+
+    },
+    "Off" : {
+
+    },
+    "Off (Denied)" : {
+
+    },
     "OK" : {
       "localizations" : {
         "en" : {
@@ -751,6 +765,9 @@
           }
         }
       }
+    },
+    "Open Settings" : {
+
     },
     "People in Mind" : {
       "localizations" : {
@@ -911,6 +928,18 @@
           }
         }
       }
+    },
+    "Refresh" : {
+
+    },
+    "Reminder is off." : {
+
+    },
+    "Reminder is on." : {
+
+    },
+    "Reminder is unavailable right now." : {
+
     },
     "Reminder time" : {
       "localizations" : {
@@ -1381,6 +1410,15 @@
           }
         }
       }
+    },
+    "Try again" : {
+
+    },
+    "Turn off" : {
+
+    },
+    "Turn on a daily reminder." : {
+
     },
     "Unable to create share image." : {
       "localizations" : {

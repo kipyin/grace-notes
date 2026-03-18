@@ -6,22 +6,15 @@ struct SettingsScreen: View {
     @AppStorage("useCloudSummarization") private var useCloudSummarization = false
     @AppStorage(ReviewInsightsProvider.useAIReviewInsightsKey) private var useAIReviewInsights = false
     @AppStorage(PersistenceController.iCloudSyncEnabledKey) private var iCloudSyncEnabled = true
-    @AppStorage(ReminderSettings.enabledKey) private var dailyReminderEnabled = false
-    @AppStorage(ReminderSettings.timeIntervalKey)
-    private var dailyReminderTimeInterval = ReminderSettings.defaultTimeInterval
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.scenePhase) private var scenePhase
 
-    @State private var reminderDraftTime = ReminderSettings.date(from: ReminderSettings.defaultTimeInterval)
-    @State private var isReminderTimePickerExpanded = false
-    @State private var isSavingReminderTime = false
-    @State private var reminderErrorMessage: String?
-    @State private var showReminderError = false
+    @StateObject private var reminderState = ReminderSettingsFlowModel()
     @State private var exportErrorMessage: String?
     @State private var showExportError = false
     @State private var exportFile: ShareableFile?
     @State private var isExportingData = false
 
-    private let reminderScheduler = ReminderScheduler()
     private let dataExportService = JournalDataExportService()
     private let isCloudSyncAvailable = !PersistenceController.isDemoDatabaseEnabled
 
@@ -71,54 +64,16 @@ struct SettingsScreen: View {
             }
 
             Section {
-                Toggle(String(localized: "Daily reminder"), isOn: $dailyReminderEnabled)
+                NavigationLink {
+                    ReminderSettingsDetailScreen(reminderState: reminderState)
+                } label: {
+                    HStack {
+                        Text(String(localized: "Daily reminder"))
+                        Spacer()
+                        Text(reminderState.summaryText)
+                            .foregroundStyle(AppTheme.textMuted)
+                    }
                     .font(AppTheme.warmPaperBody)
-                    .foregroundStyle(AppTheme.textPrimary)
-                if dailyReminderEnabled {
-                    Button {
-                        if !isReminderTimePickerExpanded {
-                            reminderDraftTime = savedReminderTime
-                        }
-                        isReminderTimePickerExpanded.toggle()
-                    } label: {
-                        HStack {
-                            Text(String(localized: "Reminder time"))
-                            Spacer()
-                            Text(savedReminderTime, style: .time)
-                                .foregroundStyle(AppTheme.textMuted)
-                            Image(systemName: isReminderTimePickerExpanded ? "chevron.up" : "chevron.down")
-                                .foregroundStyle(AppTheme.textMuted)
-                        }
-                        .font(AppTheme.warmPaperBody)
-                    }
-                    .buttonStyle(.plain)
-
-                    if isReminderTimePickerExpanded {
-                        DatePicker(
-                            String(localized: "Reminder time"),
-                            selection: $reminderDraftTime,
-                            displayedComponents: .hourAndMinute
-                        )
-                        .datePickerStyle(.wheel)
-                        .font(AppTheme.warmPaperBody)
-                        .foregroundStyle(AppTheme.textPrimary)
-
-                        Button {
-                            Task {
-                                await confirmReminderTime()
-                            }
-                        } label: {
-                            if isSavingReminderTime {
-                                ProgressView()
-                                    .frame(maxWidth: .infinity)
-                            } else {
-                                Text(String(localized: "Done"))
-                                    .frame(maxWidth: .infinity)
-                            }
-                        }
-                        .font(AppTheme.warmPaperBody)
-                        .disabled(isSavingReminderTime)
-                    }
                 }
             } header: {
                 Text(String(localized: "Reminders"))
@@ -159,18 +114,13 @@ struct SettingsScreen: View {
             ShareSheet(activityItems: [file.url])
         }
         .task {
-            reminderDraftTime = savedReminderTime
-            await syncReminderSchedule()
+            await reminderState.refreshStatus()
         }
-        .onChange(of: dailyReminderEnabled) { _, newValue in
+        .onChange(of: scenePhase) { _, newValue in
+            guard newValue == .active else { return }
             Task {
-                await updateReminderEnabledState(isEnabled: newValue)
+                await reminderState.refreshStatus()
             }
-        }
-        .alert(String(localized: "Unable to update reminder"), isPresented: $showReminderError) {
-            Button(String(localized: "OK"), role: .cancel) {}
-        } message: {
-            Text(reminderErrorMessage ?? String(localized: "Please try again."))
         }
         .alert(String(localized: "Unable to export data"), isPresented: $showExportError) {
             Button(String(localized: "OK"), role: .cancel) {}
@@ -191,10 +141,6 @@ struct SettingsScreen: View {
 }
 
 private extension SettingsScreen {
-    var savedReminderTime: Date {
-        ReminderSettings.date(from: dailyReminderTimeInterval)
-    }
-
     var dataPrivacyFooterText: String {
         if !isCloudSyncAvailable {
             return String(
@@ -212,56 +158,6 @@ private extension SettingsScreen {
             Export creates a full JSON backup you can keep.
             """
         )
-    }
-
-    func syncReminderSchedule() async {
-        _ = await reminderScheduler.syncDailyReminder(
-            enabled: dailyReminderEnabled,
-            time: savedReminderTime
-        )
-    }
-
-    func updateReminderEnabledState(isEnabled: Bool) async {
-        if !isEnabled {
-            isReminderTimePickerExpanded = false
-            await syncReminderSchedule()
-            return
-        }
-
-        reminderDraftTime = savedReminderTime
-        let result = await reminderScheduler.syncDailyReminder(enabled: true, time: savedReminderTime)
-        if case .permissionDenied = result {
-            reminderErrorMessage = String(localized: "Allow notifications in Settings to enable daily reminders.")
-            showReminderError = true
-            dailyReminderEnabled = false
-        } else if case .failed = result {
-            reminderErrorMessage = String(localized: "Unable to schedule your reminder right now.")
-            showReminderError = true
-            dailyReminderEnabled = false
-        }
-    }
-
-    func confirmReminderTime() async {
-        guard !isSavingReminderTime else {
-            return
-        }
-        isSavingReminderTime = true
-        defer { isSavingReminderTime = false }
-
-        let result = await reminderScheduler.syncDailyReminder(enabled: true, time: reminderDraftTime)
-        switch result {
-        case .scheduled:
-            dailyReminderTimeInterval = reminderDraftTime.timeIntervalSinceReferenceDate
-            isReminderTimePickerExpanded = false
-        case .permissionDenied:
-            reminderErrorMessage = String(localized: "Allow notifications in Settings to confirm a reminder time.")
-            showReminderError = true
-        case .failed:
-            reminderErrorMessage = String(localized: "Unable to save that reminder time right now.")
-            showReminderError = true
-        case .disabled:
-            break
-        }
     }
 
     func exportJournalData() {
