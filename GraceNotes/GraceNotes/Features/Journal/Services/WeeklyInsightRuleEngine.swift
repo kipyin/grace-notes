@@ -1,5 +1,4 @@
 import Foundation
-import NaturalLanguage
 
 struct WeeklyInsightAnalysis {
     let weeklyInsights: [ReviewWeeklyInsight]
@@ -16,6 +15,7 @@ struct WeeklyInsightRuleEngine {
     private let maxInsights = 2
     private let chipWeight = 3
     private let textWeight = 1
+    private let textNormalizer = WeeklyInsightTextNormalizer()
     private let defaultContinuityPrompt = String(
         localized: "What feels most important to carry into next week?"
     )
@@ -245,7 +245,7 @@ private extension WeeklyInsightRuleEngine {
         let gratitudeKeys = Set(gratitudes.map(\.normalizedLabel))
         guard let topNeedWithoutMatch = needs.first(where: {
             ($0.dayCount >= 2 || $0.mentionCount >= 2) &&
-                !matchesExistingTheme($0.normalizedLabel, against: gratitudeKeys)
+                !textNormalizer.themesMatch($0.normalizedLabel, against: gratitudeKeys)
         }) else {
             return nil
         }
@@ -380,7 +380,7 @@ private extension WeeklyInsightRuleEngine {
                 sequence += 1
             }
 
-            for textTheme in extractThemesFromText(entry.readingNotes + " " + entry.reflections) {
+            for textTheme in textNormalizer.extractThemesFromText(entry.readingNotes + " " + entry.reflections) {
                 accumulateTheme(
                     label: textTheme,
                     day: day,
@@ -528,18 +528,20 @@ private extension WeeklyInsightRuleEngine {
             partialResult + entry.gratitudes.count + entry.needs.count + entry.people.count
         }
         let totalLongText = entries.reduce(0) { partialResult, entry in
-            partialResult + trimmed(entry.readingNotes).count + trimmed(entry.reflections).count
+            partialResult
+                + textNormalizer.trimmed(entry.readingNotes).count
+                + textNormalizer.trimmed(entry.reflections).count
         }
 
         return totalChips <= 2 && totalLongText < 40
     }
 
     private func preferredItemLabel(_ item: JournalItem) -> String {
-        let label = trimmed(item.displayLabel)
+        let label = textNormalizer.trimmed(item.displayLabel)
         if !label.isEmpty {
             return label
         }
-        return trimmed(item.fullText)
+        return textNormalizer.trimmed(item.fullText)
     }
 
     private func accumulateTheme(
@@ -549,10 +551,10 @@ private extension WeeklyInsightRuleEngine {
         sequence: Int,
         map: inout [String: ThemeAccumulator]
     ) {
-        let trimmedLabel = trimmed(label)
+        let trimmedLabel = textNormalizer.trimmed(label)
         guard !trimmedLabel.isEmpty else { return }
 
-        let normalized = normalizeThemeLabel(trimmedLabel)
+        let normalized = textNormalizer.normalizeThemeLabel(trimmedLabel)
         guard !normalized.isEmpty else { return }
 
         if map[normalized] == nil {
@@ -601,150 +603,6 @@ private extension WeeklyInsightRuleEngine {
             }
     }
 
-    private func extractThemesFromText(_ text: String) -> [String] {
-        let source = trimmed(text)
-        guard !source.isEmpty else { return [] }
-
-        let textRange = source.startIndex..<source.endIndex
-        let tagger = NLTagger(tagSchemes: [.nameTypeOrLexicalClass])
-        tagger.string = source
-        if let language = NLLanguageRecognizer.dominantLanguage(for: source) {
-            tagger.setLanguage(language, range: textRange)
-        }
-
-        var extracted: [String: Int] = [:]
-        var displayLabels: [String: String] = [:]
-        var sequence = 0
-        var firstSeenOrder: [String: Int] = [:]
-
-        let options: NLTagger.Options = [.joinNames, .omitWhitespace, .omitPunctuation]
-        tagger.enumerateTags(
-            in: textRange,
-            unit: .word,
-            scheme: .nameTypeOrLexicalClass,
-            options: options
-        ) { tag, tokenRange in
-            let token = String(source[tokenRange])
-            guard shouldIncludeTextToken(token, tag: tag) else { return true }
-            let normalized = normalizeThemeLabel(token)
-            guard !normalized.isEmpty else { return true }
-            guard !isStopWord(normalized) else { return true }
-
-            extracted[normalized, default: 0] += 1
-            if displayLabels[normalized] == nil {
-                displayLabels[normalized] = trimmed(token)
-            }
-            if firstSeenOrder[normalized] == nil {
-                firstSeenOrder[normalized] = sequence
-            }
-            sequence += 1
-            return true
-        }
-
-        return extracted
-            .sorted {
-                if $0.value != $1.value {
-                    return $0.value > $1.value
-                }
-                let lhsOrder = firstSeenOrder[$0.key] ?? .max
-                let rhsOrder = firstSeenOrder[$1.key] ?? .max
-                if lhsOrder != rhsOrder {
-                    return lhsOrder < rhsOrder
-                }
-                return $0.key < $1.key
-            }
-            .prefix(3)
-            .compactMap { displayLabels[$0.key] }
-    }
-
-    private func shouldIncludeTextToken(_ token: String, tag: NLTag?) -> Bool {
-        let clean = trimmed(token)
-        guard !clean.isEmpty else { return false }
-
-        let hasHan = containsHanCharacters(clean)
-        let minimumLength = hasHan ? 1 : 3
-        guard clean.count >= minimumLength else { return false }
-
-        guard let tag else { return false }
-        switch tag {
-        case .personalName, .placeName, .organizationName, .noun:
-            return true
-        default:
-            return false
-        }
-    }
-
-    private func containsHanCharacters(_ text: String) -> Bool {
-        text.unicodeScalars.contains { scalar in
-            switch scalar.value {
-            case 0x3400...0x4DBF,
-                 0x4E00...0x9FFF,
-                 0xF900...0xFAFF,
-                 0x20000...0x2A6DF,
-                 0x2A700...0x2B73F,
-                 0x2B740...0x2B81F,
-                 0x2B820...0x2CEAF,
-                 0x2CEB0...0x2EBEF,
-                 0x2F800...0x2FA1F:
-                return true
-            default:
-                return false
-            }
-        }
-    }
-
-    private func isStopWord(_ normalizedToken: String) -> Bool {
-        let englishStopWords: Set<String> = [
-            "with", "from", "that", "this", "your", "have", "will", "about", "into",
-            "today", "week", "really", "just", "very", "more", "need", "needs", "gratitude",
-            "grateful", "thankful"
-        ]
-        let chineseStopWords: Set<String> = [
-            "今天", "这个", "那个", "我们", "你们", "他们", "自己", "需要", "感恩", "感谢"
-        ]
-        return englishStopWords.contains(normalizedToken) || chineseStopWords.contains(normalizedToken)
-    }
-
-    private func matchesExistingTheme(_ needKey: String, against gratitudeKeys: Set<String>) -> Bool {
-        if gratitudeKeys.contains(needKey) {
-            return true
-        }
-
-        for gratitudeKey in gratitudeKeys where overlapScore(between: needKey, and: gratitudeKey) >= 1 {
-            return true
-        }
-        return false
-    }
-
-    private func overlapScore(between lhs: String, and rhs: String) -> Int {
-        let lhsTokens = Set(lhs.split(separator: " ").map(String.init).filter { $0.count >= 3 })
-        let rhsTokens = Set(rhs.split(separator: " ").map(String.init).filter { $0.count >= 3 })
-        if lhsTokens.isEmpty || rhsTokens.isEmpty {
-            return 0
-        }
-        return lhsTokens.intersection(rhsTokens).count
-    }
-
-    private func normalizeThemeLabel(_ value: String) -> String {
-        let folded = value
-            .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
-            .lowercased()
-        let withoutSymbols = folded.replacingOccurrences(
-            of: "[\\p{P}\\p{S}]+",
-            with: " ",
-            options: .regularExpression
-        )
-        let collapsedSpaces = withoutSymbols.replacingOccurrences(
-            of: "\\s+",
-            with: " ",
-            options: .regularExpression
-        )
-        return trimmed(collapsedSpaces)
-    }
-
-    private func trimmed(_ value: String) -> String {
-        value.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
 }
 
 private struct ThemeAccumulator {
