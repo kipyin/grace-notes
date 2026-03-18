@@ -22,7 +22,7 @@ Grace Notes (`感恩记`) guides you through a simple daily rhythm: 5 gratitudes
 - **Shareable cards** – Generate a formatted image of a day's entry and share via the iOS share sheet.
 - **Reminders** – Optional daily notification to complete today's 5³.
 - **Advanced review insights** – Optional AI-generated weekly reflection summary with deterministic on-device fallback.
-- **Data trust controls** – iCloud sync setting plus full JSON export for backup and ownership.
+- **Data trust controls** – private-by-default storage plus full JSON export for backup and ownership.
 - **First-run onboarding** – A short welcome flow introducing calm structure, review value, and low-pressure progress.
 - **Habit support** – Streak plus tiered completion states (Quick, Standard, Full 5³) to reduce all-or-nothing pressure.
 

@@ -137,7 +137,7 @@ private extension SettingsScreen {
     var dataPrivacyFooterText: String {
         return String(
             localized: """
-            Journal entries are stored locally on this device. \
+            Journal entries stay private to your devices and account. \
             Export creates a full JSON backup you can keep.
             """
         )

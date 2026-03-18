@@ -19,8 +19,12 @@ final class PersistenceController {
 #if USE_DEMO_DATABASE
         false
 #else
-        UserDefaults.standard.object(forKey: iCloudSyncEnabledKey) as? Bool ?? false
+        cloudSyncEnabled(using: .standard)
 #endif
+    }
+
+    static func cloudSyncEnabled(using defaults: UserDefaults) -> Bool {
+        defaults.object(forKey: iCloudSyncEnabledKey) as? Bool ?? true
     }
 
     let container: ModelContainer
@@ -44,7 +48,7 @@ final class PersistenceController {
     }
 
     static func makeForUITesting() throws -> PersistenceController {
-        try makeController(inMemory: false, cloudSyncEnabled: isCloudSyncEnabled)
+        try makeController(inMemory: false, cloudSyncEnabled: false)
     }
 
     static func makeInMemoryForTesting() throws -> PersistenceController {
@@ -72,7 +76,6 @@ final class PersistenceController {
                         cloudSyncEnabled: false
                     )
                     let container = try ModelContainer(for: schema, configurations: fallbackConfiguration)
-                    Self.disableCloudSyncAfterFallback()
                     PerformanceTrace.end("PersistenceController.makeController.fallback", startedAt: startupTrace)
                     return PersistenceController(container: container)
                 } catch {
@@ -84,10 +87,6 @@ final class PersistenceController {
                 throw PersistenceControllerError.unableToCreateContainer(error)
             }
         }
-    }
-
-    private static func disableCloudSyncAfterFallback() {
-        UserDefaults.standard.set(false, forKey: iCloudSyncEnabledKey)
     }
 
     private static func makeConfiguration(

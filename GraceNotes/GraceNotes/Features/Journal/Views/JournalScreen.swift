@@ -352,14 +352,16 @@ private extension JournalScreen {
 
     private func chipTapped(section: ChipSection, index: Int) {
         let adapter = chipSectionAdapter(for: section)
-        JournalScreenChipHandling.performChipTap(
+        let handled = JournalScreenChipHandling.performChipTap(
             tapIndex: index,
             input: adapter.input,
             editingIndex: adapter.editingIndex,
             operations: adapter.operations,
             isTransitioning: adapter.isTransitioning
         )
-        restoreInputFocus(adapter.inputFocus)
+        if handled {
+            restoreInputFocus(adapter.inputFocus)
+        }
     }
 
     private func scheduleSummarization(for section: ChipSection, index: Int) {

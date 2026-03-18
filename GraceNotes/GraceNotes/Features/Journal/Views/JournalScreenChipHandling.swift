@@ -104,14 +104,15 @@ enum JournalScreenChipHandling {
 
     /// Performs the chip-tap-to-edit flow: commits any pending input, then loads the tapped chip into the editor.
     /// Switch is immediate; summarization runs in background when input changed.
+    /// Returns true when the interaction was accepted.
     static func performChipTap(
         tapIndex: Int,
         input: Binding<String>,
         editingIndex: Binding<Int?>,
         operations: ChipSectionOperations,
         isTransitioning: Binding<Bool>
-    ) {
-        guard beginTransition(isTransitioning) else { return }
+    ) -> Bool {
+        guard beginTransition(isTransitioning) else { return false }
         defer { endTransition(isTransitioning) }
 
         let trimmed = input.wrappedValue.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -123,7 +124,7 @@ enum JournalScreenChipHandling {
                     input.wrappedValue = full
                     editingIndex.wrappedValue = tapIndex
                 }
-                return
+                return true
             }
         }
 
@@ -148,6 +149,7 @@ enum JournalScreenChipHandling {
             input.wrappedValue = full
             editingIndex.wrappedValue = tapIndex
         }
+        return true
     }
 
     private static func remappedEditingIndex(

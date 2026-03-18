@@ -19,6 +19,7 @@ struct GraceNotesApp: App {
     private let isRunningUITests: Bool
     private let isRunningUnitTests: Bool
     @StateObject private var startupCoordinator: StartupCoordinator
+    @State private var uiTestPersistenceController: PersistenceController?
     @State private var hasRunDeferredStartupTasks = false
     @State private var selectedTab: AppTab = .today
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
@@ -36,11 +37,21 @@ struct GraceNotesApp: App {
             } ?? false
         isRunningUITests = isUITestBundle || hasUITestLaunchArgument || hasUITestEnvironmentFlag
         isRunningUnitTests = isXCTestSession && !isRunningUITests
+
+        let preloadedUITestController: PersistenceController?
         if isRunningUITests {
             _startupCoordinator = StateObject(wrappedValue: StartupCoordinator(timing: .uiTesting))
+            do {
+                preloadedUITestController = try PersistenceController.makeForUITesting()
+            } catch {
+                preloadedUITestController = nil
+                PerformanceTrace.instant("App.uiTestPersistenceBootstrapFailed")
+            }
         } else {
             _startupCoordinator = StateObject(wrappedValue: StartupCoordinator())
+            preloadedUITestController = nil
         }
+        _uiTestPersistenceController = State(initialValue: preloadedUITestController)
         PerformanceTrace.end("App.init", startedAt: startupTrace)
     }
 
@@ -48,10 +59,22 @@ struct GraceNotesApp: App {
         WindowGroup {
             if isRunningUnitTests {
                 Color.clear
+            } else if let uiTestController = uiTestPersistenceController {
+                uiTestRootView(using: uiTestController)
             } else {
                 startupRootView
             }
         }
+    }
+
+    @ViewBuilder
+    private func uiTestRootView(using controller: PersistenceController) -> some View {
+        mainTabView
+            .preferredColorScheme(.light)
+            .background(AppTheme.background)
+            .toolbarBackground(AppTheme.background, for: .tabBar)
+            .tint(AppTheme.accent)
+            .modelContainer(controller.container)
     }
 
     @ViewBuilder

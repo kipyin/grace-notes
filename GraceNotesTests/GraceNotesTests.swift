@@ -30,7 +30,7 @@ final class JournalScreenChipHandlingTests: XCTestCase {
             }
         )
 
-        JournalScreenChipHandling.performChipTap(
+        let handled = JournalScreenChipHandling.performChipTap(
             tapIndex: 1,
             input: Binding(get: { input }, set: { input = $0 }),
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
@@ -38,6 +38,7 @@ final class JournalScreenChipHandlingTests: XCTestCase {
             isTransitioning: Binding(get: { isTransitioning }, set: { isTransitioning = $0 })
         )
 
+        XCTAssertTrue(handled)
         XCTAssertFalse(didUpdate)
         XCTAssertFalse(didAdd)
         XCTAssertFalse(didSummarize)
@@ -63,7 +64,7 @@ final class JournalScreenChipHandlingTests: XCTestCase {
             }
         )
 
-        JournalScreenChipHandling.performChipTap(
+        let handled = JournalScreenChipHandling.performChipTap(
             tapIndex: 1,
             input: Binding(get: { input }, set: { input = $0 }),
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
@@ -71,6 +72,7 @@ final class JournalScreenChipHandlingTests: XCTestCase {
             isTransitioning: Binding(get: { isTransitioning }, set: { isTransitioning = $0 })
         )
 
+        XCTAssertTrue(handled)
         XCTAssertEqual(summarizedIndex, 0)
         XCTAssertEqual(editingIndex, 1)
         XCTAssertEqual(input, "Target full text")
@@ -92,7 +94,7 @@ final class JournalScreenChipHandlingTests: XCTestCase {
             }
         )
 
-        JournalScreenChipHandling.performChipTap(
+        let handled = JournalScreenChipHandling.performChipTap(
             tapIndex: 0,
             input: Binding(get: { input }, set: { input = $0 }),
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
@@ -100,6 +102,7 @@ final class JournalScreenChipHandlingTests: XCTestCase {
             isTransitioning: Binding(get: { isTransitioning }, set: { isTransitioning = $0 })
         )
 
+        XCTAssertFalse(handled)
         XCTAssertEqual(input, "Draft text")
         XCTAssertEqual(editingIndex, 0)
         XCTAssertFalse(didSummarize)

@@ -40,7 +40,6 @@ final class StartupCoordinator: ObservableObject {
     private var currentAttemptID: UInt64 = 0
     private var loadingCopyIndex = 0
     private var reassuranceCopyIndex = 0
-    private var copyRotationTickCount = 0
     private var startupTask: Task<Void, Never>?
     private var copyRotationTask: Task<Void, Never>?
     private var reassuranceTask: Task<Void, Never>?
@@ -85,7 +84,6 @@ final class StartupCoordinator: ObservableObject {
         isStartingUp = true
         loadingCopyIndex = 0
         reassuranceCopyIndex = 0
-        copyRotationTickCount = 0
         phase = .loading
         startupMessage = loadingMessage(for: loadingCopyIndex)
         startCopyRotation(for: attemptID)
@@ -134,7 +132,6 @@ final class StartupCoordinator: ObservableObject {
 
     private func advanceCopyIfNeeded(for attemptID: UInt64) {
         guard attemptID == currentAttemptID else { return }
-        copyRotationTickCount += 1
         switch phase {
         case .loading:
             loadingCopyIndex = nextIndex(current: loadingCopyIndex, count: loadingCopy.count)
