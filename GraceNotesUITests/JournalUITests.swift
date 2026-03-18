@@ -92,7 +92,7 @@ final class JournalUITests: XCTestCase {
     }
 
     @MainActor
-    func test_todayScreen_addChipTap_preservesActiveDraftInput() {
+    func test_todayScreen_addChipTap_commitsActiveDraftWithoutLoss() {
         let app = launchApp()
         let gratitudeField = app.textFields["Gratitude 1"]
         XCTAssertTrue(gratitudeField.waitForExistence(timeout: 5))
@@ -104,7 +104,8 @@ final class JournalUITests: XCTestCase {
         XCTAssertTrue(addButton.waitForExistence(timeout: 5))
         addButton.tap()
 
-        XCTAssertEqual(gratitudeField.value as? String, "Draft gratitude in progress")
+        XCTAssertTrue(app.buttons["Draft gratitude in progress"].waitForExistence(timeout: 2))
+        XCTAssertEqual(gratitudeField.value as? String, "")
     }
 
     @MainActor

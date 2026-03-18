@@ -4,12 +4,12 @@
 
 Implemented a unified input-pipeline stabilization for `#36` and `#37` by:
 - using immediate submit transitions with race guards for Enter/chip interactions,
-- preserving active draft input on `(+)` chip taps,
+- preserving active draft input on `(+)` chip taps by committing it before resetting to fresh-input mode,
 - restoring section input focus after submit/chip/add transitions so keyboard continuity is maintained.
 
 Added regression coverage for the stabilized pipeline:
-- unit tests in `GraceNotesTests/GraceNotesTests.swift` for guarded submit/tap and draft-preserving `(+)` behavior,
-- UI regressions in `GraceNotesUITests/JournalUITests.swift` for draft preservation and keyboard continuity after submit.
+- unit tests in `GraceNotesTests/GraceNotesTests.swift` for guarded submit/tap and `(+)` commit-then-reset behavior,
+- UI regressions in `GraceNotesUITests/JournalUITests.swift` for `(+)` non-loss commit behavior and keyboard continuity after submit.
 
 ## Validation Evidence
 

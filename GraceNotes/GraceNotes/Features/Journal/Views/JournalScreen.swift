@@ -318,6 +318,7 @@ private extension JournalScreen {
         let handled = JournalScreenChipHandling.handleAddChipTap(
             input: adapter.input,
             editingIndex: adapter.editingIndex,
+            operations: adapter.operations,
             isTransitioning: adapter.isTransitioning
         )
         if handled {

@@ -47,14 +47,22 @@ enum JournalScreenChipHandling {
     static func handleAddChipTap(
         input: Binding<String>,
         editingIndex: Binding<Int?>,
+        operations: ChipSectionOperations,
         isTransitioning: Binding<Bool>
     ) -> Bool {
         guard beginTransition(isTransitioning) else { return false }
         defer { endTransition(isTransitioning) }
 
-        let hasDraft = !input.wrappedValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        if hasDraft { return true }
+        let trimmed = input.wrappedValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let currentIndex = editingIndex.wrappedValue, !trimmed.isEmpty {
+            guard let updatedIndex = operations.updateImmediate(currentIndex, input.wrappedValue) else { return false }
+            operations.summarizeAndUpdateChip(updatedIndex)
+        } else if !trimmed.isEmpty {
+            guard let newIndex = operations.addImmediate(input.wrappedValue) else { return false }
+            operations.summarizeAndUpdateChip(newIndex)
+        }
 
+        input.wrappedValue = ""
         editingIndex.wrappedValue = nil
         return true
     }

@@ -174,36 +174,80 @@ final class JournalScreenChipHandlingTests: XCTestCase {
         XCTAssertEqual(input, "New text")
     }
 
-    func test_handleAddChipTap_withActiveDraft_preservesInputAndEditingState() {
+    func test_handleAddChipTap_withActiveDraft_commitsAndStartsFreshInput() {
         var input = "Keep this draft"
         var editingIndex: Int? = 1
         var isTransitioning = false
+        var summarizedIndex: Int?
+        let operations = ChipSectionOperations(
+            updateImmediate: { _, _ in 1 },
+            addImmediate: { _ in nil },
+            fullText: { _ in nil },
+            count: 2,
+            summarizeAndUpdateChip: { summarizedIndex = $0 }
+        )
 
         let handled = JournalScreenChipHandling.handleAddChipTap(
             input: Binding(get: { input }, set: { input = $0 }),
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
+            operations: operations,
             isTransitioning: Binding(get: { isTransitioning }, set: { isTransitioning = $0 })
         )
 
         XCTAssertTrue(handled)
-        XCTAssertEqual(input, "Keep this draft")
-        XCTAssertEqual(editingIndex, 1)
+        XCTAssertEqual(input, "")
+        XCTAssertNil(editingIndex)
+        XCTAssertEqual(summarizedIndex, 1)
     }
 
     func test_handleAddChipTap_withEmptyDraft_exitsEditingMode() {
         var input = "   "
         var editingIndex: Int? = 2
         var isTransitioning = false
+        let operations = ChipSectionOperations(
+            updateImmediate: { _, _ in nil },
+            addImmediate: { _ in nil },
+            fullText: { _ in nil },
+            count: 2,
+            summarizeAndUpdateChip: { _ in }
+        )
 
         let handled = JournalScreenChipHandling.handleAddChipTap(
             input: Binding(get: { input }, set: { input = $0 }),
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
+            operations: operations,
             isTransitioning: Binding(get: { isTransitioning }, set: { isTransitioning = $0 })
         )
 
         XCTAssertTrue(handled)
-        XCTAssertEqual(input, "   ")
+        XCTAssertEqual(input, "")
         XCTAssertNil(editingIndex)
+    }
+
+    func test_handleAddChipTap_whenNotEditingWithDraft_addsDraftAndStartsFreshInput() {
+        var input = "New draft"
+        var editingIndex: Int?
+        var isTransitioning = false
+        var summarizedIndex: Int?
+        let operations = ChipSectionOperations(
+            updateImmediate: { _, _ in nil },
+            addImmediate: { _ in 2 },
+            fullText: { _ in nil },
+            count: 2,
+            summarizeAndUpdateChip: { summarizedIndex = $0 }
+        )
+
+        let handled = JournalScreenChipHandling.handleAddChipTap(
+            input: Binding(get: { input }, set: { input = $0 }),
+            editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
+            operations: operations,
+            isTransitioning: Binding(get: { isTransitioning }, set: { isTransitioning = $0 })
+        )
+
+        XCTAssertTrue(handled)
+        XCTAssertEqual(input, "")
+        XCTAssertNil(editingIndex)
+        XCTAssertEqual(summarizedIndex, 2)
     }
 
     func test_performMove_whenEditingMovedItem_updatesEditingIndexToDestination() {
