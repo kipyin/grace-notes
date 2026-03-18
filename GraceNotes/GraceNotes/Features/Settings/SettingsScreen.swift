@@ -5,7 +5,6 @@ struct SettingsScreen: View {
     /// Default false to align with SummarizerProvider; first launch uses on-device NL summarization.
     @AppStorage("useCloudSummarization") private var useCloudSummarization = false
     @AppStorage(ReviewInsightsProvider.useAIReviewInsightsKey) private var useAIReviewInsights = false
-    @AppStorage(PersistenceController.iCloudSyncEnabledKey) private var iCloudSyncEnabled = true
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
 
@@ -16,7 +15,6 @@ struct SettingsScreen: View {
     @State private var isExportingData = false
 
     private let dataExportService = JournalDataExportService()
-    private let isCloudSyncAvailable = !PersistenceController.isDemoDatabaseEnabled
 
     var body: some View {
         List {
@@ -86,11 +84,6 @@ struct SettingsScreen: View {
             }
 
             Section {
-                Toggle(String(localized: "Sync with iCloud"), isOn: $iCloudSyncEnabled)
-                    .font(AppTheme.warmPaperBody)
-                    .foregroundStyle(AppTheme.textPrimary)
-                    .disabled(!isCloudSyncAvailable)
-
                 Button(String(localized: "Export journal data (JSON)")) {
                     exportJournalData()
                 }
@@ -142,19 +135,9 @@ struct SettingsScreen: View {
 
 private extension SettingsScreen {
     var dataPrivacyFooterText: String {
-        if !isCloudSyncAvailable {
-            return String(
-                localized: """
-                This demo build keeps journal entries on this device only. \
-                Export creates a full JSON backup you can keep.
-                """
-            )
-        }
-
         return String(
             localized: """
-            Journal entries are stored locally and can sync through your iCloud private database when enabled. \
-            Sync changes apply on next app launch. \
+            Journal entries are stored locally on this device. \
             Export creates a full JSON backup you can keep.
             """
         )

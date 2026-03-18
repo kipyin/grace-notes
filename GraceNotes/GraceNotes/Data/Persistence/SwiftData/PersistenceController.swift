@@ -19,7 +19,7 @@ final class PersistenceController {
 #if USE_DEMO_DATABASE
         false
 #else
-        UserDefaults.standard.object(forKey: iCloudSyncEnabledKey) as? Bool ?? true
+        UserDefaults.standard.object(forKey: iCloudSyncEnabledKey) as? Bool ?? false
 #endif
     }
 
@@ -120,6 +120,6 @@ enum PersistenceControllerError: LocalizedError {
     case unableToCreateContainer(Error)
 
     var errorDescription: String? {
-        "We couldn't finish setting up your journal space. Please try again."
+        String(localized: "We couldn't finish setting up your journal space. Please try again.")
     }
 }
