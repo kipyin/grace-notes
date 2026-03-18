@@ -3,17 +3,22 @@
 ## [0.3.2] - 2026-03-18
 
 ### Added
-- (none)
+- Dedicated reminder settings drill-in screen with explicit enable flow and denied-state recovery action.
+- Reminder flow state model tests covering enable/disable, denied transitions, passive status refresh, and implicit time reschedule behavior.
 
 ### Changed
-- Bumped app marketing version metadata to `0.3.2` across app build configurations.
-- Updated release-facing documentation to make `0.3.2` the current published version.
+- First-launch startup now uses an immediate loading surface with rotating reassurance copy and retry-safe recovery.
+- Settings reminder row now navigates to reminder details instead of triggering permission behavior from an inline toggle.
+- Reminder activation now derives from live authorization plus pending notification request state.
+- Reminder scheduler now separates passive status reads from explicit permission request paths.
 
 ### Fixed
-- (none)
+- Fixed first-launch freeze perception by avoiding blank/frozen startup behavior while persistence initializes.
+- Fixed reminder trust gaps where UI could imply reminders were enabled without confirmed scheduling outcome.
+- Fixed input-pipeline regressions that could drop active text or dismiss keyboard momentum on entry/chip commit paths.
 
 ### Developer
-- Marked release roadmap status for `0.3.2` to keep sequencing and docs aligned.
+- Updated release documentation and initiative testing evidence for `#31`, `#33`, `#36`, and `#37`.
 
 ## [0.3.1] - 2026-03-18
 
