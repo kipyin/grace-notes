@@ -99,7 +99,7 @@ struct GraceNotesApp: App {
             return .retryableFailure(message: message)
         case .ready:
             return .loading(
-                message: "We are setting up your private journal space...",
+                message: String(localized: "We are setting up your private journal space..."),
                 isReassurance: false
             )
         }

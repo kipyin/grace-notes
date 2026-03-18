@@ -53,8 +53,14 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$lld. %2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld、%2$@"
           }
         }
       }
@@ -152,6 +158,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "请在设置中允许通知，以启用每日提醒。"
+          }
+        }
+      }
+    },
+    "Almost ready. Bringing your journal space online..." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Almost ready. Bringing your journal space online..."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "快准备好了，正在启动你的日记空间……"
           }
         }
       }
@@ -386,7 +408,20 @@
       }
     },
     "Enable" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用"
+          }
+        }
+      }
     },
     "Export journal data (JSON)" : {
       "localizations" : {
@@ -630,6 +665,7 @@
       }
     },
     "Journal entries are stored locally and can sync through your iCloud private database when enabled. Sync changes apply on next app launch. Export creates a full JSON backup you can keep." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -641,6 +677,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "日记默认存储在本地，启用后可通过你的 iCloud 私有数据库同步。同步更改会在下次启动应用时生效。导出可生成完整 JSON 备份供你保存。"
+          }
+        }
+      }
+    },
+    "Journal entries are stored locally on this device. Export creates a full JSON backup you can keep." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Journal entries are stored locally on this device. Export creates a full JSON backup you can keep."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日记仅保存在此设备上。导出可生成完整 JSON 备份供你保存。"
           }
         }
       }
@@ -726,13 +778,52 @@
       }
     },
     "Notifications are denied." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifications are denied."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通知权限已被拒绝。"
+          }
+        }
+      }
     },
     "Off" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭"
+          }
+        }
+      }
     },
     "Off (Denied)" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off (Denied)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭（已拒绝）"
+          }
+        }
+      }
     },
     "OK" : {
       "localizations" : {
@@ -767,7 +858,20 @@
       }
     },
     "Open Settings" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开设置"
+          }
+        }
+      }
     },
     "People in Mind" : {
       "localizations" : {
@@ -813,6 +917,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "请重试。"
+          }
+        }
+      }
+    },
+    "Preparing a calm place for your first reflection..." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparing a calm place for your first reflection..."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在为你的第一次反思准备一个平静空间……"
           }
         }
       }
@@ -930,16 +1050,68 @@
       }
     },
     "Refresh" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refresh"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刷新"
+          }
+        }
+      }
     },
     "Reminder is off." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reminder is off."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提醒已关闭。"
+          }
+        }
+      }
     },
     "Reminder is on." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reminder is on."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提醒已开启。"
+          }
+        }
+      }
     },
     "Reminder is unavailable right now." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reminder is unavailable right now."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提醒当前不可用。"
+          }
+        }
+      }
     },
     "Reminder time" : {
       "localizations" : {
@@ -990,7 +1162,20 @@
       }
     },
     "Retry" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retry"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重试"
+          }
+        }
+      }
     },
     "Review" : {
       "localizations" : {
@@ -1232,6 +1417,22 @@
         }
       }
     },
+    "Still getting things ready..." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Still getting things ready..."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "还在继续准备中……"
+          }
+        }
+      }
+    },
     "Summarization" : {
       "localizations" : {
         "en" : {
@@ -1249,6 +1450,7 @@
       }
     },
     "Sync with iCloud" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1281,9 +1483,40 @@
       }
     },
     "Thanks for hanging in with us." : {
-
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thanks for hanging in with us."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "感谢你的耐心等待。"
+          }
+        }
+      }
+    },
+    "Thanks for your patience. We are almost there." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thanks for your patience. We are almost there."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "感谢你的耐心，我们马上就好。"
+          }
+        }
+      }
     },
     "This demo build keeps journal entries on this device only. Export creates a full JSON backup you can keep." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1412,13 +1645,52 @@
       }
     },
     "Try again" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try again"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再试一次"
+          }
+        }
+      }
     },
     "Turn off" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn off"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭"
+          }
+        }
+      }
     },
     "Turn on a daily reminder." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn on a daily reminder."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开启每日提醒。"
+          }
+        }
+      }
     },
     "Unable to create share image." : {
       "localizations" : {
@@ -1592,6 +1864,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用云端摘要"
+          }
+        }
+      }
+    },
+    "We are setting up your private journal space..." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We are setting up your private journal space..."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我们正在为你准备专属日记空间……"
+          }
+        }
+      }
+    },
+    "We couldn't finish setting up your journal space. Please try again." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We couldn't finish setting up your journal space. Please try again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我们未能完成你的日记空间设置。请重试。"
           }
         }
       }

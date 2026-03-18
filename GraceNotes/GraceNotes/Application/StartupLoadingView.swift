@@ -36,15 +36,6 @@ struct StartupLoadingView: View {
                 .padding(.horizontal, 24)
                 .accessibilityIdentifier("StartupMessage")
 
-            if case .loading(_, let isReassurance) = state, isReassurance {
-                Text("Thanks for hanging in with us.")
-                    .font(AppTheme.warmPaperBody)
-                    .foregroundStyle(AppTheme.textMuted)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 24)
-                    .accessibilityIdentifier("StartupReassuranceMessage")
-            }
-
             if case .retryableFailure = state {
                 Button {
                     onRetry()
@@ -53,7 +44,7 @@ struct StartupLoadingView: View {
                         ProgressView()
                             .frame(maxWidth: .infinity)
                     } else {
-                        Text("Retry")
+                        Text(String(localized: "Retry"))
                             .frame(maxWidth: .infinity)
                     }
                 }

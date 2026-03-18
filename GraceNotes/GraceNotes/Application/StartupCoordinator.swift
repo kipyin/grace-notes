@@ -15,7 +15,7 @@ final class StartupCoordinator: ObservableObject {
         let reassuranceDelay: Duration
 
         static let `default` = Timing(
-            copyRotationInterval: .seconds(1.4),
+            copyRotationInterval: .seconds(3.5),
             reassuranceDelay: .seconds(4.5)
         )
 
@@ -57,7 +57,7 @@ final class StartupCoordinator: ObservableObject {
         self.loadingCopy = loadingCopy
         self.reassuranceCopy = reassuranceCopy
         self.persistenceFactory = persistenceFactory
-        self.startupMessage = loadingCopy.first ?? "We are setting up your private journal space..."
+        self.startupMessage = loadingCopy.first ?? String(localized: "We are setting up your private journal space...")
     }
 
     deinit {
@@ -190,14 +190,14 @@ final class StartupCoordinator: ObservableObject {
 
     private func loadingMessage(for index: Int) -> String {
         guard !loadingCopy.isEmpty else {
-            return "We are setting up your private journal space..."
+            return String(localized: "We are setting up your private journal space...")
         }
         return loadingCopy[safe: index] ?? loadingCopy[0]
     }
 
     private func reassuranceMessage(for index: Int) -> String {
         guard !reassuranceCopy.isEmpty else {
-            return "Still getting things ready..."
+            return String(localized: "Still getting things ready...")
         }
         return reassuranceCopy[safe: index] ?? reassuranceCopy[0]
     }
@@ -213,20 +213,20 @@ final class StartupCoordinator: ObservableObject {
            !message.isEmpty {
             return message
         }
-        return "We couldn't finish setting up your journal space. Please try again."
+        return String(localized: "We couldn't finish setting up your journal space. Please try again.")
     }
 }
 
 private extension StartupCoordinator {
     static let defaultLoadingCopy: [String] = [
-        "We are setting up your private journal space...",
-        "Preparing a calm place for your first reflection...",
-        "Almost ready. Bringing your journal space online..."
+        String(localized: "We are setting up your private journal space..."),
+        String(localized: "Preparing a calm place for your first reflection..."),
+        String(localized: "Almost ready. Bringing your journal space online...")
     ]
 
     static let defaultReassuranceCopy: [String] = [
-        "Still getting things ready...",
-        "Thanks for your patience. We are almost there."
+        String(localized: "Still getting things ready..."),
+        String(localized: "Thanks for your patience. We are almost there.")
     ]
 }
 
