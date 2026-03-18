@@ -11,6 +11,7 @@ related_issue: 31,33,32
 ## Inputs Reviewed
 
 - `[GraceNotes/docs/07-release-roadmap.md](../../07-release-roadmap.md)` (0.3.2 scope and acceptance intent)
+- `[GraceNotes/docs/agent-log/initiatives/issue-31-33-launch-toggle-performance/brief.md](./brief.md)`
 - `[GraceNotes/docs/agent-log/initiatives/issue-36-37-input-pipeline-stabilization/architecture.md](../issue-36-37-input-pipeline-stabilization/architecture.md)`
 - `[GraceNotes/GraceNotes/Application/GraceNotesApp.swift](../../../GraceNotes/Application/GraceNotesApp.swift)`
 - `[GraceNotes/GraceNotes/Data/Persistence/SwiftData/PersistenceController.swift](../../../GraceNotes/Data/Persistence/SwiftData/PersistenceController.swift)`
@@ -18,7 +19,22 @@ related_issue: 31,33,32
 
 ## Decision
 
-Scope initiative to #31 and #33 together. Defer ModelContainer creation off the main thread for #31; instrument and fix toggle lag for #33 based on findings.
+Keep `#31` and `#33` together under the `#32` umbrella because both are first-use trust problems, but structure delivery as two sequential slices so the first-launch fix can ship independently if reminder/settings work grows beyond the same cycle.
+
+## Goals
+
+- Show visible progress immediately on first launch instead of letting persistence setup read as a freeze.
+- Use calm, personal loading copy centered on privacy and ownership, with light motion through a small rotating message set while startup work continues.
+- Move reminder permission out of a raw toggle interaction and into a clearer settings-row drill-in flow with brief context before the system prompt.
+- Make the reminder UI reflect actual granted or denied state so users can tell the difference between intent, failure, and success.
+- Keep scope small enough for one delivery cycle without broad Settings or onboarding redesign.
+
+## Non-Goals
+
+- Do not expand this into general startup optimization beyond the first-launch path covered by `#31`.
+- Do not redesign the overall Settings information architecture beyond the reminder row and its follow-on detail flow.
+- Do not add new reminder product features beyond permission setup, status clarity, and existing time selection behavior.
+- Do not treat `#32` as a standalone implementation target; keep it as umbrella tracking.
 
 ## Root Cause Analysis
 
@@ -40,41 +56,68 @@ Both likely stem from **synchronous main-thread work during first use** of a sub
 
 ## Technical Scope
 
-### Phase 1: Defer ModelContainer creation (#31)
+### Slice 1: First-launch startup responsiveness (`#31`)
 
-1. Add `PersistenceController.createAsync(cloudSyncEnabled:) async -> PersistenceController` that creates `ModelContainer` in `Task.detached`, then returns a controller initialized with that container.
-2. Add internal init that accepts a pre-built `ModelContainer`.
-3. In `GraceNotesApp`: avoid `PersistenceController.shared` in init; use `@State private var persistenceController: PersistenceController?` and `.task` to create asynchronously.
-4. Show minimal loading/splash view until container is ready; then render `mainTabView` / `OnboardingScreen` with `.modelContainer(persistenceController!.container)`.
+1. Restructure app startup so the first rendered surface does not depend on synchronous `ModelContainer` creation.
+2. Present a dedicated loading surface immediately on fresh startup while persistence is being prepared.
+3. Start that surface with the approved base line, "We are setting up your private journal space...", and rotate through a small set of calm variants on a short cadence while setup remains in progress.
+4. Progress the loading surface through three explicit states:
+   - active loading
+   - reassurance after a short timeout if setup is still running
+   - retry-capable fallback if startup remains stalled or returns an error
+5. Keep failure handling on the same startup surface. Do not leave the user on a blank screen, frozen shell, or partial main UI. A retry action should restart the startup attempt cleanly from the loading surface.
 
-### Phase 2: Toggle lag (#33)
+### Slice 2: Reminder settings trust and first-tap responsiveness (`#33`)
 
-1. **Investigate:** Add `PerformanceTrace` around first `@AppStorage` write and `ReminderScheduler.syncDailyReminder`; reproduce on device.
-2. **Fix (candidate):** UserDefaults warm-up, ensure reminder `onChange` is fully async, or optimistic toggle UI depending on findings.
+1. Replace the direct reminder toggle permission path with a tappable reminder settings row that opens a dedicated reminder configuration screen or drill-in view.
+2. Use that drill-in surface to provide brief explanatory context before any system notification prompt is triggered.
+3. Trigger `UNUserNotificationCenter` permission only from an explicit enable/continue action inside the drill-in flow, never from the raw list-row interaction itself.
+4. Represent reminder state from actual permission and scheduling outcome rather than pending user intent. The summary state should remain legible from the main Settings screen and inside the drill-in view.
+5. Preserve the existing reminder time configuration only after reminders are actually enabled, and clearly communicate when notifications are denied or unavailable.
 
 ## Affected Areas
 
-- `PersistenceController.swift` — async factory, optional init
-- `GraceNotesApp.swift` — loading state, async creation
-- `SettingsScreen.swift` — Phase 2 instrumentation/fix
+- `GraceNotesApp.swift` — startup state ownership and conditional root rendering
+- `PersistenceController.swift` — non-blocking startup boundary for persistence preparation
+- First-launch loading view/state — copy rotation, reassurance, retry, and failure fallback
+- `SettingsScreen.swift` — reminder row summary and navigation into drill-in flow
+- Reminder configuration UI and scheduler integration — explicit permission request and final-state rendering
+
+## Risks and Edge Cases
+
+- Async startup must avoid duplicate container creation, repeated overlapping retries, or a state where onboarding/main content appears before persistence is ready.
+- Timeout thresholds are a UX trust tool, not a strict performance promise. Values should be tuned conservatively so reassurance appears only when setup is genuinely lingering.
+- Rotating copy should reassure without creating noise; keep the message set small and calm, and stop rotation as soon as startup completes or moves to a terminal fallback state.
+- Reminder UI must roll back cleanly when permission is denied or scheduling fails. The screen should never show a reminder as enabled unless scheduling actually succeeded.
+- Users who have already denied notifications at the system level need a clear "notifications off" state and guidance, not another control path that appears actionable but cannot succeed.
+- Bundling remains sensible for release framing, but `#33` carries more interaction and QA surface than `#31`; keep the ship path for Slice 1 independent if needed.
 
 ## Sequencing
 
-1. Implement Phase 1 (#31); validate first launch feels responsive.
-2. Instrument #33; reproduce and identify hotspot.
-3. Apply Phase 2 fix based on findings.
+1. Implement Slice 1 startup restructuring and loading surface.
+2. Validate first-launch behavior across normal, slow, and failed/stalled startup paths before moving on.
+3. Implement Slice 2 reminder drill-in flow and migrate permission prompting out of the raw Settings toggle path.
+4. Validate granted, denied, previously denied, disable, and reminder-time update states.
+5. If Slice 2 expands, ship Slice 1 independently and keep `#33` as the remaining work inside this initiative umbrella.
 
 ## Close Criteria
 
-- Fresh install: splash appears immediately; main content within 1–2 seconds. No perceptible freeze.
-- Settings toggles: no noticeable lag on first tap.
-- All existing flows (journal, history, share, reminders) work as before.
-- Tests pass; update any that depend on `PersistenceController.shared` init timing.
+- On fresh install, a visible loading screen appears immediately instead of a blank or frozen launch.
+- The first-launch loading screen starts with privacy-centered copy and can rotate through a small calm message set while setup is in progress.
+- If startup runs longer than expected, the UI shifts first to a reassurance state and then to a retry-capable fallback if recovery does not happen.
+- If startup fails, the app stays on an explicit recovery surface with clear retry behavior rather than hanging or crashing into an unexplained state.
+- Settings no longer request notification permission directly from a raw reminder toggle interaction.
+- The reminder row opens a drill-in flow with brief explanatory context before the system permission prompt.
+- After reminder setup completes, the UI clearly reflects the actual final state:
+  - granted and scheduled shows reminders enabled with the selected time
+  - denied or unavailable shows reminders off with guidance instead of implying success
+- Existing journal, review, export, and non-reminder settings flows remain functional.
+- Focused regression coverage or manual QA steps exist for startup retry/failure paths and reminder permission outcomes.
 
 ## Open Questions
 
-- None.
+- None. Exact timeout values and final copy variants can be tuned during implementation as long as they stay within the approved loading -> reassurance -> retry pattern.
 
 ## Next Owner
 
-`Implementer` to execute Phase 1, then instrument and fix Phase 2.
+`Implementer`, then `Test Lead`, to execute Slice 1 first, preserve the option to ship it independently, and then complete the reminder drill-in flow with validation across permission outcomes.
