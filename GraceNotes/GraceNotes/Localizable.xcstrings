@@ -1,6 +1,214 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "A need kept resurfacing: %1$@ on %2$lld day(s) this week." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A need kept resurfacing: %1$@ on %2$lld day(s) this week."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这周有一个需求反复出现：%1$@（%2$lld 天）。"
+          }
+        }
+      }
+    },
+    "How could you make space for %@ again next week?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How could you make space for %@ again next week?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下周你可以怎样再次为 %@ 留出空间？"
+          }
+        }
+      }
+    },
+    "Is this shift toward %@ something you want to keep building?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Is this shift toward %@ something you want to keep building?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你想继续培养这个转向 %@ 的变化吗？"
+          }
+        }
+      }
+    },
+    "What helped you stay this steady so you can carry it into next week?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What helped you stay this steady so you can carry it into next week?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "是什么帮助你保持这样的稳定，并带到下周？"
+          }
+        }
+      }
+    },
+    "What is one small step that could support %@ tomorrow?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What is one small step that could support %@ tomorrow?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "明天有什么一个小步骤可以支持 %@？"
+          }
+        }
+      }
+    },
+    "What is one tiny way to turn %@ into a gratitude this week?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What is one tiny way to turn %@ into a gratitude this week?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这周有什么一个微小方式，可以把 %@ 变成感恩？"
+          }
+        }
+      }
+    },
+    "What would make tomorrow's check-in easy to start?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What would make tomorrow's check-in easy to start?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "怎样能让你明天更容易开始一次简短记录？"
+          }
+        }
+      }
+    },
+    "Would a short check-in with %@ feel supportive this week?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Would a short check-in with %@ feel supportive this week?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这周和 %@ 简短联系一下，会不会对你有帮助？"
+          }
+        }
+      }
+    },
+    "You completed your full 5³ rhythm every day this week." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You completed your full 5³ rhythm every day this week."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这周你每天都完成了完整的 5³ 节奏。"
+          }
+        }
+      }
+    },
+    "You kept %1$@ in mind on %2$lld day(s) this week." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You kept %1$@ in mind on %2$lld day(s) this week."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这周你有 %2$lld 天把 %1$@ 放在心上。"
+          }
+        }
+      }
+    },
+    "You kept noticing %1$@ on %2$lld day(s) this week." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You kept noticing %1$@ on %2$lld day(s) this week."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这周你有 %2$lld 天持续注意到 %1$@。"
+          }
+        }
+      }
+    },
+    "You often named %@ as a need, but it did not appear in your gratitudes yet." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You often named %@ as a need, but it did not appear in your gratitudes yet."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你常把 %@ 写成需要，但它还没有出现在感恩里。"
+          }
+        }
+      }
+    },
+    "Your focus shifted from %1$@ last week to %2$@ this week." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your focus shifted from %1$@ last week to %2$@ this week."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的关注从上周的 %1$@ 转向了这周的 %2$@。"
+          }
+        }
+      }
+    },
     "%1$@ (%2$lld)" : {
       "localizations" : {
         "en" : {
