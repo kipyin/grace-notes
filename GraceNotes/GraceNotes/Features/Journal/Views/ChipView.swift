@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct ChipView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     let label: String
     let isTruncated: Bool
     let isSelected: Bool
@@ -13,6 +15,14 @@ struct ChipView: View {
 
     private static let chipBackground = AppTheme.complete.opacity(0.2)
     private static let maxLabelWidth: CGFloat = 120
+
+    private var resolvedMaxLabelWidth: CGFloat? {
+        guard isTruncated else { return nil }
+        if dynamicTypeSize.isAccessibilitySize {
+            return 180
+        }
+        return Self.maxLabelWidth
+    }
 
     init(
         label: String,
@@ -76,15 +86,16 @@ struct ChipView: View {
                 .font(AppTheme.warmPaperBody)
                 .foregroundStyle(AppTheme.textPrimary)
                 .lineLimit(1)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .frame(maxWidth: isTruncated ? Self.maxLabelWidth : nil, alignment: .leading)
+                .padding(.horizontal, AppTheme.spacingRegular)
+                .padding(.vertical, AppTheme.spacingTight)
+                .frame(minHeight: 44)
+                .frame(maxWidth: resolvedMaxLabelWidth, alignment: .leading)
                 .background(isSelected ? AppTheme.complete.opacity(0.32) : Self.chipBackground)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: AppTheme.cornerRadiusLarge)
                         .stroke(isSelected ? AppTheme.textPrimary.opacity(0.35) : .clear, lineWidth: 1)
                 )
-                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusLarge))
                 .mask(
                     Group {
                         if isTruncated {
@@ -103,7 +114,7 @@ struct ChipView: View {
                     }
                 )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(WarmPaperPressStyle())
     }
 
     private func beginRename() {

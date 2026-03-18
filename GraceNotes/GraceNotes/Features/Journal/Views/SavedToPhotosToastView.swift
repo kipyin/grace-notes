@@ -10,12 +10,12 @@ struct SavedToPhotosToastView: View {
                 .font(AppTheme.warmPaperBody)
                 .foregroundStyle(AppTheme.textPrimary)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.horizontal, AppTheme.spacingWide)
+        .padding(.vertical, AppTheme.spacingRegular)
         .background(AppTheme.paper)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium))
         .overlay(
-            RoundedRectangle(cornerRadius: 14)
+            RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
                 .stroke(AppTheme.border, lineWidth: 1)
         )
         .padding(.bottom, 32)

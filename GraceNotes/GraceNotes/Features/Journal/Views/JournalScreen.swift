@@ -44,85 +44,91 @@ struct JournalScreen: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: AppTheme.spacingSection) {
                 DateSectionView(
                     entryDate: viewModel.entryDate,
                     completionLevel: viewModel.completionLevel
                 )
 
-                SequentialSectionView(
-                    title: String(localized: "Gratitudes"),
-                    items: viewModel.gratitudes,
-                    placeholder: String(localized: "What's one thing you're grateful for?"),
-                    slotCount: JournalViewModel.slotCount,
-                    inputAccessibilityIdentifier: "Gratitude 1",
-                    inputText: $gratitudeInput,
-                    editingIndex: editingGratitudeIndex,
-                    inputFocus: $isGratitudeInputFocused,
-                    onSubmit: submitGratitude,
-                    onChipTap: { index in chipTapped(section: .gratitude, index: index) },
-                    onRenameChip: { index, label in renameChip(section: .gratitude, index: index, label: label) },
-                    onMoveChip: { from, toOffset in moveChip(section: .gratitude, from: from, toOffset: toOffset) },
-                    onDeleteChip: { index in deleteChip(section: .gratitude, index: index) },
-                    onAddNew: { addNewTapped(section: .gratitude) }
-                )
-
-                SequentialSectionView(
-                    title: String(localized: "Needs"),
-                    items: viewModel.needs,
-                    placeholder: String(localized: "What do you need today?"),
-                    slotCount: JournalViewModel.slotCount,
-                    inputAccessibilityIdentifier: "Need 1",
-                    inputText: $needInput,
-                    editingIndex: editingNeedIndex,
-                    inputFocus: $isNeedInputFocused,
-                    onSubmit: submitNeed,
-                    onChipTap: { index in chipTapped(section: .need, index: index) },
-                    onRenameChip: { index, label in renameChip(section: .need, index: index, label: label) },
-                    onMoveChip: { from, toOffset in moveChip(section: .need, from: from, toOffset: toOffset) },
-                    onDeleteChip: { index in deleteChip(section: .need, index: index) },
-                    onAddNew: { addNewTapped(section: .need) }
-                )
-
-                SequentialSectionView(
-                    title: String(localized: "People in Mind"),
-                    items: viewModel.people,
-                    placeholder: String(localized: "Who are you thinking of today?"),
-                    slotCount: JournalViewModel.slotCount,
-                    inputAccessibilityIdentifier: "Person 1",
-                    inputText: $personInput,
-                    editingIndex: editingPersonIndex,
-                    inputFocus: $isPersonInputFocused,
-                    onSubmit: submitPerson,
-                    onChipTap: { index in chipTapped(section: .person, index: index) },
-                    onRenameChip: { index, label in renameChip(section: .person, index: index, label: label) },
-                    onMoveChip: { from, toOffset in moveChip(section: .person, from: from, toOffset: toOffset) },
-                    onDeleteChip: { index in deleteChip(section: .person, index: index) },
-                    onAddNew: { addNewTapped(section: .person) }
-                )
-
-                EditableTextSection(
-                    title: String(localized: "Reading Notes"),
-                    text: Binding(
-                        get: { viewModel.readingNotes },
-                        set: { viewModel.updateReadingNotes($0) }
+                VStack(alignment: .leading, spacing: AppTheme.spacingSection) {
+                    SequentialSectionView(
+                        title: String(localized: "Gratitudes"),
+                        items: viewModel.gratitudes,
+                        placeholder: String(localized: "What's one thing you're grateful for?"),
+                        slotCount: JournalViewModel.slotCount,
+                        inputAccessibilityIdentifier: "Gratitude 1",
+                        inputText: $gratitudeInput,
+                        editingIndex: editingGratitudeIndex,
+                        inputFocus: $isGratitudeInputFocused,
+                        onSubmit: submitGratitude,
+                        onChipTap: { index in chipTapped(section: .gratitude, index: index) },
+                        onRenameChip: { index, label in renameChip(section: .gratitude, index: index, label: label) },
+                        onMoveChip: { from, toOffset in moveChip(section: .gratitude, from: from, toOffset: toOffset) },
+                        onDeleteChip: { index in deleteChip(section: .gratitude, index: index) },
+                        onAddNew: { addNewTapped(section: .gratitude) }
                     )
-                )
-                EditableTextSection(
-                    title: String(localized: "Reflections"),
-                    text: Binding(
-                        get: { viewModel.reflections },
-                        set: { viewModel.updateReflections($0) }
+
+                    SequentialSectionView(
+                        title: String(localized: "Needs"),
+                        items: viewModel.needs,
+                        placeholder: String(localized: "What do you need today?"),
+                        slotCount: JournalViewModel.slotCount,
+                        inputAccessibilityIdentifier: "Need 1",
+                        inputText: $needInput,
+                        editingIndex: editingNeedIndex,
+                        inputFocus: $isNeedInputFocused,
+                        onSubmit: submitNeed,
+                        onChipTap: { index in chipTapped(section: .need, index: index) },
+                        onRenameChip: { index, label in renameChip(section: .need, index: index, label: label) },
+                        onMoveChip: { from, toOffset in moveChip(section: .need, from: from, toOffset: toOffset) },
+                        onDeleteChip: { index in deleteChip(section: .need, index: index) },
+                        onAddNew: { addNewTapped(section: .need) }
                     )
-                )
+
+                    SequentialSectionView(
+                        title: String(localized: "People in Mind"),
+                        items: viewModel.people,
+                        placeholder: String(localized: "Who are you thinking of today?"),
+                        slotCount: JournalViewModel.slotCount,
+                        inputAccessibilityIdentifier: "Person 1",
+                        inputText: $personInput,
+                        editingIndex: editingPersonIndex,
+                        inputFocus: $isPersonInputFocused,
+                        onSubmit: submitPerson,
+                        onChipTap: { index in chipTapped(section: .person, index: index) },
+                        onRenameChip: { index, label in renameChip(section: .person, index: index, label: label) },
+                        onMoveChip: { from, toOffset in moveChip(section: .person, from: from, toOffset: toOffset) },
+                        onDeleteChip: { index in deleteChip(section: .person, index: index) },
+                        onAddNew: { addNewTapped(section: .person) }
+                    )
+                }
+
+                VStack(alignment: .leading, spacing: AppTheme.spacingWide) {
+                    EditableTextSection(
+                        title: String(localized: "Reading Notes"),
+                        text: Binding(
+                            get: { viewModel.readingNotes },
+                            set: { viewModel.updateReadingNotes($0) }
+                        )
+                    )
+                    EditableTextSection(
+                        title: String(localized: "Reflections"),
+                        text: Binding(
+                            get: { viewModel.reflections },
+                            set: { viewModel.updateReflections($0) }
+                        )
+                    )
+                }
 
                 if let saveErrorMessage = viewModel.saveErrorMessage {
                     Text(saveErrorMessage)
                         .font(AppTheme.warmPaperBody)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(AppTheme.error)
                 }
             }
-            .padding()
+            .padding(.horizontal, AppTheme.spacingRegular)
+            .padding(.top, AppTheme.spacingRegular)
+            .padding(.bottom, AppTheme.spacingSection + AppTheme.floatingTabBarClearance)
         }
         .scrollDismissesKeyboard(.immediately)
         .scrollContentBackground(.hidden)
@@ -146,11 +152,11 @@ struct JournalScreen: View {
             )
         }
         .alert("Unable to share", isPresented: $showShareError) {
-            Button("OK") {
+            Button("Dismiss") {
                 showShareError = false
             }
         } message: {
-            Text("Unable to create share image.")
+            Text("We couldn't create a share image right now. Please try again.")
         }
         .overlay {
             if showSavedToPhotosToast {
@@ -159,6 +165,9 @@ struct JournalScreen: View {
                     SavedToPhotosToastView()
                 }
             }
+        }
+        .safeAreaInset(edge: .bottom) {
+            Color.clear.frame(height: AppTheme.spacingSection)
         }
         .onReceive(NotificationCenter.default.publisher(for: .photoSavedToLibrary)) { _ in
             savedToPhotosDismissTask?.cancel()

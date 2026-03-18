@@ -1,5 +1,6 @@
 import SwiftUI
 import UniformTypeIdentifiers
+import UIKit
 
 private struct AddChipView: View {
     let onTap: () -> Void
@@ -9,13 +10,15 @@ private struct AddChipView: View {
             Image(systemName: "plus.circle.fill")
                 .font(.system(size: 20))
                 .foregroundStyle(AppTheme.textMuted)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
+                .padding(.horizontal, AppTheme.spacingRegular)
+                .padding(.vertical, AppTheme.spacingTight)
+                .frame(minWidth: 44, minHeight: 44)
                 .background(AppTheme.complete.opacity(0.2))
-                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusLarge))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(WarmPaperPressStyle())
         .accessibilityLabel("Add new")
+        .accessibilityHint("Adds another item in this section")
     }
 }
 
@@ -45,7 +48,9 @@ struct SequentialSectionView: View {
     let onMoveChip: ((Int, Int) -> Void)?
     let onDeleteChip: ((Int) -> Void)?
     let onAddNew: (() -> Void)?
+    private static let edgeFeatherWidth: CGFloat = 28
     @State private var draggingItemID: UUID?
+    @State private var chipScrollMetrics = HorizontalScrollMetrics()
 
     init(
         title: String,
@@ -99,18 +104,26 @@ struct SequentialSectionView: View {
         return items.count < slotCount
     }
 
+    private var canScrollChipsLeft: Bool {
+        canScrollLeft(for: chipScrollMetrics)
+    }
+
+    private var canScrollChipsRight: Bool {
+        canScrollRight(for: chipScrollMetrics)
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.spacingRegular) {
             HStack {
                 Text(title)
                     .font(AppTheme.warmPaperHeader)
                     .foregroundStyle(AppTheme.textPrimary)
-                Spacer(minLength: 8)
+                Spacer(minLength: AppTheme.spacingTight)
             }
 
             if !items.isEmpty || showAddChip {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
+                    HStack(spacing: AppTheme.spacingTight) {
                         ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                             chipView(for: item, at: index)
                         }
@@ -118,6 +131,36 @@ struct SequentialSectionView: View {
                             AddChipView(onTap: addNew)
                         }
                     }
+                    .padding(.trailing, AppTheme.spacingRegular)
+                    .background {
+                        HorizontalScrollMetricsReader { metrics in
+                            let currentMetrics = chipScrollMetrics
+                            if currentMetrics != metrics {
+                                DispatchQueue.main.async {
+                                    chipScrollMetrics = metrics
+                                }
+                            }
+                        }
+                    }
+                }
+                .mask {
+                    HStack(spacing: 0) {
+                        edgeMask(.leading)
+                        Rectangle()
+                            .fill(.black)
+                        edgeMask(.trailing)
+                    }
+                }
+                .overlay {
+                    HStack(spacing: 0) {
+                        edgeFeather(.leading)
+                            .opacity(canScrollChipsLeft ? 1 : 0)
+                        Spacer()
+                        edgeFeather(.trailing)
+                            .opacity(canScrollChipsRight ? 1 : 0)
+                    }
+                    .padding(.horizontal, -AppTheme.spacingRegular)
+                    .allowsHitTesting(false)
                 }
             }
 
@@ -143,8 +186,10 @@ struct SequentialSectionView: View {
             }
 
             Text(progressText)
-                .font(AppTheme.warmPaperBody)
+                .font(AppTheme.warmPaperMetaEmphasis)
                 .foregroundStyle(AppTheme.textMuted)
+                .monospacedDigit()
+                .padding(.top, AppTheme.spacingTight)
         }
     }
 
@@ -177,6 +222,148 @@ struct SequentialSectionView: View {
         } else {
             chip
         }
+    }
+
+    private func edgeFeather(_ edge: HorizontalEdge) -> some View {
+        LinearGradient(
+            colors: edge == .leading
+                ? [AppTheme.background, AppTheme.background.opacity(0)]
+                : [AppTheme.background.opacity(0), AppTheme.background],
+            startPoint: .leading,
+            endPoint: .trailing
+        )
+        .frame(width: Self.edgeFeatherWidth)
+    }
+
+    private func edgeMask(_ edge: HorizontalEdge) -> some View {
+        if edge == .leading {
+            LinearGradient(
+                colors: canScrollChipsLeft ? [.clear, .black] : [.black, .black],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+            .frame(width: Self.edgeFeatherWidth)
+        } else {
+            LinearGradient(
+                colors: canScrollChipsRight ? [.black, .clear] : [.black, .black],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+            .frame(width: Self.edgeFeatherWidth)
+        }
+    }
+
+    private func canScrollLeft(for metrics: HorizontalScrollMetrics) -> Bool {
+        metrics.contentOffsetX > 1
+    }
+
+    private func canScrollRight(for metrics: HorizontalScrollMetrics) -> Bool {
+        let remaining = metrics.contentWidth - (metrics.contentOffsetX + metrics.viewportWidth)
+        return remaining > 1
+    }
+}
+
+private struct HorizontalScrollMetrics: Equatable {
+    var viewportWidth: CGFloat = 0
+    var contentWidth: CGFloat = 0
+    var contentOffsetX: CGFloat = 0
+}
+
+private struct HorizontalScrollMetricsReader: UIViewRepresentable {
+    let onChange: (HorizontalScrollMetrics) -> Void
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onChange: onChange)
+    }
+
+    func makeUIView(context: Context) -> UIView {
+        let view = MetricsProbeView(frame: .zero)
+        view.isUserInteractionEnabled = false
+        context.coordinator.hostView = view
+        view.onLayoutChange = { [weak coordinator = context.coordinator] in
+            coordinator?.attachIfPossible()
+        }
+        return view
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {
+        context.coordinator.onChange = onChange
+        context.coordinator.attachIfPossible()
+    }
+
+    final class Coordinator: NSObject {
+        weak var hostView: UIView?
+        weak var observedScrollView: UIScrollView?
+        var onChange: (HorizontalScrollMetrics) -> Void
+        private var contentSizeObservation: NSKeyValueObservation?
+        private var contentOffsetObservation: NSKeyValueObservation?
+        private var boundsObservation: NSKeyValueObservation?
+
+        init(onChange: @escaping (HorizontalScrollMetrics) -> Void) {
+            self.onChange = onChange
+        }
+
+        func attachIfPossible() {
+            guard let hostView else { return }
+            guard let scrollView = findAncestorScrollView(from: hostView) else { return }
+            guard observedScrollView !== scrollView else {
+                publishMetrics()
+                return
+            }
+
+            observedScrollView = scrollView
+            contentSizeObservation = scrollView.observe(\.contentSize, options: [.new]) { [weak self] _, _ in
+                self?.publishMetrics()
+            }
+            contentOffsetObservation = scrollView.observe(\.contentOffset, options: [.new]) { [weak self] _, _ in
+                self?.publishMetrics()
+            }
+            boundsObservation = scrollView.observe(\.bounds, options: [.new]) { [weak self] _, _ in
+                self?.publishMetrics()
+            }
+            publishMetrics()
+        }
+
+        private func publishMetrics() {
+            guard let scrollView = observedScrollView else { return }
+            onChange(
+                HorizontalScrollMetrics(
+                    viewportWidth: scrollView.bounds.width,
+                    contentWidth: scrollView.contentSize.width,
+                    contentOffsetX: scrollView.contentOffset.x
+                )
+            )
+        }
+
+        private func findAncestorScrollView(from view: UIView) -> UIScrollView? {
+            var currentView: UIView? = view
+            while let candidate = currentView?.superview {
+                if let scrollView = candidate as? UIScrollView {
+                    return scrollView
+                }
+                currentView = candidate
+            }
+            return nil
+        }
+    }
+}
+
+private final class MetricsProbeView: UIView {
+    var onLayoutChange: (() -> Void)?
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        onLayoutChange?()
+    }
+
+    override func didMoveToSuperview() {
+        super.didMoveToSuperview()
+        onLayoutChange?()
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        onLayoutChange?()
     }
 }
 
