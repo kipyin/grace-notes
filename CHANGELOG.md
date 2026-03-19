@@ -8,6 +8,7 @@
 ### Developer
 - Bumped app `MARKETING_VERSION` to `0.3.5` for Grace Notes app configurations.
 - Updated `README.md` "What's new" content to align with this release scope.
+- Aligned `GraceNotes/docs/07-release-roadmap.md` with shipped `0.3.5`, reframed `0.4.0` as iCloud/SwiftData sync reliability, and renumbered later milestones.
 
 ## [0.3.4] - 2026-03-19
 
