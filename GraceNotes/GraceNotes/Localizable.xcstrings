@@ -709,6 +709,7 @@
       }
     },
     "First complete milestone reached." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
