@@ -6,25 +6,24 @@ struct OnboardingScreen: View {
 
     private let pages: [OnboardingPage] = [
         OnboardingPage(
-            title: String(localized: "A calm daily rhythm"),
+            title: String(localized: "Start with one line"),
             message: String(
-                localized: "Grace Notes helps you reflect with gentle structure: gratitude, needs, and people in mind."
+                localized: "Capture one gratitude and move on with your day. A meaningful check-in can take under two minutes."
             )
         ),
         OnboardingPage(
-            title: String(localized: "Review that gives insight"),
+            title: String(localized: "Use prompts when your mind is blank"),
             message: String(
                 localized: """
-                Your Review tab turns past entries into recurring themes, \
-                resurfacing ideas, and continuity prompts.
+                Gentle sections for gratitude, needs, and people-in-mind help you begin without overthinking.
                 """
             )
         ),
         OnboardingPage(
-            title: String(localized: "Progress over perfection"),
+            title: String(localized: "Revisit when you are ready"),
             message: String(
                 localized: """
-                Low-energy days still count. Start small and build toward fuller reflection sessions over time.
+                Your Review tab helps you spot themes later. Today, focus on one honest moment and call it complete.
                 """
             )
         )
@@ -36,6 +35,20 @@ struct OnboardingScreen: View {
                 .font(AppTheme.warmPaperHeader)
                 .foregroundStyle(AppTheme.textPrimary)
                 .padding(.top, 24)
+
+            HStack(spacing: 12) {
+                Text("Step \(selectedPage + 1) of \(pages.count)")
+                    .font(AppTheme.warmPaperMetaEmphasis)
+                    .foregroundStyle(AppTheme.textMuted)
+
+                Spacer()
+
+                Button(String(localized: "Skip for now"), action: onGetStarted)
+                    .font(AppTheme.warmPaperMetaEmphasis)
+                    .foregroundStyle(AppTheme.accentText)
+                    .buttonStyle(.plain)
+            }
+            .padding(.horizontal, 20)
 
             TabView(selection: $selectedPage) {
                 ForEach(Array(pages.enumerated()), id: \.offset) { index, page in
@@ -51,13 +64,15 @@ struct OnboardingScreen: View {
                     ? String(localized: "Get Started")
                     : String(localized: "Continue"))
                     .font(AppTheme.warmPaperBody.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(AppTheme.onAccent)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .background(AppTheme.accent)
                     .clipShape(RoundedRectangle(cornerRadius: 14))
             }
+            .buttonStyle(WarmPaperPressStyle())
             .padding(.horizontal, 20)
+
             .padding(.bottom, 24)
         }
         .background(AppTheme.background.ignoresSafeArea())

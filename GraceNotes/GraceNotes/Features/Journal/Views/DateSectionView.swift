@@ -48,14 +48,14 @@ struct DateSectionView: View {
             switch completionLevel {
             case .quickCheckIn:
                 levelSurface(level: .quickCheckIn, isCelebrating: celebratingLevel == .quickCheckIn) {
-                    Label(String(localized: "Reflection Started"), systemImage: "sparkles")
+                    Label(String(localized: "Daily Rhythm"), systemImage: "sparkles")
                         .font(AppTheme.warmPaperMetaEmphasis)
                         .foregroundStyle(AppTheme.reflectionStartedText)
                 }
             case .standardReflection:
                 levelSurface(level: .standardReflection, isCelebrating: celebratingLevel == .standardReflection) {
                     Label(
-                        String(localized: "Full 15 Complete"),
+                        String(localized: "Complete"),
                         systemImage: celebratingLevel == .standardReflection
                             ? "sparkles.rectangle.stack.fill"
                             : "sparkles.rectangle.stack"
@@ -66,7 +66,7 @@ struct DateSectionView: View {
             case .fullFiveCubed:
                 levelSurface(level: .fullFiveCubed, isCelebrating: celebratingLevel == .fullFiveCubed) {
                     Label(
-                        String(localized: "Perfect Daily Rhythm"),
+                        String(localized: "Complete"),
                         systemImage: celebratingLevel == .fullFiveCubed ? "checkmark.circle.fill" : "checkmark.circle"
                     )
                     .font(AppTheme.warmPaperMetaEmphasis)
