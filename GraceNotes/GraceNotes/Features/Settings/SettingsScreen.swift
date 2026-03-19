@@ -3,9 +3,8 @@ import SwiftData
 import UIKit
 
 struct SettingsScreen: View {
-    /// Default false to align with SummarizerProvider; first launch uses on-device NL summarization.
-    @AppStorage("useCloudSummarization") private var useCloudSummarization = false
-    @AppStorage(ReviewInsightsProvider.useAIReviewInsightsKey) private var useAIReviewInsights = false
+    /// Default false keeps AI features on-device until explicitly enabled.
+    @AppStorage(AIFeaturesSettings.enabledUserDefaultsKey) private var useAIFeatures = false
     @AppStorage(PersistenceController.iCloudSyncEnabledKey) private var isICloudSyncEnabled = true
     @Environment(\.modelContext) private var modelContext
     @Environment(\.openURL) private var openURL
@@ -113,6 +112,8 @@ struct SettingsScreen: View {
             ShareSheet(activityItems: [file.url])
         }
         .task {
+            AIFeaturesSettings.migrateLegacyCloudFlagIfNeeded()
+            useAIFeatures = AIFeaturesSettings.isEnabled()
             await reminderState.refreshStatus()
             syncReminderControlState(with: reminderState.liveStatus)
         }
@@ -338,10 +339,10 @@ private extension SettingsScreen {
 
     var aiFeaturesEnabled: Binding<Bool> {
         Binding(
-            get: { useCloudSummarization || useAIReviewInsights },
+            get: { AIFeaturesSettings.isEnabled() },
             set: { isEnabled in
-                useCloudSummarization = isEnabled
-                useAIReviewInsights = isEnabled
+                useAIFeatures = isEnabled
+                AIFeaturesSettings.setEnabled(isEnabled)
             }
         )
     }

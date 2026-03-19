@@ -5,10 +5,6 @@ private let placeholderApiKey = "YOUR_KEY_HERE"
 /// Provides the current summarizer based on user settings.
 /// For testing, pass a fixed summarizer; otherwise reads UserDefaults.
 struct SummarizerProvider: Sendable {
-    /// UserDefaults key for cloud summarization setting. Exposed for tests to avoid key drift.
-    static let useCloudUserDefaultsKey = "useCloudSummarization"
-
-    private static let useCloudKey = useCloudUserDefaultsKey
     private let fixedSummarizer: (any Summarizer)?
 
     init(fixedSummarizer: (any Summarizer)? = nil) {
@@ -21,7 +17,7 @@ struct SummarizerProvider: Sendable {
         if let fixed = fixedSummarizer {
             return fixed
         }
-        let useCloud = UserDefaults.standard.object(forKey: Self.useCloudKey) as? Bool ?? false
+        let useCloud = AIFeaturesSettings.isEnabled()
         if useCloud, ApiSecrets.cloudApiKey != placeholderApiKey {
             return CloudSummarizer(apiKey: ApiSecrets.cloudApiKey)
         }

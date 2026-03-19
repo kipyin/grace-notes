@@ -15,11 +15,13 @@ final class JournalViewModelMutationTests: XCTestCase {
         super.setUp()
         calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!
-        UserDefaults.standard.set(false, forKey: SummarizerProvider.useCloudUserDefaultsKey)
+        UserDefaults.standard.set(false, forKey: AIFeaturesSettings.enabledUserDefaultsKey)
+        UserDefaults.standard.removeObject(forKey: AIFeaturesSettings.legacyCloudSummarizationKey)
     }
 
     override func tearDown() {
-        UserDefaults.standard.removeObject(forKey: SummarizerProvider.useCloudUserDefaultsKey)
+        UserDefaults.standard.removeObject(forKey: AIFeaturesSettings.enabledUserDefaultsKey)
+        UserDefaults.standard.removeObject(forKey: AIFeaturesSettings.legacyCloudSummarizationKey)
         super.tearDown()
     }
 
@@ -182,9 +184,9 @@ final class JournalViewModelMutationTests: XCTestCase {
         XCTAssertEqual(viewModel.needs[0].chipLabel, originalLabel)
     }
 
-    func test_updateGratitudeImmediate_cloudEnabled_keepsFullLabelWithoutEllipsis() throws {
+    func test_updateGratitudeImmediate_aiFeaturesEnabled_keepsFullLabelWithoutEllipsis() throws {
         try skipIfKnownHostedSwiftDataCrash()
-        UserDefaults.standard.set(true, forKey: SummarizerProvider.useCloudUserDefaultsKey)
+        UserDefaults.standard.set(true, forKey: AIFeaturesSettings.enabledUserDefaultsKey)
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
         let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now })
@@ -200,8 +202,8 @@ final class JournalViewModelMutationTests: XCTestCase {
         XCTAssertFalse(viewModel.gratitudes[0].isTruncated)
     }
 
-    func test_renameGratitudeLabel_cloudEnabled_keepsFullLabelWithoutEllipsis() async throws {
-        UserDefaults.standard.set(true, forKey: SummarizerProvider.useCloudUserDefaultsKey)
+    func test_renameGratitudeLabel_aiFeaturesEnabled_keepsFullLabelWithoutEllipsis() async throws {
+        UserDefaults.standard.set(true, forKey: AIFeaturesSettings.enabledUserDefaultsKey)
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
         let viewModel = makeViewModel(now: now)

@@ -26,6 +26,7 @@ struct GraceNotesApp: App {
 
     init() {
         let startupTrace = PerformanceTrace.begin("App.init")
+        AIFeaturesSettings.migrateLegacyCloudFlagIfNeeded()
         let processInfo = ProcessInfo.processInfo
         let isXCTestSession = processInfo.environment["XCTestConfigurationFilePath"] != nil
         let isUITestBundle = processInfo.environment["XCTestBundlePath"]?.contains("UITests") == true

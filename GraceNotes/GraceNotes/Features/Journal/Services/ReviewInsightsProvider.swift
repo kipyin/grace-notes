@@ -1,7 +1,7 @@
 import Foundation
 
 struct ReviewInsightsProvider: Sendable {
-    static let useAIReviewInsightsKey = "useAIReviewInsights"
+    static let useAIReviewInsightsKey = AIFeaturesSettings.enabledUserDefaultsKey
     private static let placeholderApiKey = "YOUR_KEY_HERE"
 
     private let deterministicGenerator: any ReviewInsightsGenerating
@@ -28,7 +28,7 @@ struct ReviewInsightsProvider: Sendable {
         referenceDate: Date,
         calendar: Calendar = .current
     ) async -> ReviewInsights {
-        let useAI = UserDefaults.standard.bool(forKey: Self.useAIReviewInsightsKey)
+        let useAI = AIFeaturesSettings.isEnabled()
 
         if useAI, let cloudGenerator {
             if let cloudInsights = try? await cloudGenerator.generateInsights(
