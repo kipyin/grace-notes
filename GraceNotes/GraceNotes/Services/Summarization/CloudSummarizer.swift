@@ -13,7 +13,6 @@ struct CloudSummarizer: Summarizer {
     private let apiKey: String
     private let fallback: any Summarizer
     private let urlSession: URLSession
-    private let maxLabelChars = 20
 
     init(
         baseURL: String = "https://chat.cloudapi.vip/v1",
@@ -35,16 +34,19 @@ struct CloudSummarizer: Summarizer {
 
         do {
             let label = try await callAPI(sentence: trimmed, section: section)
-            let capped = label.count > maxLabelChars ? String(label.prefix(maxLabelChars)) : label
-            log.debug("Cloud summarization succeeded: \"\(trimmed)\" -> \"\(capped)\"")
-            return SummarizationResult(label: capped, isTruncated: label.count > maxLabelChars)
+            let capped = ChipLabelUnitTruncator.truncate(label)
+            log.debug("Cloud summarization succeeded: \"\(trimmed)\" -> \"\(capped.label)\"")
+            return capped
         } catch {
             log.info("Cloud API failed, using fallback summarizer: \(String(describing: error))")
             if let result = try? await fallback.summarize(sentence, section: section) {
-                return result
+                let capped = ChipLabelUnitTruncator.truncate(result.label)
+                return SummarizationResult(
+                    label: capped.label,
+                    isTruncated: result.isTruncated || capped.isTruncated
+                )
             }
-            let fallbackLabel = String(trimmed.prefix(maxLabelChars))
-            return SummarizationResult(label: fallbackLabel, isTruncated: trimmed.count > maxLabelChars)
+            return ChipLabelUnitTruncator.truncate(trimmed)
         }
     }
 

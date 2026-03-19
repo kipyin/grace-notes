@@ -4,7 +4,6 @@ import Foundation
 struct DeterministicChipLabelSummarizer: Summarizer {
     private let maxWordCount = 5
     private let maxChineseCharacterCount = 5
-    private let maxLabelChars = 20
 
     func summarize(_ sentence: String, section: SummarizationSection) async throws -> SummarizationResult {
         summarizeSync(sentence, section: section)
@@ -67,10 +66,11 @@ struct DeterministicChipLabelSummarizer: Summarizer {
     }
 
     private func capLabel(_ label: String, alreadyTruncated: Bool) -> SummarizationResult {
-        guard label.count > maxLabelChars else {
-            return SummarizationResult(label: label, isTruncated: alreadyTruncated)
-        }
-        return SummarizationResult(label: String(label.prefix(maxLabelChars)), isTruncated: true)
+        let capped = ChipLabelUnitTruncator.truncate(label)
+        return SummarizationResult(
+            label: capped.label,
+            isTruncated: alreadyTruncated || capped.isTruncated
+        )
     }
 
     private func isPrimarilyChinese(_ text: String) -> Bool {

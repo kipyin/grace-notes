@@ -6,7 +6,6 @@ import NaturalLanguage
 struct NaturalLanguageSummarizer: Summarizer {
     private let maxFallbackWords = 5
     private let minNounLength = 2
-    private let maxKeywordLabelChars = 20
 
     func summarize(_ sentence: String, section: SummarizationSection) async throws -> SummarizationResult {
         try await Task.detached(priority: .utility) {
@@ -24,22 +23,16 @@ struct NaturalLanguageSummarizer: Summarizer {
         guard !trimmed.isEmpty else { return SummarizationResult(label: "", isTruncated: false) }
 
         if section == .person, let detectedName = detectLatinPersonalName(in: trimmed) {
-            let isTruncated = detectedName.count > maxKeywordLabelChars
-            let capped = isTruncated
-                ? firstTokensUpToMaxChars(detectedName, maxChars: maxKeywordLabelChars)
-                : detectedName
-            return SummarizationResult(label: capped, isTruncated: isTruncated)
+            return ChipLabelUnitTruncator.truncate(detectedName)
         }
 
         var rawLabel: String
         var isTruncated: Bool
 
         if let label = extractKeywords(from: trimmed), !label.isEmpty {
-            rawLabel = label
-            isTruncated = label.count > maxKeywordLabelChars
-            if isTruncated {
-                rawLabel = firstTokensUpToMaxChars(label, maxChars: maxKeywordLabelChars)
-            }
+            let capped = ChipLabelUnitTruncator.truncate(label)
+            rawLabel = capped.label
+            isTruncated = capped.isTruncated
         } else {
             let fallback = firstNWords(from: trimmed)
             rawLabel = fallback.label
@@ -141,38 +134,11 @@ struct NaturalLanguageSummarizer: Summarizer {
 
         let take = min(words.count, maxFallbackWords)
         guard take > 0 else {
-            let fallback = firstTokensUpToMaxChars(text, maxChars: 20)
-            return SummarizationResult(label: fallback, isTruncated: true)
+            return ChipLabelUnitTruncator.truncate(text)
         }
 
         let label = words.prefix(take).joined(separator: " ")
-        if label.count > maxKeywordLabelChars {
-            let capped = firstTokensUpToMaxChars(label, maxChars: maxKeywordLabelChars)
-            return SummarizationResult(label: capped, isTruncated: true)
-        }
-        return SummarizationResult(label: label, isTruncated: false)
-    }
-
-    private func firstTokensUpToMaxChars(_ text: String, maxChars: Int) -> String {
-        let tokenizer = NLTokenizer(unit: .word)
-        tokenizer.string = text
-        if isPrimarilyChinese(text) {
-            tokenizer.setLanguage(NLLanguage(rawValue: "zh-Hans"))
-        }
-        var tokens: [String] = []
-        var len = 0
-        let range = text.startIndex..<text.endIndex
-        tokenizer.enumerateTokens(in: range) { tokenRange, _ in
-            let word = String(text[tokenRange])
-            let addLen = tokens.isEmpty ? word.count : 1 + word.count
-            if len + addLen <= maxChars {
-                tokens.append(word)
-                len += addLen
-                return true
-            }
-            return false
-        }
-        return tokens.isEmpty ? String(text.prefix(maxChars)) : tokens.joined(separator: " ")
+        return ChipLabelUnitTruncator.truncate(label)
     }
 
     private func detectLatinPersonalName(in text: String) -> String? {

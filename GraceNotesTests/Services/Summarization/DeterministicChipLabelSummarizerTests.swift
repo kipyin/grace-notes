@@ -51,11 +51,11 @@ final class DeterministicChipLabelSummarizerTests: XCTestCase {
         XCTAssertFalse(result.isTruncated)
     }
 
-    func test_summarize_fiveOrFewerWords_overTwentyChars_capsToChipBudget() async throws {
+    func test_summarize_fiveOrFewerWords_overTenUnits_capsToChipBudget() async throws {
         let input = "Extraordinary opportunities for collaboration"
         let result = try await sut.summarize(input, section: .need)
 
-        XCTAssertEqual(result.label, String(input.prefix(20)))
+        XCTAssertEqual(result.label, String(input.prefix(10)))
         XCTAssertTrue(result.isTruncated)
     }
 }

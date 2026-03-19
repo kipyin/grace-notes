@@ -386,7 +386,7 @@ private extension WeeklyInsightCandidateBuilder {
         _ key: String,
         replacements: [(token: String, value: String)]
     ) -> String {
-        var message = String(localized: key)
+        var message = NSLocalizedString(key, comment: "")
         for replacement in replacements {
             message = message.replacingOccurrences(of: replacement.token, with: replacement.value)
         }

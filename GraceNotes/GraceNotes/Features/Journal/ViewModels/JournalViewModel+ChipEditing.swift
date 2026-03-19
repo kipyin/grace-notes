@@ -1,25 +1,34 @@
 import Foundation
 
-extension JournalViewModel {
-    private static let interimLabelMaxChars = 20
+private func capForChipUnits(_ result: SummarizationResult) -> SummarizationResult {
+    let capped = ChipLabelUnitTruncator.truncate(result.label)
+    return SummarizationResult(
+        label: capped.label,
+        isTruncated: result.isTruncated || capped.isTruncated
+    )
+}
 
+extension JournalViewModel {
     private var deterministicChipLabelSummarizer: DeterministicChipLabelSummarizer {
         DeterministicChipLabelSummarizer()
     }
 
     private func summarizeForChip(_ text: String, section: SummarizationSection) async -> SummarizationResult {
-        await Task.detached(priority: .utility) { [summarizerProvider] in
-            let summarizer = summarizerProvider.currentSummarizer()
+        let summarizer = summarizerProvider.currentSummarizer()
+        return await Task.detached(priority: .utility) {
             do {
-                return try await summarizer.summarize(text, section: section)
+                let result = try await summarizer.summarize(text, section: section)
+                return capForChipUnits(result)
             } catch {
-                return DeterministicChipLabelSummarizer().summarizeSync(text, section: section)
+                let fallback = DeterministicChipLabelSummarizer().summarizeSync(text, section: section)
+                return capForChipUnits(fallback)
             }
         }.value
     }
 
     private func makeInterimResult(for text: String, section: SummarizationSection) -> SummarizationResult {
-        deterministicChipLabelSummarizer.summarizeSync(text, section: section)
+        let interim = deterministicChipLabelSummarizer.summarizeSync(text, section: section)
+        return capForChipUnits(interim)
     }
 
     private func makeInterimItem(
@@ -275,8 +284,9 @@ extension JournalViewModel {
     private func applyRenamedLabel(_ rawLabel: String, to item: inout JournalItem) -> Bool {
         let trimmed = rawLabel.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return false }
-        let isTruncated = trimmed.count > Self.interimLabelMaxChars
-        let cappedLabel = String(trimmed.prefix(Self.interimLabelMaxChars))
+        let capped = ChipLabelUnitTruncator.truncate(trimmed)
+        let isTruncated = capped.isTruncated
+        let cappedLabel = capped.label
         guard item.chipLabel != cappedLabel || item.isTruncated != isTruncated else { return false }
 
         item.chipLabel = cappedLabel

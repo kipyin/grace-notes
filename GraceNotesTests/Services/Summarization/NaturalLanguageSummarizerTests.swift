@@ -63,9 +63,9 @@ final class NaturalLanguageSummarizerTests: XCTestCase {
         let result = try await sut.summarize(input, section: .person)
         XCTAssertFalse(result.label.isEmpty)
         if result.isTruncated {
-            let msg = "When truncated, label must be at most 20 chars, got: '\(result.label)' "
+            let msg = "When truncated, label must be at most 10 chars, got: '\(result.label)' "
                 + "(\(result.label.count) chars)"
-            XCTAssertLessThanOrEqual(result.label.count, 20, msg)
+            XCTAssertLessThanOrEqual(result.label.count, 10, msg)
         }
     }
 
