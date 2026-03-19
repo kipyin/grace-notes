@@ -11,7 +11,6 @@ struct CompletionInfoCard: View {
     let morphNamespace: Namespace.ID
     let showMorph: Bool
     let bloomProgress: CGFloat
-    let onDismiss: () -> Void
 
     var body: some View {
         HStack(alignment: .top, spacing: AppTheme.spacingRegular) {
@@ -30,14 +29,6 @@ struct CompletionInfoCard: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-
-            Button(String(localized: "Done")) {
-                onDismiss()
-            }
-            .buttonStyle(.plain)
-            .font(AppTheme.warmPaperMetaEmphasis)
-            .foregroundStyle(cardTintColor)
-            .accessibilityHint(String(localized: "Dismisses the completion meaning card."))
         }
         .opacity(contentVisible || reduceMotion ? 1 : 0)
         .offset(y: contentVisible || reduceMotion ? 0 : 8)

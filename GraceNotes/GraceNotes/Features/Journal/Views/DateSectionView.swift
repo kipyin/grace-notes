@@ -36,8 +36,7 @@ struct DateSectionView: View {
                         reduceTransparency: reduceTransparency,
                         morphNamespace: completionInfoMorphNamespace,
                         showMorph: !reduceMotion,
-                        bloomProgress: infoCardBloomProgress,
-                        onDismiss: dismissInfoCard
+                        bloomProgress: infoCardBloomProgress
                     )
                     .transition(infoCardTransition)
                     .accessibilitySortPriority(2)
@@ -304,7 +303,6 @@ private extension DateSectionView {
                     isInfoCardPresented = true
                 }
                 triggerInfoCardBloomPulse()
-                scheduleInfoCardAutoDismiss()
             }
             return
         }
@@ -313,7 +311,6 @@ private extension DateSectionView {
             isInfoCardPresented = true
         }
         triggerInfoCardBloomPulse()
-        scheduleInfoCardAutoDismiss()
     }
 
     func dismissInfoCard() {
@@ -329,20 +326,6 @@ private extension DateSectionView {
 
         infoCardDismissTask = Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(140))
-            guard !Task.isCancelled else { return }
-            selectedBadgeInfo = nil
-        }
-    }
-
-    func scheduleInfoCardAutoDismiss() {
-        infoCardDismissTask?.cancel()
-        infoCardDismissTask = Task { @MainActor in
-            try? await Task.sleep(for: .seconds(4.8))
-            guard !Task.isCancelled else { return }
-            withAnimation(infoCardExitAnimation) {
-                isInfoCardPresented = false
-            }
-            try? await Task.sleep(for: .milliseconds(reduceMotion ? 1 : 150))
             guard !Task.isCancelled else { return }
             selectedBadgeInfo = nil
         }
