@@ -15,6 +15,9 @@
 - Section progress in Today now uses five-dot status indicators near each section title instead of `x of 5` copy.
 - Review timeline completion chips now use consistent text-only badge styling aligned with Today labels.
 - Chip/input editing states now use clearer accent and border contrast for active and pending slots.
+- Settings now exposes a single `AI features` toggle that enables both cloud chip labels and AI review insights together.
+- Settings AI/privacy helper copy now clearly explains cloud-on versus on-device behavior in one place.
+- Reminder toggle tint and denied-state `Open Settings` button sizing were refined for better visual consistency.
 
 ### Fixed
 - Journal completion logic now correctly requires full 5x5x5 completion for standard reflection gating.

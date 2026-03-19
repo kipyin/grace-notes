@@ -20,6 +20,9 @@
         }
       }
     },
+    "%1$@ progress: %2$d edited, %3$d editing, %4$d pending." : {
+
+    },
     "%1$@ to %2$@" : {
       "localizations" : {
         "en" : {
@@ -199,6 +202,9 @@
           }
         }
       }
+    },
+    "AI features" : {
+
     },
     "Allow notifications in iOS Settings, then return and refresh." : {
       "extractionState" : "stale",
@@ -403,6 +409,9 @@
         }
       }
     },
+    "Complete means you finished the full journal reflection for today." : {
+
+    },
     "Completed for today" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -419,6 +428,9 @@
           }
         }
       }
+    },
+    "Completion status" : {
+
     },
     "Confirm chip deletion" : {
       "extractionState" : "stale",
@@ -500,6 +512,9 @@
           }
         }
       }
+    },
+    "Daily Rhythm means you checked in with meaningful progress today." : {
+
     },
     "Data & Privacy" : {
       "localizations" : {
@@ -1276,6 +1291,7 @@
       }
     },
     "On: chip labels use an online summarization service. Off: labels are generated on-device." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1291,7 +1307,11 @@
         }
       }
     },
+    "On: cloud summarization and AI review insights are enabled. Off: labels and review insights stay on-device." : {
+
+    },
     "On: weekly insights may send recent journal text to your configured cloud AI service. Off: review insights stay on-device." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1854,6 +1874,7 @@
       }
     },
     "Review Insights" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2136,6 +2157,7 @@
       }
     },
     "Summarization" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2663,6 +2685,7 @@
       }
     },
     "Use AI review insights" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2679,6 +2702,7 @@
       }
     },
     "Use cloud summarization" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

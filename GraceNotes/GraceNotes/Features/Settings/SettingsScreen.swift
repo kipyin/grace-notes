@@ -25,40 +25,20 @@ struct SettingsScreen: View {
     var body: some View {
         List {
             Section {
-                Toggle(String(localized: "Use cloud summarization"), isOn: $useCloudSummarization)
+                Toggle(String(localized: "AI features"), isOn: aiFeaturesEnabled)
                     .font(AppTheme.warmPaperBody)
                     .foregroundStyle(AppTheme.settingsTextPrimary)
+                    .tint(AppTheme.accent)
             } header: {
-                Text(String(localized: "Summarization"))
+                Text(String(localized: "AI"))
                     .font(AppTheme.warmPaperHeader)
                     .foregroundStyle(AppTheme.settingsTextPrimary)
             } footer: {
                 Text(
                     String(
                         localized: """
-                        On: chip labels use an online summarization service. \
-                        Off: labels are generated on-device.
-                        """
-                    )
-                )
-                    .font(AppTheme.warmPaperBody)
-                    .foregroundStyle(AppTheme.settingsTextMuted)
-            }
-
-            Section {
-                Toggle(String(localized: "Use AI review insights"), isOn: $useAIReviewInsights)
-                    .font(AppTheme.warmPaperBody)
-                    .foregroundStyle(AppTheme.settingsTextPrimary)
-            } header: {
-                Text(String(localized: "Review Insights"))
-                    .font(AppTheme.warmPaperHeader)
-                    .foregroundStyle(AppTheme.settingsTextPrimary)
-            } footer: {
-                Text(
-                    String(
-                        localized: """
-                        On: weekly insights may send recent journal text to your configured cloud AI service. \
-                        Off: review insights stay on-device.
+                        On: cloud summarization and AI review insights are enabled. \
+                        Off: labels and review insights stay on-device.
                         """
                     )
                 )
@@ -217,7 +197,7 @@ private extension SettingsScreen {
 
             Toggle("", isOn: reminderToggleBinding)
                 .labelsHidden()
-                .tint(AppTheme.reminderPrimaryActionBackground)
+                .tint(AppTheme.accent)
                 .disabled(reminderState.isPermissionDenied || reminderState.isWorking)
                 .accessibilityLabel(String(localized: "Daily reminder"))
         }
@@ -234,7 +214,7 @@ private extension SettingsScreen {
                 openSystemSettings()
             } label: {
                 Text(String(localized: "Open Settings"))
-                    .frame(maxWidth: .infinity, minHeight: 44)
+                    .frame(minHeight: 44)
             }
             .buttonStyle(.borderedProminent)
             .tint(AppTheme.reminderPrimaryActionBackground)
@@ -345,6 +325,16 @@ private extension SettingsScreen {
             Entries stay private to your devices and account. \
             Export creates a full JSON backup.
             """
+        )
+    }
+
+    var aiFeaturesEnabled: Binding<Bool> {
+        Binding(
+            get: { useCloudSummarization || useAIReviewInsights },
+            set: { isEnabled in
+                useCloudSummarization = isEnabled
+                useAIReviewInsights = isEnabled
+            }
         )
     }
 
