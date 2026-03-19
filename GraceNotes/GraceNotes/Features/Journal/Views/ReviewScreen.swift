@@ -379,7 +379,8 @@ private struct ReviewSummaryCard: View {
                     .font(AppTheme.warmPaperMeta)
                     .foregroundStyle(AppTheme.textMuted)
 
-                if let narrativeSummary = insights.narrativeSummary, !narrativeSummary.isEmpty {
+                if shouldShowNarrativeSummary(for: insights),
+                   let narrativeSummary = insights.narrativeSummary {
                     Text(narrativeSummary)
                         .font(AppTheme.warmPaperBody)
                         .foregroundStyle(AppTheme.textPrimary)
@@ -439,6 +440,25 @@ private struct ReviewSummaryCard: View {
             endText
         )
     }
+
+    private func shouldShowNarrativeSummary(for insights: ReviewInsights) -> Bool {
+        guard let narrativeSummary = insights.narrativeSummary?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !narrativeSummary.isEmpty
+        else {
+            return false
+        }
+        guard let firstInsightObservation = insights.weeklyInsights.first?.observation else {
+            return true
+        }
+        return normalizedInsightText(narrativeSummary) != normalizedInsightText(firstInsightObservation)
+    }
+
+    private func normalizedInsightText(_ value: String) -> String {
+        value
+            .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 }
 
 private struct ReviewWeeklyInsightsSection: View {
@@ -450,23 +470,24 @@ private struct ReviewWeeklyInsightsSection: View {
                 .font(AppTheme.warmPaperBody.weight(.semibold))
                 .foregroundStyle(AppTheme.textPrimary)
 
-            ForEach(Array(items.enumerated()), id: \.offset) { indexedItem in
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(indexedItem.element.observation)
+            ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+                VStack(alignment: .leading, spacing: 6) {
+                    if index > 0 {
+                        Divider()
+                    }
+
+                    Text(item.observation)
                         .font(AppTheme.warmPaperBody)
                         .foregroundStyle(AppTheme.textPrimary)
                         .lineSpacing(2)
 
-                    if let action = indexedItem.element.action, !action.isEmpty {
+                    if let action = item.action, !action.isEmpty {
                         Text(action)
                             .font(AppTheme.warmPaperMeta)
                             .foregroundStyle(AppTheme.textMuted)
                             .lineSpacing(2)
                     }
                 }
-                .padding(10)
-                .background(AppTheme.background)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
             }
         }
     }
