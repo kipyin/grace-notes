@@ -6,6 +6,7 @@ struct SettingsScreen: View {
     /// Default false to align with SummarizerProvider; first launch uses on-device NL summarization.
     @AppStorage("useCloudSummarization") private var useCloudSummarization = false
     @AppStorage(ReviewInsightsProvider.useAIReviewInsightsKey) private var useAIReviewInsights = false
+    @AppStorage(PersistenceController.iCloudSyncEnabledKey) private var isICloudSyncEnabled = true
     @Environment(\.modelContext) private var modelContext
     @Environment(\.openURL) private var openURL
     @Environment(\.scenePhase) private var scenePhase
@@ -80,6 +81,11 @@ struct SettingsScreen: View {
             }
 
             Section {
+                Toggle(String(localized: "iCloud sync"), isOn: $isICloudSyncEnabled)
+                    .font(AppTheme.warmPaperBody)
+                    .foregroundStyle(AppTheme.settingsTextPrimary)
+                    .tint(AppTheme.accent)
+
                 Button(String(localized: "Export journal data (JSON)")) {
                     exportJournalData()
                 }
@@ -322,7 +328,9 @@ private extension SettingsScreen {
     var dataPrivacyFooterText: String {
         return String(
             localized: """
-            Entries stay private to your devices and account. \
+            iCloud sync on: entries sync across your devices. \
+            iCloud sync off: entries stay local on this device. \
+            Changes apply the next time you open the app. \
             Export creates a full JSON backup.
             """
         )
