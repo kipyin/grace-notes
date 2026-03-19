@@ -6,7 +6,7 @@ This roadmap turns the strategic priority stack into a release sequence grounded
 
 ## Roadmap principles
 
-1. Fix the core journaling loop before adding more surface area.
+1. Fix the core grace note loop before adding more surface area.
 2. Prioritize review value over browsing polish.
 3. Treat trust and ownership as product, not back-office infrastructure.
 4. Lower pressure without diluting the core reflection ritual.
@@ -30,7 +30,7 @@ This roadmap turns the strategic priority stack into a release sequence grounded
 - `#32` Overall app performance optimization, reframed as a tracking umbrella for follow-up work
 
 **Why now**
-- These issues directly break first impression and core journaling momentum.
+- These issues directly break first impression and core grace note momentum.
 - `#36` and `#37` are two symptoms of the same input pipeline problem.
 
 **Acceptance intent**
@@ -82,7 +82,7 @@ This roadmap turns the strategic priority stack into a release sequence grounded
 
 ## 0.5.0 — Trust and ownership
 
-**Goal:** Make Grace Notes feel safe to adopt as a real journal.
+**Goal:** Make Grace Notes feel safe to adopt as a real grace note practice.
 
 **Scope in**
 - Structured import to complement existing export

@@ -1,4 +1,4 @@
-## Journal Screen
+## Grace Note Screen
 
 ### Refine chip display behavior
 
@@ -44,14 +44,14 @@ Gratitudes            x x * o o
 
 ### Icon consistency
 
-- make the completion badge icons consistent between timeline and Journal screen. (Daily Rhythm icons are different)
+- make the completion badge icons consistent between timeline and Grace Note screen. (Daily Rhythm icons are different)
 
 ## Settings Screen
 
 ### Need to harden the storage thing.
 
 - We need to make iCloud syncing robust and reliable.
-- Need to add input journal data function.
+- Need to add input grace note data function.
 
 ### Combine AI toggles
 
