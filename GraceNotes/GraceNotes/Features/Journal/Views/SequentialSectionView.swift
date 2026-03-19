@@ -71,6 +71,7 @@ struct SequentialSectionView: View {
     let onDeleteChip: ((Int) -> Void)?
     let onAddNew: (() -> Void)?
     private static let edgeFeatherWidth: CGFloat = 28
+    private static let sectionProgressDotsTrailingInset: CGFloat = 8
     @State private var draggingItemID: UUID?
     @State private var chipScrollMetrics = HorizontalScrollMetrics()
     @State private var isEditingPulseExpanded = false
@@ -176,6 +177,7 @@ struct SequentialSectionView: View {
                     .foregroundStyle(AppTheme.journalTextPrimary)
                 Spacer(minLength: AppTheme.spacingTight)
                 sectionProgressDots
+                    .padding(.trailing, Self.sectionProgressDotsTrailingInset)
             }
 
             if !items.isEmpty || showAddChip {
