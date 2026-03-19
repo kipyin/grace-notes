@@ -2,9 +2,24 @@ import SwiftUI
 
 /// Displays the journal entry date and completion status.
 struct DateSectionView: View {
+    private enum CompletionBadgeInfo {
+        case dailyRhythm
+        case complete
+
+        var description: String {
+            switch self {
+            case .dailyRhythm:
+                return String(localized: "Daily Rhythm means you checked in with meaningful progress today.")
+            case .complete:
+                return String(localized: "Complete means you finished the full journal reflection for today.")
+            }
+        }
+    }
+
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @State private var selectedBadgeInfo: CompletionBadgeInfo?
 
     let entryDate: Date
     let completionLevel: JournalCompletionLevel
@@ -34,6 +49,11 @@ struct DateSectionView: View {
                 }
             }
         }
+        .alert(String(localized: "Completion status"), isPresented: completionInfoIsPresented) {
+            Button(String(localized: "OK"), role: .cancel) {}
+        } message: {
+            Text(selectedBadgeInfo?.description ?? "")
+        }
     }
 
     private var dateLabel: some View {
@@ -47,31 +67,46 @@ struct DateSectionView: View {
         Group {
             switch completionLevel {
             case .quickCheckIn:
-                levelSurface(level: .quickCheckIn, isCelebrating: celebratingLevel == .quickCheckIn) {
-                    Label(String(localized: "Daily Rhythm"), systemImage: "sparkles")
-                        .font(AppTheme.warmPaperMetaEmphasis)
-                        .foregroundStyle(AppTheme.reflectionStartedText)
+                Button {
+                    selectedBadgeInfo = .dailyRhythm
+                } label: {
+                    levelSurface(level: .quickCheckIn, isCelebrating: celebratingLevel == .quickCheckIn) {
+                        Label(String(localized: "Daily Rhythm"), systemImage: "sparkles")
+                            .font(AppTheme.warmPaperMetaEmphasis)
+                            .foregroundStyle(AppTheme.reflectionStartedText)
+                    }
                 }
+                .buttonStyle(.plain)
             case .standardReflection:
-                levelSurface(level: .standardReflection, isCelebrating: celebratingLevel == .standardReflection) {
-                    Label(
-                        String(localized: "Complete"),
-                        systemImage: celebratingLevel == .standardReflection
-                            ? "sparkles.rectangle.stack.fill"
-                            : "sparkles.rectangle.stack"
-                    )
-                    .font(AppTheme.warmPaperMetaEmphasis)
-                    .foregroundStyle(AppTheme.fullFifteenText)
+                Button {
+                    selectedBadgeInfo = .complete
+                } label: {
+                    levelSurface(level: .standardReflection, isCelebrating: celebratingLevel == .standardReflection) {
+                        Label(
+                            String(localized: "Complete"),
+                            systemImage: celebratingLevel == .standardReflection
+                                ? "sparkles.rectangle.stack.fill"
+                                : "sparkles.rectangle.stack"
+                        )
+                        .font(AppTheme.warmPaperMetaEmphasis)
+                        .foregroundStyle(AppTheme.fullFifteenText)
+                    }
                 }
+                .buttonStyle(.plain)
             case .fullFiveCubed:
-                levelSurface(level: .fullFiveCubed, isCelebrating: celebratingLevel == .fullFiveCubed) {
-                    Label(
-                        String(localized: "Complete"),
-                        systemImage: celebratingLevel == .fullFiveCubed ? "checkmark.circle.fill" : "checkmark.circle"
-                    )
-                    .font(AppTheme.warmPaperMetaEmphasis)
-                    .foregroundStyle(AppTheme.perfectRhythmText)
+                Button {
+                    selectedBadgeInfo = .complete
+                } label: {
+                    levelSurface(level: .fullFiveCubed, isCelebrating: celebratingLevel == .fullFiveCubed) {
+                        Label(
+                            String(localized: "Complete"),
+                            systemImage: celebratingLevel == .fullFiveCubed ? "checkmark.circle.fill" : "checkmark.circle"
+                        )
+                        .font(AppTheme.warmPaperMetaEmphasis)
+                        .foregroundStyle(AppTheme.perfectRhythmText)
+                    }
                 }
+                .buttonStyle(.plain)
             case .none:
                 Label(String(localized: "In progress"), systemImage: "pencil.circle")
                     .font(AppTheme.warmPaperMetaEmphasis)
@@ -190,5 +225,16 @@ struct DateSectionView: View {
         case .none:
             return 0
         }
+    }
+
+    private var completionInfoIsPresented: Binding<Bool> {
+        Binding(
+            get: { selectedBadgeInfo != nil },
+            set: { isPresented in
+                if !isPresented {
+                    selectedBadgeInfo = nil
+                }
+            }
+        )
     }
 }

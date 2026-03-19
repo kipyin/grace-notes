@@ -47,6 +47,14 @@ private struct ConditionalAccessibilityIdentifier: ViewModifier {
 }
 
 struct SequentialSectionView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private enum SlotStatus {
+        case edited
+        case editing
+        case pending
+    }
+
     let title: String
     let items: [JournalItem]
     let placeholder: String
@@ -64,6 +72,7 @@ struct SequentialSectionView: View {
     private static let edgeFeatherWidth: CGFloat = 28
     @State private var draggingItemID: UUID?
     @State private var chipScrollMetrics = HorizontalScrollMetrics()
+    @State private var isEditingPulseExpanded = false
 
     init(
         title: String,
@@ -101,15 +110,37 @@ struct SequentialSectionView: View {
         items.count < slotCount || editingIndex != nil
     }
 
-    private var progressText: String {
-        let formatKey = String(localized: "%d of %d")
-        let currentSlot: Int
-        if let idx = editingIndex {
-            currentSlot = idx + 1
-        } else {
-            currentSlot = min(items.count + 1, slotCount)
+    private var isInputFocused: Bool {
+        inputFocus?.wrappedValue ?? false
+    }
+
+    private var shouldAnimateEditingPulse: Bool {
+        isInputFocused && !reduceMotion
+    }
+
+    private var slotStatuses: [SlotStatus] {
+        (0..<slotCount).map { index in
+            if editingIndex == index {
+                return .editing
+            }
+            if index < items.count {
+                return .edited
+            }
+            return .pending
         }
-        return String(format: formatKey, currentSlot, slotCount)
+    }
+
+    private var progressAccessibilityLabel: String {
+        let editedCount = slotStatuses.filter { $0 == .edited }.count
+        let editingCount = slotStatuses.filter { $0 == .editing }.count
+        let pendingCount = slotStatuses.filter { $0 == .pending }.count
+        return String(
+            format: String(localized: "%1$@ progress: %2$d edited, %3$d editing, %4$d pending."),
+            title,
+            editedCount,
+            editingCount,
+            pendingCount
+        )
     }
 
     private var showAddChip: Bool {
@@ -132,6 +163,7 @@ struct SequentialSectionView: View {
                     .font(AppTheme.warmPaperHeader)
                     .foregroundStyle(AppTheme.textPrimary)
                 Spacer(minLength: AppTheme.spacingTight)
+                sectionProgressDots
             }
 
             if !items.isEmpty || showAddChip {
@@ -177,7 +209,11 @@ struct SequentialSectionView: View {
 
             if showInput {
                 if let inputFocus {
-                    TextField(placeholder, text: $inputText)
+                    TextField(
+                        "",
+                        text: $inputText,
+                        prompt: Text(placeholder).foregroundStyle(AppTheme.inputPlaceholder)
+                    )
                         .font(AppTheme.warmPaperBody)
                         .foregroundStyle(AppTheme.textPrimary)
                         .textInputAutocapitalization(.sentences)
@@ -186,7 +222,11 @@ struct SequentialSectionView: View {
                         .warmPaperInputStyle()
                         .modifier(ConditionalAccessibilityIdentifier(identifier: inputAccessibilityIdentifier))
                 } else {
-                    TextField(placeholder, text: $inputText)
+                    TextField(
+                        "",
+                        text: $inputText,
+                        prompt: Text(placeholder).foregroundStyle(AppTheme.inputPlaceholder)
+                    )
                         .font(AppTheme.warmPaperBody)
                         .foregroundStyle(AppTheme.textPrimary)
                         .textInputAutocapitalization(.sentences)
@@ -196,11 +236,93 @@ struct SequentialSectionView: View {
                 }
             }
 
-            Text(progressText)
-                .font(AppTheme.warmPaperMetaEmphasis)
-                .foregroundStyle(AppTheme.textMuted)
-                .monospacedDigit()
-                .padding(.top, AppTheme.spacingTight)
+        }
+        .onAppear {
+            updateEditingPulseAnimation()
+        }
+        .onChange(of: shouldAnimateEditingPulse) { _, _ in
+            updateEditingPulseAnimation()
+        }
+    }
+
+    private var sectionProgressDots: some View {
+        HStack(spacing: 6) {
+            ForEach(Array(slotStatuses.enumerated()), id: \.offset) { _, status in
+                Circle()
+                    .fill(dotFill(for: status))
+                    .frame(width: dotDiameter(for: status), height: dotDiameter(for: status))
+                    .overlay(
+                        Circle()
+                            .stroke(dotBorder(for: status), lineWidth: dotBorderWidth(for: status))
+                    )
+                    .overlay {
+                        if status == .editing {
+                            Circle()
+                                .fill(AppTheme.activeEditingAccentStrong)
+                                .frame(width: 4, height: 4)
+                        }
+                    }
+                    .overlay {
+                        if status == .editing && shouldAnimateEditingPulse {
+                            Circle()
+                                .stroke(AppTheme.activeEditingAccentStrong.opacity(0.45), lineWidth: 1)
+                                .frame(width: 14, height: 14)
+                                .scaleEffect(isEditingPulseExpanded ? 1.2 : 0.92)
+                                .opacity(isEditingPulseExpanded ? 0 : 0.62)
+                        }
+                    }
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(progressAccessibilityLabel)
+    }
+
+    private func dotFill(for status: SlotStatus) -> Color {
+        switch status {
+        case .edited:
+            return AppTheme.complete
+        case .editing:
+            return AppTheme.activeEditingAccent.opacity(0.28)
+        case .pending:
+            return .clear
+        }
+    }
+
+    private func dotBorder(for status: SlotStatus) -> Color {
+        switch status {
+        case .edited:
+            return .clear
+        case .editing:
+            return AppTheme.activeEditingAccentStrong.opacity(0.9)
+        case .pending:
+            return AppTheme.pendingOutline.opacity(0.58)
+        }
+    }
+
+    private func dotBorderWidth(for status: SlotStatus) -> CGFloat {
+        switch status {
+        case .edited:
+            return 0
+        case .editing:
+            return 1.2
+        case .pending:
+            return 1
+        }
+    }
+
+    private func dotDiameter(for status: SlotStatus) -> CGFloat {
+        status == .editing ? 11.5 : 10
+    }
+
+    private func updateEditingPulseAnimation() {
+        guard shouldAnimateEditingPulse else {
+            isEditingPulseExpanded = false
+            return
+        }
+
+        isEditingPulseExpanded = false
+        withAnimation(.easeOut(duration: 0.95).repeatForever(autoreverses: false)) {
+            isEditingPulseExpanded = true
         }
     }
 

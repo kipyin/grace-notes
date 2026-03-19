@@ -11,6 +11,10 @@
 - Review timeline and insight presentation refined for better continuity and less visual duplication.
 - Reminder controls and inline settings interactions tightened for clearer state feedback.
 - Deterministic weekly insight generation and normalization improved for more consistent theme continuity.
+- Completion badges in Today are now tappable and explain the meaning of `Daily Rhythm` and `Complete`.
+- Section progress in Today now uses five-dot status indicators near each section title instead of `x of 5` copy.
+- Review timeline completion chips now use consistent text-only badge styling aligned with Today labels.
+- Chip/input editing states now use clearer accent and border contrast for active and pending slots.
 
 ### Fixed
 - Journal completion logic now correctly requires full 5x5x5 completion for standard reflection gating.

@@ -90,10 +90,13 @@ struct ChipView: View {
                 .padding(.vertical, AppTheme.spacingTight)
                 .frame(minHeight: 44)
                 .frame(maxWidth: resolvedMaxLabelWidth, alignment: .leading)
-                .background(isSelected ? AppTheme.complete.opacity(0.32) : Self.chipBackground)
+                .background(isSelected ? AppTheme.activeEditingAccent.opacity(0.28) : Self.chipBackground)
                 .overlay(
                     RoundedRectangle(cornerRadius: AppTheme.cornerRadiusLarge)
-                        .stroke(isSelected ? AppTheme.textPrimary.opacity(0.35) : .clear, lineWidth: 1)
+                        .stroke(
+                            isSelected ? AppTheme.activeEditingAccentStrong.opacity(0.86) : .clear,
+                            lineWidth: 1
+                        )
                 )
                 .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusLarge))
                 .mask(

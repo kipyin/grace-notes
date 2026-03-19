@@ -11,8 +11,13 @@ enum AppTheme {
     static let accent = Color(hex: 0xC77B5B)
     static let accentText = Color(hex: 0x8A4A34)
     static let onAccent = Color(hex: 0x1F1A16)
+    static let activeEditingAccent = Color(hex: 0xB07358)
+    static let activeEditingAccentStrong = Color(hex: 0x7B4835)
+    static let pendingOutline = Color(hex: 0x8F8375)
     static let complete = Color(hex: 0x8B9A7D)
     static let completeText = Color(hex: 0x5F6D54)
+    static let inputBorder = Color(hex: 0xD2C4B5)
+    static let inputPlaceholder = Color(hex: 0x746759)
     static let reflectionStartedBackground = Color(hex: 0xF5EDE4)
     static let reflectionStartedBorder = Color(hex: 0xD9C7B5)
     static let reflectionStartedText = Color(hex: 0x6A5646)
@@ -143,7 +148,7 @@ struct WarmPaperInputStyle: ViewModifier {
             .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium))
             .overlay(
                 RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
-                    .stroke(AppTheme.border, lineWidth: 1)
+                    .stroke(AppTheme.inputBorder, lineWidth: 1)
             )
     }
 }

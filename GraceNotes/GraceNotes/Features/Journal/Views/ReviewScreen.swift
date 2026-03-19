@@ -377,7 +377,6 @@ private struct HistoryRow: View {
         case .fullFiveCubed:
             statusChip(
                 text: String(localized: "Complete"),
-                icon: "checkmark.seal.fill",
                 textColor: AppTheme.reviewCompleteText,
                 backgroundColor: AppTheme.reviewCompleteBackground,
                 borderColor: AppTheme.reviewCompleteBorder
@@ -386,7 +385,6 @@ private struct HistoryRow: View {
         case .standardReflection:
             statusChip(
                 text: String(localized: "Complete"),
-                icon: "checkmark.circle.fill",
                 textColor: AppTheme.reviewStandardText,
                 backgroundColor: AppTheme.reviewStandardBackground,
                 borderColor: AppTheme.reviewStandardBorder
@@ -395,7 +393,6 @@ private struct HistoryRow: View {
         case .quickCheckIn:
             statusChip(
                 text: String(localized: "Daily Rhythm"),
-                icon: "pencil.circle.fill",
                 textColor: AppTheme.reviewQuickStartText,
                 backgroundColor: AppTheme.reviewQuickStartBackground,
                 borderColor: AppTheme.reviewQuickStartBorder
@@ -408,17 +405,17 @@ private struct HistoryRow: View {
 
     private func statusChip(
         text: String,
-        icon: String,
         textColor: Color,
         backgroundColor: Color,
         borderColor: Color
     ) -> some View {
-        Label(text, systemImage: icon)
-            .font(AppTheme.warmPaperBody.weight(.semibold))
+        Text(text)
+            .font(AppTheme.warmPaperMetaEmphasis.weight(.semibold))
+            .lineLimit(1)
             .foregroundStyle(textColor)
             .multilineTextAlignment(.leading)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
+            .padding(.horizontal, 9)
+            .padding(.vertical, 5)
             .background(backgroundColor)
             .clipShape(Capsule())
             .overlay(
