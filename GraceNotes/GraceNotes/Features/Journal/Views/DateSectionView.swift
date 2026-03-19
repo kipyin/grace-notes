@@ -27,22 +27,22 @@ struct DateSectionView: View {
     let celebratingLevel: JournalCompletionLevel?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: AppTheme.spacingTight) {
+        VStack(alignment: .leading, spacing: AppTheme.spacingRegular) {
             Text(String(localized: "Date"))
                 .font(AppTheme.warmPaperHeader)
                 .foregroundStyle(AppTheme.textPrimary)
             if dynamicTypeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: AppTheme.spacingTight) {
+                VStack(alignment: .leading, spacing: AppTheme.spacingRegular) {
                     dateLabel
                     completionStatusLabel
                 }
             } else {
                 ViewThatFits(in: .horizontal) {
-                    HStack(spacing: AppTheme.spacingTight) {
+                    HStack(spacing: AppTheme.spacingRegular) {
                         dateLabel
                         completionStatusLabel
                     }
-                    VStack(alignment: .leading, spacing: AppTheme.spacingTight) {
+                    VStack(alignment: .leading, spacing: AppTheme.spacingRegular) {
                         dateLabel
                         completionStatusLabel
                     }
@@ -113,7 +113,7 @@ struct DateSectionView: View {
                     .foregroundStyle(AppTheme.textMuted)
             }
         }
-        .lineLimit(2)
+        .lineLimit(dynamicTypeSize.isAccessibilitySize ? 3 : 2)
         .fixedSize(horizontal: false, vertical: true)
         .multilineTextAlignment(.leading)
     }
@@ -126,6 +126,7 @@ struct DateSectionView: View {
         content()
             .padding(.horizontal, AppTheme.spacingRegular)
             .padding(.vertical, AppTheme.spacingTight)
+            .frame(minHeight: 44)
             .background(
                 RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
                     .fill(backgroundFill(for: level))
@@ -189,11 +190,11 @@ struct DateSectionView: View {
         guard isCelebrating, !reduceMotion else { return 1.0 }
         switch level {
         case .quickCheckIn:
-            return 1.01
+            return 1.008
         case .standardReflection:
-            return 1.025
+            return 1.015
         case .fullFiveCubed:
-            return 1.04
+            return 1.02
         case .none:
             return 1.0
         }
@@ -217,11 +218,11 @@ struct DateSectionView: View {
         guard isCelebrating, !reduceTransparency else { return 0 }
         switch level {
         case .quickCheckIn:
-            return 6
+            return 4
         case .standardReflection:
-            return 12
+            return 8
         case .fullFiveCubed:
-            return 16
+            return 11
         case .none:
             return 0
         }

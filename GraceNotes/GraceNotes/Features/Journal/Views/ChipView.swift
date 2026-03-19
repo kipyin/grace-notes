@@ -14,14 +14,15 @@ struct ChipView: View {
     @State private var renameDraft = ""
 
     private static let chipBackground = AppTheme.complete.opacity(0.2)
-    private static let maxLabelWidth: CGFloat = 120
 
-    private var resolvedMaxLabelWidth: CGFloat? {
-        guard isTruncated else { return nil }
+    private var resolvedMaxLabelWidth: CGFloat {
         if dynamicTypeSize.isAccessibilitySize {
-            return 180
+            return 220
         }
-        return Self.maxLabelWidth
+        if isTruncated {
+            return 140
+        }
+        return 170
     }
 
     init(
@@ -86,9 +87,10 @@ struct ChipView: View {
                 .font(AppTheme.warmPaperBody)
                 .foregroundStyle(AppTheme.textPrimary)
                 .lineLimit(1)
+                .truncationMode(.tail)
                 .padding(.horizontal, AppTheme.spacingRegular)
                 .padding(.vertical, AppTheme.spacingTight)
-                .frame(minHeight: 44)
+                .frame(minWidth: 44, minHeight: 44)
                 .frame(maxWidth: resolvedMaxLabelWidth, alignment: .leading)
                 .background(isSelected ? AppTheme.activeEditingAccent.opacity(0.28) : Self.chipBackground)
                 .overlay(
