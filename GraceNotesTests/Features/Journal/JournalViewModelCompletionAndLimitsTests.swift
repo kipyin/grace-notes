@@ -49,7 +49,7 @@ final class JournalViewModelCompletionAndLimitsTests: XCTestCase {
         XCTAssertFalse(viewModel.completedToday)
     }
 
-    func test_completionLevel_withPartialEntry_returnsQuickCheckIn() async throws {
+    func test_completionLevel_withSingleSectionEntry_returnsNone() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
         let viewModel = makeViewModel(now: now)
@@ -57,7 +57,7 @@ final class JournalViewModelCompletionAndLimitsTests: XCTestCase {
         viewModel.loadEntry(for: now, using: context)
         _ = await viewModel.addGratitude("One")
 
-        XCTAssertEqual(viewModel.completionLevel, .quickCheckIn)
+        XCTAssertEqual(viewModel.completionLevel, .none)
         XCTAssertFalse(viewModel.completedToday)
     }
 

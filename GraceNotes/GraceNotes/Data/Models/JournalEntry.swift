@@ -123,10 +123,6 @@ final class JournalEntry {
             return .fullFiveCubed
         }
 
-        let notesTrimmed = readingNotes.trimmingCharacters(in: .whitespacesAndNewlines)
-        let reflectionsTrimmed = reflections.trimmingCharacters(in: .whitespacesAndNewlines)
-        let hasWrittenNotes = !notesTrimmed.isEmpty
-        let hasWrittenReflections = !reflectionsTrimmed.isEmpty
         if hasAllFifteenChips(
             gratitudesCount: gratitudesCount,
             needsCount: needsCount,
@@ -135,7 +131,7 @@ final class JournalEntry {
             return .standardReflection
         }
 
-        if gratitudesCount > 0 || needsCount > 0 || peopleCount > 0 || hasWrittenNotes || hasWrittenReflections {
+        if gratitudesCount >= 1 && needsCount >= 1 && peopleCount >= 1 {
             return .quickCheckIn
         }
 

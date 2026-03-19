@@ -14,7 +14,7 @@ final class JournalCompletionLevelTests: XCTestCase {
         XCTAssertEqual(level, .none)
     }
 
-    func test_completionLevel_quickCheckIn_withSingleGratitude() {
+    func test_completionLevel_none_withSingleGratitudeOnly() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 1,
             needsCount: 0,
@@ -23,7 +23,7 @@ final class JournalCompletionLevelTests: XCTestCase {
             reflections: ""
         )
 
-        XCTAssertEqual(level, .quickCheckIn)
+        XCTAssertEqual(level, .none)
     }
 
     func test_completionLevel_quickCheckIn_withThreeByThreeByThree() {
@@ -38,12 +38,24 @@ final class JournalCompletionLevelTests: XCTestCase {
         XCTAssertEqual(level, .quickCheckIn)
     }
 
-    func test_completionLevel_quickCheckIn_withMixedContent() {
+    func test_completionLevel_none_withMixedContentButMissingOneChipSection() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 2,
             needsCount: 2,
-            peopleCount: 2,
+            peopleCount: 0,
             readingNotes: "A short note",
+            reflections: ""
+        )
+
+        XCTAssertEqual(level, .none)
+    }
+
+    func test_completionLevel_quickCheckIn_withOneGratitudeOneNeedAndOnePerson() {
+        let level = JournalEntry.completionLevel(
+            gratitudesCount: 1,
+            needsCount: 1,
+            peopleCount: 1,
+            readingNotes: "",
             reflections: ""
         )
 

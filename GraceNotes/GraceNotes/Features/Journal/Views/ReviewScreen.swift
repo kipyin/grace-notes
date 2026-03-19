@@ -258,13 +258,13 @@ struct ReviewScreen: View {
     private func completionText(for completionLevel: JournalCompletionLevel) -> String {
         switch completionLevel {
         case .fullFiveCubed:
-            return String(localized: "Complete")
+            return String(localized: "Harvest")
         case .standardReflection:
-            return String(localized: "Complete")
+            return String(localized: "Harvest")
         case .quickCheckIn:
-            return String(localized: "Daily Rhythm")
+            return String(localized: "Seed")
         case .none:
-            return String(localized: "No completion level")
+            return String(localized: "In Progress")
         }
     }
 
@@ -362,21 +362,14 @@ private struct HistoryRow: View {
             .foregroundStyle(AppTheme.reviewTextPrimary)
     }
 
-    private var hasCompletionBadge: Bool {
-        switch entry.completionLevel {
-        case .none:
-            return false
-        default:
-            return true
-        }
-    }
+    private var hasCompletionBadge: Bool { true }
 
     @ViewBuilder
     private func completionBadge(lineLimit: Int) -> some View {
         switch entry.completionLevel {
         case .fullFiveCubed:
             statusChip(
-                text: String(localized: "Complete"),
+                text: String(localized: "Harvest"),
                 textColor: AppTheme.reviewCompleteText,
                 backgroundColor: AppTheme.reviewCompleteBackground,
                 borderColor: AppTheme.reviewCompleteBorder
@@ -384,7 +377,7 @@ private struct HistoryRow: View {
             .lineLimit(lineLimit)
         case .standardReflection:
             statusChip(
-                text: String(localized: "Complete"),
+                text: String(localized: "Harvest"),
                 textColor: AppTheme.reviewStandardText,
                 backgroundColor: AppTheme.reviewStandardBackground,
                 borderColor: AppTheme.reviewStandardBorder
@@ -392,14 +385,20 @@ private struct HistoryRow: View {
             .lineLimit(lineLimit)
         case .quickCheckIn:
             statusChip(
-                text: String(localized: "Daily Rhythm"),
+                text: String(localized: "Seed"),
                 textColor: AppTheme.reviewQuickStartText,
                 backgroundColor: AppTheme.reviewQuickStartBackground,
                 borderColor: AppTheme.reviewQuickStartBorder
             )
             .lineLimit(lineLimit)
         case .none:
-            EmptyView()
+            statusChip(
+                text: String(localized: "In Progress"),
+                textColor: AppTheme.reviewTextMuted,
+                backgroundColor: AppTheme.reviewBackground,
+                borderColor: AppTheme.border
+            )
+            .lineLimit(lineLimit)
         }
     }
 
