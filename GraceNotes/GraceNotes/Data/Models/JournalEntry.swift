@@ -10,13 +10,13 @@ enum JournalCompletionLevel: String, Equatable {
 
 @Model
 final class JournalEntry {
-    // CloudKit-backed SwiftData models need declaration-time defaults
-    // for every non-optional property.
+    // CloudKit: non-optional transformable arrays do not get a recognized default in
+    // the Core Data stack; use optional (`nil` = empty) so the store can load.
     var id: UUID = UUID()
     var entryDate: Date = Date.now
-    var gratitudes: [JournalItem] = []
-    var needs: [JournalItem] = []
-    var people: [JournalItem] = []
+    var gratitudes: [JournalItem]?
+    var needs: [JournalItem]?
+    var people: [JournalItem]?
     @Attribute(originalName: "bibleNotes") var readingNotes: String = ""
     var reflections: String = ""
     var createdAt: Date = Date.now
@@ -60,17 +60,17 @@ final class JournalEntry {
     /// Whether this entry has all 15 chip slots filled. Used by History and Journal.
     var isComplete: Bool {
         Self.hasAllFifteenChips(
-            gratitudesCount: gratitudes.count,
-            needsCount: needs.count,
-            peopleCount: people.count
+            gratitudesCount: (gratitudes ?? []).count,
+            needsCount: (needs ?? []).count,
+            peopleCount: (people ?? []).count
         )
     }
 
     var completionLevel: JournalCompletionLevel {
         Self.completionLevel(
-            gratitudesCount: gratitudes.count,
-            needsCount: needs.count,
-            peopleCount: people.count,
+            gratitudesCount: (gratitudes ?? []).count,
+            needsCount: (needs ?? []).count,
+            peopleCount: (people ?? []).count,
             readingNotes: readingNotes,
             reflections: reflections
         )

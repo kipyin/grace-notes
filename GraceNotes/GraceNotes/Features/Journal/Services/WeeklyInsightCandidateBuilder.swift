@@ -371,7 +371,7 @@ private extension WeeklyInsightCandidateBuilder {
         }
 
         let totalChips = entries.reduce(0) { partialResult, entry in
-            partialResult + entry.gratitudes.count + entry.needs.count + entry.people.count
+            partialResult + (entry.gratitudes ?? []).count + (entry.needs ?? []).count + (entry.people ?? []).count
         }
         let totalLongText = entries.reduce(0) { partialResult, entry in
             partialResult

@@ -2,7 +2,6 @@ import Foundation
 
 struct ReviewInsightsProvider: Sendable {
     static let useAIReviewInsightsKey = "useAIReviewInsights"
-    private static let placeholderApiKey = "YOUR_KEY_HERE"
 
     private let deterministicGenerator: any ReviewInsightsGenerating
     private let cloudGenerator: (any ReviewInsightsGenerating)?
@@ -16,7 +15,7 @@ struct ReviewInsightsProvider: Sendable {
 
         if let cloudGenerator {
             self.cloudGenerator = cloudGenerator
-        } else if apiKey != Self.placeholderApiKey {
+        } else if ApiSecrets.isUsableCloudApiKey(apiKey) {
             self.cloudGenerator = CloudReviewInsightsGenerator(apiKey: apiKey)
         } else {
             self.cloudGenerator = nil
