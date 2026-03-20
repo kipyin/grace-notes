@@ -1,7 +1,8 @@
 import Foundation
 
 struct ReviewInsightsProvider: Sendable {
-    static let useAIReviewInsightsKey = "useAIReviewInsights"
+    static let aiFeaturesEnabledKey = SummarizerProvider.useCloudUserDefaultsKey
+    private static let legacyUseAIReviewInsightsKey = "useAIReviewInsights"
     private static let placeholderApiKey = "YOUR_KEY_HERE"
 
     private let deterministicGenerator: any ReviewInsightsGenerating
@@ -23,12 +24,21 @@ struct ReviewInsightsProvider: Sendable {
         }
     }
 
+    static func migrateLegacyAIFeaturesToggleIfNeeded(defaults: UserDefaults = .standard) {
+        guard let legacyValue = defaults.object(forKey: legacyUseAIReviewInsightsKey) as? Bool else {
+            return
+        }
+        let currentAIFeaturesValue = defaults.object(forKey: aiFeaturesEnabledKey) as? Bool ?? false
+        defaults.set(currentAIFeaturesValue || legacyValue, forKey: aiFeaturesEnabledKey)
+        defaults.removeObject(forKey: legacyUseAIReviewInsightsKey)
+    }
+
     func generateInsights(
         from entries: [JournalEntry],
         referenceDate: Date,
         calendar: Calendar = .current
     ) async -> ReviewInsights {
-        let useAI = UserDefaults.standard.bool(forKey: Self.useAIReviewInsightsKey)
+        let useAI = UserDefaults.standard.object(forKey: Self.aiFeaturesEnabledKey) as? Bool ?? false
 
         if useAI, let cloudGenerator {
             if let cloudInsights = try? await cloudGenerator.generateInsights(

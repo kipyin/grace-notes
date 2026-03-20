@@ -4,8 +4,7 @@ import UIKit
 
 struct SettingsScreen: View {
     /// Default false to align with SummarizerProvider; first launch uses on-device NL summarization.
-    @AppStorage("useCloudSummarization") private var useCloudSummarization = false
-    @AppStorage(ReviewInsightsProvider.useAIReviewInsightsKey) private var useAIReviewInsights = false
+    @AppStorage(SummarizerProvider.useCloudUserDefaultsKey) private var useCloudSummarization = false
     @AppStorage(PersistenceController.iCloudSyncEnabledKey) private var isICloudSyncEnabled = true
     @Environment(\.modelContext) private var modelContext
     @Environment(\.openURL) private var openURL
@@ -338,10 +337,9 @@ private extension SettingsScreen {
 
     var aiFeaturesEnabled: Binding<Bool> {
         Binding(
-            get: { useCloudSummarization || useAIReviewInsights },
+            get: { useCloudSummarization },
             set: { isEnabled in
                 useCloudSummarization = isEnabled
-                useAIReviewInsights = isEnabled
             }
         )
     }
