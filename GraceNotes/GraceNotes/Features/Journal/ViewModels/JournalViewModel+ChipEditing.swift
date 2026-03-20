@@ -7,12 +7,7 @@ private func displayReadyChipResult(
     guard shouldLimitToChipUnits else {
         return SummarizationResult(label: result.label, isTruncated: false)
     }
-    let capped = ChipLabelUnitTruncator.truncate(result.label)
-    let label = capped.isTruncated ? "\(capped.label)..." : capped.label
-    return SummarizationResult(
-        label: label,
-        isTruncated: capped.isTruncated
-    )
+    return ChipLabelUnitTruncator.displayCappedLabel(from: result.label)
 }
 
 extension JournalViewModel {
