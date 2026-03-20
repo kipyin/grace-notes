@@ -4,8 +4,16 @@
 
 In progress: iCloud / SwiftData sync reliability (visible sync state where feasible, Settings copy aligned with real persistence behavior, clearer recovery when sync toggles or fails). Release scope and acceptance intent: `GraceNotes/docs/07-release-roadmap.md`.
 
+### Added
+- Settings → AI: path-aware status when AI features are on (misconfigured key, offline, soft check failure), tap the row to verify reachability to the cloud AI host, inline status under the title (plus “Tap for connection status” when nominal), and throttled auto-check on Settings open. Chip label truncation follows the same “cloud route” rule as `SummarizerProvider` (toggle + configured key).
+- AI row uses a Reminders-style trailing toggle with a separate tappable title area for connection status. “Connection looks good.” clears when you leave Settings, lose network route, or start a new check (no timed dismiss).
+
 ### Changed
 - On-device chip labels no longer use word- or character-based “summarization”; they show a capped prefix of the user’s own text with `...` when truncated. Cloud chip summarization is unchanged.
+- Review → Insights / Timeline uses the system segmented `Picker` (Liquid Glass on iOS 26+) with warm accent tint.
+
+### Fixed
+- `JournalEntry` chip arrays (`gratitudes`, `needs`, `people`) are optional in the SwiftData model so CloudKit-backed stores load: Core Data requires optional or defaulted attributes, and empty-array defaults on transformable collections are not accepted (fixes startup fallback to local-only with `NSCocoaErrorDomain` 134060).
 
 ## [0.3.5] - 2026-03-20
 

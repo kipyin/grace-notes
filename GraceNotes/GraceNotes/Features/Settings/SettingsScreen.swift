@@ -16,6 +16,7 @@ struct SettingsScreen: View {
 
     @StateObject private var reminderState = ReminderSettingsFlowModel()
     @StateObject private var iCloudAccountState = ICloudAccountStatusModel()
+    @StateObject private var aiCloudStatus = AISettingsCloudStatusModel()
     @State private var isReminderPickerExpanded = false
     @State private var isReminderToggleOn = false
     @State private var exportErrorMessage: String?
@@ -28,25 +29,16 @@ struct SettingsScreen: View {
     var body: some View {
         List {
             Section {
-                Toggle(String(localized: "AI features"), isOn: aiFeaturesEnabled)
-                    .font(AppTheme.warmPaperBody)
-                    .foregroundStyle(AppTheme.settingsTextPrimary)
-                    .tint(AppTheme.accent)
+                VStack(alignment: .leading, spacing: AppTheme.spacingRegular) {
+                    aiConnectionControlRow
+                }
+                .padding(.vertical, AppTheme.spacingTight / 2)
             } header: {
                 Text(String(localized: "AI"))
                     .font(AppTheme.warmPaperHeader)
                     .foregroundStyle(AppTheme.settingsTextPrimary)
             } footer: {
-                Text(
-                    String(
-                        localized: """
-                        On: cloud summarization and AI review insights are enabled. \
-                        Off: labels and review insights stay on-device.
-                        """
-                    )
-                )
-                    .font(AppTheme.warmPaperBody)
-                    .foregroundStyle(AppTheme.settingsTextMuted)
+                aiSectionFooter
             }
 
             Section {
@@ -105,6 +97,11 @@ struct SettingsScreen: View {
             await reminderState.refreshStatus()
             syncReminderControlState(with: reminderState.liveStatus)
             iCloudAccountState.refresh()
+            syncAICloudStatusModel()
+            aiCloudStatus.scheduleThrottledAutoCheckIfNeeded()
+        }
+        .onDisappear {
+            aiCloudStatus.onSettingsDisappear()
         }
         .onChange(of: scenePhase) { _, newValue in
             guard newValue == .active else { return }
@@ -112,6 +109,14 @@ struct SettingsScreen: View {
                 await reminderState.refreshStatus()
             }
             iCloudAccountState.refresh()
+            aiCloudStatus.sceneDidBecomeActive()
+            syncAICloudStatusModel()
+        }
+        .onChange(of: useCloudSummarization) { _, _ in
+            syncAICloudStatusModel()
+        }
+        .onChange(of: useAIReviewInsights) { _, _ in
+            syncAICloudStatusModel()
         }
         .onChange(of: reminderState.selectedTime) { _, _ in
             reminderState.handleSelectedTimeChanged()
@@ -138,6 +143,113 @@ struct SettingsScreen: View {
 }
 
 private extension SettingsScreen {
+    var aiFeaturesOn: Bool {
+        useCloudSummarization || useAIReviewInsights
+    }
+
+    func syncAICloudStatusModel() {
+        aiCloudStatus.refresh(aiFeaturesEnabled: aiFeaturesOn)
+    }
+
+    var aiConnectionSubtitle: String? {
+        guard aiFeaturesOn else { return nil }
+        if let row = aiCloudStatus.statusRow {
+            return aiCloudStatusMessage(row)
+        }
+        if ApiSecrets.isCloudApiKeyConfigured {
+            return String(localized: "Tap for connection status")
+        }
+        return nil
+    }
+
+    var aiConnectionControlRow: some View {
+        HStack(spacing: AppTheme.spacingRegular) {
+            Button {
+                guard aiFeaturesOn else { return }
+                if ApiSecrets.isCloudApiKeyConfigured {
+                    aiCloudStatus.requestManualConnectivityCheck()
+                }
+            } label: {
+                HStack(spacing: AppTheme.spacingRegular) {
+                    VStack(alignment: .leading, spacing: AppTheme.spacingTight / 2) {
+                        Text(String(localized: "AI features"))
+                            .font(AppTheme.warmPaperBody)
+                            .foregroundStyle(AppTheme.settingsTextPrimary)
+                        if let subtitle = aiConnectionSubtitle {
+                            Text(subtitle)
+                                .font(AppTheme.warmPaperMeta)
+                                .foregroundStyle(AppTheme.settingsTextMuted)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+
+                    Spacer(minLength: AppTheme.spacingRegular)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(!aiFeaturesOn)
+            .accessibilityLabel(String(localized: "AI connection status"))
+            .accessibilityValue(aiConnectionAccessibilityValue)
+            .accessibilityHint(
+                String(localized: "Runs a cloud AI reachability check when activated.")
+            )
+
+            Toggle("", isOn: aiFeaturesToggleBinding)
+                .labelsHidden()
+                .tint(AppTheme.accent)
+                .accessibilityLabel(String(localized: "AI features"))
+        }
+        .frame(minHeight: 44)
+    }
+
+    var aiFeaturesToggleBinding: Binding<Bool> {
+        Binding(
+            get: { aiFeaturesOn },
+            set: { enabled in
+                useCloudSummarization = enabled
+                useAIReviewInsights = enabled
+                syncAICloudStatusModel()
+            }
+        )
+    }
+
+    @ViewBuilder
+    var aiSectionFooter: some View {
+        Text(
+            String(
+                localized: """
+                On: cloud summarization and AI review insights are enabled. \
+                Off: labels and review insights stay on-device.
+                """
+            )
+        )
+        .font(AppTheme.warmPaperBody)
+        .foregroundStyle(AppTheme.settingsTextMuted)
+    }
+
+    var aiConnectionAccessibilityValue: String {
+        guard aiFeaturesOn else {
+            return String(localized: "Off")
+        }
+        return aiConnectionSubtitle ?? ""
+    }
+
+    func aiCloudStatusMessage(_ row: AISettingsCloudStatusRow) -> String {
+        switch row {
+        case .misconfigured:
+            return String(localized: "Cloud AI isn’t set up on this build.")
+        case .checking:
+            return String(localized: "Checking…")
+        case .offline:
+            return String(localized: "No internet connection")
+        case .checkFailed:
+            return String(localized: "Couldn’t verify—try again")
+        case .connectionVerified:
+            return String(localized: "Connection looks good.")
+        }
+    }
+
     var shouldUseCompactReminderPicker: Bool {
         dynamicTypeSize >= .accessibility1 || verticalSizeClass == .compact
     }
@@ -207,17 +319,10 @@ private extension SettingsScreen {
                 .font(AppTheme.warmPaperMeta)
                 .foregroundStyle(AppTheme.settingsTextMuted)
 
-            Button {
-                openSystemSettings()
-            } label: {
-                Text(String(localized: "Open Settings"))
-                    .frame(minHeight: 44)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(AppTheme.reminderPrimaryActionBackground)
-            .foregroundStyle(AppTheme.reminderPrimaryActionForeground)
-            .font(AppTheme.warmPaperBody)
-            .accessibilityHint(String(localized: "Open iOS Settings for notification permissions."))
+            SettingsOpenSystemSettingsButton(
+                action: openSystemSettings,
+                accessibilityHint: String(localized: "Open iOS Settings for notification permissions.")
+            )
         }
     }
 
@@ -314,16 +419,6 @@ private extension SettingsScreen {
             return
         }
         openURL(url)
-    }
-
-    var aiFeaturesEnabled: Binding<Bool> {
-        Binding(
-            get: { useCloudSummarization || useAIReviewInsights },
-            set: { isEnabled in
-                useCloudSummarization = isEnabled
-                useAIReviewInsights = isEnabled
-            }
-        )
     }
 
     func exportJournalData() {

@@ -230,6 +230,22 @@
         }
       }
     },
+    "AI connection status" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI connection status"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 连接状态"
+          }
+        }
+      }
+    },
     "AI features" : {
       "localizations" : {
         "en" : {
@@ -295,6 +311,7 @@
       }
     },
     "Available for iCloud." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -343,6 +360,7 @@
       }
     },
     "Changes to the sync switch apply the next time you open the app." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -354,6 +372,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "同步设置会在你下次打开 App 时生效。"
+          }
+        }
+      }
+    },
+    "Check connection" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check connection"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "检查连接"
           }
         }
       }
@@ -422,6 +457,55 @@
         }
       }
     },
+    "Cloud AI isn’t set up on this build." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cloud AI isn’t set up."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此版本尚未配置云端 AI。"
+          }
+        }
+      }
+    },
+    "Collapsed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collapsed"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已收起"
+          }
+        }
+      }
+    },
+    "Connection looks good." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connection looks good."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连接正常。"
+          }
+        }
+      }
+    },
     "Continue" : {
       "localizations" : {
         "en" : {
@@ -455,6 +539,7 @@
       }
     },
     "Could not determine. Try again later." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -466,6 +551,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "暂时无法确定，请稍后再试。"
+          }
+        }
+      }
+    },
+    "Couldn’t verify—try again" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t verify—try again"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法验证，请稍后再试"
           }
         }
       }
@@ -498,6 +599,310 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "数据与隐私"
+          }
+        }
+      }
+    },
+    "DataPrivacy.a11y.backup" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Data backup and export"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "数据备份与导出"
+          }
+        }
+      }
+    },
+    "DataPrivacy.a11y.nextSteps" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What to do next"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接下来可做的事"
+          }
+        }
+      }
+    },
+    "DataPrivacy.a11y.storage" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grace Notes data storage"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "感恩记数据存储"
+          }
+        }
+      }
+    },
+    "DataPrivacy.attention.noAccount" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This device isn't signed in to iCloud. To turn on sync, sign in under Apple ID in Settings. Afterward, fully close Grace Notes and open it again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此设备尚未登录 iCloud。若要开启同步，请先在系统设置中登录 Apple ID，然后完全退出感恩记再重新打开。"
+          }
+        }
+      }
+    },
+    "DataPrivacy.attention.preferenceMismatchRelaunch" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your saved sync setting doesn't match how data is stored right now. When iCloud is available, close Grace Notes completely and open it again to apply your setting."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已保存的同步设置与当前存储方式不一致。请在 iCloud 可用后完全退出感恩记再重新打开，以应用你的设置。"
+          }
+        }
+      }
+    },
+    "DataPrivacy.attention.restricted" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud is restricted on this device. Review Screen Time or device management in Settings. When that's resolved, fully close Grace Notes and open it again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本设备限制了 iCloud。请在系统设置中查看屏幕使用时间或设备管理。处理好后，请完全退出感恩记再重新打开。"
+          }
+        }
+      }
+    },
+    "DataPrivacy.attention.retryICloudAfterRelaunch" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close Grace Notes completely and open it again to try connecting to iCloud."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请完全退出感恩记再重新打开，以尝试连接 iCloud。"
+          }
+        }
+      }
+    },
+    "DataPrivacy.attention.tempUnavailable" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud isn't available right now. Your entries still save on this device."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目前无法使用 iCloud，你的记录仍会保存在本设备。"
+          }
+        }
+      }
+    },
+    "DataPrivacy.attention.tempUnavailableMismatch" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud is temporarily unavailable. Your entries still save on this device. Close Grace Notes completely and reopen it once iCloud is back to apply sync changes."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂时无法使用 iCloud，你的记录仍会保存在本设备。待 iCloud 恢复后，请完全退出感恩记再重新打开，以应用同步更改。"
+          }
+        }
+      }
+    },
+    "DataPrivacy.attention.toggleChangedRelaunch" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You changed iCloud sync here. Close Grace Notes completely and open it again to apply it."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你已在此更改 iCloud 同步。请完全退出感恩记再重新打开以使更改生效。"
+          }
+        }
+      }
+    },
+    "DataPrivacy.attention.unknown" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't verify iCloud status. Your entries still save on this device."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂时无法确认 iCloud 状态，你的记录仍会保存在本设备。"
+          }
+        }
+      }
+    },
+    "DataPrivacy.attention.unknownMismatch" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't verify iCloud status. Your entries still save on this device. Close Grace Notes completely and reopen when iCloud is reachable to apply sync changes."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂时无法确认 iCloud 状态，你的记录仍会保存在本设备。请在 iCloud 可用后完全退出感恩记再重新打开，以应用同步更改。"
+          }
+        }
+      }
+    },
+    "DataPrivacy.backup.heading" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backup"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "备份"
+          }
+        }
+      }
+    },
+    "DataPrivacy.footer.exportAndImport" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export saves a JSON file you can keep as a personal backup. Importing from a file in the app isn't available yet."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导出会生成可保留为个人备份的 JSON 文件。应用内暂不支持从文件导入。"
+          }
+        }
+      }
+    },
+    "DataPrivacy.footer.iCloudNotFullBackup" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud sync helps across your devices; it isn't a complete backup by itself."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud 同步便于在多设备间使用，但本身不能替代完整备份。"
+          }
+        }
+      }
+    },
+    "DataPrivacy.storage.fallbackLocal" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved on this device only right now."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目前仅保存在本设备。"
+          }
+        }
+      }
+    },
+    "DataPrivacy.storage.heading" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Storage"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "存储"
+          }
+        }
+      }
+    },
+    "DataPrivacy.storage.iCloudOn" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your entries sync to iCloud when your account and network allow. Sync may take a little time to appear on other devices."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在账户与网络允许时，你的记录会同步到 iCloud。在其他设备上显示可能会有短暂延迟。"
+          }
+        }
+      }
+    },
+    "DataPrivacy.storage.localOnly" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your entries stay on this device. They are not synced to iCloud."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的记录保存在本设备，不会同步到 iCloud。"
           }
         }
       }
@@ -617,7 +1022,42 @@
         }
       }
     },
+    "Expand to see cloud AI connection details and run a reachability check." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expand to see cloud AI connection details and run a reachability check."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "展开可查看云端 AI 连接详情并检查网络可达性。"
+          }
+        }
+      }
+    },
+    "Expanded" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expanded"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已展开"
+          }
+        }
+      }
+    },
     "Export creates a JSON file of your Grace Notes that you can keep as your own backup." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -665,23 +1105,8 @@
         }
       }
     },
-    "When iCloud is available, fully close the app and reopen to retry storage or apply your stored preference." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "When iCloud is available, fully close the app and reopen to retry storage or apply your stored preference."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请在 iCloud 可用后完全关闭 App 并重新打开，以重试存储或应用已保存的偏好。"
-          }
-        }
-      }
-    },
     "Fully close the app and reopen it for the new setting to take effect." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -698,6 +1123,7 @@
       }
     },
     "Fully close the app and reopen it to apply your sync setting or retry iCloud storage." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -714,6 +1140,7 @@
       }
     },
     "Fully close the app and reopen it to try iCloud storage again." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -730,6 +1157,7 @@
       }
     },
     "Fully close the app and reopen when iCloud is available for your stored preference to take effect." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -810,6 +1238,7 @@
       }
     },
     "Grace Notes on this device" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -826,6 +1255,7 @@
       }
     },
     "Grace Notes storage on this device" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -939,6 +1369,7 @@
       }
     },
     "iCloud account" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -988,6 +1419,7 @@
       }
     },
     "iCloud sync preference" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1004,6 +1436,7 @@
       }
     },
     "iCloud sync uses Apple iCloud when your account and network allow." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1020,6 +1453,7 @@
       }
     },
     "iCloud was unavailable when the app opened." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1036,6 +1470,7 @@
       }
     },
     "Importing or restoring Grace Notes from a file in the app is not available yet." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1134,6 +1569,7 @@
       }
     },
     "It is not a complete backup by itself." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1182,6 +1618,7 @@
       }
     },
     "No Apple ID signed in for iCloud on this device." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1213,6 +1650,22 @@
         }
       }
     },
+    "No internet connection" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No internet connection"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无网络连接"
+          }
+        }
+      }
+    },
     "No recurring patterns yet" : {
       "localizations" : {
         "en" : {
@@ -1230,6 +1683,7 @@
       }
     },
     "Not selected" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1598,6 +2052,7 @@
       }
     },
     "Restricted on this device." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1693,6 +2148,22 @@
         }
       }
     },
+    "Runs a cloud AI reachability check when activated." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Runs a cloud AI reachability check when activated."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "激活时会检查云端 AI 是否可达。"
+          }
+        }
+      }
+    },
     "Save" : {
       "localizations" : {
         "en" : {
@@ -1774,6 +2245,7 @@
       }
     },
     "Selected" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1886,6 +2358,7 @@
       }
     },
     "so your Grace Notes aren't using iCloud for this session." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2014,6 +2487,7 @@
       }
     },
     "Stored on this device only. iCloud was not available when the app opened," : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2030,6 +2504,7 @@
       }
     },
     "Sync is not immediate and does not guarantee the same moment on every device." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2061,7 +2536,24 @@
         }
       }
     },
+    "Tap for connection status" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap for connection status"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "点按查看连接状态"
+          }
+        }
+      }
+    },
     "Temporarily unavailable. Try again later." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2349,6 +2841,23 @@
         }
       }
     },
+    "Verifies reachability of the cloud AI service." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verifies reachability of the cloud AI service."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "检查是否能连接到云端 AI 服务。"
+          }
+        }
+      }
+    },
     "We are setting up your private journal space..." : {
       "localizations" : {
         "en" : {
@@ -2559,6 +3068,40 @@
         }
       }
     },
+    "When iCloud is available again, your stored preference applies the next time you open the app." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When iCloud is available again, your stored preference applies the next time you open the app."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当 iCloud 再次可用时，已保存的偏好会在你下次打开 App 时生效。"
+          }
+        }
+      }
+    },
+    "When iCloud is available, fully close the app and reopen to retry storage or apply your stored preference." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When iCloud is available, fully close the app and reopen to retry storage or apply your stored preference."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在 iCloud 可用后完全关闭 App 并重新打开，以重试存储或应用已保存的偏好。"
+          }
+        }
+      }
+    },
     "Who are you thinking of today?" : {
       "localizations" : {
         "en" : {
@@ -2624,23 +3167,8 @@
         }
       }
     },
-    "When iCloud is available again, your stored preference applies the next time you open the app." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "When iCloud is available again, your stored preference applies the next time you open the app."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "当 iCloud 再次可用时，已保存的偏好会在你下次打开 App 时生效。"
-          }
-        }
-      }
-    },
     "You changed iCloud sync here." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2822,6 +3350,7 @@
       }
     },
     "Your Grace Notes stay on this device only and are not synced to iCloud." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2838,6 +3367,7 @@
       }
     },
     "Your Grace Notes sync to iCloud from this device when iCloud is available." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2854,6 +3384,7 @@
       }
     },
     "Your iCloud sync switch matches how data is stored for this session." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2865,38 +3396,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "当前的 iCloud 同步设置，与这次使用的存储方式一致。"
-          }
-        }
-      }
-    },
-    "Your stored iCloud sync preference does not match how data is stored for this session." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your stored iCloud sync preference does not match how data is stored for this session."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已保存的 iCloud 同步偏好，与当前会话的数据存储方式不一致。"
-          }
-        }
-      }
-    },
-    "Your stored iCloud sync preference matches how data is stored for this session." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your stored iCloud sync preference matches how data is stored for this session."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已保存的 iCloud 同步偏好，与当前会话的数据存储方式一致。"
           }
         }
       }
@@ -2913,6 +3412,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "「回顾」会在之后帮助你发现主题。今天先专注记录一个真实瞬间，完成就好。"
+          }
+        }
+      }
+    },
+    "Your stored iCloud sync preference does not match how data is stored for this session." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your stored iCloud sync preference does not match how data is stored for this session."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已保存的 iCloud 同步偏好，与当前会话的数据存储方式不一致。"
+          }
+        }
+      }
+    },
+    "Your stored iCloud sync preference matches how data is stored for this session." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your stored iCloud sync preference matches how data is stored for this session."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已保存的 iCloud 同步偏好，与当前会话的数据存储方式一致。"
           }
         }
       }

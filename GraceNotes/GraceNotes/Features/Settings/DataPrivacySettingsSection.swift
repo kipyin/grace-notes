@@ -11,33 +11,10 @@ struct DataPrivacySettingsSection: View {
     var body: some View {
         Section {
             VStack(alignment: .leading, spacing: AppTheme.spacingRegular) {
-                dataPrivacyPrimaryRow
-                dataPrivacySecondaryRow
-                dataPrivacyAccountRow
+                storageSummaryBlock
 
-                if shouldOfferICloudSettingsLink {
-                    Button {
-                        openSystemSettings()
-                    } label: {
-                        Text(String(localized: "Open Settings"))
-                            .frame(maxWidth: .infinity, minHeight: 44)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(AppTheme.reminderPrimaryActionBackground)
-                    .foregroundStyle(AppTheme.reminderPrimaryActionForeground)
-                    .font(AppTheme.warmPaperBody)
-                    .accessibilityHint(
-                        String(
-                            localized:
-                                "Opens iOS Settings where you can sign in to iCloud or review restrictions."
-                        )
-                    )
-                }
-
-                if shouldShowCloseAppRecoveryCopy {
-                    Text(closeAppRecoveryBody)
-                        .font(AppTheme.warmPaperMeta)
-                        .foregroundStyle(AppTheme.settingsTextMuted)
+                if let attentionMessage {
+                    attentionBlock(message: attentionMessage)
                 }
 
                 if shouldShowICloudSyncToggle {
@@ -48,13 +25,7 @@ struct DataPrivacySettingsSection: View {
                         .frame(minHeight: 44)
                 }
 
-                Button(String(localized: "Export Grace Notes data (JSON)")) {
-                    onExport()
-                }
-                .font(AppTheme.warmPaperBody)
-                .foregroundStyle(AppTheme.accentText)
-                .disabled(isExportingData)
-                .frame(minHeight: 44)
+                backupBlock
             }
             .padding(.vertical, AppTheme.spacingTight / 2)
         } header: {
@@ -63,26 +34,8 @@ struct DataPrivacySettingsSection: View {
                 .foregroundStyle(AppTheme.settingsTextPrimary)
         } footer: {
             VStack(alignment: .leading, spacing: AppTheme.spacingTight) {
-                Text(
-                    String(
-                        localized:
-                            "Export creates a JSON file of your Grace Notes that you can keep as your own backup."
-                    )
-                )
-                Text(
-                    String(
-                        localized: "Importing or restoring Grace Notes from a file in the app is not available yet."
-                    )
-                )
-                Text(String(localized: "iCloud sync uses Apple iCloud when your account and network allow."))
-                Text(String(localized: "It is not a complete backup by itself."))
-                if shouldShowICloudSyncToggle {
-                    Text(String(localized: "Changes to the sync switch apply the next time you open the app."))
-                } else {
-                    Text(String(localized:
-                        "When iCloud is available again, your stored preference applies the next time you open the app."
-                    ))
-                }
+                Text(String(localized: "DataPrivacy.footer.exportAndImport"))
+                Text(String(localized: "DataPrivacy.footer.iCloudNotFullBackup"))
             }
             .font(AppTheme.warmPaperBody)
             .foregroundStyle(AppTheme.settingsTextMuted)
@@ -110,130 +63,104 @@ private extension DataPrivacySettingsSection {
         iCloudAccountState.displayedBucket?.showsICloudSyncToggle ?? true
     }
 
-    var closeAppRecoveryBody: String {
-        if shouldShowICloudSyncToggle {
-            return String(
-                localized:
-                    "Fully close the app and reopen it to apply your sync setting or retry iCloud storage."
-            )
-        }
-        return String(localized:
-            "When iCloud is available, fully close the app and reopen to retry storage or apply your stored preference."
-        )
-    }
-
-    var shouldShowCloseAppRecoveryCopy: Bool {
-        !preferenceMatchesEffectiveStore || persistenceRuntimeSnapshot.startupUsedCloudKitFallback
-    }
-
-    var dataPrivacyPrimaryRow: some View {
-        VStack(alignment: .leading, spacing: AppTheme.spacingTight / 2) {
-            Text(String(localized: "Grace Notes on this device"))
-                .font(AppTheme.warmPaperMeta)
-                .foregroundStyle(AppTheme.settingsTextMuted)
-            Text(primaryJournalStorageBody)
-                .font(AppTheme.warmPaperBody)
-                .foregroundStyle(AppTheme.settingsTextPrimary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(String(localized: "Grace Notes storage on this device"))
-    }
-
-    var dataPrivacySecondaryRow: some View {
-        VStack(alignment: .leading, spacing: AppTheme.spacingTight / 2) {
-            Text(String(localized: "iCloud sync preference"))
-                .font(AppTheme.warmPaperMeta)
-                .foregroundStyle(AppTheme.settingsTextMuted)
-            Text(secondarySyncPreferenceBody)
-                .font(AppTheme.warmPaperBody)
-                .foregroundStyle(AppTheme.settingsTextPrimary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(String(localized: "iCloud sync preference"))
-    }
-
-    var dataPrivacyAccountRow: some View {
-        VStack(alignment: .leading, spacing: AppTheme.spacingTight / 2) {
-            Text(String(localized: "iCloud account"))
-                .font(AppTheme.warmPaperMeta)
-                .foregroundStyle(AppTheme.settingsTextMuted)
-            Text(iCloudAccountStatusDetail)
-                .font(AppTheme.warmPaperBody)
-                .foregroundStyle(AppTheme.settingsTextPrimary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(String(localized: "iCloud account"))
-        .accessibilityValue(iCloudAccountStatusDetail)
-    }
-
-    var primaryJournalStorageBody: String {
+    var primaryStorageBody: String {
         if persistenceRuntimeSnapshot.startupUsedCloudKitFallback {
-            return String(localized: "Stored on this device only. iCloud was not available when the app opened,")
-                + " "
-                + String(localized: "so your Grace Notes aren't using iCloud for this session.")
+            return String(localized: "DataPrivacy.storage.fallbackLocal")
         }
         if persistenceRuntimeSnapshot.storeUsesCloudKit {
-            return String(localized: "Your Grace Notes sync to iCloud from this device when iCloud is available.")
-                + " "
-                + String(localized: "Sync is not immediate and does not guarantee the same moment on every device.")
+            return String(localized: "DataPrivacy.storage.iCloudOn")
         }
-        return String(localized: "Your Grace Notes stay on this device only and are not synced to iCloud.")
+        return String(localized: "DataPrivacy.storage.localOnly")
     }
 
-    var secondarySyncPreferenceBody: String {
-        if preferenceMatchesEffectiveStore {
+    var attentionMessage: String? {
+        if let bucket = iCloudAccountState.displayedBucket {
+            switch bucket {
+            case .noAccount:
+                return String(localized: "DataPrivacy.attention.noAccount")
+            case .restricted:
+                return String(localized: "DataPrivacy.attention.restricted")
+            case .temporarilyUnavailable:
+                if !preferenceMatchesEffectiveStore {
+                    return String(localized: "DataPrivacy.attention.tempUnavailableMismatch")
+                }
+                return String(localized: "DataPrivacy.attention.tempUnavailable")
+            case .couldNotDetermine:
+                if !preferenceMatchesEffectiveStore {
+                    return String(localized: "DataPrivacy.attention.unknownMismatch")
+                }
+                return String(localized: "DataPrivacy.attention.unknown")
+            case .available:
+                break
+            }
+        }
+
+        if persistenceRuntimeSnapshot.startupUsedCloudKitFallback, isICloudSyncEnabled {
+            return String(localized: "DataPrivacy.attention.retryICloudAfterRelaunch")
+        }
+
+        if !preferenceMatchesEffectiveStore {
             if shouldShowICloudSyncToggle {
-                return String(
-                    localized: "Your iCloud sync switch matches how data is stored for this session."
+                return String(localized: "DataPrivacy.attention.toggleChangedRelaunch")
+            }
+            return String(localized: "DataPrivacy.attention.preferenceMismatchRelaunch")
+        }
+
+        return nil
+    }
+
+    var storageSummaryBlock: some View {
+        VStack(alignment: .leading, spacing: AppTheme.spacingTight / 2) {
+            Text(String(localized: "DataPrivacy.storage.heading"))
+                .font(AppTheme.warmPaperMeta)
+                .foregroundStyle(AppTheme.settingsTextMuted)
+            Text(primaryStorageBody)
+                .font(AppTheme.warmPaperBody)
+                .foregroundStyle(AppTheme.settingsTextPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(String(localized: "DataPrivacy.a11y.storage"))
+    }
+
+    func attentionBlock(message: String) -> some View {
+        VStack(alignment: .leading, spacing: AppTheme.spacingTight) {
+            Text(message)
+                .font(AppTheme.warmPaperBody)
+                .foregroundStyle(AppTheme.settingsTextPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if shouldOfferICloudSettingsLink {
+                SettingsOpenSystemSettingsButton(
+                    action: openSystemSettings,
+                    accessibilityHint: String(
+                        localized:
+                            "Opens iOS Settings where you can sign in to iCloud or review restrictions."
+                    )
                 )
             }
-            return String(
-                localized:
-                    "Your stored iCloud sync preference matches how data is stored for this session."
-            )
         }
-        if persistenceRuntimeSnapshot.startupUsedCloudKitFallback, isICloudSyncEnabled {
-            return String(localized: "iCloud was unavailable when the app opened.")
-                + " "
-                + String(localized: "Fully close the app and reopen it to try iCloud storage again.")
-        }
-        if shouldShowICloudSyncToggle {
-            return String(localized: "You changed iCloud sync here.")
-                + " "
-                + String(localized: "Fully close the app and reopen it for the new setting to take effect.")
-        }
-        return String(
-            localized:
-                "Your stored iCloud sync preference does not match how data is stored for this session."
-        )
-        + " "
-        + String(
-            localized:
-                "Fully close the app and reopen when iCloud is available for your stored preference to take effect."
-        )
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(String(localized: "DataPrivacy.a11y.nextSteps"))
     }
 
-    var iCloudAccountStatusDetail: String {
-        guard let bucket = iCloudAccountState.displayedBucket else {
-            return String(localized: "Checking…")
+    var backupBlock: some View {
+        VStack(alignment: .leading, spacing: AppTheme.spacingTight / 2) {
+            Text(String(localized: "DataPrivacy.backup.heading"))
+                .font(AppTheme.warmPaperMeta)
+                .foregroundStyle(AppTheme.settingsTextMuted)
+            Button(String(localized: "Export Grace Notes data (JSON)")) {
+                onExport()
+            }
+            .font(AppTheme.warmPaperBody)
+            .foregroundStyle(AppTheme.accentText)
+            .disabled(isExportingData)
+            .frame(minHeight: 44)
         }
-        switch bucket {
-        case .available:
-            return String(localized: "Available for iCloud.")
-        case .noAccount:
-            return String(localized: "No Apple ID signed in for iCloud on this device.")
-        case .restricted:
-            return String(localized: "Restricted on this device.")
-        case .temporarilyUnavailable:
-            return String(localized: "Temporarily unavailable. Try again later.")
-        case .couldNotDetermine:
-            return String(localized: "Could not determine. Try again later.")
-        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(String(localized: "DataPrivacy.a11y.backup"))
     }
 }

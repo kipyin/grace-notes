@@ -101,9 +101,9 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
     private func makeContextEntry(from entry: JournalEntry) -> CloudReviewContextEntry {
         CloudReviewContextEntry(
             date: entry.entryDate.formatted(date: .abbreviated, time: .omitted),
-            gratitudes: entry.gratitudes.map(\.fullText),
-            needs: entry.needs.map(\.fullText),
-            people: entry.people.map(\.fullText),
+            gratitudes: (entry.gratitudes ?? []).map(\.fullText),
+            needs: (entry.needs ?? []).map(\.fullText),
+            people: (entry.people ?? []).map(\.fullText),
             readingNotes: entry.readingNotes,
             reflections: entry.reflections
         )

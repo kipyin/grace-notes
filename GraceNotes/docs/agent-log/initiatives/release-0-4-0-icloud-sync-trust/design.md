@@ -18,3 +18,9 @@ Calm, explicit, non-alarmist; match `.impeccable.md` (warm, trustworthy). VoiceO
 ## Strings
 
 Implemented in `Localizable.xcstrings` (en + zh-Hans). Some longer sentences are split into adjacent keys and joined in code with a space so each catalog entry stays within lint line limits; translators should keep each fragment natural as a continuation. Follow-up: `stringsdict` if pluralized grammar is required for future variants.
+
+## Revision (post-0.4.0)
+
+**Supersedes:** The three fixed rows (primary + “iCloud sync preference” + “iCloud account”) and separate tertiary recovery copy. **Reason:** Redundant “close and reopen” and technical “session / stored preference” wording increased cognitive load without adding trust.
+
+**Current layout** (see `DataPrivacySettingsSection.swift`): one **Storage** summary; a single conditional **attention** block that merges account issues, preference/store mismatch, and relaunch guidance (with `Open Settings` when `noAccount` / `restricted`); **iCloud sync** toggle with the same visibility rules as before; **Backup** grouping for export; footer trimmed to two short lines. Trust rules unchanged (honest fallback, no overstated sync). Catalog keys under `DataPrivacy.*` (en + zh-Hans).

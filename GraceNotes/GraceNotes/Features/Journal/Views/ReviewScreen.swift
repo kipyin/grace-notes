@@ -7,7 +7,7 @@ struct ReviewScreen: View {
         let newestEntryUpdateAt: Date
     }
 
-    private enum ReviewMode: CaseIterable, Identifiable {
+    private enum ReviewMode: CaseIterable, Hashable, Identifiable {
         case insights
         case timeline
 
@@ -135,29 +135,29 @@ struct ReviewScreen: View {
 
     private var reviewModeSection: some View {
         Section {
-            HStack(spacing: 6) {
+            ReviewModeSegmentedControl(selectedMode: $selectedMode)
+                .listRowBackground(AppTheme.reviewBackground)
+        }
+    }
+
+    /// System segmented `Picker` so iOS 26+ picks up the platform Liquid Glass styling without custom chrome.
+    private struct ReviewModeSegmentedControl: View {
+        @Binding var selectedMode: ReviewMode
+
+        var body: some View {
+            Picker(selection: $selectedMode) {
                 ForEach(ReviewMode.allCases) { mode in
-                    ReviewModeOptionButton(
-                        title: mode.localizedTitle,
-                        isSelected: mode == selectedMode,
-                        accessibilityValue: reviewModeSelectionValue(for: mode),
-                        accessibilityIdentifier: accessibilityReviewModeIdentifier(for: mode)
-                    ) {
-                        selectedMode = mode
-                    }
+                    Text(mode.localizedTitle)
+                        .tag(mode)
                 }
+            } label: {
+                Text(String(localized: "Review mode"))
             }
-            .padding(4)
-            .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(AppTheme.reviewPaper)
-            )
-            .accessibilityElement(children: .contain)
-            .accessibilityLabel(String(localized: "Review mode"))
-            .accessibilityValue(selectedMode.localizedTitle)
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .tint(AppTheme.reviewAccent)
             .accessibilityHint(String(localized: "Choose insights or timeline"))
             .accessibilityIdentifier("ReviewModePicker")
-            .listRowBackground(AppTheme.reviewBackground)
         }
     }
 
@@ -268,46 +268,6 @@ struct ReviewScreen: View {
         }
     }
 
-    private func accessibilityReviewModeIdentifier(for mode: ReviewMode) -> String {
-        switch mode {
-        case .insights:
-            return "ReviewMode.insights"
-        case .timeline:
-            return "ReviewMode.timeline"
-        }
-    }
-
-    private func reviewModeSelectionValue(for mode: ReviewMode) -> String {
-        mode == selectedMode ? String(localized: "Selected") : String(localized: "Not selected")
-    }
-}
-
-private struct ReviewModeOptionButton: View {
-    let title: String
-    let isSelected: Bool
-    let accessibilityValue: String
-    let accessibilityIdentifier: String
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(AppTheme.warmPaperBody.weight(.semibold))
-                .foregroundStyle(isSelected ? AppTheme.reviewOnAccent : AppTheme.reviewTextMuted)
-                .frame(maxWidth: .infinity)
-                .frame(minHeight: 44)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(isSelected ? AppTheme.reviewAccent : .clear)
-                )
-        }
-        .buttonStyle(WarmPaperPressStyle())
-        .accessibilityLabel(title)
-        .accessibilityValue(accessibilityValue)
-        .accessibilityHint(String(localized: "Choose insights or timeline"))
-        .accessibilityIdentifier(accessibilityIdentifier)
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
-    }
 }
 
 enum HistoryEntryGrouping {

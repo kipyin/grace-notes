@@ -62,7 +62,7 @@ final class JournalRepositoryTests: XCTestCase {
         let result = try repo.fetchEntry(for: now, context: context)
 
         XCTAssertNotNil(result)
-        XCTAssertEqual(result?.gratitudes.map(\.fullText), ["Test"])
+        XCTAssertEqual((result?.gratitudes ?? []).map(\.fullText), ["Test"])
     }
 
     func test_fetchEntry_forMissingDate_returnsNil() throws {

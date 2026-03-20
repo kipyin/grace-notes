@@ -114,9 +114,9 @@ final class JournalViewModel {
         defer { isHydrating = false }
 
         entryDate = entry.entryDate
-        gratitudes = entry.gratitudes
-        needs = entry.needs
-        people = entry.people
+        gratitudes = entry.gratitudes ?? []
+        needs = entry.needs ?? []
+        people = entry.people ?? []
         readingNotes = entry.readingNotes
         reflections = entry.reflections
     }
