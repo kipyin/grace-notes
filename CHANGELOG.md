@@ -4,6 +4,9 @@
 
 In progress: iCloud / SwiftData sync reliability (visible sync state where feasible, Settings copy aligned with real persistence behavior, clearer recovery when sync toggles or fails). Release scope and acceptance intent: `GraceNotes/docs/07-release-roadmap.md`.
 
+### Changed
+- On-device chip labels no longer use word- or character-based “summarization”; they show a capped prefix of the user’s own text with `...` when truncated. Cloud chip summarization is unchanged.
+
 ## [0.3.5] - 2026-03-20
 
 ### Changed
