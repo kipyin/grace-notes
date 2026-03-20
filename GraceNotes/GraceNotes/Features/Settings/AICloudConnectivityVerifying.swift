@@ -14,7 +14,7 @@ final class AICloudConnectivityVerifier: AICloudConnectivityVerifying, @unchecke
     }
 
     func verifyReachable() async -> Bool {
-        guard let url = URL(string: "\(Self.apiBaseURLString)/models") else {
+        guard let url = URL(string: "\(ApiSecrets.cloudAPIBaseURL)/models") else {
             return false
         }
         if await headIndicatesReachable(url: url) {
@@ -22,9 +22,6 @@ final class AICloudConnectivityVerifier: AICloudConnectivityVerifying, @unchecke
         }
         return await getIndicatesReachable(url: url)
     }
-
-    /// Matches `CloudSummarizer` default `baseURL` (see `CloudSummarizer.swift`).
-    private static let apiBaseURLString = "https://chat.cloudapi.vip/v1"
 
     private func headIndicatesReachable(url: URL) async -> Bool {
         var request = URLRequest(url: url)

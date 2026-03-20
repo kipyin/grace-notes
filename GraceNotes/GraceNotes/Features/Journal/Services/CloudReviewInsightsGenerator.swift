@@ -9,7 +9,7 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
     private let maxEntriesForContext = 14
 
     init(
-        baseURL: String = "https://chat.cloudapi.vip/v1",
+        baseURL: String = ApiSecrets.cloudAPIBaseURL,
         model: String = "gpt-4o-mini",
         apiKey: String,
         urlSession: URLSession = .shared

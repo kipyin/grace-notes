@@ -7,6 +7,8 @@ import Foundation
 /// Keep real credentials out of git. Prefer a local, untracked plist override.
 enum ApiSecrets {
     private static let placeholderApiKey = "YOUR_KEY_HERE"
+    /// Shared cloud API base URL for summarization, review insights, and Settings connectivity checks.
+    static let cloudAPIBaseURL = "https://chat.cloudapi.vip/v1"
 
     /// True when the resolved bundle key is non-placeholder (cloud route may be used if user enables it).
     static var isCloudApiKeyConfigured: Bool {

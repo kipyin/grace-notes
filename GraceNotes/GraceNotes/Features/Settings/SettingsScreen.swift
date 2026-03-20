@@ -210,6 +210,10 @@ private extension SettingsScreen {
         useCloudSummarization || useAIReviewInsights
     }
 
+    var canRunAIConnectivityCheck: Bool {
+        aiFeaturesOn && ApiSecrets.isCloudApiKeyConfigured
+    }
+
     func syncAICloudStatusModel() {
         aiCloudStatus.refresh(aiFeaturesEnabled: aiFeaturesOn)
     }
@@ -219,7 +223,7 @@ private extension SettingsScreen {
         if let row = aiCloudStatus.statusRow {
             return aiCloudStatusMessage(row)
         }
-        if ApiSecrets.isCloudApiKeyConfigured {
+        if canRunAIConnectivityCheck {
             return String(localized: "Tap for connection status")
         }
         return nil
@@ -228,10 +232,8 @@ private extension SettingsScreen {
     var aiConnectionControlRow: some View {
         HStack(spacing: AppTheme.spacingRegular) {
             Button {
-                guard aiFeaturesOn else { return }
-                if ApiSecrets.isCloudApiKeyConfigured {
-                    aiCloudStatus.requestManualConnectivityCheck()
-                }
+                guard canRunAIConnectivityCheck else { return }
+                aiCloudStatus.requestManualConnectivityCheck()
             } label: {
                 HStack(spacing: AppTheme.spacingRegular) {
                     VStack(alignment: .leading, spacing: AppTheme.spacingTight / 2) {
@@ -251,12 +253,10 @@ private extension SettingsScreen {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .disabled(!aiFeaturesOn)
+            .disabled(!canRunAIConnectivityCheck)
             .accessibilityLabel(String(localized: "AI connection status"))
             .accessibilityValue(aiConnectionAccessibilityValue)
-            .accessibilityHint(
-                String(localized: "Runs a cloud AI reachability check when activated.")
-            )
+            .accessibilityHint(aiConnectionAccessibilityHint)
 
             Toggle("", isOn: aiFeaturesToggleBinding)
                 .labelsHidden()
@@ -296,6 +296,16 @@ private extension SettingsScreen {
             return String(localized: "Off")
         }
         return aiConnectionSubtitle ?? ""
+    }
+
+    var aiConnectionAccessibilityHint: String {
+        if canRunAIConnectivityCheck {
+            return String(localized: "Runs a cloud AI reachability check when activated.")
+        }
+        if !aiFeaturesOn {
+            return String(localized: "Enable AI features to check cloud AI connection status.")
+        }
+        return String(localized: "Cloud AI isn’t set up on this build.")
     }
 
     func aiCloudStatusMessage(_ row: AISettingsCloudStatusRow) -> String {

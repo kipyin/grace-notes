@@ -15,7 +15,7 @@ struct CloudSummarizer: Summarizer {
     private let urlSession: URLSession
 
     init(
-        baseURL: String = "https://chat.cloudapi.vip/v1",
+        baseURL: String = ApiSecrets.cloudAPIBaseURL,
         model: String = "gpt-4o-mini",
         apiKey: String,
         fallback: (any Summarizer)? = nil,
