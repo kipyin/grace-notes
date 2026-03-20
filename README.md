@@ -6,6 +6,13 @@ A journaling iOS app for daily gratitude, reflection, and people in mind.
 
 Grace Notes (`感恩记`) guides you through a simple daily rhythm: 5 gratitudes, 5 needs, 5 people in mind, reading notes, and space for what you're thinking and learning. The app offers a quiet, low-friction place for gratitude and reflection, with a gentle framing that feels welcoming rather than pushy.
 
+## What's new in 0.4.0
+
+- **JSON import** — In Settings → Data & Privacy, import a Grace Notes export to merge or restore by calendar day (with a clear confirm step). Export remains available as before.
+- **iCloud trust in Settings** — Storage and attention copy match how the app actually persists (including fallback and preference mismatch); when you need to open iOS Settings to fix the account, that action is easier to spot.
+- **AI row** — When cloud AI is on, you get inline connection status, optional reachability check, and a Reminders-style layout (toggle + tappable status).
+- **On-device chip labels** show a capped prefix of your own text (with ellipsis when needed); cloud summarization is unchanged.
+
 ## What's new in 0.3.5
 
 - This patch is a maintenance release focused on release metadata and packaging consistency.
@@ -20,7 +27,7 @@ Grace Notes (`感恩记`) guides you through a simple daily rhythm: 5 gratitudes
 - **Shareable cards** – Generate a formatted image of a day's entry and share via the iOS share sheet.
 - **Reminders** – Optional daily notification to complete today's 5³.
 - **Advanced review insights** – Optional AI-generated weekly reflection summary with deterministic on-device fallback.
-- **Data trust controls** – private-by-default storage plus full JSON export for backup and ownership.
+- **Data trust controls** – private-by-default storage plus JSON export and import for backup and ownership.
 - **First-run onboarding** – A short welcome flow introducing calm structure, review value, and low-pressure progress.
 - **Habit support** – Streak plus tiered completion states (Quick, Standard, Full 5³) to reduce all-or-nothing pressure.
 
