@@ -21,7 +21,7 @@ extension JournalViewModel {
     }
 
     private func summarizeForChip(_ text: String, section: SummarizationSection) async -> SummarizationResult {
-        let shouldLimitToChipUnits = !isCloudSummarizationEnabled
+        let shouldLimitToChipUnits = !isAIFeaturesEnabled
         let summarizer = summarizerProvider.currentSummarizer()
         return await Task.detached(priority: .utility) {
             do {
@@ -36,7 +36,7 @@ extension JournalViewModel {
 
     private func makeInterimResult(for text: String, section: SummarizationSection) -> SummarizationResult {
         let interim = deterministicChipLabelSummarizer.summarizeSync(text, section: section)
-        return displayReadyChipResult(interim, shouldLimitToChipUnits: !isCloudSummarizationEnabled)
+        return displayReadyChipResult(interim, shouldLimitToChipUnits: !isAIFeaturesEnabled)
     }
 
     private func makeInterimItem(
@@ -294,7 +294,7 @@ extension JournalViewModel {
         guard !trimmed.isEmpty else { return false }
         let renamed = displayReadyChipResult(
             SummarizationResult(label: trimmed, isTruncated: false),
-            shouldLimitToChipUnits: !isCloudSummarizationEnabled
+            shouldLimitToChipUnits: !isAIFeaturesEnabled
         )
         guard item.chipLabel != renamed.label || item.isTruncated != renamed.isTruncated else { return false }
 
@@ -304,8 +304,8 @@ extension JournalViewModel {
         return true
     }
 
-    private var isCloudSummarizationEnabled: Bool {
-        UserDefaults.standard.object(forKey: SummarizerProvider.useCloudUserDefaultsKey) as? Bool ?? false
+    private var isAIFeaturesEnabled: Bool {
+        AIFeaturesSettings.isEnabled()
     }
 
     /// Returns true if the item was removed (valid index).
