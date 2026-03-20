@@ -74,6 +74,7 @@ struct GraceNotesApp: App {
             .toolbarBackground(AppTheme.background, for: .tabBar)
             .tint(AppTheme.accent)
             .modelContainer(controller.container)
+            .environment(\.persistenceRuntimeSnapshot, controller.runtimeSnapshot)
     }
 
     @ViewBuilder
@@ -100,6 +101,7 @@ struct GraceNotesApp: App {
                     await runDeferredStartupTasksIfNeeded(using: controller)
                 }
                 .modelContainer(controller.container)
+                .environment(\.persistenceRuntimeSnapshot, controller.runtimeSnapshot)
         }
     }
 

@@ -28,9 +28,11 @@ final class PersistenceController {
     }
 
     let container: ModelContainer
+    let runtimeSnapshot: PersistenceRuntimeSnapshot
 
-    private init(container: ModelContainer) {
+    private init(container: ModelContainer, runtimeSnapshot: PersistenceRuntimeSnapshot) {
         self.container = container
+        self.runtimeSnapshot = runtimeSnapshot
     }
 
     static func makeForStartup() async throws -> PersistenceController {
@@ -59,7 +61,12 @@ final class PersistenceController {
             let container = try ModelContainer(for: schema, configurations: configuration)
             try seedUITestDataIfNeeded(in: container)
             PerformanceTrace.end("PersistenceController.makeForUITesting", startedAt: startupTrace)
-            return PersistenceController(container: container)
+            let snapshot = PersistenceRuntimeSnapshot.forDiskLaunch(
+                userRequestedCloudSync: Self.cloudSyncEnabled(using: .standard),
+                storeUsesCloudKit: false,
+                startupUsedCloudKitFallback: false
+            )
+            return PersistenceController(container: container, runtimeSnapshot: snapshot)
         } catch {
             PerformanceTrace.end("PersistenceController.makeForUITesting.failed", startedAt: startupTrace)
             throw PersistenceControllerError.unableToCreateContainer(error)
@@ -81,7 +88,17 @@ final class PersistenceController {
         do {
             let container = try ModelContainer(for: schema, configurations: configuration)
             PerformanceTrace.end("PersistenceController.makeController", startedAt: startupTrace)
-            return PersistenceController(container: container)
+            let snapshot: PersistenceRuntimeSnapshot
+            if inMemory {
+                snapshot = .forInMemory(userRequestedCloudSync: cloudSyncEnabled)
+            } else {
+                snapshot = .forDiskLaunch(
+                    userRequestedCloudSync: cloudSyncEnabled,
+                    storeUsesCloudKit: cloudSyncEnabled,
+                    startupUsedCloudKitFallback: false
+                )
+            }
+            return PersistenceController(container: container, runtimeSnapshot: snapshot)
         } catch {
             if !inMemory, cloudSyncEnabled {
                 do {
@@ -92,7 +109,12 @@ final class PersistenceController {
                     )
                     let container = try ModelContainer(for: schema, configurations: fallbackConfiguration)
                     PerformanceTrace.end("PersistenceController.makeController.fallback", startedAt: startupTrace)
-                    return PersistenceController(container: container)
+                    let snapshot = PersistenceRuntimeSnapshot.forDiskLaunch(
+                        userRequestedCloudSync: true,
+                        storeUsesCloudKit: false,
+                        startupUsedCloudKitFallback: true
+                    )
+                    return PersistenceController(container: container, runtimeSnapshot: snapshot)
                 } catch {
                     PerformanceTrace.end("PersistenceController.makeController.failed", startedAt: startupTrace)
                     throw PersistenceControllerError.unableToCreateContainer(error)
