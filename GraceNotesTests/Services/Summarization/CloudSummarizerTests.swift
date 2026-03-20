@@ -215,7 +215,7 @@ final class CloudSummarizerTests: XCTestCase {
         let input = "Extraordinary opportunities for collaboration"
         let result = try await summarizer.summarize(input, section: .need)
 
-        XCTAssertEqual(result.label, String(input.prefix(10)))
-        XCTAssertTrue(result.isTruncated)
+        XCTAssertEqual(result.label, input)
+        XCTAssertFalse(result.isTruncated)
     }
 }

@@ -98,7 +98,7 @@ final class JournalViewModelMutationTests: XCTestCase {
 
         XCTAssertEqual(result, 0)
         XCTAssertEqual(viewModel.gratitudes[0].fullText, longText)
-        XCTAssertEqual(viewModel.gratitudes[0].chipLabel, "\(String(longText.prefix(10)))...")
+        XCTAssertEqual(viewModel.gratitudes[0].chipLabel, "A very lon...")
         XCTAssertTrue(viewModel.gratitudes[0].isTruncated)
     }
 
@@ -115,8 +115,8 @@ final class JournalViewModelMutationTests: XCTestCase {
         let result = viewModel.updatePersonImmediate(at: 0, fullText: input)
 
         XCTAssertEqual(result, 0)
-        XCTAssertEqual(viewModel.people[0].chipLabel, input)
-        XCTAssertFalse(viewModel.people[0].isTruncated)
+        XCTAssertEqual(viewModel.people[0].chipLabel, "为 Amy 祷...")
+        XCTAssertTrue(viewModel.people[0].isTruncated)
     }
 
     func test_addGratitudeImmediate_appendsWithInterimLabel() throws {
@@ -132,7 +132,8 @@ final class JournalViewModelMutationTests: XCTestCase {
         XCTAssertEqual(result, 0)
         XCTAssertEqual(viewModel.gratitudes.count, 1)
         XCTAssertEqual(viewModel.gratitudes[0].fullText, "New gratitude")
-        XCTAssertEqual(viewModel.gratitudes[0].chipLabel, "New gratitude")
+        XCTAssertEqual(viewModel.gratitudes[0].chipLabel, "New gratit...")
+        XCTAssertTrue(viewModel.gratitudes[0].isTruncated)
     }
 
     func test_renameGratitudeLabel_capsLabelAndPreservesFullText() async throws {
