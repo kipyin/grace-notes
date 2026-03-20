@@ -4,10 +4,6 @@ struct DataPrivacySettingsSection: View {
     @Binding var isICloudSyncEnabled: Bool
     @ObservedObject var iCloudAccountState: ICloudAccountStatusModel
     let persistenceRuntimeSnapshot: PersistenceRuntimeSnapshot
-    let isExportingData: Bool
-    let isImportingData: Bool
-    let onExport: () -> Void
-    let onImport: () -> Void
     let openSystemSettings: () -> Void
 
     var body: some View {
@@ -26,21 +22,14 @@ struct DataPrivacySettingsSection: View {
                         .tint(AppTheme.accent)
                         .frame(minHeight: 44)
                 }
-
-                backupBlock
             }
             .padding(.vertical, AppTheme.spacingTight / 2)
+            importExportRow
+                .padding(.vertical, AppTheme.spacingTight / 2)
         } header: {
             Text(String(localized: "Data & Privacy"))
                 .font(AppTheme.warmPaperHeader)
                 .foregroundStyle(AppTheme.settingsTextPrimary)
-        } footer: {
-            VStack(alignment: .leading, spacing: AppTheme.spacingTight) {
-                Text(String(localized: "DataPrivacy.footer.exportAndImport"))
-                Text(String(localized: "DataPrivacy.footer.iCloudNotFullBackup"))
-            }
-            .font(AppTheme.warmPaperBody)
-            .foregroundStyle(AppTheme.settingsTextMuted)
         }
     }
 }
@@ -173,38 +162,22 @@ private extension DataPrivacySettingsSection {
         .accessibilityLabel(String(localized: "DataPrivacy.a11y.nextSteps"))
     }
 
-    var backupBlock: some View {
-        VStack(alignment: .leading, spacing: AppTheme.spacingTight / 2) {
-            Text(String(localized: "DataPrivacy.backup.heading"))
-                .font(AppTheme.warmPaperMeta)
-                .foregroundStyle(AppTheme.settingsTextMuted)
-            Text(String(localized: "DataPrivacy.backup.subtitle"))
-                .font(AppTheme.warmPaperMeta)
-                .foregroundStyle(AppTheme.settingsTextMuted)
-                .fixedSize(horizontal: false, vertical: true)
-            Button(action: onExport) {
-                Text(String(localized: "Export Grace Notes data (JSON)"))
-                    .underline()
+    var importExportRow: some View {
+        NavigationLink {
+            ImportExportSettingsScreen()
+        } label: {
+            HStack(spacing: AppTheme.spacingRegular) {
+                Text(String(localized: "DataPrivacy.importExport.rowTitle"))
+                    .font(AppTheme.warmPaperBody)
+                    .foregroundStyle(AppTheme.settingsTextPrimary)
+                Spacer(minLength: AppTheme.spacingRegular)
             }
-            .font(AppTheme.warmPaperBody)
-            .foregroundStyle(AppTheme.settingsTextMuted)
-            .buttonStyle(.plain)
-            .disabled(isExportingData || isImportingData)
-            .frame(minHeight: 44, alignment: .leading)
-
-            Button(action: onImport) {
-                Text(String(localized: "Import Grace Notes data (JSON)"))
-                    .underline()
-            }
-            .font(AppTheme.warmPaperBody)
-            .foregroundStyle(AppTheme.settingsTextMuted)
-            .buttonStyle(.plain)
-            .disabled(isExportingData || isImportingData)
-            .frame(minHeight: 44, alignment: .leading)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
         }
-        .padding(.top, AppTheme.spacingRegular)
+        .buttonStyle(.plain)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .contain)
         .accessibilityLabel(String(localized: "DataPrivacy.a11y.backup"))
     }
 }

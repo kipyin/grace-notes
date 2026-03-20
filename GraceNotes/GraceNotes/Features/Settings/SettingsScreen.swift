@@ -1,14 +1,11 @@
 import SwiftUI
-import SwiftData
 import UIKit
-import UniformTypeIdentifiers
 
 struct SettingsScreen: View {
     /// Default false to align with SummarizerProvider; first launch uses on-device NL summarization.
     @AppStorage("useCloudSummarization") private var useCloudSummarization = false
     @AppStorage(ReviewInsightsProvider.useAIReviewInsightsKey) private var useAIReviewInsights = false
     @AppStorage(PersistenceController.iCloudSyncEnabledKey) private var isICloudSyncEnabled = true
-    @Environment(\.modelContext) private var modelContext
     @Environment(\.openURL) private var openURL
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.verticalSizeClass) private var verticalSizeClass
@@ -20,21 +17,6 @@ struct SettingsScreen: View {
     @StateObject private var aiCloudStatus = AISettingsCloudStatusModel()
     @State private var isReminderPickerExpanded = false
     @State private var isReminderToggleOn = false
-    @State private var exportErrorMessage: String?
-    @State private var showExportError = false
-    @State private var exportFile: ShareableFile?
-    @State private var isExportingData = false
-    @State private var showImportPicker = false
-    @State private var showImportConfirm = false
-    @State private var pendingImportURL: URL?
-    @State private var isImportingData = false
-    @State private var importErrorMessage: String?
-    @State private var showImportError = false
-    @State private var importSuccessSummary: JournalDataImportSummary?
-    @State private var showImportSuccess = false
-
-    private let dataExportService = JournalDataExportService()
-    private let dataImportService = JournalDataImportService()
 
     var body: some View {
         List {
@@ -44,19 +26,13 @@ struct SettingsScreen: View {
                 }
                 .padding(.vertical, AppTheme.spacingTight / 2)
             } header: {
-                Text(String(localized: "AI"))
+                Text(String(localized: "Settings.ai.sectionTitle"))
                     .font(AppTheme.warmPaperHeader)
                     .foregroundStyle(AppTheme.settingsTextPrimary)
-            } footer: {
-                aiSectionFooter
             }
 
             Section {
                 VStack(alignment: .leading, spacing: AppTheme.spacingRegular) {
-                    Text(String(localized: "Get one local reminder each day to complete today's entry."))
-                        .font(AppTheme.warmPaperBody)
-                        .foregroundStyle(AppTheme.settingsTextMuted)
-                        .fixedSize(horizontal: false, vertical: true)
                     reminderTimeControlRow
                     if reminderState.isReminderEnabled && isReminderPickerExpanded {
                         reminderTimePicker
@@ -88,10 +64,6 @@ struct SettingsScreen: View {
                 isICloudSyncEnabled: $isICloudSyncEnabled,
                 iCloudAccountState: iCloudAccountState,
                 persistenceRuntimeSnapshot: persistenceRuntimeSnapshot,
-                isExportingData: isExportingData,
-                isImportingData: isImportingData,
-                onExport: { exportJournalData() },
-                onImport: { showImportPicker = true },
                 openSystemSettings: { openSystemSettings() }
             )
         }
@@ -102,10 +74,11 @@ struct SettingsScreen: View {
             Color.clear.frame(height: AppTheme.spacingSection + AppTheme.floatingTabBarClearance)
         }
         .navigationTitle(String(localized: "Settings"))
-        .sheet(item: $exportFile) { file in
-            ShareSheet(activityItems: [file.url])
+        .onAppear {
+            clampCloudAIFeaturesIfApiKeyMissing()
         }
         .task {
+            clampCloudAIFeaturesIfApiKeyMissing()
             await reminderState.refreshStatus()
             syncReminderControlState(with: reminderState.liveStatus)
             iCloudAccountState.refresh()
@@ -136,71 +109,6 @@ struct SettingsScreen: View {
         .onChange(of: reminderState.liveStatus) { _, newValue in
             syncReminderControlState(with: newValue)
         }
-        .alert(String(localized: "Unable to export data"), isPresented: $showExportError) {
-            Button(String(localized: "OK"), role: .cancel) {}
-        } message: {
-            Text(exportErrorMessage ?? String(localized: "Please try again."))
-        }
-        .fileImporter(
-            isPresented: $showImportPicker,
-            allowedContentTypes: [.json],
-            allowsMultipleSelection: false
-        ) { result in
-            switch result {
-            case .success(let urls):
-                guard let url = urls.first else { return }
-                pendingImportURL = url
-                showImportConfirm = true
-            case .failure:
-                importErrorMessage = String(localized: "DataPrivacy.import.error.readFailed")
-                showImportError = true
-            }
-        }
-        .alert(String(localized: "DataPrivacy.import.confirm.title"), isPresented: $showImportConfirm) {
-            Button(String(localized: "Cancel"), role: .cancel) {
-                pendingImportURL = nil
-            }
-            Button(String(localized: "DataPrivacy.import.action")) {
-                importJournalDataFromPendingURL()
-            }
-        } message: {
-            Text(String(localized: "DataPrivacy.import.confirm.message"))
-        }
-        .alert(String(localized: "DataPrivacy.import.success.title"), isPresented: $showImportSuccess) {
-            Button(String(localized: "OK"), role: .cancel) {
-                importSuccessSummary = nil
-            }
-        } message: {
-            if let summary = importSuccessSummary {
-                Text(
-                    String(
-                        format: String(localized: "DataPrivacy.import.success.detail"),
-                        summary.insertedCount,
-                        summary.updatedCount
-                    )
-                )
-            }
-        }
-        .alert(String(localized: "DataPrivacy.import.error.title"), isPresented: $showImportError) {
-            Button(String(localized: "OK"), role: .cancel) {}
-        } message: {
-            Text(importErrorMessage ?? String(localized: "DataPrivacy.import.error.generic"))
-        }
-        .overlay {
-            if isExportingData {
-                ProgressView(String(localized: "Exporting…"))
-                    .font(AppTheme.warmPaperBody)
-                    .padding(16)
-                    .background(AppTheme.paper)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-            } else if isImportingData {
-                ProgressView(String(localized: "Importing…"))
-                    .font(AppTheme.warmPaperBody)
-                    .padding(16)
-                    .background(AppTheme.paper)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-            }
-        }
     }
 
 }
@@ -218,15 +126,26 @@ private extension SettingsScreen {
         aiCloudStatus.refresh(aiFeaturesEnabled: aiFeaturesOn)
     }
 
-    var aiConnectionSubtitle: String? {
-        guard aiFeaturesOn else { return nil }
+    /// Cloud AI toggles require a non-placeholder API key; keep AppStorage consistent with that constraint.
+    func clampCloudAIFeaturesIfApiKeyMissing() {
+        guard !ApiSecrets.isCloudApiKeyConfigured, aiFeaturesOn else { return }
+        useCloudSummarization = false
+        useAIReviewInsights = false
+        syncAICloudStatusModel()
+    }
+
+    /// Inline status under the toggle label (visible in every state: misconfigured, off, or on + connectivity).
+    var aiRowStatusText: String {
+        if !ApiSecrets.isCloudApiKeyConfigured {
+            return String(localized: "Cloud AI isn’t set up on this build.")
+        }
+        if !aiFeaturesOn {
+            return String(localized: "Off")
+        }
         if let row = aiCloudStatus.statusRow {
             return aiCloudStatusMessage(row)
         }
-        if canRunAIConnectivityCheck {
-            return String(localized: "Tap for connection status")
-        }
-        return nil
+        return String(localized: "Tap for connection status")
     }
 
     var aiConnectionControlRow: some View {
@@ -237,15 +156,13 @@ private extension SettingsScreen {
             } label: {
                 HStack(spacing: AppTheme.spacingRegular) {
                     VStack(alignment: .leading, spacing: AppTheme.spacingTight / 2) {
-                        Text(String(localized: "AI features"))
+                        Text(String(localized: "Settings.ai.toggleLabel"))
                             .font(AppTheme.warmPaperBody)
                             .foregroundStyle(AppTheme.settingsTextPrimary)
-                        if let subtitle = aiConnectionSubtitle {
-                            Text(subtitle)
-                                .font(AppTheme.warmPaperMeta)
-                                .foregroundStyle(AppTheme.settingsTextMuted)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
+                        Text(aiRowStatusText)
+                            .font(AppTheme.warmPaperMeta)
+                            .foregroundStyle(AppTheme.settingsTextMuted)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
 
                     Spacer(minLength: AppTheme.spacingRegular)
@@ -261,7 +178,9 @@ private extension SettingsScreen {
             Toggle("", isOn: aiFeaturesToggleBinding)
                 .labelsHidden()
                 .tint(AppTheme.accent)
-                .accessibilityLabel(String(localized: "AI features"))
+                .disabled(!ApiSecrets.isCloudApiKeyConfigured)
+                .accessibilityLabel(String(localized: "Settings.ai.toggleLabel"))
+                .accessibilityHint(aiToggleAccessibilityHint)
         }
         .frame(minHeight: 44)
     }
@@ -277,33 +196,25 @@ private extension SettingsScreen {
         )
     }
 
-    @ViewBuilder
-    var aiSectionFooter: some View {
-        Text(
-            String(
-                localized: """
-                On: cloud summarization and AI review insights are enabled. \
-                Off: labels and review insights stay on-device.
-                """
-            )
-        )
-        .font(AppTheme.warmPaperBody)
-        .foregroundStyle(AppTheme.settingsTextMuted)
+    var aiConnectionAccessibilityValue: String {
+        aiRowStatusText
     }
 
-    var aiConnectionAccessibilityValue: String {
-        guard aiFeaturesOn else {
-            return String(localized: "Off")
-        }
-        return aiConnectionSubtitle ?? ""
+    /// Empty when the default toggle behavior needs no extra VoiceOver context.
+    var aiToggleAccessibilityHint: String {
+        guard !ApiSecrets.isCloudApiKeyConfigured else { return "" }
+        return String(localized: "Cloud AI isn’t set up on this build.")
     }
 
     var aiConnectionAccessibilityHint: String {
+        if !ApiSecrets.isCloudApiKeyConfigured {
+            return String(localized: "Cloud AI isn’t set up on this build.")
+        }
         if canRunAIConnectivityCheck {
             return String(localized: "Runs a cloud AI reachability check when activated.")
         }
         if !aiFeaturesOn {
-            return String(localized: "Enable AI features to check cloud AI connection status.")
+            return String(localized: "Settings.ai.a11y.enableForConnectionCheck")
         }
         return String(localized: "Cloud AI isn’t set up on this build.")
     }
@@ -493,87 +404,4 @@ private extension SettingsScreen {
         }
         openURL(url)
     }
-
-    func exportJournalData() {
-        guard !isExportingData else { return }
-        isExportingData = true
-        let container = modelContext.container
-        let exportService = dataExportService
-
-        Task {
-            do {
-                let fileURL = try await Task.detached(priority: .userInitiated) {
-                    let backgroundContext = ModelContext(container)
-                    return try exportService.exportArchiveFile(context: backgroundContext)
-                }.value
-                await MainActor.run {
-                    exportFile = ShareableFile(url: fileURL)
-                    isExportingData = false
-                }
-            } catch {
-                await MainActor.run {
-                    exportErrorMessage = String(localized: "Unable to export your Grace Notes data right now.")
-                    showExportError = true
-                    isExportingData = false
-                }
-            }
-        }
-    }
-
-    func importJournalDataFromPendingURL() {
-        guard let url = pendingImportURL else { return }
-        pendingImportURL = nil
-        guard !isImportingData else { return }
-        isImportingData = true
-        let container = modelContext.container
-        let importService = dataImportService
-        let calendar = Calendar.current
-
-        Task {
-            let accessed = url.startAccessingSecurityScopedResource()
-            defer {
-                if accessed {
-                    url.stopAccessingSecurityScopedResource()
-                }
-            }
-            do {
-                let fileData = try Data(contentsOf: url)
-                let summary = try await Task.detached(priority: .userInitiated) {
-                    let backgroundContext = ModelContext(container)
-                    return try importService.importData(fileData, context: backgroundContext, calendar: calendar)
-                }.value
-                await MainActor.run {
-                    importSuccessSummary = summary
-                    showImportSuccess = true
-                    isImportingData = false
-                }
-            } catch {
-                await MainActor.run {
-                    importErrorMessage = importFailureMessage(for: error)
-                    showImportError = true
-                    isImportingData = false
-                }
-            }
-        }
-    }
-
-    func importFailureMessage(for error: Error) -> String {
-        if let importError = error as? JournalDataImportError {
-            switch importError {
-            case .invalidGraceNotesExport:
-                return String(localized: "DataPrivacy.import.error.invalid")
-            case .unsupportedSchemaVersion(let version):
-                return String(
-                    format: String(localized: "DataPrivacy.import.error.schema"),
-                    version
-                )
-            }
-        }
-        return String(localized: "DataPrivacy.import.error.generic")
-    }
-}
-
-private struct ShareableFile: Identifiable {
-    let url: URL
-    var id: String { url.absoluteString }
 }

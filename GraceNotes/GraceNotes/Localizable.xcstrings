@@ -246,22 +246,6 @@
         }
       }
     },
-    "AI features" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI features"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI 功能"
-          }
-        }
-      }
-    },
     "Allow notifications in Settings to confirm a reminder time." : {
       "localizations" : {
         "en" : {
@@ -608,13 +592,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Data backup and export"
+            "value" : "Import and export backups"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "数据备份与导出"
+            "value" : "导入与导出备份"
           }
         }
       }
@@ -811,7 +795,25 @@
         }
       }
     },
+    "DataPrivacy.backup.export" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export a backup"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导出备份"
+          }
+        }
+      }
+    },
     "DataPrivacy.backup.heading" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -827,18 +829,36 @@
         }
       }
     },
-    "DataPrivacy.backup.subtitle" : {
+    "DataPrivacy.backup.helper" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Save a copy of your journal as a JSON file you can store anywhere."
+            "value" : "Saves all journal entries to a file. To bring entries back, use a Grace Notes backup file."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "把感恩记导出成 JSON 文件，方便自行保存。"
+            "value" : "会将所有日记条目保存到文件。若要找回条目，请使用 Grace Notes 的备份文件。"
+          }
+        }
+      }
+    },
+    "DataPrivacy.backup.import" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restore from a backup"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从备份恢复"
           }
         }
       }
@@ -1003,34 +1023,98 @@
         }
       }
     },
-    "DataPrivacy.footer.exportAndImport" : {
+    "DataPrivacy.importExport.export.json" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Export saves a JSON backup you can keep anywhere. Import merges that file by calendar day: it replaces an existing day’s entry or adds a new one."
+            "value" : "Export JSON Backup"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "导出可得到 JSON 备份，自行保存。导入会按日历日合并：若该日已有记录则替换，否则新增。"
+            "value" : "导出 JSON 备份"
           }
         }
       }
     },
-    "DataPrivacy.footer.iCloudNotFullBackup" : {
+    "DataPrivacy.importExport.import.json" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "iCloud sync helps across your devices; it isn't a complete backup by itself."
+            "value" : "Import JSON Backup"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅靠 iCloud 同步，不能作为完整备份。"
+            "value" : "导入 JSON 备份"
+          }
+        }
+      }
+    },
+    "DataPrivacy.importExport.rowTitle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import & Export"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导入与导出"
+          }
+        }
+      }
+    },
+    "DataPrivacy.importExport.section.export" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导出"
+          }
+        }
+      }
+    },
+    "DataPrivacy.importExport.section.import" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导入"
+          }
+        }
+      }
+    },
+    "DataPrivacy.importExport.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import & Export"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导入与导出"
           }
         }
       }
@@ -1283,38 +1367,6 @@
         }
       }
     },
-    "Export Grace Notes data (JSON)" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Export Grace Notes data (JSON)"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "导出感恩记数据（JSON）"
-          }
-        }
-      }
-    },
-    "Import Grace Notes data (JSON)" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import Grace Notes data (JSON)"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "导入感恩记数据（JSON）"
-          }
-        }
-      }
-    },
     "Exporting…" : {
       "localizations" : {
         "en" : {
@@ -1327,22 +1379,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "导出中…"
-          }
-        }
-      }
-    },
-    "Importing…" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importing…"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "导入中…"
           }
         }
       }
@@ -1427,22 +1463,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "感恩的事、需要的事和牵挂的人这几个栏目，能帮你不必想太多就开始记录。"
-          }
-        }
-      }
-    },
-    "Get one local reminder each day to complete today's entry." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Get one local reminder each day to complete today's entry."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "每天一条本地提醒，帮你记得完成今天的记录。"
           }
         }
       }
@@ -1728,6 +1748,22 @@
         }
       }
     },
+    "Importing…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importing…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导入中…"
+          }
+        }
+      }
+    },
     "In progress" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1806,23 +1842,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你想继续培养这个转向 %@ 的变化吗？"
-          }
-        }
-      }
-    },
-    "It is not a complete backup by itself." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "It is not a complete backup by itself."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "仅靠 iCloud 同步，不能作为完整备份。"
           }
         }
       }
@@ -2001,22 +2020,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "本地"
-          }
-        }
-      }
-    },
-    "On: cloud summarization and AI review insights are enabled. Off: labels and review insights stay on-device." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "On: cloud summarization and AI review insights are enabled. Off: labels and review insights stay on-device."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "开启后，会启用云端摘要和 AI 回顾洞察。关闭后，标签和回顾洞察只在本机生成。"
           }
         }
       }
@@ -2515,6 +2518,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "设置"
+          }
+        }
+      }
+    },
+    "Settings.ai.a11y.enableForConnectionCheck" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn on Summarise and Insights to check connection status."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先开启摘要与洞察，以检查连接状态。"
+          }
+        }
+      }
+    },
+    "Settings.ai.sectionTitle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cloud AI"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "云端 AI"
+          }
+        }
+      }
+    },
+    "Settings.ai.toggleLabel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Summarise and Insights"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "摘要与洞察"
           }
         }
       }
