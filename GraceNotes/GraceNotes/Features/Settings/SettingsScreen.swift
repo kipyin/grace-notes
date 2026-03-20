@@ -12,8 +12,10 @@ struct SettingsScreen: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.persistenceRuntimeSnapshot) private var persistenceRuntimeSnapshot
 
     @StateObject private var reminderState = ReminderSettingsFlowModel()
+    @StateObject private var iCloudAccountState = ICloudAccountStatusModel()
     @State private var isReminderPickerExpanded = false
     @State private var isReminderToggleOn = false
     @State private var exportErrorMessage: String?
@@ -80,27 +82,14 @@ struct SettingsScreen: View {
                     .foregroundStyle(AppTheme.settingsTextMuted)
             }
 
-            Section {
-                Toggle(String(localized: "iCloud sync"), isOn: $isICloudSyncEnabled)
-                    .font(AppTheme.warmPaperBody)
-                    .foregroundStyle(AppTheme.settingsTextPrimary)
-                    .tint(AppTheme.accent)
-
-                Button(String(localized: "Export journal data (JSON)")) {
-                    exportJournalData()
-                }
-                .font(AppTheme.warmPaperBody)
-                .foregroundStyle(AppTheme.accentText)
-                .disabled(isExportingData)
-            } header: {
-                Text(String(localized: "Data & Privacy"))
-                    .font(AppTheme.warmPaperHeader)
-                    .foregroundStyle(AppTheme.settingsTextPrimary)
-            } footer: {
-                Text(dataPrivacyFooterText)
-                    .font(AppTheme.warmPaperBody)
-                    .foregroundStyle(AppTheme.settingsTextMuted)
-            }
+            DataPrivacySettingsSection(
+                isICloudSyncEnabled: $isICloudSyncEnabled,
+                iCloudAccountState: iCloudAccountState,
+                persistenceRuntimeSnapshot: persistenceRuntimeSnapshot,
+                isExportingData: isExportingData,
+                onExport: { exportJournalData() },
+                openSystemSettings: { openSystemSettings() }
+            )
         }
         .listRowBackground(AppTheme.settingsPaper.opacity(0.9))
         .scrollContentBackground(.hidden)
@@ -115,12 +104,14 @@ struct SettingsScreen: View {
         .task {
             await reminderState.refreshStatus()
             syncReminderControlState(with: reminderState.liveStatus)
+            iCloudAccountState.refresh()
         }
         .onChange(of: scenePhase) { _, newValue in
             guard newValue == .active else { return }
             Task {
                 await reminderState.refreshStatus()
             }
+            iCloudAccountState.refresh()
         }
         .onChange(of: reminderState.selectedTime) { _, _ in
             reminderState.handleSelectedTimeChanged()
@@ -325,17 +316,6 @@ private extension SettingsScreen {
         openURL(url)
     }
 
-    var dataPrivacyFooterText: String {
-        return String(
-            localized: """
-            iCloud sync on: entries sync across your devices. \
-            iCloud sync off: entries stay local on this device. \
-            Changes apply the next time you open the app. \
-            Export creates a full JSON backup.
-            """
-        )
-    }
-
     var aiFeaturesEnabled: Binding<Bool> {
         Binding(
             get: { useCloudSummarization || useAIReviewInsights },
@@ -364,7 +344,7 @@ private extension SettingsScreen {
                 }
             } catch {
                 await MainActor.run {
-                    exportErrorMessage = String(localized: "Unable to export your journal data right now.")
+                    exportErrorMessage = String(localized: "Unable to export your Grace Notes data right now.")
                     showExportError = true
                     isExportingData = false
                 }
