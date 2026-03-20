@@ -5,7 +5,7 @@ private let log = Logger(subsystem: "com.gracenotes.GraceNotes", category: "Clou
 
 /// Calls OpenAI-compatible chat completions API at chat.cloudapi.vip.
 /// On any failure (network, timeout, invalid key, empty response), falls back to a deterministic
-/// first-5-words/first-5-Chinese-characters summarizer by default; a different summarizer may be injected.
+/// trimmed full-text label by default; a different summarizer may be injected.
 /// See doc.newapi.pro for API details.
 struct CloudSummarizer: Summarizer {
     private let baseURL: String
