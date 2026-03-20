@@ -5,12 +5,14 @@
 iCloud / SwiftData trust in Settings (storage and attention copy aligned with real persistence), optional JSON **import** to restore or merge backups by calendar day, and AI connection status polish. Release scope context: `GraceNotes/docs/07-release-roadmap.md`.
 
 ### Added
-- Settings → Data & Privacy → **Import Grace Notes data (JSON)**: pick an export file, confirm replace-by-day behavior, then merge in a background `ModelContext` (security-scoped file access). Invalid files and unsupported export schema versions surface clear errors; success summarizes inserted vs replaced days.
+- Settings → Data & Privacy → **Restore from a backup**: pick an export file, confirm replace-by-day behavior, then merge in a background `ModelContext` (security-scoped file access). Invalid files and unsupported export schema versions surface clear errors; success summarizes inserted vs replaced days.
 - Settings → AI: path-aware status when AI features are on (misconfigured key, offline, soft check failure), tap the row to verify reachability to the cloud AI host, inline status under the title (plus “Tap for connection status” when nominal), and throttled auto-check on Settings open. Chip label truncation follows the same “cloud route” rule as `SummarizerProvider` (toggle + configured key).
 - AI row uses a Reminders-style trailing toggle with a separate tappable title area for connection status. “Connection looks good.” clears when you leave Settings, lose network route, or start a new check (no timed dismiss).
 - Unit tests for journal import (decode, schema rejection, dedupe-by-day, sanitize) plus SwiftData integration tests skipped on Simulator where a second in-memory container crashes the hosted test app.
 
 ### Changed
+- Settings → **Cloud AI**: **Summarise and Insights** toggle is disabled when no usable `CloudSummarizationAPIKey` is configured; AppStorage flags are cleared when opening Settings if the key is missing.
+- Settings copy: **Cloud AI** section uses a **Summarise and Insights** toggle label (section title carries “cloud”); no footer; Reminders drops the redundant intro line; **Data & Privacy** backup actions use **Export a backup** / **Restore from a backup** plus a short helper under Backup; section footers remain dropped (import confirm still explains merge-by-day).
 - Data & Privacy storage summary when the journal is on CloudKit (no redundant “iCloud on” body line); attention strings use `.summary` keys; **Open Settings** in account/restriction flows uses a prominent button when signing in or fixing restrictions is the primary action.
 - On-device chip labels no longer use word- or character-based “summarization”; they show a capped prefix of the user’s own text with `...` when truncated. Cloud chip summarization is unchanged.
 - Review → Insights / Timeline uses the system segmented `Picker` (Liquid Glass on iOS 26+) with warm accent tint.
