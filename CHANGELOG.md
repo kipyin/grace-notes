@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.4.0] - Unreleased
+
+In progress: iCloud / SwiftData sync reliability (visible sync state where feasible, Settings copy aligned with real persistence behavior, clearer recovery when sync toggles or fails). Release scope and acceptance intent: `GraceNotes/docs/07-release-roadmap.md`.
+
 ## [0.3.5] - 2026-03-20
 
 ### Changed
