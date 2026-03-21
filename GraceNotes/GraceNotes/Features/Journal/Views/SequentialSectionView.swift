@@ -1,4 +1,5 @@
 import SwiftUI
+import QuartzCore
 import UniformTypeIdentifiers
 import UIKit
 
@@ -6,6 +7,71 @@ private enum ChipReorderMotion {
     /// Slight overshoot so lift/release feels lively without feeling toy-like.
     static let liftSpring = Animation.spring(response: 0.3, dampingFraction: 0.62)
     static let releaseSpring = Animation.spring(response: 0.34, dampingFraction: 0.72)
+}
+
+private struct HorizontalScrollMetrics: Equatable {
+    var viewportWidth: CGFloat = 0
+    var contentWidth: CGFloat = 0
+    var contentOffsetX: CGFloat = 0
+}
+
+// MARK: - Chip row elastic scroll (planning caps: ±1.5% x, ±0.8% y; reduce motion = off)
+
+private struct ChipRowScrollSnapshot: Equatable {
+    var metrics: HorizontalScrollMetrics
+    /// Added to 1.0 for `scaleEffect` (see `ChipRowScrollElasticity`).
+    var elasticDeltaX: CGFloat
+    var elasticDeltaY: CGFloat
+}
+
+private enum ChipRowScrollElasticity {
+    /// Max horizontal deviation from 1.0 (spec Q6 A).
+    static let maxDeltaX: CGFloat = 0.015
+    /// Max vertical deviation from 1.0 (spec Q6 A).
+    static let maxDeltaY: CGFloat = 0.008
+    /// Speed at which velocity-driven deformation approaches its cap (points / second).
+    static let velocityReference: CGFloat = 1100
+    /// Maps overscroll distance into extra deformation; uses a fraction of viewport width.
+    static let overscrollViewportFraction: CGFloat = 0.18
+
+    static func clampedDeltas(deltaX: CGFloat, deltaY: CGFloat) -> (CGFloat, CGFloat) {
+        let clampedX = min(max(deltaX, -maxDeltaX), maxDeltaX)
+        let clampedY = min(max(deltaY, -maxDeltaY), maxDeltaY)
+        return (clampedX, clampedY)
+    }
+
+    static func deltas(
+        metrics: HorizontalScrollMetrics,
+        velocityPointsPerSec: CGFloat,
+        isUserDragging: Bool,
+        reduceMotion: Bool
+    ) -> (CGFloat, CGFloat) {
+        guard !reduceMotion, isUserDragging else { return (0, 0) }
+
+        let viewportWidth = metrics.viewportWidth
+        let contentWidth = metrics.contentWidth
+        let offsetX = metrics.contentOffsetX
+        guard viewportWidth > 0, contentWidth > 0 else { return (0, 0) }
+
+        let maxOffset = max(0, contentWidth - viewportWidth)
+        let overscrollLeading = max(0, -offsetX)
+        let overscrollTrailing = max(0, offsetX - maxOffset)
+        let overscroll = max(overscrollLeading, overscrollTrailing)
+
+        let vNorm = min(max(velocityPointsPerSec / velocityReference, -1), 1)
+        var deltaX = vNorm * (maxDeltaX * 0.65)
+        var deltaY = -abs(vNorm) * (maxDeltaY * 0.7)
+
+        if overscroll > 0.5 {
+            let denom = max(viewportWidth * overscrollViewportFraction, 44)
+            let overscrollFactor = min(1, overscroll / denom)
+            let direction: CGFloat = overscrollLeading >= overscrollTrailing ? -1 : 1
+            deltaX += direction * overscrollFactor * (maxDeltaX * 0.55)
+            deltaY += -overscrollFactor * (maxDeltaY * 0.45)
+        }
+
+        return clampedDeltas(deltaX: deltaX, deltaY: deltaY)
+    }
 }
 
 private struct AddChipView: View {
@@ -79,7 +145,11 @@ struct SequentialSectionView: View {
     private static let edgeFeatherWidth: CGFloat = 28
     private static let sectionProgressDotsTrailingInset: CGFloat = 8
     @State private var draggingItemID: UUID?
-    @State private var chipScrollMetrics = HorizontalScrollMetrics()
+    @State private var chipScrollSnapshot = ChipRowScrollSnapshot(
+        metrics: HorizontalScrollMetrics(),
+        elasticDeltaX: 0,
+        elasticDeltaY: 0
+    )
     @State private var isEditingPulseExpanded = false
 
     init(
@@ -168,11 +238,11 @@ struct SequentialSectionView: View {
     }
 
     private var canScrollChipsLeft: Bool {
-        canScrollLeft(for: chipScrollMetrics)
+        canScrollLeft(for: chipScrollSnapshot.metrics)
     }
 
     private var canScrollChipsRight: Bool {
-        canScrollRight(for: chipScrollMetrics)
+        canScrollRight(for: chipScrollSnapshot.metrics)
     }
 
     var body: some View {
@@ -197,11 +267,16 @@ struct SequentialSectionView: View {
                         }
                     }
                     .padding(.trailing, AppTheme.spacingRegular)
+                    .scaleEffect(
+                        x: 1 + chipScrollSnapshot.elasticDeltaX,
+                        y: 1 + chipScrollSnapshot.elasticDeltaY,
+                        anchor: .center
+                    )
+                    .transaction { $0.animation = nil }
                     .background {
-                        HorizontalScrollMetricsReader { metrics in
-                            let currentMetrics = chipScrollMetrics
-                            if currentMetrics != metrics {
-                                chipScrollMetrics = metrics
+                        HorizontalScrollMetricsReader(reduceMotion: reduceMotion) { snapshot in
+                            if chipScrollSnapshot != snapshot {
+                                chipScrollSnapshot = snapshot
                             }
                         }
                     }
@@ -469,17 +544,12 @@ struct SequentialSectionView: View {
     }
 }
 
-private struct HorizontalScrollMetrics: Equatable {
-    var viewportWidth: CGFloat = 0
-    var contentWidth: CGFloat = 0
-    var contentOffsetX: CGFloat = 0
-}
-
 private struct HorizontalScrollMetricsReader: UIViewRepresentable {
-    let onChange: (HorizontalScrollMetrics) -> Void
+    let reduceMotion: Bool
+    let onChange: (ChipRowScrollSnapshot) -> Void
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(onChange: onChange)
+        Coordinator(reduceMotion: reduceMotion, onChange: onChange)
     }
 
     func makeUIView(context: Context) -> UIView {
@@ -493,6 +563,7 @@ private struct HorizontalScrollMetricsReader: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: UIView, context: Context) {
+        context.coordinator.reduceMotion = reduceMotion
         context.coordinator.onChange = onChange
         context.coordinator.attachIfPossible()
     }
@@ -500,43 +571,109 @@ private struct HorizontalScrollMetricsReader: UIViewRepresentable {
     final class Coordinator: NSObject {
         weak var hostView: UIView?
         weak var observedScrollView: UIScrollView?
-        var onChange: (HorizontalScrollMetrics) -> Void
+        var reduceMotion: Bool
+        var onChange: (ChipRowScrollSnapshot) -> Void
         private var contentSizeObservation: NSKeyValueObservation?
         private var contentOffsetObservation: NSKeyValueObservation?
         private var boundsObservation: NSKeyValueObservation?
 
-        init(onChange: @escaping (HorizontalScrollMetrics) -> Void) {
+        private var lastOffsetX: CGFloat?
+        private var lastSampleTime: CFTimeInterval?
+        private var smoothedVelocity: CGFloat = 0
+        private var isUserDraggingScroll = false
+
+        init(reduceMotion: Bool, onChange: @escaping (ChipRowScrollSnapshot) -> Void) {
+            self.reduceMotion = reduceMotion
             self.onChange = onChange
+        }
+
+        deinit {
+            detachPanTarget()
         }
 
         func attachIfPossible() {
             guard let hostView else { return }
             guard let scrollView = findAncestorScrollView(from: hostView) else { return }
-            guard observedScrollView !== scrollView else {
-                publishMetrics()
+            if observedScrollView === scrollView {
+                publishSnapshot()
                 return
             }
 
+            detachPanTarget()
+            tearDownObservations()
+
             observedScrollView = scrollView
+            scrollView.panGestureRecognizer.addTarget(self, action: #selector(handlePan(_:)))
+
             contentSizeObservation = scrollView.observe(\.contentSize, options: [.new]) { [weak self] _, _ in
-                self?.publishMetrics()
+                self?.publishSnapshot()
             }
             contentOffsetObservation = scrollView.observe(\.contentOffset, options: [.new]) { [weak self] _, _ in
-                self?.publishMetrics()
+                self?.publishSnapshot()
             }
             boundsObservation = scrollView.observe(\.bounds, options: [.new]) { [weak self] _, _ in
-                self?.publishMetrics()
+                self?.publishSnapshot()
             }
-            publishMetrics()
+            publishSnapshot()
         }
 
-        private func publishMetrics() {
+        private func tearDownObservations() {
+            contentSizeObservation = nil
+            contentOffsetObservation = nil
+            boundsObservation = nil
+        }
+
+        private func detachPanTarget() {
+            observedScrollView?.panGestureRecognizer.removeTarget(self, action: #selector(handlePan(_:)))
+        }
+
+        @objc private func handlePan(_ recognizer: UIPanGestureRecognizer) {
+            switch recognizer.state {
+            case .began, .changed:
+                isUserDraggingScroll = true
+            case .ended, .cancelled, .failed:
+                isUserDraggingScroll = false
+                smoothedVelocity = 0
+                lastOffsetX = nil
+                lastSampleTime = nil
+            default:
+                break
+            }
+            publishSnapshot()
+        }
+
+        private func publishSnapshot() {
             guard let scrollView = observedScrollView else { return }
+
+            let metrics = HorizontalScrollMetrics(
+                viewportWidth: scrollView.bounds.width,
+                contentWidth: scrollView.contentSize.width,
+                contentOffsetX: scrollView.contentOffset.x
+            )
+
+            let now = CACurrentMediaTime()
+            if let previousX = lastOffsetX, let previousTime = lastSampleTime, now > previousTime {
+                let deltaTime = CGFloat(now - previousTime)
+                if deltaTime > 0.000001 {
+                    let instantVelocity = (metrics.contentOffsetX - previousX) / deltaTime
+                    smoothedVelocity = smoothedVelocity * 0.82 + instantVelocity * 0.18
+                }
+            }
+            lastOffsetX = metrics.contentOffsetX
+            lastSampleTime = now
+
+            let (deltaX, deltaY) = ChipRowScrollElasticity.deltas(
+                metrics: metrics,
+                velocityPointsPerSec: smoothedVelocity,
+                isUserDragging: isUserDraggingScroll,
+                reduceMotion: reduceMotion
+            )
+
             onChange(
-                HorizontalScrollMetrics(
-                    viewportWidth: scrollView.bounds.width,
-                    contentWidth: scrollView.contentSize.width,
-                    contentOffsetX: scrollView.contentOffset.x
+                ChipRowScrollSnapshot(
+                    metrics: metrics,
+                    elasticDeltaX: deltaX,
+                    elasticDeltaY: deltaY
                 )
             )
         }
