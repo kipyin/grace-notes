@@ -29,7 +29,7 @@ struct ReviewScreen: View {
     @State private var selectedMode: ReviewMode
     @State private var lastInsightsRefreshKey: ReviewInsightsRefreshKey?
     @State private var timelineGroups: [(key: Date, entries: [JournalEntry])] = []
-    @AppStorage(ReviewInsightsProvider.useAIReviewInsightsKey) private var useAIReviewInsights = false
+    @AppStorage(SummarizerProvider.useCloudUserDefaultsKey) private var useCloudAI = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let calendar = Calendar.current
@@ -54,7 +54,7 @@ struct ReviewScreen: View {
     private var currentInsightsRefreshKey: ReviewInsightsRefreshKey {
         ReviewInsightsRefreshKey(
             weekStart: currentWeekStart,
-            useAIReviewInsights: useAIReviewInsights,
+            useCloudAI: useCloudAI,
             entrySnapshots: weeklyEntriesForRefresh.map {
                 ReviewEntrySnapshot(id: $0.id, updatedAt: $0.updatedAt)
             }
@@ -238,7 +238,7 @@ struct ReviewScreen: View {
     }
 
     private func shouldCacheRefreshKey(for insights: ReviewInsights) -> Bool {
-        guard useAIReviewInsights else { return true }
+        guard useCloudAI else { return true }
         return insights.source == .cloudAI
     }
 

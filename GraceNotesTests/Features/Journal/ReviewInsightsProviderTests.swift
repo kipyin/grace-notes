@@ -9,16 +9,16 @@ final class ReviewInsightsProviderTests: XCTestCase {
         calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!
         calendar.firstWeekday = 2
-        UserDefaults.standard.removeObject(forKey: ReviewInsightsProvider.useAIReviewInsightsKey)
+        UserDefaults.standard.removeObject(forKey: SummarizerProvider.useCloudUserDefaultsKey)
     }
 
     override func tearDown() {
-        UserDefaults.standard.removeObject(forKey: ReviewInsightsProvider.useAIReviewInsightsKey)
+        UserDefaults.standard.removeObject(forKey: SummarizerProvider.useCloudUserDefaultsKey)
         super.tearDown()
     }
 
     func test_generateInsights_aiEnabled_returnsCloudInsightsWhenAvailable() async {
-        UserDefaults.standard.set(true, forKey: ReviewInsightsProvider.useAIReviewInsightsKey)
+        UserDefaults.standard.set(true, forKey: SummarizerProvider.useCloudUserDefaultsKey)
         let cloud = StubReviewInsightsGenerator(
             result: .success(
                 makeInsights(
@@ -53,7 +53,7 @@ final class ReviewInsightsProviderTests: XCTestCase {
     }
 
     func test_generateInsights_aiDisabled_usesDeterministicInsights() async {
-        UserDefaults.standard.set(false, forKey: ReviewInsightsProvider.useAIReviewInsightsKey)
+        UserDefaults.standard.set(false, forKey: SummarizerProvider.useCloudUserDefaultsKey)
         let cloud = StubReviewInsightsGenerator(result: .success(makeInsights(source: .cloudAI)))
         let deterministic = StubReviewInsightsGenerator(result: .success(makeInsights(source: .deterministic)))
         let provider = ReviewInsightsProvider(
@@ -71,7 +71,7 @@ final class ReviewInsightsProviderTests: XCTestCase {
     }
 
     func test_generateInsights_aiFailure_fallsBackToDeterministicInsights() async {
-        UserDefaults.standard.set(true, forKey: ReviewInsightsProvider.useAIReviewInsightsKey)
+        UserDefaults.standard.set(true, forKey: SummarizerProvider.useCloudUserDefaultsKey)
         let cloud = StubReviewInsightsGenerator(result: .failure(StubError.failed))
         let deterministic = StubReviewInsightsGenerator(
             result: .success(
@@ -106,7 +106,7 @@ final class ReviewInsightsProviderTests: XCTestCase {
     }
 
     func test_generateInsights_whenBothGeneratorsFail_usesWeekRangeFallback() async {
-        UserDefaults.standard.set(true, forKey: ReviewInsightsProvider.useAIReviewInsightsKey)
+        UserDefaults.standard.set(true, forKey: SummarizerProvider.useCloudUserDefaultsKey)
         let cloud = StubReviewInsightsGenerator(result: .failure(StubError.failed))
         let deterministic = StubReviewInsightsGenerator(result: .failure(StubError.failed))
         let provider = ReviewInsightsProvider(
@@ -138,7 +138,7 @@ final class ReviewInsightsProviderTests: XCTestCase {
     }
 
     func test_generateInsights_aiEnabled_withoutCurrentWeekContent_returnsDeterministicStarterInsight() async {
-        UserDefaults.standard.set(true, forKey: ReviewInsightsProvider.useAIReviewInsightsKey)
+        UserDefaults.standard.set(true, forKey: SummarizerProvider.useCloudUserDefaultsKey)
         let cloud = StubReviewInsightsGenerator(result: .failure(StubError.failed))
         let provider = ReviewInsightsProvider(
             deterministicGenerator: DeterministicReviewInsightsGenerator(),

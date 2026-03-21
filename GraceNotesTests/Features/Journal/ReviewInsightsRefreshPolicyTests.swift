@@ -36,9 +36,9 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
         XCTAssertFalse(result)
     }
 
-    func test_shouldRefresh_whenAISettingChanges_returnsTrue() {
-        let previous = makeKey(useAIReviewInsights: false)
-        let current = makeKey(useAIReviewInsights: true)
+    func test_shouldRefresh_whenCloudSettingChanges_returnsTrue() {
+        let previous = makeKey(useCloudAI: false)
+        let current = makeKey(useCloudAI: true)
         let result = ReviewInsightsRefreshPolicy.shouldRefresh(
             force: false,
             hasInsights: true,
@@ -69,12 +69,12 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
 
     private func makeKey(
         weekStart: Date = Date(timeIntervalSince1970: 0),
-        useAIReviewInsights: Bool = false,
+        useCloudAI: Bool = false,
         snapshots: [ReviewEntrySnapshot] = []
     ) -> ReviewInsightsRefreshKey {
         ReviewInsightsRefreshKey(
             weekStart: weekStart,
-            useAIReviewInsights: useAIReviewInsights,
+            useCloudAI: useCloudAI,
             entrySnapshots: snapshots
         )
     }

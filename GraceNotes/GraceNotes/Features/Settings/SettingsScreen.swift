@@ -2,9 +2,10 @@ import SwiftUI
 import UIKit
 
 struct SettingsScreen: View {
+    private static let legacyAIInsightsDefaultsKey = "useAIReviewInsights"
+
     /// Default false to align with SummarizerProvider; first launch uses on-device NL summarization.
-    @AppStorage("useCloudSummarization") private var useCloudSummarization = false
-    @AppStorage(ReviewInsightsProvider.useAIReviewInsightsKey) private var useAIReviewInsights = false
+    @AppStorage(SummarizerProvider.useCloudUserDefaultsKey) private var useCloudSummarization = false
     @AppStorage(PersistenceController.iCloudSyncEnabledKey) private var isICloudSyncEnabled = true
     @Environment(\.openURL) private var openURL
     @Environment(\.scenePhase) private var scenePhase
@@ -75,9 +76,11 @@ struct SettingsScreen: View {
         }
         .navigationTitle(String(localized: "Settings"))
         .onAppear {
+            migrateLegacyAIInsightsToggleIfNeeded()
             clampCloudAIFeaturesIfApiKeyMissing()
         }
         .task {
+            migrateLegacyAIInsightsToggleIfNeeded()
             clampCloudAIFeaturesIfApiKeyMissing()
             await reminderState.refreshStatus()
             syncReminderControlState(with: reminderState.liveStatus)
@@ -100,9 +103,6 @@ struct SettingsScreen: View {
         .onChange(of: useCloudSummarization) { _, _ in
             syncAICloudStatusModel()
         }
-        .onChange(of: useAIReviewInsights) { _, _ in
-            syncAICloudStatusModel()
-        }
         .onChange(of: reminderState.selectedTime) { _, _ in
             reminderState.handleSelectedTimeChanged()
         }
@@ -115,7 +115,7 @@ struct SettingsScreen: View {
 
 private extension SettingsScreen {
     var aiFeaturesOn: Bool {
-        useCloudSummarization || useAIReviewInsights
+        useCloudSummarization
     }
 
     var canRunAIConnectivityCheck: Bool {
@@ -130,8 +130,20 @@ private extension SettingsScreen {
     func clampCloudAIFeaturesIfApiKeyMissing() {
         guard !ApiSecrets.isCloudApiKeyConfigured, aiFeaturesOn else { return }
         useCloudSummarization = false
-        useAIReviewInsights = false
         syncAICloudStatusModel()
+    }
+
+    /// `useAIReviewInsights` was retired when AI settings moved to a single toggle.
+    /// Keep prior "on" users on the cloud path, then remove the obsolete key.
+    func migrateLegacyAIInsightsToggleIfNeeded() {
+        let defaults = UserDefaults.standard
+        guard defaults.object(forKey: Self.legacyAIInsightsDefaultsKey) != nil else { return }
+
+        let legacyAIInsightsEnabled = defaults.bool(forKey: Self.legacyAIInsightsDefaultsKey)
+        if legacyAIInsightsEnabled, !useCloudSummarization {
+            useCloudSummarization = true
+        }
+        defaults.removeObject(forKey: Self.legacyAIInsightsDefaultsKey)
     }
 
     /// Inline status under the toggle label (visible in every state: misconfigured, off, or on + connectivity).
@@ -190,7 +202,6 @@ private extension SettingsScreen {
             get: { aiFeaturesOn },
             set: { enabled in
                 useCloudSummarization = enabled
-                useAIReviewInsights = enabled
                 syncAICloudStatusModel()
             }
         )
