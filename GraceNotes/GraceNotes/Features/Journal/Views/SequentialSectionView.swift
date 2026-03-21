@@ -9,7 +9,7 @@ private struct AddChipView: View {
     var body: some View {
         Button(action: onTap) {
             Image(systemName: "plus.circle.fill")
-                .font(.system(size: 20))
+                .font(AppTheme.outfitRegularTitle3)
                 .foregroundStyle(AppTheme.journalTextMuted)
                 .padding(.horizontal, AppTheme.spacingRegular)
                 .padding(.vertical, AppTheme.spacingTight)
@@ -227,7 +227,9 @@ struct SequentialSectionView: View {
                     TextField(
                         "",
                         text: $inputText,
-                        prompt: Text(placeholder).foregroundStyle(AppTheme.journalInputPlaceholder)
+                        prompt: Text(placeholder)
+                            .font(AppTheme.warmPaperBody)
+                            .foregroundStyle(AppTheme.journalInputPlaceholder)
                     )
                         .font(AppTheme.warmPaperBody)
                         .foregroundStyle(AppTheme.journalTextPrimary)
@@ -243,7 +245,9 @@ struct SequentialSectionView: View {
                     TextField(
                         "",
                         text: $inputText,
-                        prompt: Text(placeholder).foregroundStyle(AppTheme.journalInputPlaceholder)
+                        prompt: Text(placeholder)
+                            .font(AppTheme.warmPaperBody)
+                            .foregroundStyle(AppTheme.journalInputPlaceholder)
                     )
                         .font(AppTheme.warmPaperBody)
                         .foregroundStyle(AppTheme.journalTextPrimary)

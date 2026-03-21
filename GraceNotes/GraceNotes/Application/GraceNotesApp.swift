@@ -53,17 +53,21 @@ struct GraceNotesApp: App {
         }
         _uiTestPersistenceController = State(initialValue: preloadedUITestController)
         PerformanceTrace.end("App.init", startedAt: startupTrace)
+        AppInterfaceAppearance.configure()
     }
 
     var body: some Scene {
         WindowGroup {
-            if isRunningUnitTests {
-                Color.clear
-            } else if let uiTestController = uiTestPersistenceController {
-                uiTestRootView(using: uiTestController)
-            } else {
-                startupRootView
+            Group {
+                if isRunningUnitTests {
+                    Color.clear
+                } else if let uiTestController = uiTestPersistenceController {
+                    uiTestRootView(using: uiTestController)
+                } else {
+                    startupRootView
+                }
             }
+            .environment(\.font, AppTheme.outfitUI)
         }
     }
 

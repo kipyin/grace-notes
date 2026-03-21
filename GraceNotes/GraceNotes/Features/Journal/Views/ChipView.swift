@@ -72,6 +72,7 @@ struct ChipView: View {
             }
             .alert(String(localized: "Rename label"), isPresented: $showRenamePrompt) {
                 TextField(String(localized: "Label"), text: $renameDraft)
+                    .font(AppTheme.outfitUI)
                 Button(String(localized: "Cancel"), role: .cancel) {}
                 Button(String(localized: "Save")) {
                     commitRename()
