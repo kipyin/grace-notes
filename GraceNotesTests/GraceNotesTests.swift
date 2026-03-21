@@ -293,6 +293,7 @@ final class ChipReorderDropDelegateTests: XCTestCase {
             targetIndex: 1,
             items: items,
             draggingItemID: Binding(get: { draggingItemID }, set: { draggingItemID = $0 }),
+            reduceMotion: true,
             onMoveChip: { _, _ in didMove = true }
         )
 
@@ -312,6 +313,7 @@ final class ChipReorderDropDelegateTests: XCTestCase {
             targetIndex: 0,
             items: [item],
             draggingItemID: Binding(get: { draggingItemID }, set: { draggingItemID = $0 }),
+            reduceMotion: true,
             onMoveChip: { _, _ in didMove = true }
         )
 

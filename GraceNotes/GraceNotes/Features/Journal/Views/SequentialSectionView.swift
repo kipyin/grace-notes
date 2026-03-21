@@ -2,6 +2,12 @@ import SwiftUI
 import UniformTypeIdentifiers
 import UIKit
 
+private enum ChipReorderMotion {
+    /// Slight overshoot so lift/release feels lively without feeling toy-like.
+    static let liftSpring = Animation.spring(response: 0.3, dampingFraction: 0.62)
+    static let releaseSpring = Animation.spring(response: 0.34, dampingFraction: 0.72)
+}
+
 private struct AddChipView: View {
     let sectionTitle: String
     let onTap: () -> Void
@@ -391,10 +397,23 @@ struct SequentialSectionView: View {
         )
 
         if let onMoveChip {
+            let isSourceOfDrag = draggingItemID == item.id
             chip
+                .scaleEffect(reduceMotion || !isSourceOfDrag ? 1 : 0.9)
+                .opacity(reduceMotion || !isSourceOfDrag ? 1 : 0.42)
                 .onDrag {
-                    draggingItemID = item.id
+                    if reduceMotion {
+                        draggingItemID = item.id
+                    } else {
+                        withAnimation(ChipReorderMotion.liftSpring) {
+                            draggingItemID = item.id
+                        }
+                    }
                     return NSItemProvider(object: item.id.uuidString as NSString)
+                } preview: {
+                    chip
+                        .scaleEffect(reduceMotion ? 1 : 1.07)
+                        .shadow(color: .black.opacity(0.14), radius: 8, x: 0, y: 4)
                 }
                 .onDrop(
                     of: [UTType.text],
@@ -402,6 +421,7 @@ struct SequentialSectionView: View {
                         targetIndex: index,
                         items: items,
                         draggingItemID: $draggingItemID,
+                        reduceMotion: reduceMotion,
                         onMoveChip: onMoveChip
                     )
                 )
@@ -557,6 +577,7 @@ struct ChipReorderDropDelegate: DropDelegate {
     let targetIndex: Int
     let items: [JournalItem]
     @Binding var draggingItemID: UUID?
+    let reduceMotion: Bool
     let onMoveChip: ((Int, Int) -> Void)?
 
     func dropEntered(info: DropInfo) {
@@ -580,14 +601,33 @@ struct ChipReorderDropDelegate: DropDelegate {
     }
 
     func performDrop() -> Bool {
-        guard let draggingItemID else { return false }
-        defer { self.draggingItemID = nil }
-        guard let onMoveChip else { return false }
-        guard let sourceIndex = items.firstIndex(where: { $0.id == draggingItemID }) else { return false }
-        guard sourceIndex != targetIndex else { return true }
+        guard let activeDragID = draggingItemID else { return false }
+        guard let onMoveChip else {
+            clearDraggingState(animated: false)
+            return false
+        }
+        guard let sourceIndex = items.firstIndex(where: { $0.id == activeDragID }) else {
+            clearDraggingState(animated: false)
+            return false
+        }
+        if sourceIndex == targetIndex {
+            clearDraggingState(animated: true)
+            return true
+        }
 
         let destinationOffset = targetIndex > sourceIndex ? targetIndex + 1 : targetIndex
         onMoveChip(sourceIndex, destinationOffset)
+        clearDraggingState(animated: true)
         return true
+    }
+
+    private func clearDraggingState(animated: Bool) {
+        if animated, !reduceMotion {
+            withAnimation(ChipReorderMotion.releaseSpring) {
+                draggingItemID = nil
+            }
+        } else {
+            draggingItemID = nil
+        }
     }
 }
