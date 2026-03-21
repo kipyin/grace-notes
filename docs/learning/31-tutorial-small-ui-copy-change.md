@@ -1,10 +1,10 @@
-# Tutorial 31: make a small UI copy change
+# Tutorial 31 — Make a small UI copy change
 
 ## Goal
 
-Change one onboarding sentence and verify it in the app.
+Change one onboarding message sentence and verify it in app UI.
 
-This teaches the smallest safe UI edit path.
+This is a safe first “real change” workflow.
 
 You will change one string only.
 
@@ -19,16 +19,44 @@ If you are on Linux, you can still follow the edit steps, but you cannot run the
 Time estimate:
 - 15 to 30 minutes
 
-## Steps
+---
 
-1. Open `../../GraceNotes/GraceNotes/Features/Onboarding/OnboardingScreen.swift`.
-2. In `pages`, pick one `message` string.
-3. Change the text to a short variant.
-   - Keep tone calm and clear.
-4. Build and run in Xcode.
-5. If onboarding does not appear (flag already set), reset simulator app data and run again.
-6. Swipe through onboarding pages and confirm your new text appears.
-7. Check one small and one large simulator size if possible (for wrap/clipping check).
+## Real anchor snippet
+
+```swift
+} else if !hasCompletedOnboarding {
+    OnboardingScreen {
+        hasCompletedOnboarding = true
+    }
+}
+```
+
+Why this snippet matters:
+- it proves onboarding appears only when the stored flag is false
+- if you cannot see onboarding, this logic explains why
+
+## Steps (with why)
+
+1. Open `../../GraceNotes/GraceNotes/Features/Onboarding/OnboardingScreen.swift`.  
+   Why: this file owns onboarding page text.
+
+2. In `pages`, pick one `message:` value only.  
+   Why: one change keeps test surface small.
+
+3. Edit the sentence. Keep it short and clear.  
+   Why: long copy can clip or wrap poorly.
+
+4. Build and run in Xcode.  
+   Why: confirms no syntax/localization issues.
+
+5. If onboarding is skipped, clear app data in simulator and rerun.  
+   Why: `hasCompletedOnboarding` might already be true.
+
+6. Swipe onboarding pages and verify new text appears once in correct page.  
+   Why: catches accidental edits to wrong string.
+
+7. Check at least one small + one large device size.  
+   Why: catches layout wrapping issues.
 
 ## Real snippets to anchor this change
 
@@ -56,7 +84,7 @@ Where onboarding is gated in app root:
 }
 ```
 
-## How to check it worked
+## Verification checklist
 
 Success means:
 
@@ -65,10 +93,10 @@ Success means:
 - edited sentence appears exactly once where expected
 - layout still looks clean (no clipping/truncation)
 
-Nice-to-have evidence:
-- take one screenshot of edited onboarding page for your own notes/review
+Optional evidence:
+- keep one screenshot of updated page for review notes
 
-## What often goes wrong
+## What usually breaks (and fixes)
 
 - Editing the wrong string (title vs message).
 - Simulator still has `hasCompletedOnboarding = true`, so onboarding is skipped.
@@ -76,7 +104,7 @@ Nice-to-have evidence:
 
 If onboarding still does not show:
 - uninstall app from simulator
-- re-run app from Xcode
+- rerun app from Xcode
 
 ## Optional harder step
 

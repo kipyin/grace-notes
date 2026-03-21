@@ -1,47 +1,61 @@
-# Tutorial 30: read the Today flow end to end
+# Tutorial 30 — Read the Today flow end to end
 
 ## Goal
 
-Understand how one Today entry is loaded, edited, and saved.
+Build a precise mental model of:
+`open app -> load today -> edit -> autosave`.
 
-No code changes in this tutorial.
+No code edits in this tutorial.
 
-You are building a clear mental model first.
+## Prerequisites
 
-## What you need first
+- repo cloned
+- basic Swift syntax
+- 25–40 minutes
 
-- This repo checked out
-- Basic Swift syntax comfort
-- Optional: markdown notes to write what you find
+You can do this on Linux (code reading only).
 
-You do **not** need Xcode for this tutorial.
+---
 
-Time estimate:
-- 25 to 40 minutes
+## Real anchor snippet
 
-## Steps
+```swift
+viewModel.loadTodayIfNeeded(using: modelContext)
+```
 
-1. Open `../../GraceNotes/GraceNotes/Application/GraceNotesApp.swift`.
-   - Find where `JournalScreen` is added to the Today tab.
-2. Open `../../GraceNotes/GraceNotes/Features/Journal/Views/JournalScreen.swift`.
-   - Find the `.task` block.
-   - Note where it calls `loadTodayIfNeeded(using:)`.
-3. Open `../../GraceNotes/GraceNotes/Features/Journal/ViewModels/JournalViewModel.swift`.
-   - Read `loadTodayIfNeeded(using:)`.
-   - Read `loadEntry(for:using:)`.
-   - Read `persistChanges()`.
-4. Open `../../GraceNotes/GraceNotes/Data/JournalRepository.swift`.
-   - Read `fetchEntry(for:context:)`.
-   - Read `fetchEntry(dayStart:context:)`.
-5. Return to `JournalViewModel+ChipEditing.swift`.
-   - Read one add method (for example `addGratitude`).
-   - Follow how it calls `scheduleAutosave()`.
+If you can explain exactly what this line triggers, you understand the core flow.
 
-6. Optional but useful:
-   - open `../../GraceNotes/GraceNotes/Features/Journal/Views/SequentialSectionView.swift`
-   - see how UI input routes into submit callbacks
+---
 
-## Real snippets to anchor each step
+## Steps (with why)
+
+1. Open `../../GraceNotes/GraceNotes/Application/GraceNotesApp.swift`.  
+   Why: this shows where Today tab attaches `JournalScreen`.
+
+2. Open `../../GraceNotes/GraceNotes/Features/Journal/Views/JournalScreen.swift`.  
+   Find `.task` and the anchor snippet.  
+   Why: this is the bridge from UI lifecycle to ViewModel loading.
+
+3. Open `../../GraceNotes/GraceNotes/Features/Journal/ViewModels/JournalViewModel.swift`.  
+   Read:
+   - `loadTodayIfNeeded(using:)`
+   - `loadEntry(for:using:)`
+   - `persistChanges()`
+   Why: this is where state + save behavior lives.
+
+4. Open `../../GraceNotes/GraceNotes/Data/JournalRepository.swift`.  
+   Read:
+   - `fetchEntry(for:context:)`
+   - `fetchEntry(dayStart:context:)`
+   Why: this is where day-range query rules live.
+
+5. Open `../../GraceNotes/GraceNotes/Features/Journal/ViewModels/JournalViewModel+ChipEditing.swift`.  
+   Read one chip add method (for example `addGratitude`).  
+   Why: chip edits are a major save trigger.
+
+---
+
+## Snippet checkpoints
 
 From app root:
 
@@ -51,64 +65,53 @@ NavigationStack {
 }
 ```
 
-From `JournalScreen` load:
-
-```swift
-viewModel.loadTodayIfNeeded(using: modelContext)
-```
-
-From `JournalViewModel` autosave:
+From autosave path:
 
 ```swift
 autosaveTrigger
     .debounce(for: .milliseconds(400), scheduler: RunLoop.main)
 ```
 
-From repository date range:
+From repository predicate:
 
 ```swift
 entry.entryDate >= dayStart && entry.entryDate < nextDay
 ```
 
-## How to check it worked
+---
 
-Write a short call path in your own words.
+## Verification checklist
 
-You should be able to explain:
+Write 5 bullets in your own words:
 
-- where load starts
-- where save happens
-- how date-based fetch works
-- where chip updates trigger autosave
+1. Where Today screen is created.
+2. Where initial load call happens.
+3. Where repository fetch is called.
+4. Where save actually happens.
+5. Why day-range query is used.
 
-If you can explain that clearly, this tutorial worked.
+If you can do this without looking back, tutorial succeeded.
 
-Example expected summary:
+---
 
-1. Today tab loads `JournalScreen`.
-2. `JournalScreen` asks `JournalViewModel` to load today.
-3. ViewModel fetches day entry via repository.
-4. User edits fields/chips.
-5. ViewModel debounces autosave and persists through `ModelContext`.
+## What usually breaks (and fixes)
 
-## What often goes wrong
+- **Problem:** you read only screen file.  
+  **Fix:** always jump into called ViewModel method next.
 
-- Reading view code only, but skipping ViewModel code.
-- Missing that repository fetch uses a day range (`dayStart` to `nextDay`), not exact timestamp equality.
-- Missing that chip editing has both immediate UI updates and async summarize steps.
+- **Problem:** you miss date normalization.  
+  **Fix:** inspect `startOfDay` + `nextDay` path in repository.
 
-If stuck:
+- **Problem:** you miss async chip update guard logic.  
+  **Fix:** read one add method and one update method in chip editing extension.
 
-- Go back to `JournalScreen` and find `.task` first.
-- Then jump only to called function definitions.
-- Avoid reading unrelated UI style code at this stage.
+---
 
 ## Optional harder step
 
-Trace the same flow for a **past date** opened from Review:
+Trace past-date flow from Review:
 
-- start from `ReviewScreen`
-- follow `NavigationLink` to `JournalScreen(entryDate:)`
-- verify `loadEntry(for:using:)` path for non-today dates
+- `ReviewScreen` -> `JournalScreen(entryDate:)`
+- compare with today default path
 
-Write 3 bullets on what is the same vs different between today and past-date flow.
+Write 3 lines: “same”, “different”, “why difference exists”.
