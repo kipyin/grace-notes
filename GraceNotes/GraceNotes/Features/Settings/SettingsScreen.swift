@@ -273,7 +273,7 @@ private extension SettingsScreen {
 
                     if reminderState.isReminderEnabled {
                         Image(systemName: isReminderPickerExpanded ? "chevron.up" : "chevron.down")
-                            .font(.system(size: 12, weight: .semibold))
+                            .font(AppTheme.outfitSemiboldCaption)
                             .foregroundStyle(AppTheme.settingsTextMuted)
                     }
                 }
