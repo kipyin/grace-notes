@@ -184,6 +184,10 @@ private extension ImportExportSettingsScreen {
                 }
             }
             do {
+                // If we can read a byte length without loading the file, reject oversize imports early.
+                if let byteCount = JournalDataImportService.resolvedFileByteCount(at: url) {
+                    try JournalDataImportService.checkImportPayloadByteCount(byteCount)
+                }
                 let fileData = try Data(contentsOf: url)
                 let summary = try await Task.detached(priority: .userInitiated) {
                     let backgroundContext = ModelContext(container)
@@ -214,6 +218,10 @@ private extension ImportExportSettingsScreen {
                     format: String(localized: "DataPrivacy.import.error.schema"),
                     version
                 )
+            case .fileTooLarge:
+                return String(localized: "DataPrivacy.import.error.fileTooLarge")
+            case .tooManyEntries:
+                return String(localized: "DataPrivacy.import.error.tooManyEntries")
             }
         }
         return String(localized: "DataPrivacy.import.error.generic")

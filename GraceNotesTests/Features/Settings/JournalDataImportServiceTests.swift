@@ -34,6 +34,37 @@ final class JournalDataImportServiceTests: XCTestCase {
         }
     }
 
+    func test_checkImportPayloadByteCount_rejectsOverLimit() {
+        let overLimit = JournalDataImportService.maxImportFileSizeBytes + 1
+        XCTAssertThrowsError(
+            try JournalDataImportService.checkImportPayloadByteCount(overLimit)
+        ) { error in
+            XCTAssertEqual(error as? JournalDataImportError, .fileTooLarge)
+        }
+        XCTAssertNoThrow(
+            try JournalDataImportService.checkImportPayloadByteCount(JournalDataImportService.maxImportFileSizeBytes)
+        )
+    }
+
+    func test_decode_tooManyEntries_throws() throws {
+        let day = calendar.startOfDay(for: Date(timeIntervalSince1970: 1_742_147_200))
+        let limit = JournalDataImportService.maxImportEntryCount
+        let entries = (0 ..< limit + 1).map { index in
+            makeExportEntry(
+                id: UUID(),
+                entryDate: day,
+                gratitudes: [exportItem(fullText: "E\(index)")]
+            )
+        }
+        let data = try encodeArchive(
+            JournalDataExportArchive(schemaVersion: 1, exportedAt: day, entries: entries)
+        )
+
+        XCTAssertThrowsError(try importService.decodeArchive(data)) { error in
+            XCTAssertEqual(error as? JournalDataImportError, .tooManyEntries)
+        }
+    }
+
     func test_dedupe_sameCalendarDay_lastRowWins() {
         let noon = Date(timeIntervalSince1970: 1_742_147_200)
         let day = calendar.startOfDay(for: noon)

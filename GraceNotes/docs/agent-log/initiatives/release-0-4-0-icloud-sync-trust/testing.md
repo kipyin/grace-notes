@@ -3,7 +3,7 @@
 ## Automated (Linux / CI)
 
 - `PersistenceRuntimeSnapshotTests` — factory combinations; `test_makeInMemoryForTesting_matchesFactory` **skipped on iOS Simulator** (second `ModelContainer` in hosted test app hits malloc crash).
-- `JournalDataImportServiceTests` — decode, schema rejection, dedupe-by-day, sanitize on Simulator; SwiftData import paths **skipped on Simulator** (same hosted crash class).
+- `JournalDataImportServiceTests` — decode, schema rejection, **import payload size / max entry count** guards, dedupe-by-day, sanitize on Simulator; SwiftData import paths **skipped on Simulator** (same hosted crash class).
 - `AISettingsCloudStatusModelTests` — `test_misconfiguredWhenKeyMissing` is **async** so `@MainActor` model updates do not corrupt heap on Simulator.
 
 **Evidence (macOS):** Full `xcodebuild test` — scheme **GraceNotes** (not Demo), destination `iPhone 17` / iOS 26.3.1 Simulator, 2026-03-20 — **TEST SUCCEEDED**.

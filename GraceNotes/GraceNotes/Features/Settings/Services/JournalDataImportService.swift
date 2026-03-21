@@ -4,6 +4,8 @@ import SwiftData
 enum JournalDataImportError: Error, Equatable {
     case invalidGraceNotesExport
     case unsupportedSchemaVersion(Int)
+    case fileTooLarge
+    case tooManyEntries
 }
 
 /// Summary of a completed import. `processedDayCount` is unique calendar days after deduplication.
@@ -21,13 +23,37 @@ struct JournalDataImportSanitizedLengths: Equatable {
 }
 
 struct JournalDataImportService {
+    /// Caps memory use and import work for malicious or corrupted backups.
+    static let maxImportFileSizeBytes = 100 * 1024 * 1024
+    static let maxImportEntryCount = 10_000
+
     private let maxStringFieldLength = 50_000
+
+    /// Shared with the file picker path so limits stay aligned. Used by tests without allocating huge `Data`.
+    internal static func checkImportPayloadByteCount(_ byteCount: Int) throws {
+        guard byteCount <= maxImportFileSizeBytes else {
+            throw JournalDataImportError.fileTooLarge
+        }
+    }
+
+    /// Best-effort size before `Data(contentsOf:)`; nil if the platform does not expose a file length.
+    static func resolvedFileByteCount(at url: URL) -> Int? {
+        if let size = try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize {
+            return size
+        }
+        if let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
+           let num = attrs[.size] as? NSNumber {
+            return num.intValue
+        }
+        return nil
+    }
 
     func importData(
         _ data: Data,
         context: ModelContext,
         calendar: Calendar = .current
     ) throws -> JournalDataImportSummary {
+        try Self.checkImportPayloadByteCount(data.count)
         let archive = try decodeArchive(data)
         let entries = dedupeByCalendarDayLastWins(archive.entries, calendar: calendar)
 
@@ -91,6 +117,9 @@ struct JournalDataImportService {
         }
         guard archive.schemaVersion == 1 else {
             throw JournalDataImportError.unsupportedSchemaVersion(archive.schemaVersion)
+        }
+        guard archive.entries.count <= Self.maxImportEntryCount else {
+            throw JournalDataImportError.tooManyEntries
         }
         return archive
     }
