@@ -8,6 +8,7 @@ Insight quality: Review that feels specific and grounded, better chip source mat
 - (Planned, `#11`) Checkmark or equivalent when all five slots in a section are complete
 
 ### Changed
+- System sans typography uses **Outfit** app-wide: UIKit navigation bar, tab bar, and bar-button titles via appearance; SwiftUI root `font` environment; journal inputs keep explicit **Source Serif** / **Playfair** where set (including gratitude/need/person field placeholders).
 - (Planned, `#40`) Review / weekly insights less generic—language tied to recurring themes, people, and counts from real entries
 - (Planned, `#39`) AI prompts for chip labels tuned to improve review inputs; deterministic paths unchanged in spirit
 

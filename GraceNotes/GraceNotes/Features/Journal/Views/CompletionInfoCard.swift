@@ -15,7 +15,7 @@ struct CompletionInfoCard: View {
     var body: some View {
         HStack(alignment: .top, spacing: AppTheme.spacingRegular) {
             Image(systemName: badgeInfo.iconName)
-                .font(.system(size: 15, weight: .semibold))
+                .font(AppTheme.outfitSemiboldSubheadline)
                 .foregroundStyle(cardTintColor)
                 .frame(width: 26, height: 26)
                 .background(Circle().fill(cardTintColor.opacity(0.16)))

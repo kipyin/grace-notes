@@ -100,7 +100,16 @@ enum AppTheme {
     static let warmPaperMetaEmphasis = Font.custom("SourceSerif4Roman-Regular", size: 15, relativeTo: .footnote)
         .weight(.semibold)
 
-    /// Latin interface sans (Outfit). Use for compact labels; journal reading stays on warmPaper* serifs.
+    // MARK: - Interface sans (Outfit)
+
+    /// Default SwiftUI sans; inherited by controls unless a view sets `.font` (journal uses `warmPaper*` instead).
+    static let outfitUI = Font.custom("Outfit-Regular", size: 17, relativeTo: .body)
+
+    static let outfitSemiboldHeadline = Font.custom("Outfit-SemiBold", size: 17, relativeTo: .headline)
+    static let outfitRegularTitle3 = Font.custom("Outfit-Regular", size: 20, relativeTo: .title3)
+    static let outfitSemiboldSubheadline = Font.custom("Outfit-SemiBold", size: 15, relativeTo: .subheadline)
+
+    /// Disclosure chevrons and other compact chrome.
     static let outfitSemiboldCaption = Font.custom("Outfit-SemiBold", size: 12, relativeTo: .caption2)
 
     // MARK: - Spacing & Radius

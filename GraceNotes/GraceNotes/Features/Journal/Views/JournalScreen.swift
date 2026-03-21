@@ -150,6 +150,7 @@ struct JournalScreen: View {
                     shareTapped()
                 } label: {
                     Image(systemName: "square.and.arrow.up")
+                        .font(AppTheme.outfitSemiboldHeadline)
                 }
                 .accessibilityLabel("Share")
                 .accessibilityIdentifier("Share")
