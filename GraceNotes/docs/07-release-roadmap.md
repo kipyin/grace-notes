@@ -1,6 +1,6 @@
 # Grace Notes Release Roadmap
 
-Date: 2026-03-20
+Date: 2026-03-21
 
 This roadmap turns the strategic priority stack into a release sequence grounded in the current open issue set. For **shipped** scope detail, treat `CHANGELOG.md` as the source of truth and keep this document aligned when tagging releases.
 
@@ -108,6 +108,10 @@ This roadmap turns the strategic priority stack into a release sequence grounded
 
 **Goal:** Make multi-device and cloud-backed storage feel dependable, legible, and recoverable—not only configurable.
 
+**Release status**
+- Shipped as `0.4.0` minor release (2026-03-21).
+- See `CHANGELOG.md` for final packaged scope details.
+
 **Scope in**
 - User-visible sync health or last-known state where APIs and product tone allow (SwiftData + CloudKit)
 - Behavior and Settings copy that match real outcomes, including failure and fallback paths (e.g. local store when CloudKit container creation fails)
@@ -127,6 +131,8 @@ This roadmap turns the strategic priority stack into a release sequence grounded
 **Versioning note:** If marketing needs the `0.4.0` label for insight work instead, ship sync reliability as a patch (e.g. `0.3.6`) first, then proceed with insight as `0.4.0`; document that swap in this file when chosen.
 
 ## 0.5.0 — Insight quality
+
+Work tracked on branch `release/0.5.0`.
 
 **Goal:** Make review feel specific, trustworthy, and grounded in the user’s own entries.
 
@@ -150,13 +156,13 @@ This roadmap turns the strategic priority stack into a release sequence grounded
 **Goal:** Make Grace Notes feel safe to adopt as a real grace note practice.
 
 **Scope in**
-- Structured import to complement existing export
+- Deeper **backup and ownership** UX beyond what shipped in `0.4.0` (JSON import/export is already available); e.g. clearer in-app guidance, edge cases, or portability story
 - Clear privacy messaging for local versus cloud behavior (extends, does not replace, `0.4.0` sync truthfulness)
 - `zh-Hant` localization if release capacity allows
 
 **Why now**
 - Users need confidence that their reflections are portable and recoverable.
-- Export shipped in `0.2.3`, so import and clearer ownership are the natural next step after sync behavior and review quality are stronger.
+- Export shipped in `0.2.3` and structured import shipped in `0.4.0`; this lane focuses on trust copy and ownership clarity once review quality (`0.5.0`) is stronger.
 
 **Acceptance intent**
 - Users can restore from a prior export.
