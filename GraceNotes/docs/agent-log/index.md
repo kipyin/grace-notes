@@ -4,6 +4,7 @@
 
 ## Active Initiatives
 
+- [`release-0-5-0-insight-quality`](initiatives/release-0-5-0-insight-quality) — **0.5.0** (in progress; `brief.md`)
 - [`issue-41-agents-workflow`](initiatives/issue-41-agents-workflow)
   - Latest: `release.md`
   - Next Owner: `Strategist`

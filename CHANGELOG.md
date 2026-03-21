@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.5.0] - Unreleased
+
+Insight quality: Review that feels specific and grounded, better chip source material, calmer completion feedback. Release scope context: `GraceNotes/docs/07-release-roadmap.md` §0.5.0.
+
+### Added
+- (Planned, `#11`) Checkmark or equivalent when all five slots in a section are complete
+
+### Changed
+- (Planned, `#40`) Review / weekly insights less generic—language tied to recurring themes, people, and counts from real entries
+- (Planned, `#39`) AI prompts for chip labels tuned to improve review inputs; deterministic paths unchanged in spirit
+
+### Fixed
+- (TBD as work lands)
+
 ## [0.4.0] - 2026-03-20
 
 iCloud / SwiftData trust in Settings (storage and attention copy aligned with real persistence), optional JSON **import** to restore or merge backups by calendar day, and AI connection status polish. Release scope context: `GraceNotes/docs/07-release-roadmap.md`.
