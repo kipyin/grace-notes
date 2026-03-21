@@ -19,6 +19,7 @@ iCloud / SwiftData trust in Settings (storage and attention copy aligned with re
 - App **marketing version** `0.4.0`; bundle **display name** on device home screen is `感恩记` (aligned with product naming).
 
 ### Fixed
+- JSON **import** caps backup size (100 MB) and entry row count (10,000) so a malicious or corrupted export is less likely to exhaust memory or freeze the app; localized errors when limits are exceeded.
 - `JournalEntry` chip arrays (`gratitudes`, `needs`, `people`) are optional in the SwiftData model so CloudKit-backed stores load: Core Data requires optional or defaulted attributes, and empty-array defaults on transformable collections are not accepted (fixes startup fallback to local-only with `NSCocoaErrorDomain` 134060).
 - Hosted XCTest on Simulator: `AISettingsCloudStatusModelTests.test_misconfiguredWhenKeyMissing` is `async` so `@MainActor` UI state updates do not corrupt the heap; `PersistenceRuntimeSnapshotTests.test_makeInMemoryForTesting_matchesFactory` skips on Simulator when creating a second `ModelContainer` would crash.
 

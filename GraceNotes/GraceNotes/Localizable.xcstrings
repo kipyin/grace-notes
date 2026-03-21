@@ -975,6 +975,38 @@
         }
       }
     },
+    "DataPrivacy.import.error.fileTooLarge" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This file is too large to import. Try a smaller Grace Notes backup."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这份文件太大，无法导入。请换一个小一些的感恩记备份。"
+          }
+        }
+      }
+    },
+    "DataPrivacy.import.error.tooManyEntries" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This backup has too many journal days to import in one go."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这份备份里的日历日太多，无法一次性导入。"
+          }
+        }
+      }
+    },
     "DataPrivacy.import.error.title" : {
       "localizations" : {
         "en" : {
