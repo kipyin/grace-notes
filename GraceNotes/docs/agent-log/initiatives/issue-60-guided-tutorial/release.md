@@ -24,6 +24,8 @@ related_issue: 60
 3. `test: journal tutorial unlock evaluation and UI test support` — `JournalTutorialUnlockEvaluatorTests`, `JournalUITests`.
 4. `docs: agent-log for issue-60 guided tutorial` — initiative brief/architecture/design + `index.md`.
 5. `docs: readme and changelog for guided tutorial (0.5.0)` — root `README.md`, `CHANGELOG.md`.
+6. `docs: release handoff for guided tutorial initiative` — this `release.md`.
+7. `docs: link release.md for issue-60 in agent-log index` — `docs/agent-log/index.md`.
 
 ## PR Title and Description
 
