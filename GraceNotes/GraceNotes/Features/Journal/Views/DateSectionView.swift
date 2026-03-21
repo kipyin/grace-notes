@@ -24,23 +24,30 @@ struct DateSectionView: View {
                         dismissInfoCard()
                     }
                     .accessibilityHidden(true)
+                    .zIndex(0)
             }
-
             VStack(alignment: .leading, spacing: AppTheme.spacingTight) {
                 completionStatusLabel
+                    .zIndex(2)
                 if let selectedBadgeInfo, isInfoCardPresented {
                     CompletionInfoCard(
                         badgeInfo: selectedBadgeInfo,
                         cardTintColor: infoCardTintColor(for: selectedBadgeInfo),
                         reduceTransparency: reduceTransparency,
                         morphNamespace: completionInfoMorphNamespace,
-                        showMorph: !reduceMotion,
+                        showMorph: false,
                         bloomProgress: infoCardBloomProgress
                     )
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        dismissInfoCard()
+                    }
                     .transition(infoCardTransition)
+                    .zIndex(1)
                     .accessibilitySortPriority(2)
                 }
             }
+            .zIndex(1)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .onDisappear {
@@ -61,7 +68,7 @@ struct DateSectionView: View {
                     JournalCompletionPill(
                         completionLevel: .quickCheckIn,
                         celebratingLevel: celebratingLevel,
-                        morphSource: selectedBadgeInfo == .seed && isInfoCardPresented,
+                        morphSource: false,
                         morphNamespace: completionInfoMorphNamespace,
                         morphAccentColor: infoCardTintColor(for: selectedBadgeInfo ?? .seed),
                         morphBloomProgress: infoCardBloomProgress
@@ -76,7 +83,7 @@ struct DateSectionView: View {
                     JournalCompletionPill(
                         completionLevel: .standardReflection,
                         celebratingLevel: celebratingLevel,
-                        morphSource: selectedBadgeInfo == .harvest && isInfoCardPresented,
+                        morphSource: false,
                         morphNamespace: completionInfoMorphNamespace,
                         morphAccentColor: infoCardTintColor(for: selectedBadgeInfo ?? .harvest),
                         morphBloomProgress: infoCardBloomProgress
@@ -91,7 +98,7 @@ struct DateSectionView: View {
                     JournalCompletionPill(
                         completionLevel: .fullFiveCubed,
                         celebratingLevel: celebratingLevel,
-                        morphSource: selectedBadgeInfo == .harvest && isInfoCardPresented,
+                        morphSource: false,
                         morphNamespace: completionInfoMorphNamespace,
                         morphAccentColor: infoCardTintColor(for: selectedBadgeInfo ?? .harvest),
                         morphBloomProgress: infoCardBloomProgress
@@ -106,7 +113,7 @@ struct DateSectionView: View {
                     JournalCompletionPill(
                         completionLevel: .none,
                         celebratingLevel: celebratingLevel,
-                        morphSource: selectedBadgeInfo == .inProgress && isInfoCardPresented,
+                        morphSource: false,
                         morphNamespace: completionInfoMorphNamespace,
                         morphAccentColor: infoCardTintColor(for: selectedBadgeInfo ?? .inProgress),
                         morphBloomProgress: infoCardBloomProgress
@@ -144,6 +151,7 @@ private extension DateSectionView {
     func completionBadgeTapped(_ badgeInfo: CompletionBadgeInfo) {
         triggerInfoRevealHaptic()
         infoCardDismissTask?.cancel()
+        infoCardDismissTask = nil
 
         let isSameSelection = selectedBadgeInfo == badgeInfo
         if isSameSelection, isInfoCardPresented {
@@ -154,18 +162,7 @@ private extension DateSectionView {
         selectedBadgeInfo = badgeInfo
 
         if isInfoCardPresented {
-            withAnimation(infoCardExitAnimation) {
-                isInfoCardPresented = false
-            }
-
-            infoCardDismissTask = Task { @MainActor in
-                try? await Task.sleep(for: .milliseconds(reduceMotion ? 1 : 130))
-                guard !Task.isCancelled else { return }
-                withAnimation(infoCardEntranceAnimation) {
-                    isInfoCardPresented = true
-                }
-                triggerInfoCardBloomPulse()
-            }
+            scheduleInfoCardCloseThenReopenAfterDelay()
             return
         }
 
@@ -175,8 +172,25 @@ private extension DateSectionView {
         triggerInfoCardBloomPulse()
     }
 
+    func scheduleInfoCardCloseThenReopenAfterDelay() {
+        withAnimation(infoCardExitAnimation) {
+            isInfoCardPresented = false
+        }
+
+        infoCardDismissTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(reduceMotion ? 1 : 130))
+            guard !Task.isCancelled else { return }
+            withAnimation(infoCardEntranceAnimation) {
+                isInfoCardPresented = true
+            }
+            triggerInfoCardBloomPulse()
+            infoCardDismissTask = nil
+        }
+    }
+
     func dismissInfoCard() {
         infoCardDismissTask?.cancel()
+        infoCardDismissTask = nil
         withAnimation(infoCardExitAnimation) {
             isInfoCardPresented = false
         }
@@ -190,6 +204,7 @@ private extension DateSectionView {
             try? await Task.sleep(for: .milliseconds(140))
             guard !Task.isCancelled else { return }
             selectedBadgeInfo = nil
+            infoCardDismissTask = nil
         }
     }
 
