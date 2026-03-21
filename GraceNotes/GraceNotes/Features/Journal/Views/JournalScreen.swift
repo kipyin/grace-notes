@@ -1,8 +1,10 @@
+// swiftlint:disable file_length
 import Combine
 import SwiftUI
 import SwiftData
 import UIKit
 
+// swiftlint:disable type_body_length
 struct JournalScreen: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -20,7 +22,11 @@ struct JournalScreen: View {
     @State private var hasInitializedCompletionTracking = false
     @State private var previousCompletionLevel: JournalCompletionLevel = .none
     @State private var unlockToastLevel: JournalCompletionLevel?
+    @State private var unlockToastMilestone: JournalUnlockMilestoneHighlight = .none
     @State private var unlockToastDismissTask: Task<Void, Never>?
+    @State private var tutorialProgress = JournalTutorialProgress()
+    @AppStorage("journalTutorial.dismissedSeedGuidance") private var dismissedSeedGuidance = false
+    @AppStorage("journalTutorial.dismissedHarvestGuidance") private var dismissedHarvestGuidance = false
 
     @State private var gratitudeInput = ""
     @State private var needInput = ""
@@ -56,6 +62,23 @@ struct JournalScreen: View {
                     completionLevel: viewModel.completionLevel,
                     celebratingLevel: celebratingLevel
                 )
+
+                if let hintKind = JournalTutorialHintPresentation.hintKind(
+                    entryDate: entryDate,
+                    completionLevel: viewModel.completionLevel,
+                    chipsFilledCount: viewModel.chipsFilledCount,
+                    dismissedSeedGuidance: dismissedSeedGuidance,
+                    dismissedHarvestGuidance: dismissedHarvestGuidance
+                ) {
+                    JournalTutorialHintView(kind: hintKind) {
+                        switch hintKind {
+                        case .seed:
+                            dismissedSeedGuidance = true
+                        case .harvest:
+                            dismissedHarvestGuidance = true
+                        }
+                    }
+                }
 
                 VStack(alignment: .leading, spacing: AppTheme.todayClusterSpacing) {
                     SequentialSectionView(
@@ -178,7 +201,7 @@ struct JournalScreen: View {
                     if let toastLevel = unlockToastLevel {
                         HStack {
                             Spacer(minLength: 0)
-                            JournalUnlockToastView(level: toastLevel)
+                            JournalUnlockToastView(level: toastLevel, milestoneHighlight: unlockToastMilestone)
                                 .transition(unlockToastTransition(for: toastLevel))
                             Spacer(minLength: 0)
                         }
@@ -220,12 +243,20 @@ struct JournalScreen: View {
                 return
             }
 
-            let previousRank = rank(for: previousCompletionLevel)
-            let newRank = rank(for: newLevel)
+            let previousRank = previousCompletionLevel.tutorialCompletionRank
+            let newRank = newLevel.tutorialCompletionRank
 
             if newRank > previousRank, newLevel != .none {
+                let unlockOutcome = JournalTutorialUnlockEvaluator.outcome(
+                    previousRank: previousRank,
+                    newRank: newRank,
+                    newLevel: newLevel,
+                    hasCelebratedFirstSeed: tutorialProgress.hasCelebratedFirstSeed,
+                    hasCelebratedFirstHarvest: tutorialProgress.hasCelebratedFirstHarvest
+                )
                 triggerStatusCelebration(for: newLevel)
-                presentUnlockToast(for: newLevel)
+                presentUnlockToast(for: newLevel, milestoneHighlight: unlockOutcome.milestoneHighlight)
+                tutorialProgress.applyRecording(from: unlockOutcome)
             } else if newRank < previousRank {
                 statusCelebrationDismissTask?.cancel()
                 celebratingLevel = nil
@@ -237,6 +268,7 @@ struct JournalScreen: View {
                     : dismissingLevel.map { AppTheme.unlockToastExitAnimation(for: $0) } ?? fallbackExit
                 withAnimation(toastExit) {
                     unlockToastLevel = nil
+                    unlockToastMilestone = .none
                 }
             }
 
@@ -259,6 +291,7 @@ struct JournalScreen: View {
         }
     }
 }
+// swiftlint:enable type_body_length
 
 private extension JournalScreen {
     private func submitGratitude() {
@@ -464,18 +497,24 @@ private extension JournalScreen {
         }
     }
 
-    private func presentUnlockToast(for level: JournalCompletionLevel) {
+    private func presentUnlockToast(
+        for level: JournalCompletionLevel,
+        milestoneHighlight: JournalUnlockMilestoneHighlight
+    ) {
         unlockToastDismissTask?.cancel()
         let entrance = reduceMotion ? nil : AppTheme.unlockToastEntranceAnimation(for: level)
         withAnimation(entrance) {
             unlockToastLevel = level
+            unlockToastMilestone = milestoneHighlight
         }
+        let visibleSeconds = unlockToastVisibleSeconds(for: level, milestone: milestoneHighlight)
         unlockToastDismissTask = Task { @MainActor in
-            try? await Task.sleep(for: .seconds(unlockToastVisibleSeconds(for: level)))
+            try? await Task.sleep(for: .seconds(visibleSeconds))
             guard !Task.isCancelled else { return }
             let exit = reduceMotion ? nil : AppTheme.unlockToastExitAnimation(for: level)
             withAnimation(exit) {
                 unlockToastLevel = nil
+                unlockToastMilestone = .none
             }
         }
     }
@@ -506,16 +545,26 @@ private extension JournalScreen {
         }
     }
 
-    private func unlockToastVisibleSeconds(for level: JournalCompletionLevel) -> Double {
+    private func unlockToastVisibleSeconds(
+        for level: JournalCompletionLevel,
+        milestone: JournalUnlockMilestoneHighlight
+    ) -> Double {
+        let base: Double
         switch level {
         case .quickCheckIn:
-            return 2.2
+            base = 2.2
         case .standardReflection:
-            return 2.75
+            base = 2.75
         case .fullFiveCubed:
-            return 3.05
+            base = 3.05
         case .none:
-            return 0
+            base = 0
+        }
+        switch milestone {
+        case .none:
+            return base
+        case .firstSeed, .firstFifteenChipHarvest, .firstFifteenChipHarvestWithFullRhythm:
+            return base + 0.6
         }
     }
 
@@ -573,16 +622,4 @@ private extension JournalScreen {
         }
     }
 
-    private func rank(for level: JournalCompletionLevel) -> Int {
-        switch level {
-        case .none:
-            return 0
-        case .quickCheckIn:
-            return 1
-        case .standardReflection:
-            return 2
-        case .fullFiveCubed:
-            return 3
-        }
-    }
 }

@@ -38,6 +38,10 @@ struct GraceNotesApp: App {
         isRunningUITests = isUITestBundle || hasUITestLaunchArgument || hasUITestEnvironmentFlag
         isRunningUnitTests = isXCTestSession && !isRunningUITests
 
+        if processInfo.arguments.contains("-reset-journal-tutorial") {
+            JournalTutorialProgress.resetAll()
+        }
+
         let preloadedUITestController: PersistenceController?
         if isRunningUITests {
             _startupCoordinator = StateObject(wrappedValue: StartupCoordinator(timing: .uiTesting))
