@@ -1608,7 +1608,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「丰收」表示今天你已完成 5 件感恩的事、5 件需要的事和 5 位牵挂的人。"
+            "value" : "「丰收」表示你今天已经完成了一篇完整的感恩记。"
           }
         }
       }
@@ -1840,7 +1840,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「进行中」表示你再记录 1 件感恩的事、1 件需要的事和 1 位牵挂的人，就能达到「撒种」。"
+            "value" : "「进行中」表示你还没开始记录。先写下 1 件感恩的事、1 件需要的事和 1 位牵挂的人，就能达到「撒种」。"
           }
         }
       }
@@ -2516,7 +2516,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「撒种」表示你已记录 1 件感恩的事、1 件需要的事和 1 位牵挂的人。继续记录，完成今天的 5 组内容，就能达到「丰收」。"
+            "value" : "「撒种」表示你已经写下 1 件感恩的事、1 件需要的事和 1 位牵挂的人。准备好了，就继续写下去吧。"
           }
         }
       }
@@ -3668,7 +3668,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "今天你写好了阅读笔记和反思，这一篇感恩记也更完整了。"
+            "value" : "今天你也写好了阅读笔记和反思，这一篇感恩记更完整了。"
           }
         }
       }
@@ -3684,7 +3684,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "今天你达到了「撒种」。"
+            "value" : "今天你已经「撒种」了。"
           }
         }
       }
@@ -3700,7 +3700,119 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "今天你达到了「丰收」。"
+            "value" : "今天你已经达到「丰收」。"
+          }
+        }
+      }
+    },
+    "Dismisses this tip." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dismisses this tip."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭这条提示。"
+          }
+        }
+      }
+    },
+    "Got it" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Got it"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "知道了"
+          }
+        }
+      }
+    },
+    "When you're ready, keep writing—a line in Gratitudes, Needs, and People in Mind is enough to begin. Tap the status above anytime if you want a gentle reminder." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When you're ready, keep writing—a line in Gratitudes, Needs, and People in Mind is enough to begin. Tap the status above anytime if you want a gentle reminder."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不用着急，想写的时候继续就好。先写 1 件感恩的事、1 件需要的事和 1 位牵挂的人，就已经开始了。想再看看说明，随时点按上方状态。"
+          }
+        }
+      }
+    },
+    "You can keep writing in Gratitudes, Needs, and People in Mind if you'd like a fuller reflection. Tap the status above anytime to read about Harvest." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can keep writing in Gratitudes, Needs, and People in Mind if you'd like a fuller reflection. Tap the status above anytime to read about Harvest."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "如果你想写得更完整一些，也可以继续写下去，把感恩的事、需要的事和牵挂的人再多记几条。想进一步了解「丰收」时，随时点按上方状态即可。"
+          }
+        }
+      }
+    },
+    "Your first Harvest, and you've added reading notes and reflections—a full rhythm for today." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your first Harvest, and you've added reading notes and reflections—a full rhythm for today."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这是你第一次达到「丰收」，也写好了阅读笔记和反思。今天这一篇已经很完整了。"
+          }
+        }
+      }
+    },
+    "Your first Harvest—you've filled every spot in all three sections today. That's a full reflection." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your first Harvest—you've filled every spot in all three sections today. That's a full reflection."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这是你第一次达到「丰收」——今天三个区块都已写满，这是一篇很完整的反思。"
+          }
+        }
+      }
+    },
+    "You've planted Seed for the first time—one gratitude, one need, and someone on your mind. Lovely." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You've planted Seed for the first time—one gratitude, one need, and someone on your mind. Lovely."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这是你第一次「撒种」——你已经写下 1 件感恩的事、1 件需要的事和 1 位牵挂的人，真好。"
           }
         }
       }

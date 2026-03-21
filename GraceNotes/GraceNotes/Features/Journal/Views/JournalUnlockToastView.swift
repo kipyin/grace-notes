@@ -1,5 +1,13 @@
 import SwiftUI
 
+/// First-time congratulations variant for unlock toasts (issue #60).
+enum JournalUnlockMilestoneHighlight: Equatable {
+    case none
+    case firstSeed
+    case firstFifteenChipHarvest
+    case firstFifteenChipHarvestWithFullRhythm
+}
+
 /// Brief encouragement when journal completion moves up a tier.
 struct JournalUnlockToastView: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
@@ -7,6 +15,7 @@ struct JournalUnlockToastView: View {
     @State private var iconBounceTrigger = 0
 
     let level: JournalCompletionLevel
+    var milestoneHighlight: JournalUnlockMilestoneHighlight = .none
 
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
@@ -48,6 +57,24 @@ struct JournalUnlockToastView: View {
     }
 
     private var message: String {
+        switch milestoneHighlight {
+        case .firstSeed:
+            return String(
+                // swiftlint:disable:next line_length
+                localized: "You've planted Seed for the first time—one gratitude, one need, and someone on your mind. Lovely."
+            )
+        case .firstFifteenChipHarvest:
+            return String(
+                // swiftlint:disable:next line_length
+                localized: "Your first Harvest—you've filled every spot in all three sections today. That's a full reflection."
+            )
+        case .firstFifteenChipHarvestWithFullRhythm:
+            return String(
+                localized: "Your first Harvest, and you've added reading notes and reflections—a full rhythm for today."
+            )
+        case .none:
+            break
+        }
         switch level {
         case .quickCheckIn:
             return String(localized: "You planted a seed today.")
