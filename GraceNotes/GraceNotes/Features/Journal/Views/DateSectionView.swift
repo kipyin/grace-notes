@@ -3,7 +3,6 @@ import UIKit
 
 /// Displays the journal entry completion status.
 struct DateSectionView: View {
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Namespace private var completionInfoMorphNamespace
@@ -59,15 +58,14 @@ struct DateSectionView: View {
                 Button {
                     completionBadgeTapped(.seed)
                 } label: {
-                    levelSurface(
-                        level: .quickCheckIn,
-                        isCelebrating: celebratingLevel == .quickCheckIn,
-                        morphSource: selectedBadgeInfo == .seed && isInfoCardPresented
-                    ) {
-                        Label(String(localized: "Seed"), systemImage: "leaf.fill")
-                            .font(AppTheme.warmPaperMetaEmphasis)
-                            .foregroundStyle(AppTheme.journalQuickCheckInText)
-                    }
+                    JournalCompletionPill(
+                        completionLevel: .quickCheckIn,
+                        celebratingLevel: celebratingLevel,
+                        morphSource: selectedBadgeInfo == .seed && isInfoCardPresented,
+                        morphNamespace: completionInfoMorphNamespace,
+                        morphAccentColor: infoCardTintColor(for: selectedBadgeInfo ?? .seed),
+                        morphBloomProgress: infoCardBloomProgress
+                    )
                 }
                 .buttonStyle(WarmPaperPressStyle())
                 .accessibilityHint(String(localized: "Shows what Seed means for today."))
@@ -75,20 +73,14 @@ struct DateSectionView: View {
                 Button {
                     completionBadgeTapped(.harvest)
                 } label: {
-                    levelSurface(
-                        level: .standardReflection,
-                        isCelebrating: celebratingLevel == .standardReflection,
-                        morphSource: selectedBadgeInfo == .harvest && isInfoCardPresented
-                    ) {
-                        Label(
-                            String(localized: "Harvest"),
-                            systemImage: celebratingLevel == .standardReflection
-                                ? "sparkles.rectangle.stack.fill"
-                                : "sparkles.rectangle.stack"
-                        )
-                        .font(AppTheme.warmPaperMetaEmphasis)
-                        .foregroundStyle(AppTheme.journalStandardText)
-                    }
+                    JournalCompletionPill(
+                        completionLevel: .standardReflection,
+                        celebratingLevel: celebratingLevel,
+                        morphSource: selectedBadgeInfo == .harvest && isInfoCardPresented,
+                        morphNamespace: completionInfoMorphNamespace,
+                        morphAccentColor: infoCardTintColor(for: selectedBadgeInfo ?? .harvest),
+                        morphBloomProgress: infoCardBloomProgress
+                    )
                 }
                 .buttonStyle(WarmPaperPressStyle())
                 .accessibilityHint(String(localized: "Shows what Harvest means for today."))
@@ -96,20 +88,14 @@ struct DateSectionView: View {
                 Button {
                     completionBadgeTapped(.harvest)
                 } label: {
-                    levelSurface(
-                        level: .fullFiveCubed,
-                        isCelebrating: celebratingLevel == .fullFiveCubed,
-                        morphSource: selectedBadgeInfo == .harvest && isInfoCardPresented
-                    ) {
-                        Label(
-                            String(localized: "Harvest"),
-                            systemImage: celebratingLevel == .fullFiveCubed
-                                ? "checkmark.circle.fill"
-                                : "checkmark.circle"
-                        )
-                        .font(AppTheme.warmPaperMetaEmphasis)
-                        .foregroundStyle(AppTheme.journalFullText)
-                    }
+                    JournalCompletionPill(
+                        completionLevel: .fullFiveCubed,
+                        celebratingLevel: celebratingLevel,
+                        morphSource: selectedBadgeInfo == .harvest && isInfoCardPresented,
+                        morphNamespace: completionInfoMorphNamespace,
+                        morphAccentColor: infoCardTintColor(for: selectedBadgeInfo ?? .harvest),
+                        morphBloomProgress: infoCardBloomProgress
+                    )
                 }
                 .buttonStyle(WarmPaperPressStyle())
                 .accessibilityHint(String(localized: "Shows what Harvest means for today."))
@@ -117,148 +103,24 @@ struct DateSectionView: View {
                 Button {
                     completionBadgeTapped(.inProgress)
                 } label: {
-                    levelSurface(
-                        level: .none,
-                        isCelebrating: false,
-                        morphSource: selectedBadgeInfo == .inProgress && isInfoCardPresented
-                    ) {
-                        Label(String(localized: "In Progress"), systemImage: "pencil.circle")
-                            .font(AppTheme.warmPaperMetaEmphasis)
-                            .foregroundStyle(AppTheme.journalTextMuted)
-                    }
+                    JournalCompletionPill(
+                        completionLevel: .none,
+                        celebratingLevel: celebratingLevel,
+                        morphSource: selectedBadgeInfo == .inProgress && isInfoCardPresented,
+                        morphNamespace: completionInfoMorphNamespace,
+                        morphAccentColor: infoCardTintColor(for: selectedBadgeInfo ?? .inProgress),
+                        morphBloomProgress: infoCardBloomProgress
+                    )
                 }
                 .buttonStyle(WarmPaperPressStyle())
                 .accessibilityHint(String(localized: "Shows what In Progress means for today."))
             }
         }
-        .lineLimit(dynamicTypeSize.isAccessibilitySize ? 3 : 2)
-        .fixedSize(horizontal: false, vertical: true)
-        .multilineTextAlignment(.leading)
-    }
-
-    private func levelSurface<Content: View>(
-        level: JournalCompletionLevel,
-        isCelebrating: Bool,
-        morphSource: Bool = false,
-        @ViewBuilder content: () -> Content
-    ) -> some View {
-        content()
-            .padding(.horizontal, AppTheme.spacingRegular)
-            .padding(.vertical, AppTheme.spacingTight)
-            .frame(minHeight: 44)
-            .background(pillBackground(for: level, morphSource: morphSource))
-            .overlay(
-                RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
-                    .stroke(borderColor(for: level), lineWidth: 1)
-            )
-            .scaleEffect(scaleFactor(for: level, isCelebrating: isCelebrating))
-            .shadow(
-                color: shadowColor(for: level, isCelebrating: isCelebrating),
-                radius: shadowRadius(for: level, isCelebrating: isCelebrating),
-                x: 0,
-                y: isCelebrating && !reduceTransparency ? 2 : 0
-            )
-            .animation(
-                reduceMotion ? nil : AppTheme.celebrationPulseAnimation(for: level),
-                value: isCelebrating
-            )
-            .overlay {
-                if morphSource {
-                    RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
-                        .stroke(
-                            infoCardTintColor(for: selectedBadgeInfo ?? .harvest)
-                                .opacity(0.32 * infoCardBloomProgress),
-                            lineWidth: 1.6
-                        )
-                        .scaleEffect(1.02 + (0.08 * (1 - infoCardBloomProgress)))
-                }
-            }
-            .opacity(morphSource && !reduceMotion ? 0.92 : 1)
     }
 
 }
 
 private extension DateSectionView {
-    func backgroundFill(for level: JournalCompletionLevel) -> AnyShapeStyle {
-        switch level {
-        case .quickCheckIn:
-            return AnyShapeStyle(AppTheme.journalQuickCheckInBackground)
-        case .standardReflection:
-            return AnyShapeStyle(
-                LinearGradient(
-                    colors: [AppTheme.journalStandardBackgroundStart, AppTheme.journalStandardBackgroundEnd],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-        case .fullFiveCubed:
-            return AnyShapeStyle(
-                LinearGradient(
-                    colors: [AppTheme.journalFullBackgroundStart, AppTheme.journalFullBackgroundEnd],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-        case .none:
-            return AnyShapeStyle(AppTheme.journalBackground)
-        }
-    }
-
-    func borderColor(for level: JournalCompletionLevel) -> Color {
-        switch level {
-        case .quickCheckIn:
-            return AppTheme.journalQuickCheckInBorder
-        case .standardReflection:
-            return AppTheme.journalStandardBorder
-        case .fullFiveCubed:
-            return AppTheme.journalFullBorder
-        case .none:
-            return AppTheme.journalBorder
-        }
-    }
-
-    func scaleFactor(for level: JournalCompletionLevel, isCelebrating: Bool) -> CGFloat {
-        guard isCelebrating, !reduceMotion else { return 1.0 }
-        switch level {
-        case .quickCheckIn:
-            return 1.008
-        case .standardReflection:
-            return 1.015
-        case .fullFiveCubed:
-            return 1.02
-        case .none:
-            return 1.0
-        }
-    }
-
-    func shadowColor(for level: JournalCompletionLevel, isCelebrating: Bool) -> Color {
-        guard isCelebrating, !reduceTransparency else { return .clear }
-        switch level {
-        case .quickCheckIn:
-            return AppTheme.journalQuickCheckInGlow.opacity(0.25)
-        case .standardReflection:
-            return AppTheme.journalStandardGlow.opacity(0.4)
-        case .fullFiveCubed:
-            return AppTheme.journalFullGlow.opacity(0.48)
-        case .none:
-            return .clear
-        }
-    }
-
-    func shadowRadius(for level: JournalCompletionLevel, isCelebrating: Bool) -> CGFloat {
-        guard isCelebrating, !reduceTransparency else { return 0 }
-        switch level {
-        case .quickCheckIn:
-            return 4
-        case .standardReflection:
-            return 8
-        case .fullFiveCubed:
-            return 11
-        case .none:
-            return 0
-        }
-    }
-
     var infoCardTransition: AnyTransition {
         if reduceMotion {
             return .opacity
@@ -346,25 +208,6 @@ private extension DateSectionView {
         case .harvest:
             return completionLevel == .fullFiveCubed ? AppTheme.journalFullText : AppTheme.journalStandardText
         }
-    }
-
-    func pillBackground(for level: JournalCompletionLevel, morphSource: Bool) -> AnyView {
-        let base = RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
-            .fill(backgroundFill(for: level))
-
-        guard morphSource, !reduceMotion else {
-            return AnyView(base)
-        }
-
-        return AnyView(
-            base.matchedGeometryEffect(
-                id: "completionInfoMorphSurface",
-                in: completionInfoMorphNamespace,
-                properties: .frame,
-                anchor: .topLeading,
-                isSource: true
-            )
-        )
     }
 
     func triggerInfoCardBloomPulse() {
