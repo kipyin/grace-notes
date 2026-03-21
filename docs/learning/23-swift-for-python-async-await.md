@@ -2,6 +2,8 @@
 
 This app uses async work in startup, summarization, reminders, and import/export.
 
+Read this page when async behavior feels hard to follow.
+
 ## Startup async flow
 
 `StartupCoordinator` starts async persistence setup:
@@ -9,6 +11,8 @@ This app uses async work in startup, summarization, reminders, and import/export
 - `persistenceFactory` is async
 - startup task uses `Task { ... }`
 - success/failure changes UI phase
+
+This is why startup screen can show loading, reassurance, retry, or ready.
 
 File: `../../GraceNotes/GraceNotes/Application/StartupCoordinator.swift`
 
@@ -22,6 +26,8 @@ Pattern:
 2. async summarize in background
 3. apply result only if item still matches
 
+This guards against race conditions from quick edits.
+
 File: `../../GraceNotes/GraceNotes/Features/Journal/ViewModels/JournalViewModel+ChipEditing.swift`
 
 ## Async service calls
@@ -32,6 +38,8 @@ Examples:
   `../../GraceNotes/GraceNotes/Services/Summarization/CloudSummarizer.swift`
 - cloud review insights call  
   `../../GraceNotes/GraceNotes/Features/Journal/Services/CloudReviewInsightsGenerator.swift`
+
+Both services use async network requests with fallback/error handling.
 
 ## Async reminder checks
 
@@ -52,6 +60,10 @@ Files:
 
 File: `../../GraceNotes/GraceNotes/Features/Settings/ImportExportSettingsScreen.swift`
 
+This file is a good example of:
+- running heavier work away from UI thread
+- returning to main actor for UI state updates
+
 ## If you know Python
 
 Conceptually close to `asyncio`:
@@ -60,3 +72,18 @@ Conceptually close to `asyncio`:
 - `Task` is a scheduled async unit
 
 Main difference: Swift’s structured concurrency and actor rules are built into the language.
+
+## Common confusion
+
+- “Why `Task` inside view code?”  
+  To launch async work from UI events/lifecycle.
+
+- “Why check if item still matches before update?”  
+  Because async result may arrive after user changed/deleted item.
+
+- “Can I ignore MainActor concerns?”  
+  No. UI state updates should happen on main actor.
+
+## Read next
+
+- Next page: [24-swift-for-python-error-handling.md](./24-swift-for-python-error-handling.md)
