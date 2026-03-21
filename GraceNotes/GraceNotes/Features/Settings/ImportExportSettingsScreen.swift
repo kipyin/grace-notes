@@ -134,7 +134,7 @@ private extension ImportExportSettingsScreen {
                 .foregroundStyle(AppTheme.settingsTextPrimary)
             Spacer(minLength: AppTheme.spacingRegular)
             Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .semibold))
+                .font(AppTheme.outfitSemiboldCaption)
                 .foregroundStyle(AppTheme.settingsTextMuted)
         }
         .frame(minHeight: 44)

@@ -100,6 +100,9 @@ enum AppTheme {
     static let warmPaperMetaEmphasis = Font.custom("SourceSerif4Roman-Regular", size: 15, relativeTo: .footnote)
         .weight(.semibold)
 
+    /// Latin interface sans (Outfit). Use for compact labels; journal reading stays on warmPaper* serifs.
+    static let outfitSemiboldCaption = Font.custom("Outfit-SemiBold", size: 12, relativeTo: .caption2)
+
     // MARK: - Spacing & Radius
 
     static let spacingTight: CGFloat = 8

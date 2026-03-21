@@ -244,6 +244,8 @@
 			inputPaths = (
 				"$(PROJECT_DIR)/GraceNotes/Resources/Fonts/PlayfairDisplay-Variable.ttf",
 				"$(PROJECT_DIR)/GraceNotes/Resources/Fonts/SourceSerif4-Variable.ttf",
+				"$(PROJECT_DIR)/GraceNotes/Resources/Fonts/Outfit-Regular.ttf",
+				"$(PROJECT_DIR)/GraceNotes/Resources/Fonts/Outfit-SemiBold.ttf",
 			);
 			name = "Copy Fonts to bundle";
 			outputFileListPaths = (
@@ -251,10 +253,12 @@
 			outputPaths = (
 				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Fonts/PlayfairDisplay-Variable.ttf",
 				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Fonts/SourceSerif4-Variable.ttf",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Fonts/Outfit-Regular.ttf",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Fonts/Outfit-SemiBold.ttf",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\n\nFONT_SRC=\"${PROJECT_DIR}/GraceNotes/Resources/Fonts\"\nFONT_DEST=\"${TARGET_BUILD_DIR}/${WRAPPER_NAME}/Fonts\"\n\nmkdir -p \"$FONT_DEST\"\ncp \"${FONT_SRC}/PlayfairDisplay-Variable.ttf\" \"${SCRIPT_OUTPUT_FILE_0}\"\ncp \"${FONT_SRC}/SourceSerif4-Variable.ttf\" \"${SCRIPT_OUTPUT_FILE_1}\"\n";
+			shellScript = "set -euo pipefail\n\nFONT_SRC=\"${PROJECT_DIR}/GraceNotes/Resources/Fonts\"\nFONT_DEST=\"${TARGET_BUILD_DIR}/${WRAPPER_NAME}/Fonts\"\n\nmkdir -p \"$FONT_DEST\"\ncp \"${FONT_SRC}/PlayfairDisplay-Variable.ttf\" \"${SCRIPT_OUTPUT_FILE_0}\"\ncp \"${FONT_SRC}/SourceSerif4-Variable.ttf\" \"${SCRIPT_OUTPUT_FILE_1}\"\ncp \"${FONT_SRC}/Outfit-Regular.ttf\" \"${SCRIPT_OUTPUT_FILE_2}\"\ncp \"${FONT_SRC}/Outfit-SemiBold.ttf\" \"${SCRIPT_OUTPUT_FILE_3}\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
