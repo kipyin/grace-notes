@@ -1,7 +1,7 @@
 import Foundation
 
 struct ReviewInsightsProvider: Sendable {
-    static let useAIReviewInsightsKey = "useAIReviewInsights"
+    private static let useCloudAIKey = SummarizerProvider.useCloudUserDefaultsKey
 
     private let deterministicGenerator: any ReviewInsightsGenerating
     private let cloudGenerator: (any ReviewInsightsGenerating)?
@@ -27,9 +27,9 @@ struct ReviewInsightsProvider: Sendable {
         referenceDate: Date,
         calendar: Calendar = .current
     ) async -> ReviewInsights {
-        let useAI = UserDefaults.standard.bool(forKey: Self.useAIReviewInsightsKey)
+        let useCloudAI = UserDefaults.standard.object(forKey: Self.useCloudAIKey) as? Bool ?? false
 
-        if useAI, let cloudGenerator {
+        if useCloudAI, let cloudGenerator {
             if let cloudInsights = try? await cloudGenerator.generateInsights(
                 from: entries,
                 referenceDate: referenceDate,
