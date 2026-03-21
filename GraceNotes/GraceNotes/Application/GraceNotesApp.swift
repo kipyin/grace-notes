@@ -38,7 +38,7 @@ struct GraceNotesApp: App {
         isRunningUITests = isUITestBundle || hasUITestLaunchArgument || hasUITestEnvironmentFlag
         isRunningUnitTests = isXCTestSession && !isRunningUITests
 
-        if processInfo.arguments.contains("-reset-journal-tutorial") {
+        if isRunningUITests, processInfo.arguments.contains("-reset-journal-tutorial") {
             JournalTutorialProgress.resetAll()
         }
 

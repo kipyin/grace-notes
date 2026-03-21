@@ -9,6 +9,7 @@ struct DateSectionView: View {
     @State private var selectedBadgeInfo: CompletionBadgeInfo?
     @State private var isInfoCardPresented = false
     @State private var infoCardDismissTask: Task<Void, Never>?
+    @State private var infoCardDismissSequence: UInt64 = 0
     @State private var infoCardBloomTask: Task<Void, Never>?
     @State private var infoCardBloomProgress: CGFloat = 0
 
@@ -52,6 +53,7 @@ struct DateSectionView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .onDisappear {
             infoCardDismissTask?.cancel()
+            infoCardDismissSequence += 1
             infoCardDismissTask = nil
             infoCardBloomTask?.cancel()
             infoCardBloomTask = nil
@@ -151,6 +153,7 @@ private extension DateSectionView {
     func completionBadgeTapped(_ badgeInfo: CompletionBadgeInfo) {
         triggerInfoRevealHaptic()
         infoCardDismissTask?.cancel()
+        infoCardDismissSequence += 1
         infoCardDismissTask = nil
 
         let isSameSelection = selectedBadgeInfo == badgeInfo
@@ -177,19 +180,24 @@ private extension DateSectionView {
             isInfoCardPresented = false
         }
 
+        infoCardDismissSequence += 1
+        let reopenSequence = infoCardDismissSequence
         infoCardDismissTask = Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(reduceMotion ? 1 : 130))
-            guard !Task.isCancelled else { return }
+            guard !Task.isCancelled, reopenSequence == infoCardDismissSequence else { return }
             withAnimation(infoCardEntranceAnimation) {
                 isInfoCardPresented = true
             }
             triggerInfoCardBloomPulse()
-            infoCardDismissTask = nil
+            if reopenSequence == infoCardDismissSequence {
+                infoCardDismissTask = nil
+            }
         }
     }
 
     func dismissInfoCard() {
         infoCardDismissTask?.cancel()
+        infoCardDismissSequence += 1
         infoCardDismissTask = nil
         withAnimation(infoCardExitAnimation) {
             isInfoCardPresented = false
@@ -200,11 +208,15 @@ private extension DateSectionView {
             return
         }
 
+        infoCardDismissSequence += 1
+        let clearSelectionSequence = infoCardDismissSequence
         infoCardDismissTask = Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(140))
-            guard !Task.isCancelled else { return }
+            guard !Task.isCancelled, clearSelectionSequence == infoCardDismissSequence else { return }
             selectedBadgeInfo = nil
-            infoCardDismissTask = nil
+            if clearSelectionSequence == infoCardDismissSequence {
+                infoCardDismissTask = nil
+            }
         }
     }
 

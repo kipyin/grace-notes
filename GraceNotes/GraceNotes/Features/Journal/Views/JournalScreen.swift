@@ -25,8 +25,8 @@ struct JournalScreen: View {
     @State private var unlockToastMilestone: JournalUnlockMilestoneHighlight = .none
     @State private var unlockToastDismissTask: Task<Void, Never>?
     @State private var tutorialProgress = JournalTutorialProgress()
-    @AppStorage("journalTutorial.dismissedSeedGuidance") private var dismissedSeedGuidance = false
-    @AppStorage("journalTutorial.dismissedHarvestGuidance") private var dismissedHarvestGuidance = false
+    @AppStorage(JournalTutorialStorageKeys.dismissedSeedGuidance) private var dismissedSeedGuidance = false
+    @AppStorage(JournalTutorialStorageKeys.dismissedHarvestGuidance) private var dismissedHarvestGuidance = false
 
     @State private var gratitudeInput = ""
     @State private var needInput = ""
