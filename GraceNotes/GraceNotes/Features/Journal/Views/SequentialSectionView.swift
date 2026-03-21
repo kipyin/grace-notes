@@ -15,7 +15,7 @@ private struct HorizontalScrollMetrics: Equatable {
     var contentOffsetX: CGFloat = 0
 }
 
-// MARK: - Chip row elastic scroll (planning caps: ±1.5% x, ±0.8% y; reduce motion = off)
+// MARK: - Chip row elastic scroll (~±3.4% x, ±1.9% y; reduce motion = off)
 
 private struct ChipRowScrollSnapshot: Equatable {
     var metrics: HorizontalScrollMetrics
@@ -25,14 +25,14 @@ private struct ChipRowScrollSnapshot: Equatable {
 }
 
 private enum ChipRowScrollElasticity {
-    /// Max horizontal deviation from 1.0 (spec Q6 A).
-    static let maxDeltaX: CGFloat = 0.015
-    /// Max vertical deviation from 1.0 (spec Q6 A).
-    static let maxDeltaY: CGFloat = 0.008
+    /// Max horizontal deviation from 1.0 (tuned for a clearly readable stretch).
+    static let maxDeltaX: CGFloat = 0.034
+    /// Max vertical deviation from 1.0.
+    static let maxDeltaY: CGFloat = 0.019
     /// Speed at which velocity-driven deformation approaches its cap (points / second).
-    static let velocityReference: CGFloat = 1100
+    static let velocityReference: CGFloat = 750
     /// Maps overscroll distance into extra deformation; uses a fraction of viewport width.
-    static let overscrollViewportFraction: CGFloat = 0.18
+    static let overscrollViewportFraction: CGFloat = 0.13
 
     static func clampedDeltas(deltaX: CGFloat, deltaY: CGFloat) -> (CGFloat, CGFloat) {
         let clampedX = min(max(deltaX, -maxDeltaX), maxDeltaX)
@@ -59,15 +59,15 @@ private enum ChipRowScrollElasticity {
         let overscroll = max(overscrollLeading, overscrollTrailing)
 
         let vNorm = min(max(velocityPointsPerSec / velocityReference, -1), 1)
-        var deltaX = vNorm * (maxDeltaX * 0.65)
-        var deltaY = -abs(vNorm) * (maxDeltaY * 0.7)
+        var deltaX = vNorm * (maxDeltaX * 0.9)
+        var deltaY = -abs(vNorm) * (maxDeltaY * 0.92)
 
-        if overscroll > 0.5 {
+        if overscroll > 0.35 {
             let denom = max(viewportWidth * overscrollViewportFraction, 44)
             let overscrollFactor = min(1, overscroll / denom)
             let direction: CGFloat = overscrollLeading >= overscrollTrailing ? -1 : 1
-            deltaX += direction * overscrollFactor * (maxDeltaX * 0.55)
-            deltaY += -overscrollFactor * (maxDeltaY * 0.45)
+            deltaX += direction * overscrollFactor * (maxDeltaX * 0.85)
+            deltaY += -overscrollFactor * (maxDeltaY * 0.76)
         }
 
         return clampedDeltas(deltaX: deltaX, deltaY: deltaY)
@@ -665,13 +665,17 @@ private struct HorizontalScrollMetricsReader: UIViewRepresentable {
                 reduceMotion: reduceMotion
             )
 
-            onChange(
-                ChipRowScrollSnapshot(
-                    metrics: metrics,
-                    elasticDeltaX: deltaX,
-                    elasticDeltaY: deltaY
-                )
+            let snapshot = ChipRowScrollSnapshot(
+                metrics: metrics,
+                elasticDeltaX: deltaX,
+                elasticDeltaY: deltaY
             )
+            // KVO / layout can invoke this during SwiftUI view updates; async avoids
+            // "Modifying state during view update" when the callback touches @State.
+            let callback = onChange
+            DispatchQueue.main.async {
+                callback(snapshot)
+            }
         }
 
         private func findAncestorScrollView(from view: UIView) -> UIScrollView? {
