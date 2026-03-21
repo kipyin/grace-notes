@@ -23,10 +23,10 @@ On Linux, you can still do useful work:
 
 ## Reading order
 
-1. [Orientation](./01-orientation.md) ✅ (ready)
-2. Repo track (planned pages listed below)
-3. Swift track (planned pages listed below)
-4. Tutorials (planned pages listed below)
+1. [01 Orientation](./01-orientation.md)
+2. Repo track (10–19)
+3. Swift track (20–25)
+4. Tutorials (30–32)
 
 ---
 
@@ -35,16 +35,16 @@ On Linux, you can still do useful work:
 These pages explain app structure and feature call paths.
 
 - [01-orientation.md](./01-orientation.md) — repo layout, opening in Xcode, first reading path
-- `10-architecture-big-picture.md` *(planned)*
-- `11-app-startup-flow.md` *(planned)*
-- `12-data-and-swiftdata.md` *(planned)*
-- `13-journal-repository.md` *(planned)*
-- `14-journal-ui-and-viewmodel.md` *(planned)*
-- `15-summarization.md` *(planned)*
-- `16-settings-import-export.md` *(planned)*
-- `17-reminders.md` *(planned)*
-- `18-onboarding.md` *(planned)*
-- `19-tests-and-mocks.md` *(planned)*
+- [10-architecture-big-picture.md](./10-architecture-big-picture.md)
+- [11-app-startup-flow.md](./11-app-startup-flow.md)
+- [12-data-and-swiftdata.md](./12-data-and-swiftdata.md)
+- [13-journal-repository.md](./13-journal-repository.md)
+- [14-journal-ui-and-viewmodel.md](./14-journal-ui-and-viewmodel.md)
+- [15-summarization.md](./15-summarization.md)
+- [16-settings-import-export.md](./16-settings-import-export.md)
+- [17-reminders.md](./17-reminders.md)
+- [18-onboarding.md](./18-onboarding.md)
+- [19-tests-and-mocks.md](./19-tests-and-mocks.md)
 
 Main code we follow in this track:
 - `GraceNotes/GraceNotes/Application/GraceNotesApp.swift` (`GraceNotesApp`)
@@ -60,18 +60,18 @@ Main code we follow in this track:
 
 Each page teaches one Swift idea with real files from this app.
 
-- `20-swift-for-python-types-and-optionals.md` *(planned)*
-- `21-swift-for-python-struct-class-protocol.md` *(planned)*
-- `22-swift-for-python-state-and-property-wrappers.md` *(planned)*
-- `23-swift-for-python-async-await.md` *(planned)*
-- `24-swift-for-python-error-handling.md` *(planned)*
-- `25-swift-for-python-swiftdata-basics.md` *(planned)*
+- [20-swift-for-python-types-and-optionals.md](./20-swift-for-python-types-and-optionals.md)
+- [21-swift-for-python-struct-class-protocol.md](./21-swift-for-python-struct-class-protocol.md)
+- [22-swift-for-python-state-and-property-wrappers.md](./22-swift-for-python-state-and-property-wrappers.md)
+- [23-swift-for-python-async-await.md](./23-swift-for-python-async-await.md)
+- [24-swift-for-python-error-handling.md](./24-swift-for-python-error-handling.md)
+- [25-swift-for-python-swiftdata-basics.md](./25-swift-for-python-swiftdata-basics.md)
 
 ---
 
 ## Tutorials (small to larger tasks)
 
-Each tutorial will include:
+Each tutorial includes:
 - goal
 - what you need first
 - steps
@@ -79,10 +79,10 @@ Each tutorial will include:
 - common issues
 - optional harder step
 
-Planned tutorials:
-- `30-tutorial-read-today-flow.md`
-- `31-tutorial-small-ui-copy-change.md`
-- `32-tutorial-small-viewmodel-change-with-tests.md`
+Tutorial pages:
+- [30-tutorial-read-today-flow.md](./30-tutorial-read-today-flow.md)
+- [31-tutorial-small-ui-copy-change.md](./31-tutorial-small-ui-copy-change.md)
+- [32-tutorial-small-viewmodel-change-with-tests.md](./32-tutorial-small-viewmodel-change-with-tests.md)
 
 ---
 
