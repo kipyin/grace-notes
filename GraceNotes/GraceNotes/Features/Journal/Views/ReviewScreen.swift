@@ -36,12 +36,10 @@ struct ReviewScreen: View {
     private let reviewInsightsProvider = ReviewInsightsProvider.shared
 
     init() {
-        let testingFlag = ProcessInfo.processInfo.environment["FIVECUBED_UI_TESTING"]
-            .map { value in
-                let normalizedValue = value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-                return normalizedValue == "1" || normalizedValue == "true" || normalizedValue == "yes"
-            } ?? false
-        _selectedMode = State(initialValue: testingFlag ? .timeline : .insights)
+        let processInfo = ProcessInfo.processInfo
+        let isUITestBundle = processInfo.environment["XCTestBundlePath"]?.contains("UITests") == true
+        let hasUITestLaunchArgument = processInfo.arguments.contains("-ui-testing")
+        _selectedMode = State(initialValue: (isUITestBundle || hasUITestLaunchArgument) ? .timeline : .insights)
     }
 
     private var timelineRefreshKey: TimelineRefreshKey {
