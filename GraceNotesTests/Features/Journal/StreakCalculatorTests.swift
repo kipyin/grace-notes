@@ -1,3 +1,4 @@
+import SwiftData
 import XCTest
 @testable import GraceNotes
 
@@ -12,24 +13,26 @@ final class StreakCalculatorTests: XCTestCase {
         calculator = StreakCalculator(calendar: calendar)
     }
 
-    func test_blankAutoCreatedEntry_doesNotCountAsBasicStreak() {
+    func test_blankAutoCreatedEntry_doesNotCountAsBasicStreak() throws {
+        let context = try makeInMemoryContext()
         let now = date(year: 2026, month: 3, day: 17, hour: 12)
         let blankToday = makeEntry(on: date(year: 2026, month: 3, day: 17, hour: 8))
 
-        let summary = calculator.summary(from: [blankToday], now: now)
+        let summary = calculator.summary(from: try persisted(context, blankToday), now: now)
 
         XCTAssertEqual(summary.basicCurrent, 0)
         XCTAssertEqual(summary.perfectCurrent, 0)
     }
 
-    func test_partialEntry_countsAsBasicNotPerfect() {
+    func test_partialEntry_countsAsBasicNotPerfect() throws {
+        let context = try makeInMemoryContext()
         let now = date(year: 2026, month: 3, day: 17, hour: 12)
         let partialToday = makeEntry(
             on: date(year: 2026, month: 3, day: 17, hour: 9),
             gratitudes: [JournalItem(fullText: "Family", chipLabel: nil)]
         )
 
-        let summary = calculator.summary(from: [partialToday], now: now)
+        let summary = calculator.summary(from: try persisted(context, partialToday), now: now)
 
         XCTAssertEqual(summary.basicCurrent, 0)
         XCTAssertEqual(summary.perfectCurrent, 0)
@@ -37,11 +40,12 @@ final class StreakCalculatorTests: XCTestCase {
         XCTAssertFalse(summary.perfectDoneToday)
     }
 
-    func test_abundanceEntry_countsAsBasicAndPerfect() {
+    func test_abundanceEntry_countsAsBasicAndPerfect() throws {
+        let context = try makeInMemoryContext()
         let now = date(year: 2026, month: 3, day: 17, hour: 12)
         let completeToday = makeCompleteEntry(on: date(year: 2026, month: 3, day: 17, hour: 10))
 
-        let summary = calculator.summary(from: [completeToday], now: now)
+        let summary = calculator.summary(from: try persisted(context, completeToday), now: now)
 
         XCTAssertEqual(summary.basicCurrent, 1)
         XCTAssertEqual(summary.perfectCurrent, 1)
@@ -49,7 +53,8 @@ final class StreakCalculatorTests: XCTestCase {
         XCTAssertTrue(summary.perfectDoneToday)
     }
 
-    func test_harvestOnlyWithoutLongForm_countsAsBasicNotPerfect() {
+    func test_harvestOnlyWithoutLongForm_countsAsBasicNotPerfect() throws {
+        let context = try makeInMemoryContext()
         let now = date(year: 2026, month: 3, day: 17, hour: 12)
         let day = date(year: 2026, month: 3, day: 17, hour: 10)
         let items = (1...JournalEntry.slotCount).map { JournalItem(fullText: "Item \($0)", chipLabel: nil) }
@@ -60,7 +65,7 @@ final class StreakCalculatorTests: XCTestCase {
             people: items
         )
 
-        let summary = calculator.summary(from: [harvestOnly], now: now)
+        let summary = calculator.summary(from: try persisted(context, harvestOnly), now: now)
 
         XCTAssertTrue(summary.basicDoneToday)
         XCTAssertFalse(summary.perfectDoneToday)
@@ -68,7 +73,8 @@ final class StreakCalculatorTests: XCTestCase {
         XCTAssertEqual(summary.perfectCurrent, 0)
     }
 
-    func test_staleCompletedAt_doesNotInflatePerfectWithoutAbundance() {
+    func test_staleCompletedAt_doesNotInflatePerfectWithoutAbundance() throws {
+        let context = try makeInMemoryContext()
         let now = date(year: 2026, month: 3, day: 17, hour: 12)
         let day = date(year: 2026, month: 3, day: 17, hour: 9)
         let partial = makeEntry(
@@ -79,27 +85,29 @@ final class StreakCalculatorTests: XCTestCase {
             completedAt: now
         )
 
-        let summary = calculator.summary(from: [partial], now: now)
+        let summary = calculator.summary(from: try persisted(context, partial), now: now)
 
         XCTAssertTrue(summary.basicDoneToday)
         XCTAssertFalse(summary.perfectDoneToday)
         XCTAssertEqual(summary.perfectCurrent, 0)
     }
 
-    func test_streakBreakAcrossSkippedDay_resetsCurrentStreak() {
+    func test_streakBreakAcrossSkippedDay_resetsCurrentStreak() throws {
+        let context = try makeInMemoryContext()
         let now = date(year: 2026, month: 3, day: 17, hour: 12)
         let twoDaysAgo = makeEntry(
             on: date(year: 2026, month: 3, day: 15, hour: 11),
             gratitudes: [JournalItem(fullText: "Grateful", chipLabel: nil)]
         )
 
-        let summary = calculator.summary(from: [twoDaysAgo], now: now)
+        let summary = calculator.summary(from: try persisted(context, twoDaysAgo), now: now)
 
         XCTAssertEqual(summary.basicCurrent, 0)
         XCTAssertEqual(summary.perfectCurrent, 0)
     }
 
-    func test_dateNormalization_usesCalendarDayBoundaries() {
+    func test_dateNormalization_usesCalendarDayBoundaries() throws {
+        let context = try makeInMemoryContext()
         let now = date(year: 2026, month: 3, day: 17, hour: 12)
         let lateYesterday = makeEntry(
             on: date(year: 2026, month: 3, day: 16, hour: 23, minute: 59),
@@ -114,9 +122,29 @@ final class StreakCalculatorTests: XCTestCase {
             people: [JournalItem(fullText: "Early person", chipLabel: nil)]
         )
 
-        let summary = calculator.summary(from: [lateYesterday, earlyToday], now: now)
+        let summary = calculator.summary(
+            from: try persisted(context, lateYesterday, earlyToday),
+            now: now
+        )
 
         XCTAssertEqual(summary.basicCurrent, 2)
+    }
+
+    private func makeInMemoryContext() throws -> ModelContext {
+        let schema = Schema([JournalEntry.self])
+        let storeURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("GraceNotesStreakTests-\(UUID().uuidString).store")
+        let configuration = ModelConfiguration(schema: schema, url: storeURL)
+        let container = try ModelContainer(for: schema, configurations: configuration)
+        return ModelContext(container)
+    }
+
+    private func persisted(_ context: ModelContext, _ entries: JournalEntry...) throws -> [JournalEntry] {
+        for entry in entries {
+            context.insert(entry)
+        }
+        try context.save()
+        return Array(entries)
     }
 
     private func makeEntry(
