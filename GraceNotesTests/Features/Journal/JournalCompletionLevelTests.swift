@@ -1,3 +1,4 @@
+import SwiftData
 import XCTest
 @testable import GraceNotes
 
@@ -98,7 +99,8 @@ final class JournalCompletionLevelTests: XCTestCase {
         XCTAssertEqual(level, .abundance)
     }
 
-    func test_hasHarvestChips_and_hasAbundanceRhythm_alignWithLevels() {
+    func test_hasHarvestChips_and_hasAbundanceRhythm_alignWithLevels() throws {
+        let context = try makeInMemoryContext()
         let items = (1...JournalEntry.slotCount).map { JournalItem(fullText: "x\($0)", chipLabel: nil) }
         let harvestOnly = JournalEntry(
             gratitudes: items,
@@ -107,14 +109,32 @@ final class JournalCompletionLevelTests: XCTestCase {
             readingNotes: "",
             reflections: ""
         )
+        let abundance = JournalEntry(
+            gratitudes: items,
+            needs: items,
+            people: items,
+            readingNotes: "Notes",
+            reflections: "Reflections"
+        )
+        context.insert(harvestOnly)
+        context.insert(abundance)
+        try context.save()
+
         XCTAssertTrue(harvestOnly.hasHarvestChips)
         XCTAssertTrue(harvestOnly.isComplete)
         XCTAssertFalse(harvestOnly.hasAbundanceRhythm)
         XCTAssertEqual(harvestOnly.completionLevel, .harvest)
 
-        harvestOnly.readingNotes = "Notes"
-        harvestOnly.reflections = "Reflections"
-        XCTAssertTrue(harvestOnly.hasAbundanceRhythm)
-        XCTAssertEqual(harvestOnly.completionLevel, .abundance)
+        XCTAssertTrue(abundance.hasAbundanceRhythm)
+        XCTAssertEqual(abundance.completionLevel, .abundance)
+    }
+
+    private func makeInMemoryContext() throws -> ModelContext {
+        let schema = Schema([JournalEntry.self])
+        let storeURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("GraceNotesCompletionLevelTests-\(UUID().uuidString).store")
+        let configuration = ModelConfiguration(schema: schema, url: storeURL)
+        let container = try ModelContainer(for: schema, configurations: configuration)
+        return ModelContext(container)
     }
 }
