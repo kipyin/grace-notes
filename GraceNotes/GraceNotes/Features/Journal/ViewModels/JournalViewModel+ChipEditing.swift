@@ -16,7 +16,11 @@ extension JournalViewModel {
     }
 
     private func summarizeForChip(_ text: String, section: SummarizationSection) async -> SummarizationResult {
-        let shouldLimitToChipUnits = !summarizerProvider.effectiveUsesCloudForChips()
+        let usesCloudChips = summarizerProvider.effectiveUsesCloudForChips()
+        let shouldLimitToChipUnits = !usesCloudChips
+        if usesCloudChips, !ChipLabelUnitTruncator.truncate(text).isTruncated {
+            return ChipLabelUnitTruncator.displayCappedLabel(from: text)
+        }
         let summarizer = summarizerProvider.currentSummarizer()
         return await Task.detached(priority: .utility) {
             do {

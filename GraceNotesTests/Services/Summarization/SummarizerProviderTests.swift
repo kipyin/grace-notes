@@ -53,6 +53,26 @@ final class SummarizerProviderTests: XCTestCase {
         XCTAssertFalse(provider.effectiveUsesCloudForChips())
     }
 
+    func test_effectiveUsesCloudForChips_fixedSummarizer_overrideTrue_returnsTrue() {
+        UserDefaults.standard.set(false, forKey: SummarizerProvider.useCloudUserDefaultsKey)
+        let provider = SummarizerProvider(
+            fixedSummarizer: MockSummarizer(),
+            effectiveUsesCloudForChipsOverride: true
+        )
+
+        XCTAssertTrue(provider.effectiveUsesCloudForChips())
+    }
+
+    func test_effectiveUsesCloudForChips_fixedSummarizer_overrideFalse_returnsFalse() {
+        UserDefaults.standard.set(true, forKey: SummarizerProvider.useCloudUserDefaultsKey)
+        let provider = SummarizerProvider(
+            fixedSummarizer: MockSummarizer(),
+            effectiveUsesCloudForChipsOverride: false
+        )
+
+        XCTAssertFalse(provider.effectiveUsesCloudForChips())
+    }
+
     func test_effectiveUsesCloudForChips_useCloudFalse_returnsFalse() {
         UserDefaults.standard.set(false, forKey: SummarizerProvider.useCloudUserDefaultsKey)
         let provider = SummarizerProvider()

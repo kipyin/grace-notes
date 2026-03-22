@@ -6,6 +6,7 @@ Patch on the 0.5.x line: version and build bump plus Xcode packaging defaults ca
 
 ### Fixed
 - iOS 17: startup no longer crashes when applying global UIKit appearance; `AppInterfaceAppearance.configure()` runs from `UIApplicationDelegate.application(_:didFinishLaunchingWithOptions:)` instead of `App` `init`.
+- Journal: with cloud summarization on, chip text that already fits the on-chip display budget (≤10 display units, same Han/Latin rules as truncation) no longer calls the cloud summarizer (#69).
 
 ### Developer
 
