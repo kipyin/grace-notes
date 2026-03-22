@@ -25,7 +25,7 @@ final class StartupCoordinator: ObservableObject {
         )
     }
 
-    typealias PersistenceFactory = @Sendable () async throws -> PersistenceController
+    typealias PersistenceFactory = () async throws -> PersistenceController
 
     @Published private(set) var phase: Phase = .loading
     @Published private(set) var startupMessage: String

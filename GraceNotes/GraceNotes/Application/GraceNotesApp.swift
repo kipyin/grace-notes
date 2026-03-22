@@ -7,9 +7,11 @@
 
 import SwiftUI
 import SwiftData
+import UIKit
 
 @main
 struct GraceNotesApp: App {
+    @UIApplicationDelegateAdaptor(GraceNotesAppDelegate.self) private var appDelegate
     private enum AppTab: Hashable {
         case today
         case history
@@ -57,7 +59,6 @@ struct GraceNotesApp: App {
         }
         _uiTestPersistenceController = State(initialValue: preloadedUITestController)
         PerformanceTrace.end("App.init", startedAt: startupTrace)
-        AppInterfaceAppearance.configure()
     }
 
     var body: some Scene {
