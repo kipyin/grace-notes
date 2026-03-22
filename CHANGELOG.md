@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.5.1] - Unreleased
+
+Patch on the 0.5.x line: version and build bump plus Xcode packaging defaults carried from local workspace changes.
+
+### Developer
+
+- App **marketing version** `0.5.1`; **bundle version** (`CURRENT_PROJECT_VERSION`) `2` for Grace Notes app configurations (Debug, Release, Demo).
+- Project-level **Debug** and **Demo** build settings use `DEBUG_INFORMATION_FORMAT = dwarf-with-dsym` so Debug-style builds still produce dSYM for symbolication.
+- Shared `GraceNotes.xcscheme`: **Run** uses **Release** build configuration (revert locally if you prefer ⌘R to stay on Debug).
+
 ## [0.5.0] - 2026-03-21
 
 Insight quality: Review that feels specific and grounded, better chip source material, calmer completion feedback. Release scope context: `GraceNotes/docs/07-release-roadmap.md` §0.5.0.
