@@ -1,8 +1,10 @@
 # Grace Notes Release Roadmap
 
-Date: 2026-03-21
+Date: 2026-03-22
 
 This roadmap turns the strategic priority stack into a release sequence grounded in the current open issue set. For **shipped** scope detail, treat `CHANGELOG.md` as the source of truth and keep this document aligned when tagging releases.
+
+**GitHub milestones:** Open product issues on [kipyin/grace-notes](https://github.com/kipyin/grace-notes) use milestones that mirror the releases below: `0.5.0 - Insight quality and first-week guidance`, `0.6.0 - Trust and ownership`, `0.7.0 - Activation and flexible depth`, and `0.8.x+ - Streak and calendar refinement`. Internal workflow work (e.g. `#41`) stays off milestones. When you add or retarget issues, update this file and the milestone in the same change.
 
 ## Roadmap principles
 
@@ -130,26 +132,37 @@ This roadmap turns the strategic priority stack into a release sequence grounded
 
 **Versioning note:** If marketing needs the `0.4.0` label for insight work instead, ship sync reliability as a patch (e.g. `0.3.6`) first, then proceed with insight as `0.4.0`; document that swap in this file when chosen.
 
-## 0.5.0 — Insight quality
+## 0.5.0 — Insight quality and first-week guidance
 
 Work tracked on branch `release/0.5.0`.
 
-**Goal:** Make review feel specific, trustworthy, and grounded in the user’s own entries.
+**Goal:** Make review feel specific, trustworthy, and grounded in the user’s own entries, while giving new and returning users calm first-week guidance that does not dilute the core ritual.
 
 **Scope in**
 - `#40` Review page is still generic even with AI Insights
 - `#39` Fine tune AI prompts for chips
 - `#11` Add a check mark after all 5 entries are complete within a section
+- Guided return and first-week support (hints, coaching, or light onboarding tied to Seed/Harvest and the rhythm)—including `#60` first-run Today tutorial and related unlock feedback where shipped under this line
+- `#67` Align journal completion logic (inProgress / seed / harvest / fullness)
+- `#69` Skip cloud chip summarization when input fits chip unit budget (≤10 units)
+- `#70` Commit chip TextField draft on focus loss (not only Return)
+- `#71` Epic: Guided onboarding (behavior-first) + opt-in defaults (AI, reminders, iCloud)
+- `#73` Onboarding: first journal path (Gratitude → Need → People)
+- `#72` Onboarding: iCloud default off + migration notes
+- `#74` Onboarding: Ripening → Harvest → Abundance guided flow
+- `#75` Onboarding: suggest AI, reminders, iCloud after milestones
 
 **Why now**
-- The strategy review identifies weak return on reflection as the biggest blocker.
+- The strategy review identifies weak return on reflection as the biggest blocker and calls for better first-week guidance.
 - Better chip labeling improves the source material for review summaries.
-- This lane follows `0.4.0` so insight investment sits on firmer data-trust footing.
+- Activation for the first week does not need to wait on flexible-depth modes (`0.7.0`); it belongs alongside insight work in this release.
+- This lane follows `0.4.0` so insight investment and guidance sit on firmer data-trust footing.
 
 **Acceptance intent**
 - Review language references real recurring themes, people, and counts.
 - AI output remains optional and falls back cleanly to deterministic insights.
 - Completion feedback stays calm and legible inside the current ritual.
+- First-week and return flows feel supportive rather than demanding; users understand how to progress without extra pressure.
 
 ## 0.6.0 — Trust and ownership
 
@@ -159,10 +172,11 @@ Work tracked on branch `release/0.5.0`.
 - Deeper **backup and ownership** UX beyond what shipped in `0.4.0` (JSON import/export is already available); e.g. clearer in-app guidance, edge cases, or portability story
 - Clear privacy messaging for local versus cloud behavior (extends, does not replace, `0.4.0` sync truthfulness)
 - `zh-Hant` localization if release capacity allows
+- `#50` Add a show orientation again toggle in Settings
 
 **Why now**
 - Users need confidence that their reflections are portable and recoverable.
-- Export shipped in `0.2.3` and structured import shipped in `0.4.0`; this lane focuses on trust copy and ownership clarity once review quality (`0.5.0`) is stronger.
+- Export shipped in `0.2.3` and structured import shipped in `0.4.0`; this lane focuses on trust copy and ownership clarity once review quality and first-week guidance (`0.5.0`) are stronger.
 
 **Acceptance intent**
 - Users can restore from a prior export.
@@ -170,21 +184,22 @@ Work tracked on branch `release/0.5.0`.
 
 ## 0.7.0 — Activation and flexible depth
 
-**Goal:** Reduce pressure while preserving the structured reflection wedge.
+**Goal:** Reduce pressure through flexible depth and optional modes while preserving the structured reflection wedge. First-week and guided-return baseline ships in `0.5.0`; this release deepens how users can vary intensity over time.
 
 **Scope in**
 - Lighter success states for low-energy days
-- Guided return and first-week support
 - Quick versus full reflection modes
 - Prompt packs or weekly reflection modes only if they deepen the ritual
 
 **Why now**
+- Guided return and first-week support are sequenced in `0.5.0`.
 - Some activation groundwork already shipped in `0.2.3`.
-- This lane should build on a stable, useful, and trusted product.
+- This lane builds on a stable, useful, trusted product and the `0.5.0` activation baseline.
 
 **Acceptance intent**
-- Users can keep the habit on lower-energy days.
-- The app feels supportive rather than demanding.
+- Users can keep the habit on lower-energy days via lighter success states and clear quick paths.
+- Optional depth (prompt packs, weekly reflection) strengthens the ritual without feeling noisy or mandatory.
+- The app remains supportive rather than demanding as these options grow.
 
 ## 0.8.x+ — Streak and calendar refinement
 
@@ -220,3 +235,4 @@ This is internal workflow enablement. Track it outside user-facing release packa
 - `GraceNotes/docs/archive/2026-03-product-strategy-implementation.md` (iCloud foundation and runtime validation constraints)
 - `GraceNotes/docs/agent-log/initiatives/issue-41-agents-workflow/brief.md`
 - `CHANGELOG.md`
+- GitHub milestones: https://github.com/kipyin/grace-notes/milestones
