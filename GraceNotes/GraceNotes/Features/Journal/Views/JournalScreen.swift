@@ -503,23 +503,31 @@ private extension JournalScreen {
         guard didSubmit else { return }
         Task { @MainActor in
             await Task.yield()
-            restoreKeyboardFocusIfAnotherJournalTextFieldIsActive()
+            if restoreKeyboardFocusIfAnotherJournalTextFieldIsActive() {
+                return
+            }
+            // TextEditor focus can trail TextField by a frame; one extra yield before giving up.
+            await Task.yield()
+            _ = restoreKeyboardFocusIfAnotherJournalTextFieldIsActive()
         }
     }
 
-    /// Re-assert focus after a blur commit so the keyboard stays if another journal text field is active.
-    private func restoreKeyboardFocusIfAnotherJournalTextFieldIsActive() {
-        if isGratitudeInputFocused {
-            restoreInputFocus($isGratitudeInputFocused)
-        } else if isNeedInputFocused {
-            restoreInputFocus($isNeedInputFocused)
-        } else if isPersonInputFocused {
-            restoreInputFocus($isPersonInputFocused)
-        } else if isReadingNotesFocused {
-            restoreInputFocus($isReadingNotesFocused)
-        } else if isReflectionsFocused {
-            restoreInputFocus($isReflectionsFocused)
+    /// Re-asserts focus on whichever journal text field already has SwiftUI focus (chips, Reading Notes, Reflections).
+    /// Single source of truth for the list—add new focused editors here only.
+    @discardableResult
+    private func restoreKeyboardFocusIfAnotherJournalTextFieldIsActive() -> Bool {
+        let candidates: [(Bool, FocusState<Bool>.Binding)] = [
+            (isGratitudeInputFocused, $isGratitudeInputFocused),
+            (isNeedInputFocused, $isNeedInputFocused),
+            (isPersonInputFocused, $isPersonInputFocused),
+            (isReadingNotesFocused, $isReadingNotesFocused),
+            (isReflectionsFocused, $isReflectionsFocused)
+        ]
+        for (isFocused, binding) in candidates where isFocused {
+            restoreInputFocus(binding)
+            return true
         }
+        return false
     }
 
     private func restoreInputFocus(_ focus: FocusState<Bool>.Binding) {

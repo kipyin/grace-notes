@@ -62,3 +62,17 @@ Implementation matches stated product and technical scope on code review, but **
 
 - **`Test Lead`:** Execute the manual matrix above on macOS + Simulator; file results or defects.
 - **`Builder`:** Only if Simulator finds focus/keyboard gaps (e.g. second yield, explicit focus binding order).
+
+---
+
+## Builder follow-up (2026-03-22)
+
+Addressed without Simulator (Linux):
+
+- **Focus timing:** `commitChipDraftOnInputFocusLost` now retries restoration after a **second** `Task.yield` when the first pass finds no focused journal field—targets `TextEditor` lag vs chip `TextField`.
+- **Maintainability:** `restoreKeyboardFocusIfAnotherJournalTextFieldIsActive()` uses a single `candidates` list with an inline note to add future focused editors there only.
+- **Continuity:** `brief.md` added in this initiative folder (per open question).
+
+**SequentialSectionView `type_body_length`:** Still over threshold with scoped lint disable; QA rated acceptable short-term; no structural split in this pass.
+
+**Decision unchanged:** Fail (pending verification) until Test Lead signs off on device.
