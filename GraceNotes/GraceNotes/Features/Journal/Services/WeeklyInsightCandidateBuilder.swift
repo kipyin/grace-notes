@@ -111,7 +111,7 @@ private extension WeeklyInsightCandidateBuilder {
         var completionByDay: [Date: Bool] = [:]
         for entry in entries {
             let day = calendar.startOfDay(for: entry.entryDate)
-            completionByDay[day] = (completionByDay[day] ?? false) || entry.isComplete
+            completionByDay[day] = (completionByDay[day] ?? false) || entry.hasHarvestChips
         }
 
         guard completionByDay.count == 7 else { return nil }

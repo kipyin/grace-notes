@@ -97,4 +97,24 @@ final class JournalCompletionLevelTests: XCTestCase {
 
         XCTAssertEqual(level, .abundance)
     }
+
+    func test_hasHarvestChips_and_hasAbundanceRhythm_alignWithLevels() {
+        let items = (1...JournalEntry.slotCount).map { JournalItem(fullText: "x\($0)", chipLabel: nil) }
+        let harvestOnly = JournalEntry(
+            gratitudes: items,
+            needs: items,
+            people: items,
+            readingNotes: "",
+            reflections: ""
+        )
+        XCTAssertTrue(harvestOnly.hasHarvestChips)
+        XCTAssertTrue(harvestOnly.isComplete)
+        XCTAssertFalse(harvestOnly.hasAbundanceRhythm)
+        XCTAssertEqual(harvestOnly.completionLevel, .harvest)
+
+        harvestOnly.readingNotes = "Notes"
+        harvestOnly.reflections = "Reflections"
+        XCTAssertTrue(harvestOnly.hasAbundanceRhythm)
+        XCTAssertEqual(harvestOnly.completionLevel, .abundance)
+    }
 }

@@ -58,12 +58,27 @@ final class JournalEntry {
         }
     }
 
-    /// Whether this entry has all 15 chip slots filled. Used by History and Journal.
-    var isComplete: Bool {
+    /// All chip slots filled (5 gratitudes, 5 needs, 5 people). Issue #67: this is **harvest**;
+    /// notes and reflections do not change it.
+    var hasHarvestChips: Bool {
         Self.hasAllFifteenChips(
             gratitudesCount: (gratitudes ?? []).count,
             needsCount: (needs ?? []).count,
             peopleCount: (people ?? []).count
+        )
+    }
+
+    /// Same as ``hasHarvestChips``. Older call sites use this name for History and persistence.
+    var isComplete: Bool { hasHarvestChips }
+
+    /// Chips plus non-empty reading notes and reflections (internal **fullness**; UI label **Abundance**).
+    var hasAbundanceRhythm: Bool {
+        Self.criteriaMet(
+            gratitudesCount: (gratitudes ?? []).count,
+            needsCount: (needs ?? []).count,
+            peopleCount: (people ?? []).count,
+            readingNotes: readingNotes,
+            reflections: reflections
         )
     }
 

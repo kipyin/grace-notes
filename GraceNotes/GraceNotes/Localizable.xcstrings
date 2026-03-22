@@ -4,214 +4,6 @@
     "" : {
 
     },
-    "Abundance" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abundance"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "丰盛"
-          }
-        }
-      }
-    },
-    "Abundance means you completed every chip plus reading notes and reflections for today." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abundance means you completed every chip plus reading notes and reflections for today."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "丰盛表示今天的感恩、需要、牵挂都已写满，并且填写了阅读笔记与反思。"
-          }
-        }
-      }
-    },
-    "Harvest means all gratitude, need, and people spots are filled. Add reading notes and reflections to reach Abundance." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Harvest means all gratitude, need, and people spots are filled. Add reading notes and reflections to reach Abundance."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "丰收表示三个区块的格子都已填满。补上阅读笔记与反思即可达到丰盛。"
-          }
-        }
-      }
-    },
-    "Ripening" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ripening"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "渐熟"
-          }
-        }
-      }
-    },
-    "Ripening means you have at least three in each section. Keep going to fill all five spots in every section for Harvest." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ripening means you have at least three in each section. Keep going to fill all five spots in every section for Harvest."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "渐熟表示每个区块都至少有三条。继续写满五个格子就能达到丰收。"
-          }
-        }
-      }
-    },
-    "Seed means each section has at least one item, and you are still building toward three in each section." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seed means each section has at least one item, and you are still building toward three in each section."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "种子表示三个区块都至少有一条，但最短的区块还不到三条。"
-          }
-        }
-      }
-    },
-    "Shows what Abundance means for today." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Shows what Abundance means for today."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "说明今天的「丰盛」代表什么。"
-          }
-        }
-      }
-    },
-    "Shows what Ripening means for today." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Shows what Ripening means for today."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "说明今天的「渐熟」代表什么。"
-          }
-        }
-      }
-    },
-    "Shows what Soil means for today." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Shows what Soil means for today."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "说明今天的「土壤」代表什么。"
-          }
-        }
-      }
-    },
-    "Soil" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Soil"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "土壤"
-          }
-        }
-      }
-    },
-    "Soil means you have not yet added at least one gratitude, one need, and one person." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Soil means you have not yet added at least one gratitude, one need, and one person."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "土壤表示你还没有在感恩、需要和牵挂的人三个区块各写至少一条。"
-          }
-        }
-      }
-    },
-    "You reached Abundance today." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You reached Abundance today."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "今天你达到了丰盛。"
-          }
-        }
-      }
-    },
-    "You're ripening—three in each section. Keep going toward Harvest." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You're ripening—three in each section. Keep going toward Harvest."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你在渐熟阶段——每个区块都至少有三条了，继续向丰收前进吧。"
-          }
-        }
-      }
-    },
     "%@ input" : {
       "localizations" : {
         "en" : {
@@ -369,6 +161,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "这周有一件需要的事反复出现：%1$@（%2$lld 天）。"
+          }
+        }
+      }
+    },
+    "Abundance" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abundance"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "满溢"
+          }
+        }
+      }
+    },
+    "Abundance means every chip is filled, and you have added reading notes and reflections for today." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abundance means every chip is filled, and you have added reading notes and reflections for today."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「满溢」表示十五个格子都填好了，而且今天的阅读笔记和反思也都写了。"
           }
         }
       }
@@ -1119,6 +943,22 @@
         }
       }
     },
+    "DataPrivacy.import.error.fileTooLarge" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This file is too large to import. Try a smaller Grace Notes backup."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这份文件太大，无法导入。请换一个小一些的感恩记备份。"
+          }
+        }
+      }
+    },
     "DataPrivacy.import.error.generic" : {
       "localizations" : {
         "en" : {
@@ -1183,18 +1023,18 @@
         }
       }
     },
-    "DataPrivacy.import.error.fileTooLarge" : {
+    "DataPrivacy.import.error.title" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This file is too large to import. Try a smaller Grace Notes backup."
+            "value" : "Import failed"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这份文件太大，无法导入。请换一个小一些的感恩记备份。"
+            "value" : "导入失败"
           }
         }
       }
@@ -1211,22 +1051,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "这份备份里的日历日太多，无法一次性导入。"
-          }
-        }
-      }
-    },
-    "DataPrivacy.import.error.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import failed"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "导入失败"
           }
         }
       }
@@ -1522,6 +1346,22 @@
         }
       }
     },
+    "Dismisses this tip." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dismisses this tip."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭这条提示。"
+          }
+        }
+      }
+    },
     "Done" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1723,6 +1563,22 @@
         }
       }
     },
+    "Got it" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Got it"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "知道了"
+          }
+        }
+      }
+    },
     "Grace Notes" : {
       "localizations" : {
         "en" : {
@@ -1805,18 +1661,18 @@
         }
       }
     },
-    "Harvest means you completed the full journal reflection for today." : {
+    "Harvest means every chip slot is filled—five gratitudes, five needs, and five people. Add reading notes and reflections to reach Abundance." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Harvest means you completed the full grace note reflection for today."
+            "value" : "Harvest means every chip slot is filled—five gratitudes, five needs, and five people. Add reading notes and reflections to reach Abundance."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「丰收」表示你今天已经完成了一篇完整的感恩记。"
+            "value" : "「丰收」表示感恩的事、需要的事和牵挂的人三个栏目各有五条，十五个格子都填好了。再补上阅读笔记和反思，就能到「满溢」。"
           }
         }
       }
@@ -2022,6 +1878,7 @@
       }
     },
     "In Progress" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2038,6 +1895,7 @@
       }
     },
     "In Progress means you can reach Seed by completing 1 gratitude, 1 need, and 1 person." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2633,6 +2491,38 @@
         }
       }
     },
+    "Ripening" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ripening"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "成长"
+          }
+        }
+      }
+    },
+    "Ripening means you have at least three items in each section. Keep going to fill all five slots in each section to reach Harvest." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ripening means you have at least three items in each section. Keep going to fill all five slots in each section to reach Harvest."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「成长」表示每个栏目都至少有三条。继续写，把每个栏目的五个格子都填满，就能到「丰收」。"
+          }
+        }
+      }
+    },
     "Runs a cloud AI reachability check when activated." : {
       "localizations" : {
         "en" : {
@@ -2713,18 +2603,18 @@
         }
       }
     },
-    "Seed means you reached 1 gratitude, 1 need, and 1 person. Continue your full reflection to reach Harvest." : {
+    "Seed means each section has at least one item, and you are still building toward three in each section." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Seed means you reached 1 gratitude, 1 need, and 1 person. Continue your full reflection to reach Harvest."
+            "value" : "Seed means each section has at least one item, and you are still building toward three in each section."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「撒种」表示你已经写下 1 件感恩的事、1 件需要的事和 1 位牵挂的人。准备好了，就继续写下去吧。"
+            "value" : "「撒种」表示每个栏目都至少有一条，继续写，朝着每个栏目各三条前进。"
           }
         }
       }
@@ -2826,6 +2716,22 @@
         }
       }
     },
+    "Shows what Abundance means for today." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows what Abundance means for today."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "说明今天「满溢」表示什么。"
+          }
+        }
+      }
+    },
     "Shows what Harvest means for today." : {
       "localizations" : {
         "en" : {
@@ -2837,12 +2743,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "说明「丰收」在今天代表什么。"
+            "value" : "说明今天「丰收」表示什么。"
           }
         }
       }
     },
     "Shows what In Progress means for today." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2858,6 +2765,22 @@
         }
       }
     },
+    "Shows what Ripening means for today." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows what Ripening means for today."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "说明今天「成长」表示什么。"
+          }
+        }
+      }
+    },
     "Shows what Seed means for today." : {
       "localizations" : {
         "en" : {
@@ -2869,7 +2792,23 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "说明「撒种」在今天代表什么。"
+            "value" : "说明今天「撒种」表示什么。"
+          }
+        }
+      }
+    },
+    "Shows what Soil means for today." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows what Soil means for today."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "说明今天「土壤」表示什么。"
           }
         }
       }
@@ -2903,6 +2842,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "所以这次使用期间，感恩记不会同步到 iCloud。"
+          }
+        }
+      }
+    },
+    "Soil" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soil"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "土壤"
+          }
+        }
+      }
+    },
+    "Soil means you have not yet added at least one gratitude, one need, and one person." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soil means you have not yet added at least one gratitude, one need, and one person."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「土壤」表示你还没有在感恩的事、需要的事和牵挂的人三个栏目各写至少一条。"
           }
         }
       }
@@ -3635,6 +3606,22 @@
         }
       }
     },
+    "When you're ready, keep writing—a line in Gratitudes, Needs, and People in Mind is enough to begin. Tap the status above anytime if you want a gentle reminder." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When you're ready, keep writing—a line in Gratitudes, Needs, and People in Mind is enough to begin. Tap the status above anytime if you want a gentle reminder."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不用着急，想写的时候继续就好。先写 1 件感恩的事、1 件需要的事和 1 位牵挂的人，就已经开始了。想再看看说明，随时点按上方状态。"
+          }
+        }
+      }
+    },
     "Who are you thinking of today?" : {
       "localizations" : {
         "en" : {
@@ -3700,6 +3687,22 @@
         }
       }
     },
+    "You can keep writing in Gratitudes, Needs, and People in Mind if you'd like a fuller reflection. Tap the status above anytime to read about Harvest." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can keep writing in Gratitudes, Needs, and People in Mind if you'd like a fuller reflection. Tap the status above anytime to read about Harvest."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "如果你想写得更完整一些，也可以继续写下去，把感恩的事、需要的事和牵挂的人再多记几条。想进一步了解「丰收」时，随时点按上方状态即可。"
+          }
+        }
+      }
+    },
     "You changed iCloud sync here." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3713,6 +3716,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你已在这里更改 iCloud 同步设置。"
+          }
+        }
+      }
+    },
+    "You completed the full rhythm today." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You completed the full rhythm today."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天你也写好了阅读笔记和反思，这一篇感恩记更完整了。"
           }
         }
       }
@@ -3832,6 +3852,54 @@
         }
       }
     },
+    "You planted a seed today." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You planted a seed today."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天你已经「撒种」了。"
+          }
+        }
+      }
+    },
+    "You reached Abundance today." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You reached Abundance today."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天写到了「满溢」。"
+          }
+        }
+      }
+    },
+    "You reached Harvest." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You reached Harvest."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天你已经达到「丰收」。"
+          }
+        }
+      }
+    },
     "You returned to %1$@ %2$lld times this week." : {
       "localizations" : {
         "en" : {
@@ -3865,146 +3933,18 @@
         }
       }
     },
-    "You completed the full rhythm today." : {
+    "You're growing—at least three in each section. Keep going toward Harvest." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You completed the full rhythm today."
+            "value" : "You're growing—at least three in each section. Keep going toward Harvest."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "今天你也写好了阅读笔记和反思，这一篇感恩记更完整了。"
-          }
-        }
-      }
-    },
-    "You planted a seed today." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You planted a seed today."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "今天你已经「撒种」了。"
-          }
-        }
-      }
-    },
-    "You reached Harvest." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You reached Harvest."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "今天你已经达到「丰收」。"
-          }
-        }
-      }
-    },
-    "Dismisses this tip." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dismisses this tip."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "关闭这条提示。"
-          }
-        }
-      }
-    },
-    "Got it" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Got it"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "知道了"
-          }
-        }
-      }
-    },
-    "When you're ready, keep writing—a line in Gratitudes, Needs, and People in Mind is enough to begin. Tap the status above anytime if you want a gentle reminder." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "When you're ready, keep writing—a line in Gratitudes, Needs, and People in Mind is enough to begin. Tap the status above anytime if you want a gentle reminder."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "不用着急，想写的时候继续就好。先写 1 件感恩的事、1 件需要的事和 1 位牵挂的人，就已经开始了。想再看看说明，随时点按上方状态。"
-          }
-        }
-      }
-    },
-    "You can keep writing in Gratitudes, Needs, and People in Mind if you'd like a fuller reflection. Tap the status above anytime to read about Harvest." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You can keep writing in Gratitudes, Needs, and People in Mind if you'd like a fuller reflection. Tap the status above anytime to read about Harvest."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "如果你想写得更完整一些，也可以继续写下去，把感恩的事、需要的事和牵挂的人再多记几条。想进一步了解「丰收」时，随时点按上方状态即可。"
-          }
-        }
-      }
-    },
-    "Your first Harvest, and you've added reading notes and reflections—a full rhythm for today." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your first Harvest, and you've added reading notes and reflections—a full rhythm for today."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "这是你第一次达到「丰收」，也写好了阅读笔记和反思。今天这一篇已经很完整了。"
-          }
-        }
-      }
-    },
-    "Your first Harvest—you've filled every spot in all three sections today. That's a full reflection." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your first Harvest—you've filled every spot in all three sections today. That's a full reflection."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "这是你第一次达到「丰收」——今天三个区块都已写满，这是一篇很完整的反思。"
+            "value" : "你在成长：每个栏目都至少有三条了。继续写，向「丰收」前进。"
           }
         }
       }
@@ -4021,6 +3961,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "这是你第一次「撒种」——你已经写下 1 件感恩的事、1 件需要的事和 1 位牵挂的人，真好。"
+          }
+        }
+      }
+    },
+    "Your first Harvest—you filled all fifteen chip slots today. Add reading notes and reflections when you're ready for Abundance." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your first Harvest—you filled all fifteen chip slots today. Add reading notes and reflections when you're ready for Abundance."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这是你第一次达到「丰收」——十五个格子都填满了。想继续的话，补上阅读笔记和反思，就能到「满溢」。"
+          }
+        }
+      }
+    },
+    "Your first Harvest, and you've added reading notes and reflections—a full rhythm for today." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your first Harvest, and you've added reading notes and reflections—a full rhythm for today."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这是你第一次达到「丰收」，也写好了阅读笔记和反思。今天这一篇已经很完整了。"
           }
         }
       }

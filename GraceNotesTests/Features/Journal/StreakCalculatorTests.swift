@@ -37,7 +37,7 @@ final class StreakCalculatorTests: XCTestCase {
         XCTAssertFalse(summary.perfectDoneToday)
     }
 
-    func test_completeEntry_countsAsBasicAndPerfect() {
+    func test_abundanceEntry_countsAsBasicAndPerfect() {
         let now = date(year: 2026, month: 3, day: 17, hour: 12)
         let completeToday = makeCompleteEntry(on: date(year: 2026, month: 3, day: 17, hour: 10))
 
@@ -47,6 +47,43 @@ final class StreakCalculatorTests: XCTestCase {
         XCTAssertEqual(summary.perfectCurrent, 1)
         XCTAssertTrue(summary.basicDoneToday)
         XCTAssertTrue(summary.perfectDoneToday)
+    }
+
+    func test_harvestOnlyWithoutLongForm_countsAsBasicNotPerfect() {
+        let now = date(year: 2026, month: 3, day: 17, hour: 12)
+        let day = date(year: 2026, month: 3, day: 17, hour: 10)
+        let items = (1...JournalEntry.slotCount).map { JournalItem(fullText: "Item \($0)", chipLabel: nil) }
+        let harvestOnly = makeEntry(
+            on: day,
+            gratitudes: items,
+            needs: items,
+            people: items
+        )
+
+        let summary = calculator.summary(from: [harvestOnly], now: now)
+
+        XCTAssertTrue(summary.basicDoneToday)
+        XCTAssertFalse(summary.perfectDoneToday)
+        XCTAssertEqual(summary.basicCurrent, 1)
+        XCTAssertEqual(summary.perfectCurrent, 0)
+    }
+
+    func test_staleCompletedAt_doesNotInflatePerfectWithoutAbundance() {
+        let now = date(year: 2026, month: 3, day: 17, hour: 12)
+        let day = date(year: 2026, month: 3, day: 17, hour: 9)
+        let partial = makeEntry(
+            on: day,
+            gratitudes: [JournalItem(fullText: "One", chipLabel: nil)],
+            needs: [JournalItem(fullText: "One", chipLabel: nil)],
+            people: [JournalItem(fullText: "One", chipLabel: nil)],
+            completedAt: now
+        )
+
+        let summary = calculator.summary(from: [partial], now: now)
+
+        XCTAssertTrue(summary.basicDoneToday)
+        XCTAssertFalse(summary.perfectDoneToday)
+        XCTAssertEqual(summary.perfectCurrent, 0)
     }
 
     func test_streakBreakAcrossSkippedDay_resetsCurrentStreak() {

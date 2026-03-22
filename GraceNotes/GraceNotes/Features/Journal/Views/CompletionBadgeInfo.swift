@@ -45,11 +45,17 @@ enum CompletionBadgeInfo: Equatable {
         case .seed:
             return String(localized: "Seed means each section has at least one item, and you are still building toward three in each section.")
         case .ripening:
-            return String(localized: "Ripening means you have at least three in each section. Keep going to fill all five spots in every section for Harvest.")
+            return String(
+                localized: "Ripening means you have at least three items in each section. Keep going to fill all five slots in each section to reach Harvest."
+            )
         case .harvest:
-            return String(localized: "Harvest means all gratitude, need, and people spots are filled. Add reading notes and reflections to reach Abundance.")
+            return String(
+                localized: "Harvest means every chip slot is filled—five gratitudes, five needs, and five people. Add reading notes and reflections to reach Abundance."
+            )
         case .abundance:
-            return String(localized: "Abundance means you completed every chip plus reading notes and reflections for today.")
+            return String(
+                localized: "Abundance means every chip is filled, and you have added reading notes and reflections for today."
+            )
         }
     }
     // swiftlint:enable line_length

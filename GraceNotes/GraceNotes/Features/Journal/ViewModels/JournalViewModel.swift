@@ -131,7 +131,8 @@ final class JournalViewModel {
         entry.readingNotes = readingNotes.trimmingCharacters(in: .whitespacesAndNewlines)
         entry.reflections = reflections.trimmingCharacters(in: .whitespacesAndNewlines)
         entry.updatedAt = nowProvider()
-        entry.completedAt = entry.isComplete ? (entry.completedAt ?? nowProvider()) : nil
+        // First time the user reaches harvest (all chip slots); cleared if chips drop below 5/5/5.
+        entry.completedAt = entry.hasHarvestChips ? (entry.completedAt ?? nowProvider()) : nil
 
         do {
             try context.save()
@@ -171,9 +172,16 @@ final class JournalViewModel {
         autosaveTrigger.send(())
     }
 
+    /// True when today's entry meets **Abundance** (full rhythm), not harvest-only.
     var completedToday: Bool {
         guard journalEntry != nil else { return false }
-        return completionLevel == .abundance
+        return JournalEntry.criteriaMet(
+            gratitudesCount: gratitudes.count,
+            needsCount: needs.count,
+            peopleCount: people.count,
+            readingNotes: readingNotes,
+            reflections: reflections
+        )
     }
 
     /// Total chip slots across gratitudes, needs, and people (5 x 3 = 15).
