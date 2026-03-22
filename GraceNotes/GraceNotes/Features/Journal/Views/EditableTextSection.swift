@@ -26,7 +26,7 @@ struct EditableTextSection: View {
         VStack(alignment: .leading, spacing: AppTheme.spacingTight) {
             Text(title)
                 .font(AppTheme.warmPaperHeader)
-                .foregroundStyle(titleColor)
+                .foregroundStyle(onboardingState.titleColor)
             if let guidanceNote = onboardingState.guidanceNote {
                 Text(guidanceNote)
                     .font(AppTheme.warmPaperMeta)
@@ -35,20 +35,7 @@ struct EditableTextSection: View {
             }
             textEditor
         }
-        .padding(showsGuidedContainer ? AppTheme.spacingRegular : 0)
-        .background {
-            if showsGuidedContainer {
-                RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
-                    .fill(containerBackground)
-            }
-        }
-        .overlay {
-            if showsGuidedContainer {
-                RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
-                    .stroke(containerBorder, lineWidth: 1)
-            }
-        }
-        .opacity(contentOpacity)
+        .journalOnboardingSectionStyle(onboardingState)
     }
 
     @ViewBuilder
@@ -78,60 +65,6 @@ struct EditableTextSection: View {
             editor.focused(inputFocus)
         } else {
             editor
-        }
-    }
-
-    private var showsGuidedContainer: Bool {
-        onboardingState != .standard
-    }
-
-    private var titleColor: Color {
-        switch onboardingState {
-        case .standard, .available:
-            return AppTheme.journalTextPrimary
-        case .active:
-            return AppTheme.accentText
-        case .locked:
-            return AppTheme.journalTextMuted
-        }
-    }
-
-    private var containerBackground: Color {
-        switch onboardingState {
-        case .standard:
-            return .clear
-        case .active:
-            return AppTheme.journalPaper.opacity(0.9)
-        case .available:
-            return AppTheme.journalPaper.opacity(0.58)
-        case .locked:
-            return AppTheme.journalPaper.opacity(0.42)
-        }
-    }
-
-    private var containerBorder: Color {
-        switch onboardingState {
-        case .standard:
-            return .clear
-        case .active:
-            return AppTheme.journalInputBorder
-        case .available:
-            return AppTheme.journalBorder
-        case .locked:
-            return AppTheme.journalBorder.opacity(0.72)
-        }
-    }
-
-    private var contentOpacity: Double {
-        switch onboardingState {
-        case .standard:
-            return 1
-        case .active:
-            return 1
-        case .available:
-            return 0.94
-        case .locked:
-            return 0.7
         }
     }
 }

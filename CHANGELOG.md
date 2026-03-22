@@ -24,11 +24,14 @@ Insight quality: Review that feels specific and grounded, better chip source mat
 
 ### Added
 - Journal: first-run guided tutorial on Today—dismissible hints toward Seed (at least one gratitude, need, and person) and Harvest (15 chips), plus one-time congratulations when each milestone is first reached; progress is per install with an optional UI-test reset launch argument (`#60`).
+- Journal: behavior-first onboarding now starts with a minimal welcome and guides the first journal on Today one step at a time (Gratitude → Need → People → Ripening → Harvest → Abundance), replacing the earlier copy-led pager with inline section emphasis and locking (`#71`, `#73`, `#74`).
+- Journal / Settings: milestone-based suggestion cards can route to Settings and highlight the relevant AI, Reminders, or Data & Privacy section so optional setup stays calm and contextual (`#75`).
 - Journal: brief unlock toast when completion moves up (Seed, Harvest, or full rhythm).
 - (Planned, `#11`) Checkmark or equivalent when all five slots in a section are complete
 
 ### Changed
 - Journal: completion semantics aligned with GitHub #67 — **Harvest** is chips-only; **Abundance** is chips plus reading notes and reflections. `completedAt` records harvest; “perfect” streak uses Abundance only (not `completedAt`). Named predicates on `JournalEntry`: `hasHarvestChips`, `hasAbundanceRhythm`. Meaning-card copy, unlock toasts, and related **zh-Hans** strings updated (short labels: **成长** / **满溢** for Ripening / Abundance).
+- Settings / persistence: fresh installs now default **iCloud sync** to off, while upgrades with existing onboarding or preference signals preserve the prior implicit iCloud-on posture through a one-time preference resolution pass (`#72`).
 - System sans typography uses **Outfit** app-wide: UIKit navigation bar, tab bar, and bar-button titles via appearance; SwiftUI root `font` environment; journal inputs keep explicit **Source Serif** / **Playfair** where set (including gratitude/need/person field placeholders).
 - (Planned, `#40`) Review / weekly insights less generic—language tied to recurring themes, people, and counts from real entries
 - (Planned, `#39`) AI prompts for chip labels tuned to improve review inputs; deterministic paths unchanged in spirit

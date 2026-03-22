@@ -22,20 +22,6 @@ enum JournalOnboardingSectionState: Equatable {
     case active
     case available
     case locked(reason: String)
-
-    var isLocked: Bool {
-        if case .locked = self {
-            return true
-        }
-        return false
-    }
-
-    var guidanceNote: String? {
-        if case .locked(let reason) = self {
-            return reason
-        }
-        return nil
-    }
 }
 
 struct JournalOnboardingPresentation: Equatable {

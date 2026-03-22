@@ -251,66 +251,12 @@ struct SequentialSectionView: View {
         return items.count < slotCount
     }
 
-    private var showsGuidedContainer: Bool {
-        onboardingState != .standard
-    }
-
     private var isLockedByGuidance: Bool {
         onboardingState.isLocked
     }
 
     private var isInteractionEnabled: Bool {
         !isTransitioning && !isLockedByGuidance
-    }
-
-    private var sectionContentOpacity: Double {
-        switch onboardingState {
-        case .standard:
-            return isTransitioning ? 0.78 : 1
-        case .active:
-            return isTransitioning ? 0.82 : 1
-        case .available:
-            return isTransitioning ? 0.76 : 0.94
-        case .locked:
-            return isTransitioning ? 0.64 : 0.7
-        }
-    }
-
-    private var sectionTitleColor: Color {
-        switch onboardingState {
-        case .standard, .available:
-            return AppTheme.journalTextPrimary
-        case .active:
-            return AppTheme.accentText
-        case .locked:
-            return AppTheme.journalTextMuted
-        }
-    }
-
-    private var sectionContainerBackground: Color {
-        switch onboardingState {
-        case .standard:
-            return .clear
-        case .active:
-            return AppTheme.journalPaper.opacity(0.9)
-        case .available:
-            return AppTheme.journalPaper.opacity(0.58)
-        case .locked:
-            return AppTheme.journalPaper.opacity(0.42)
-        }
-    }
-
-    private var sectionContainerBorder: Color {
-        switch onboardingState {
-        case .standard:
-            return .clear
-        case .active:
-            return AppTheme.journalInputBorder
-        case .available:
-            return AppTheme.journalBorder
-        case .locked:
-            return AppTheme.journalBorder.opacity(0.72)
-        }
     }
 
     private var canScrollChipsLeft: Bool {
@@ -327,7 +273,7 @@ struct SequentialSectionView: View {
                 HStack {
                     Text(title)
                         .font(AppTheme.warmPaperHeader)
-                        .foregroundStyle(sectionTitleColor)
+                        .foregroundStyle(onboardingState.titleColor)
                     Spacer(minLength: AppTheme.spacingTight)
                     sectionProgressDots
                         .padding(.trailing, Self.sectionProgressDotsTrailingInset)
@@ -434,20 +380,7 @@ struct SequentialSectionView: View {
             }
 
         }
-        .padding(showsGuidedContainer ? AppTheme.spacingRegular : 0)
-        .background {
-            if showsGuidedContainer {
-                RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
-                    .fill(sectionContainerBackground)
-            }
-        }
-        .overlay {
-            if showsGuidedContainer {
-                RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
-                    .stroke(sectionContainerBorder, lineWidth: 1)
-            }
-        }
-        .opacity(sectionContentOpacity)
+        .journalOnboardingSectionStyle(onboardingState, isTransitioning: isTransitioning)
         .overlay(alignment: .topTrailing) {
             if isTransitioning {
                 HStack(spacing: 6) {

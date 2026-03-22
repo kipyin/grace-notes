@@ -14,6 +14,7 @@ Grace Notes (`感恩记`) guides you through a simple daily rhythm: 5 gratitudes
 
 - **Insight quality** — Review and weekly insights that better reflect your own entries, refined chip-label prompts for AI where used, and clearer feedback when a section is fully filled (`#40`, `#39`, `#11`).
 - **First-run tutorial** — Dismissible hints on Today toward Seed and Harvest, with one-time congratulations when you first reach those tiers (`#60`).
+- **Behavior-first onboarding** — First launch now opens with a minimal welcome, then guides your first journal on Today one step at a time (Gratitude → Need → People → Seed / Ripening / Harvest / Abundance), with optional suggestions for reminders, AI, and iCloud only after those milestones (`#71`, `#72`, `#73`, `#74`, `#75`).
 
 See `GraceNotes/docs/07-release-roadmap.md`.
 
@@ -39,7 +40,7 @@ See `GraceNotes/docs/07-release-roadmap.md`.
 - **Reminders** – Optional daily notification to complete today's 5³.
 - **Advanced review insights** – Optional AI-generated weekly reflection summary with deterministic on-device fallback.
 - **Data trust controls** – private-by-default storage plus JSON export and import for backup and ownership.
-- **First-run onboarding** – A short welcome flow introducing calm structure, review value, and low-pressure progress.
+- **First-run onboarding** – A minimal welcome followed by a guided first journal path on Today, with milestone-based opt-in suggestions for reminders, AI, and iCloud.
 - **Habit support** – Streak plus tiered completion states (Quick, Standard, Full 5³) to reduce all-or-nothing pressure.
 
 ## Requirements
