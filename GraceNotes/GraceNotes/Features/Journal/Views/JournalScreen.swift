@@ -41,6 +41,8 @@ struct JournalScreen: View {
     @FocusState private var isGratitudeInputFocused: Bool
     @FocusState private var isNeedInputFocused: Bool
     @FocusState private var isPersonInputFocused: Bool
+    @FocusState private var isReadingNotesFocused: Bool
+    @FocusState private var isReflectionsFocused: Bool
 
     var entryDate: Date?
 
@@ -91,6 +93,7 @@ struct JournalScreen: View {
                         inputText: $gratitudeInput,
                         editingIndex: editingGratitudeIndex,
                         inputFocus: $isGratitudeInputFocused,
+                        onInputFocusLost: { commitChipDraftOnInputFocusLost(section: .gratitude) },
                         onSubmit: submitGratitude,
                         onChipTap: { index in chipTapped(section: .gratitude, index: index) },
                         onRenameChip: { index, label in renameChip(section: .gratitude, index: index, label: label) },
@@ -109,6 +112,7 @@ struct JournalScreen: View {
                         inputText: $needInput,
                         editingIndex: editingNeedIndex,
                         inputFocus: $isNeedInputFocused,
+                        onInputFocusLost: { commitChipDraftOnInputFocusLost(section: .need) },
                         onSubmit: submitNeed,
                         onChipTap: { index in chipTapped(section: .need, index: index) },
                         onRenameChip: { index, label in renameChip(section: .need, index: index, label: label) },
@@ -127,6 +131,7 @@ struct JournalScreen: View {
                         inputText: $personInput,
                         editingIndex: editingPersonIndex,
                         inputFocus: $isPersonInputFocused,
+                        onInputFocusLost: { commitChipDraftOnInputFocusLost(section: .person) },
                         onSubmit: submitPerson,
                         onChipTap: { index in chipTapped(section: .person, index: index) },
                         onRenameChip: { index, label in renameChip(section: .person, index: index, label: label) },
@@ -143,14 +148,16 @@ struct JournalScreen: View {
                         text: Binding(
                             get: { viewModel.readingNotes },
                             set: { viewModel.updateReadingNotes($0) }
-                        )
+                        ),
+                        inputFocus: $isReadingNotesFocused
                     )
                     EditableTextSection(
                         title: String(localized: "Reflections"),
                         text: Binding(
                             get: { viewModel.reflections },
                             set: { viewModel.updateReflections($0) }
-                        )
+                        ),
+                        inputFocus: $isReflectionsFocused
                     )
                 }
                 .padding(.top, AppTheme.spacingTight)
@@ -482,6 +489,36 @@ private extension JournalScreen {
         )
         if didSubmit {
             restoreInputFocus(adapter.inputFocus)
+        }
+    }
+
+    private func commitChipDraftOnInputFocusLost(section: ChipSection) {
+        let adapter = chipSectionAdapter(for: section)
+        let didSubmit = JournalScreenChipHandling.submitChipSection(
+            editingIndex: adapter.editingIndex,
+            input: adapter.input,
+            operations: adapter.operations,
+            isTransitioning: adapter.isTransitioning
+        )
+        guard didSubmit else { return }
+        Task { @MainActor in
+            await Task.yield()
+            restoreKeyboardFocusIfAnotherJournalTextFieldIsActive()
+        }
+    }
+
+    /// Re-assert focus after a blur commit so the keyboard stays if another journal text field is active.
+    private func restoreKeyboardFocusIfAnotherJournalTextFieldIsActive() {
+        if isGratitudeInputFocused {
+            restoreInputFocus($isGratitudeInputFocused)
+        } else if isNeedInputFocused {
+            restoreInputFocus($isNeedInputFocused)
+        } else if isPersonInputFocused {
+            restoreInputFocus($isPersonInputFocused)
+        } else if isReadingNotesFocused {
+            restoreInputFocus($isReadingNotesFocused)
+        } else if isReflectionsFocused {
+            restoreInputFocus($isReflectionsFocused)
         }
     }
 

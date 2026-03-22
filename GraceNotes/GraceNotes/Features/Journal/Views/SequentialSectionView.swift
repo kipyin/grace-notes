@@ -124,6 +124,7 @@ private struct ConditionalAccessibilityIdentifier: ViewModifier {
     }
 }
 
+// swiftlint:disable type_body_length
 struct SequentialSectionView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -142,6 +143,8 @@ struct SequentialSectionView: View {
     @Binding var inputText: String
     let editingIndex: Int?
     let inputFocus: FocusState<Bool>.Binding?
+    /// Fires when the chip field loses focus; handler ignores empty drafts.
+    let onInputFocusLost: (() -> Void)?
     let onSubmit: () -> Void
     let onChipTap: (Int) -> Void
     let onRenameChip: ((Int, String) -> Void)?
@@ -168,6 +171,7 @@ struct SequentialSectionView: View {
         inputText: Binding<String>,
         editingIndex: Int?,
         inputFocus: FocusState<Bool>.Binding? = nil,
+        onInputFocusLost: (() -> Void)? = nil,
         onSubmit: @escaping () -> Void,
         onChipTap: @escaping (Int) -> Void,
         onRenameChip: ((Int, String) -> Void)? = nil,
@@ -184,6 +188,7 @@ struct SequentialSectionView: View {
         self._inputText = inputText
         self.editingIndex = editingIndex
         self.inputFocus = inputFocus
+        self.onInputFocusLost = onInputFocusLost
         self.onSubmit = onSubmit
         self.onChipTap = onChipTap
         self.onRenameChip = onRenameChip
@@ -383,6 +388,12 @@ struct SequentialSectionView: View {
                 )
             }
         }
+        .onChange(of: isInputFocused) { wasFocused, isFocused in
+            guard let onInputFocusLost else { return }
+            if wasFocused, !isFocused {
+                onInputFocusLost()
+            }
+        }
         .onAppear {
             updateEditingPulseAnimation()
         }
@@ -555,6 +566,8 @@ struct SequentialSectionView: View {
         return remaining > 1
     }
 }
+
+// swiftlint:enable type_body_length
 
 private struct HorizontalScrollMetricsReader: UIViewRepresentable {
     let reduceMotion: Bool
