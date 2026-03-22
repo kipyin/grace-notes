@@ -2,10 +2,11 @@ import Foundation
 import SwiftData
 
 enum JournalCompletionLevel: String, Equatable {
-    case none
-    case quickCheckIn
-    case standardReflection
-    case fullFiveCubed
+    case soil
+    case seed
+    case ripening
+    case harvest
+    case abundance
 }
 
 @Model
@@ -106,6 +107,15 @@ final class JournalEntry {
             peopleCount >= slotCount
     }
 
+    /// Minimum count across the three chip sections (weakest section).
+    static func minChipSectionCount(
+        gratitudesCount: Int,
+        needsCount: Int,
+        peopleCount: Int
+    ) -> Int {
+        min(gratitudesCount, needsCount, peopleCount)
+    }
+
     static func completionLevel(
         gratitudesCount: Int,
         needsCount: Int,
@@ -120,7 +130,7 @@ final class JournalEntry {
             readingNotes: readingNotes,
             reflections: reflections
         ) {
-            return .fullFiveCubed
+            return .abundance
         }
 
         if hasAllFifteenChips(
@@ -128,18 +138,27 @@ final class JournalEntry {
             needsCount: needsCount,
             peopleCount: peopleCount
         ) {
-            return .standardReflection
+            return .harvest
+        }
+
+        let minCount = minChipSectionCount(
+            gratitudesCount: gratitudesCount,
+            needsCount: needsCount,
+            peopleCount: peopleCount
+        )
+        if minCount >= 3 {
+            return .ripening
         }
 
         if gratitudesCount >= 1 && needsCount >= 1 && peopleCount >= 1 {
-            return .quickCheckIn
+            return .seed
         }
 
-        return .none
+        return .soil
     }
 
     var hasMeaningfulContent: Bool {
-        completionLevel != .none
+        completionLevel != .soil
     }
 
     /// Maximum number of items per chip section (gratitudes, needs, people).

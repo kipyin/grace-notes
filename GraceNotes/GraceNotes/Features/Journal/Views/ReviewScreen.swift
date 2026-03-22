@@ -257,14 +257,16 @@ struct ReviewScreen: View {
 
     private func completionText(for completionLevel: JournalCompletionLevel) -> String {
         switch completionLevel {
-        case .fullFiveCubed:
+        case .abundance:
+            return String(localized: "Abundance")
+        case .harvest:
             return String(localized: "Harvest")
-        case .standardReflection:
-            return String(localized: "Harvest")
-        case .quickCheckIn:
+        case .ripening:
+            return String(localized: "Ripening")
+        case .seed:
             return String(localized: "Seed")
-        case .none:
-            return String(localized: "In Progress")
+        case .soil:
+            return String(localized: "Soil")
         }
     }
 
@@ -327,15 +329,15 @@ private struct HistoryRow: View {
     @ViewBuilder
     private func completionBadge(lineLimit: Int) -> some View {
         switch entry.completionLevel {
-        case .fullFiveCubed:
+        case .abundance:
             statusChip(
-                text: String(localized: "Harvest"),
+                text: String(localized: "Abundance"),
                 textColor: AppTheme.reviewCompleteText,
                 backgroundColor: AppTheme.reviewCompleteBackground,
                 borderColor: AppTheme.reviewCompleteBorder
             )
             .lineLimit(lineLimit)
-        case .standardReflection:
+        case .harvest:
             statusChip(
                 text: String(localized: "Harvest"),
                 textColor: AppTheme.reviewStandardText,
@@ -343,7 +345,15 @@ private struct HistoryRow: View {
                 borderColor: AppTheme.reviewStandardBorder
             )
             .lineLimit(lineLimit)
-        case .quickCheckIn:
+        case .ripening:
+            statusChip(
+                text: String(localized: "Ripening"),
+                textColor: AppTheme.reviewStandardText,
+                backgroundColor: AppTheme.reviewStandardBackground,
+                borderColor: AppTheme.reviewStandardBorder
+            )
+            .lineLimit(lineLimit)
+        case .seed:
             statusChip(
                 text: String(localized: "Seed"),
                 textColor: AppTheme.reviewQuickStartText,
@@ -351,9 +361,9 @@ private struct HistoryRow: View {
                 borderColor: AppTheme.reviewQuickStartBorder
             )
             .lineLimit(lineLimit)
-        case .none:
+        case .soil:
             statusChip(
-                text: String(localized: "In Progress"),
+                text: String(localized: "Soil"),
                 textColor: AppTheme.reviewTextMuted,
                 backgroundColor: AppTheme.reviewBackground,
                 borderColor: AppTheme.border

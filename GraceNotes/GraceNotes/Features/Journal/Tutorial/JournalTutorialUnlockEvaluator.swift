@@ -21,25 +21,26 @@ enum JournalTutorialUnlockEvaluator {
         hasCelebratedFirstSeed: Bool,
         hasCelebratedFirstHarvest: Bool
     ) -> Outcome {
-        guard newRank > previousRank, newLevel != .none else {
+        guard newRank > previousRank, newLevel != .soil else {
             return .neutral
         }
 
-        let crossedSeedTier = previousRank < JournalCompletionLevel.quickCheckIn.tutorialCompletionRank
-            && newRank >= JournalCompletionLevel.quickCheckIn.tutorialCompletionRank
-        let crossedHarvestTier = previousRank < JournalCompletionLevel.standardReflection.tutorialCompletionRank
-            && newRank >= JournalCompletionLevel.standardReflection.tutorialCompletionRank
+        let seedRank = JournalCompletionLevel.seed.tutorialCompletionRank
+        let harvestRank = JournalCompletionLevel.harvest.tutorialCompletionRank
+
+        let crossedSeedTier = previousRank < seedRank && newRank >= seedRank
+        let crossedHarvestTier = previousRank < harvestRank && newRank >= harvestRank
 
         let recordSeed = crossedSeedTier && !hasCelebratedFirstSeed
         let recordHarvest = crossedHarvestTier && !hasCelebratedFirstHarvest
 
         let highlight: JournalUnlockMilestoneHighlight
         switch newLevel {
-        case .quickCheckIn where recordSeed:
+        case .seed where recordSeed:
             highlight = .firstSeed
-        case .standardReflection where recordHarvest:
+        case .harvest where recordHarvest:
             highlight = .firstFifteenChipHarvest
-        case .fullFiveCubed where recordHarvest:
+        case .abundance where recordHarvest:
             highlight = .firstFifteenChipHarvestWithFullRhythm
         default:
             highlight = .none

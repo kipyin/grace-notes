@@ -20,7 +20,7 @@ struct JournalScreen: View {
     @State private var statusCelebrationDismissTask: Task<Void, Never>?
     @State private var celebratingLevel: JournalCompletionLevel?
     @State private var hasInitializedCompletionTracking = false
-    @State private var previousCompletionLevel: JournalCompletionLevel = .none
+    @State private var previousCompletionLevel: JournalCompletionLevel = .soil
     @State private var unlockToastLevel: JournalCompletionLevel?
     @State private var unlockToastMilestone: JournalUnlockMilestoneHighlight = .none
     @State private var unlockToastDismissTask: Task<Void, Never>?
@@ -246,7 +246,7 @@ struct JournalScreen: View {
             let previousRank = previousCompletionLevel.tutorialCompletionRank
             let newRank = newLevel.tutorialCompletionRank
 
-            if newRank > previousRank, newLevel != .none {
+            if newRank > previousRank, newLevel != .soil {
                 let unlockOutcome = JournalTutorialUnlockEvaluator.outcome(
                     previousRank: previousRank,
                     newRank: newRank,
@@ -524,24 +524,31 @@ private extension JournalScreen {
             return .opacity
         }
         switch level {
-        case .quickCheckIn:
+        case .soil:
+            return .opacity
+        case .seed:
             return .move(edge: .bottom).combined(with: .opacity)
-        case .standardReflection:
+        case .ripening:
+            return .asymmetric(
+                insertion: .move(edge: .bottom)
+                    .combined(with: .opacity)
+                    .combined(with: .scale(scale: 0.97, anchor: .bottom)),
+                removal: .opacity.combined(with: .move(edge: .bottom))
+            )
+        case .harvest:
             return .asymmetric(
                 insertion: .move(edge: .bottom)
                     .combined(with: .opacity)
                     .combined(with: .scale(scale: 0.96, anchor: .bottom)),
                 removal: .opacity.combined(with: .move(edge: .bottom))
             )
-        case .fullFiveCubed:
+        case .abundance:
             return .asymmetric(
                 insertion: .move(edge: .bottom)
                     .combined(with: .opacity)
                     .combined(with: .scale(scale: 0.93, anchor: .bottom)),
                 removal: .opacity.combined(with: .move(edge: .bottom))
             )
-        case .none:
-            return .opacity
         }
     }
 
@@ -551,14 +558,16 @@ private extension JournalScreen {
     ) -> Double {
         let base: Double
         switch level {
-        case .quickCheckIn:
-            base = 2.2
-        case .standardReflection:
-            base = 2.75
-        case .fullFiveCubed:
-            base = 3.05
-        case .none:
+        case .soil:
             base = 0
+        case .seed:
+            base = 2.2
+        case .ripening:
+            base = 2.45
+        case .harvest:
+            base = 2.75
+        case .abundance:
+            base = 3.05
         }
         switch milestone {
         case .none:
@@ -588,11 +597,17 @@ private extension JournalScreen {
 
     private func triggerStatusHaptics(for level: JournalCompletionLevel) {
         switch level {
-        case .quickCheckIn:
+        case .soil:
+            break
+        case .seed:
             let light = UIImpactFeedbackGenerator(style: .light)
             light.prepare()
             light.impactOccurred(intensity: reduceMotion ? 0.45 : 0.65)
-        case .standardReflection:
+        case .ripening:
+            let light = UIImpactFeedbackGenerator(style: .light)
+            light.prepare()
+            light.impactOccurred(intensity: reduceMotion ? 0.5 : 0.72)
+        case .harvest:
             let notification = UINotificationFeedbackGenerator()
             notification.prepare()
             notification.notificationOccurred(.success)
@@ -602,7 +617,7 @@ private extension JournalScreen {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
                 medium.impactOccurred(intensity: self.reduceMotion ? 0.6 : 0.85)
             }
-        case .fullFiveCubed:
+        case .abundance:
             let notification = UINotificationFeedbackGenerator()
             notification.prepare()
             notification.notificationOccurred(.success)
@@ -617,8 +632,6 @@ private extension JournalScreen {
             DispatchQueue.main.asyncAfter(deadline: .now() + secondDelay) {
                 emphasis.impactOccurred(intensity: self.reduceMotion ? 0.55 : 0.8)
             }
-        case .none:
-            break
         }
     }
 

@@ -4,6 +4,214 @@
     "" : {
 
     },
+    "Abundance" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abundance"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "丰盛"
+          }
+        }
+      }
+    },
+    "Abundance means you completed every chip plus reading notes and reflections for today." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abundance means you completed every chip plus reading notes and reflections for today."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "丰盛表示今天的感恩、需要、牵挂都已写满，并且填写了阅读笔记与反思。"
+          }
+        }
+      }
+    },
+    "Harvest means all gratitude, need, and people spots are filled. Add reading notes and reflections to reach Abundance." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Harvest means all gratitude, need, and people spots are filled. Add reading notes and reflections to reach Abundance."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "丰收表示三个区块的格子都已填满。补上阅读笔记与反思即可达到丰盛。"
+          }
+        }
+      }
+    },
+    "Ripening" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ripening"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "渐熟"
+          }
+        }
+      }
+    },
+    "Ripening means you have at least three in each section. Keep going to fill all five spots in every section for Harvest." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ripening means you have at least three in each section. Keep going to fill all five spots in every section for Harvest."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "渐熟表示每个区块都至少有三条。继续写满五个格子就能达到丰收。"
+          }
+        }
+      }
+    },
+    "Seed means each section has at least one item, and you are still building toward three in each section." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seed means each section has at least one item, and you are still building toward three in each section."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "种子表示三个区块都至少有一条，但最短的区块还不到三条。"
+          }
+        }
+      }
+    },
+    "Shows what Abundance means for today." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows what Abundance means for today."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "说明今天的「丰盛」代表什么。"
+          }
+        }
+      }
+    },
+    "Shows what Ripening means for today." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows what Ripening means for today."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "说明今天的「渐熟」代表什么。"
+          }
+        }
+      }
+    },
+    "Shows what Soil means for today." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows what Soil means for today."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "说明今天的「土壤」代表什么。"
+          }
+        }
+      }
+    },
+    "Soil" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soil"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "土壤"
+          }
+        }
+      }
+    },
+    "Soil means you have not yet added at least one gratitude, one need, and one person." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soil means you have not yet added at least one gratitude, one need, and one person."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "土壤表示你还没有在感恩、需要和牵挂的人三个区块各写至少一条。"
+          }
+        }
+      }
+    },
+    "You reached Abundance today." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You reached Abundance today."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天你达到了丰盛。"
+          }
+        }
+      }
+    },
+    "You're ripening—three in each section. Keep going toward Harvest." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You're ripening—three in each section. Keep going toward Harvest."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你在渐熟阶段——每个区块都至少有三条了，继续向丰收前进吧。"
+          }
+        }
+      }
+    },
     "%@ input" : {
       "localizations" : {
         "en" : {
