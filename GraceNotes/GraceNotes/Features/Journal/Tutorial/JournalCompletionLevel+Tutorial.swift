@@ -1,17 +1,19 @@
 import Foundation
 
 extension JournalCompletionLevel {
-    /// Monotonic rank for tutorial milestones (matches `JournalScreen.rank(for:)`).
+    /// Monotonic rank for tutorial milestones (matches `JournalScreen` completion progression).
     var tutorialCompletionRank: Int {
         switch self {
-        case .none:
+        case .soil:
             return 0
-        case .quickCheckIn:
+        case .seed:
             return 1
-        case .standardReflection:
+        case .ripening:
             return 2
-        case .fullFiveCubed:
+        case .harvest:
             return 3
+        case .abundance:
+            return 4
         }
     }
 }

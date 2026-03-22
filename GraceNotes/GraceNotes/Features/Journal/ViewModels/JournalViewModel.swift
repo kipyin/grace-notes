@@ -173,7 +173,7 @@ final class JournalViewModel {
 
     var completedToday: Bool {
         guard journalEntry != nil else { return false }
-        return completionLevel == .fullFiveCubed
+        return completionLevel == .abundance
     }
 
     /// Total chip slots across gratitudes, needs, and people (5 x 3 = 15).
