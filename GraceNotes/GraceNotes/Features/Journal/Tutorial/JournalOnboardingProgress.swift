@@ -8,6 +8,7 @@ enum JournalOnboardingSuggestion: CaseIterable {
 
 enum JournalOnboardingStorageKeys {
     static let completedGuidedJournal = "journalOnboarding.completedGuidedJournal"
+    static let hasSeenPostSeedJourney = "journalOnboarding.hasSeenPostSeedJourney"
     static let dismissedRemindersSuggestion = "journalOnboarding.dismissedRemindersSuggestion"
     static let dismissedAISuggestion = "journalOnboarding.dismissedAISuggestion"
     static let dismissedICloudSuggestion = "journalOnboarding.dismissedICloudSuggestion"
@@ -69,6 +70,7 @@ final class JournalOnboardingProgress {
     static func resetAll(in defaults: UserDefaults = .standard) {
         let keys = [
             JournalOnboardingStorageKeys.completedGuidedJournal,
+            JournalOnboardingStorageKeys.hasSeenPostSeedJourney,
             JournalOnboardingStorageKeys.dismissedRemindersSuggestion,
             JournalOnboardingStorageKeys.dismissedAISuggestion,
             JournalOnboardingStorageKeys.dismissedICloudSuggestion,

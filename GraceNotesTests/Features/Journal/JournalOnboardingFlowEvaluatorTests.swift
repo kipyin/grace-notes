@@ -19,6 +19,12 @@ final class JournalOnboardingFlowEvaluatorTests: XCTestCase {
         let presentation = makePresentation(gratitudes: 0, needs: 0, people: 0)
 
         XCTAssertEqual(presentation.step, .gratitude)
+        let gratitudeGuidance = presentation.sectionGuidance(for: .gratitude)
+        XCTAssertEqual(gratitudeGuidance?.message, String(localized: "Start with one gratitude."))
+        XCTAssertEqual(
+            gratitudeGuidance?.messageSecondary,
+            String(localized: "When you're finished, press Return or Enter on your keyboard.")
+        )
         XCTAssertEqual(presentation.state(for: .gratitude), .active)
         XCTAssertEqual(
             presentation.state(for: .need),
@@ -46,10 +52,8 @@ final class JournalOnboardingFlowEvaluatorTests: XCTestCase {
 
         XCTAssertEqual(presentation.step, .ripening)
         XCTAssertEqual(presentation.state(for: .gratitude), .active)
-        XCTAssertEqual(
-            presentation.state(for: .readingNotes),
-            .locked(reason: String(localized: "Reading Notes open after the chip rows are full."))
-        )
+        XCTAssertEqual(presentation.state(for: .readingNotes), .active)
+        XCTAssertEqual(presentation.state(for: .reflections), .active)
     }
 
     func test_presentation_afterThreeByThreeByThree_targetsHarvest() {
@@ -58,6 +62,8 @@ final class JournalOnboardingFlowEvaluatorTests: XCTestCase {
         XCTAssertEqual(presentation.step, .harvest)
         XCTAssertEqual(presentation.state(for: .gratitude), .active)
         XCTAssertEqual(presentation.state(for: .person), .active)
+        XCTAssertEqual(presentation.state(for: .readingNotes), .active)
+        XCTAssertEqual(presentation.state(for: .reflections), .active)
     }
 
     func test_presentation_afterHarvest_targetsAbundance() {
@@ -93,6 +99,21 @@ final class JournalOnboardingFlowEvaluatorTests: XCTestCase {
         )
 
         XCTAssertFalse(presentation.isGuidanceActive)
+    }
+
+    func test_sectionGuidance_ripening_onlyOnGratitude() {
+        let presentation = makePresentation(gratitudes: 1, needs: 1, people: 1)
+        XCTAssertEqual(presentation.step, .ripening)
+        XCTAssertNotNil(presentation.sectionGuidance(for: .gratitude))
+        XCTAssertNil(presentation.sectionGuidance(for: .need))
+        XCTAssertNil(presentation.sectionGuidance(for: .person))
+    }
+
+    func test_sectionGuidance_abundance_onlyOnReadingNotes() {
+        let presentation = makePresentation(gratitudes: 5, needs: 5, people: 5)
+        XCTAssertEqual(presentation.step, .abundance)
+        XCTAssertNotNil(presentation.sectionGuidance(for: .readingNotes))
+        XCTAssertNil(presentation.sectionGuidance(for: .reflections))
     }
 }
 

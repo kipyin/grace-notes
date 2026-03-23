@@ -135,6 +135,12 @@ struct SequentialSectionView: View {
     }
 
     let title: String
+    /// Guided onboarding title shown above the section header (e.g. “Start gently”).
+    let guidanceTitle: String?
+    /// Guided onboarding message shown under `guidanceTitle`.
+    let guidanceMessage: String?
+    /// Optional second line under `guidanceMessage` (e.g. keyboard hint).
+    let guidanceMessageSecondary: String?
     let items: [JournalItem]
     let placeholder: String
     let slotCount: Int
@@ -164,6 +170,9 @@ struct SequentialSectionView: View {
 
     init(
         title: String,
+        guidanceTitle: String? = nil,
+        guidanceMessage: String? = nil,
+        guidanceMessageSecondary: String? = nil,
         items: [JournalItem],
         placeholder: String,
         slotCount: Int = 5,
@@ -182,6 +191,9 @@ struct SequentialSectionView: View {
         onAddNew: (() -> Void)? = nil
     ) {
         self.title = title
+        self.guidanceTitle = guidanceTitle
+        self.guidanceMessage = guidanceMessage
+        self.guidanceMessageSecondary = guidanceMessageSecondary
         self.items = items
         self.placeholder = placeholder
         self.slotCount = slotCount
@@ -270,13 +282,22 @@ struct SequentialSectionView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.spacingRegular) {
             VStack(alignment: .leading, spacing: AppTheme.spacingTight) {
-                HStack {
-                    Text(title)
-                        .font(AppTheme.warmPaperHeader)
-                        .foregroundStyle(onboardingState.titleColor)
-                    Spacer(minLength: AppTheme.spacingTight)
-                    sectionProgressDots
-                        .padding(.trailing, Self.sectionProgressDotsTrailingInset)
+                if let guidanceTitle, let guidanceMessage {
+                    VStack(alignment: .leading, spacing: AppTheme.spacingTight) {
+                        Text(guidanceTitle)
+                            .font(AppTheme.warmPaperMetaEmphasis)
+                            .foregroundStyle(AppTheme.accentText)
+                        Text(guidanceMessage)
+                            .font(AppTheme.warmPaperBody)
+                            .foregroundStyle(AppTheme.journalTextPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        if let guidanceMessageSecondary {
+                            Text(guidanceMessageSecondary)
+                                .font(AppTheme.warmPaperBody)
+                                .foregroundStyle(AppTheme.journalTextPrimary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
                 }
 
                 if let guidanceNote = onboardingState.guidanceNote {
@@ -284,6 +305,15 @@ struct SequentialSectionView: View {
                         .font(AppTheme.warmPaperMeta)
                         .foregroundStyle(AppTheme.journalTextMuted)
                         .fixedSize(horizontal: false, vertical: true)
+                }
+
+                HStack {
+                    Text(title)
+                        .font(AppTheme.warmPaperHeader)
+                        .foregroundStyle(onboardingState.titleColor)
+                    Spacer(minLength: AppTheme.spacingTight)
+                    sectionProgressDots
+                        .padding(.trailing, Self.sectionProgressDotsTrailingInset)
                 }
             }
 
