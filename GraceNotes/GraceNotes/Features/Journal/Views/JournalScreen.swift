@@ -648,7 +648,7 @@ private extension JournalScreen {
     private func suggestionMessage(for suggestion: JournalOnboardingSuggestion) -> String {
         switch suggestion {
         case .reminders:
-            return String(localized: "If you'd like, you can turn on a gentle daily reminder in Settings.")
+            return String(localized: "If you'd like, you can turn on a daily reminder in Settings.")
         case .aiFeatures:
             return String(
                 // swiftlint:disable:next line_length

@@ -1625,12 +1625,12 @@
         }
       }
     },
-    "Gentle reminders" : {
+    "Daily reminders" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gentle reminders"
+            "value" : "Daily reminders"
           }
         },
         "zh-Hans" : {
@@ -1641,13 +1641,13 @@
         }
       }
     },
-    "Gentle sections for gratitude, needs, and people-in-mind help you begin without overthinking." : {
+    "Sections for gratitude, needs, and people-in-mind help you begin without overthinking." : {
       "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gentle sections for gratitude, needs, and people-in-mind help you begin without overthinking."
+            "value" : "Sections for gratitude, needs, and people-in-mind help you begin without overthinking."
           }
         },
         "zh-Hans" : {
@@ -1973,18 +1973,18 @@
         }
       }
     },
-    "If you'd like, you can turn on a gentle daily reminder in Settings." : {
+    "If you'd like, you can turn on a daily reminder in Settings." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "If you'd like, you can turn on a gentle daily reminder in Settings."
+            "value" : "If you'd like, you can turn on a daily reminder in Settings."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "愿意的话，可以在「设置」里打开温和的日常提醒。"
+            "value" : "愿意的话，可以在「设置」里打开每日提醒。"
           }
         }
       }
@@ -2138,22 +2138,6 @@
         }
       }
     },
-    "Keep the rhythm close" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keep the rhythm close"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "把节奏留在手边"
-          }
-        }
-      }
-    },
     "Keep Grace Notes with you" : {
       "localizations" : {
         "en" : {
@@ -2166,6 +2150,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "让感恩记跟着你走"
+          }
+        }
+      }
+    },
+    "Keep the rhythm close" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep the rhythm close"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "把节奏留在手边"
           }
         }
       }
@@ -2625,13 +2625,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your Seed is planted—a gentle little step."
+            "value" : "Your Seed is planted—one step."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "感恩的事、需要的事和牵挂的人，你都写下了一条——向今天的记录「撒种」，温柔的一小步。"
+            "value" : "感恩的事、需要的事和牵挂的人，你都写下了一条——向今天的记录「撒种」，一小步。"
           }
         }
       }
@@ -2785,13 +2785,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Soil, Seed, Ripening, Harvest, and Abundance describe how full what you write on Today becomes—not a race, just a gentle map."
+            "value" : "Soil, Seed, Ripening, Harvest, and Abundance describe how full what you write on Today becomes—not a race, just a map."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "土壤、撒种、成长、丰收与满溢，说的是你在「今天」写下的这一篇有多饱满——不是比赛，只是一张温柔的地图。"
+            "value" : "土壤、撒种、成长、丰收与满溢，说的是你在「今天」写下的这一篇有多饱满——不是一场比赛，只是一个参考。"
           }
         }
       }
@@ -2801,13 +2801,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "If a gentle reminder would help, turn on a daily one—it’s optional, and easy to change."
+            "value" : "If a reminder would help, turn on a daily one—it’s optional, and easy to change."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "想有个温柔提醒的话，可以打开每日提醒——全凭自愿，也随时能改。"
+            "value" : "需要提醒的话，可以打开每日提醒——全凭自愿，也随时能改。"
           }
         }
       }
@@ -3407,6 +3407,54 @@
         }
       }
     },
+    "Settings.help.sectionTitle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "帮助"
+          }
+        }
+      }
+    },
+    "Settings.showAppTour" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show app tour"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查看应用导览"
+          }
+        }
+      }
+    },
+    "Settings.showAppTour.a11yHint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens pages about your path, review insights, reminders, cloud features, and iCloud."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查看关于记录路径、回顾、提醒、云端功能与 iCloud 的说明页面。"
+          }
+        }
+      }
+    },
     "Share" : {
       "localizations" : {
         "en" : {
@@ -3602,19 +3650,19 @@
         }
       }
     },
-    "Soil, Seed, Ripening, Harvest, and Abundance mark how full your entry becomes—not a race, just a gentle map." : {
+    "Soil, Seed, Ripening, Harvest, and Abundance mark how full your entry becomes—not a race, just a map." : {
       "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Soil, Seed, Ripening, Harvest, and Abundance mark how full your entry becomes—not a race, just a gentle map."
+            "value" : "Soil, Seed, Ripening, Harvest, and Abundance mark how full your entry becomes—not a race, just a map."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "土壤、撒种、成长、丰收与满溢，标记的是这篇记录有多饱满——不是比赛，只是一张温柔的地图。"
+            "value" : "土壤、撒种、成长、丰收与满溢，标记的是这篇记录有多饱满——不是比赛，只是一张地图。"
           }
         }
       }
@@ -4316,18 +4364,18 @@
         }
       }
     },
-    "What is one gentle next step you can take tomorrow?" : {
+    "What is one next step you can take tomorrow?" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "What is one gentle next step you can take tomorrow?"
+            "value" : "What is one next step you can take tomorrow?"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "明天你可以采取的一个温和小步骤是什么？"
+            "value" : "明天你可以迈出的下一步是什么？"
           }
         }
       }
@@ -4481,12 +4529,12 @@
         }
       }
     },
-    "When you're ready, keep writing—a line in Gratitudes, Needs, and People in Mind is enough to begin. Tap the status above anytime if you want a gentle reminder." : {
+    "When you're ready, keep writing—a line in Gratitudes, Needs, and People in Mind is enough to begin. Tap the status above anytime if you want a reminder." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "When you're ready, keep writing—a line in Gratitudes, Needs, and People in Mind is enough to begin. Tap the status above anytime if you want a gentle reminder."
+            "value" : "When you're ready, keep writing—a line in Gratitudes, Needs, and People in Mind is enough to begin. Tap the status above anytime if you want a reminder."
           }
         },
         "zh-Hans" : {
@@ -4738,6 +4786,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "本周你提到 %1$@ 共 %2$lld 次。"
+          }
+        }
+      }
+    },
+    "You noted %@ across this week's entries." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You noted %@ across this week's entries."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你在本周记录里多次写到 %@。"
           }
         }
       }
