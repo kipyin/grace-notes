@@ -1,26 +1,22 @@
 import Foundation
 
 enum ICloudSyncPreferenceResolver {
-    private static let hasCompletedOnboardingKey = "hasCompletedOnboarding"
-    private static let reminderTimeIntervalKey = "dailyReminderTimeInterval"
-    private static let useCloudSummarizationKey = "useCloudSummarization"
-    private static let useAIReviewInsightsKey = "useAIReviewInsights"
-
     private static let legacyTutorialKeys = [
-        "journalTutorial.dismissedSeedGuidance",
-        "journalTutorial.dismissedHarvestGuidance",
-        "journalTutorial.celebratedFirstSeed",
-        "journalTutorial.celebratedFirstHarvest"
+        JournalTutorialStorageKeys.dismissedSeedGuidance,
+        JournalTutorialStorageKeys.dismissedHarvestGuidance,
+        JournalTutorialStorageKeys.celebratedFirstSeed,
+        JournalTutorialStorageKeys.celebratedFirstHarvest
     ]
 
     private static let onboardingKeys = [
-        "journalOnboarding.completedGuidedJournal",
-        "journalOnboarding.dismissedRemindersSuggestion",
-        "journalOnboarding.dismissedAISuggestion",
-        "journalOnboarding.dismissedICloudSuggestion",
-        "journalOnboarding.openedRemindersSuggestion",
-        "journalOnboarding.openedAISuggestion",
-        "journalOnboarding.openedICloudSuggestion"
+        JournalOnboardingStorageKeys.completedGuidedJournal,
+        JournalOnboardingStorageKeys.hasSeenPostSeedJourney,
+        JournalOnboardingStorageKeys.dismissedRemindersSuggestion,
+        JournalOnboardingStorageKeys.dismissedAISuggestion,
+        JournalOnboardingStorageKeys.dismissedICloudSuggestion,
+        JournalOnboardingStorageKeys.openedRemindersSuggestion,
+        JournalOnboardingStorageKeys.openedAISuggestion,
+        JournalOnboardingStorageKeys.openedICloudSuggestion
     ]
 
     static func resolvedCloudSyncEnabled(using defaults: UserDefaults = .standard) -> Bool {
@@ -34,19 +30,19 @@ enum ICloudSyncPreferenceResolver {
     }
 
     static func shouldPreserveExistingInstallAsEnabled(using defaults: UserDefaults = .standard) -> Bool {
-        if defaults.object(forKey: hasCompletedOnboardingKey) as? Bool == true {
+        if defaults.object(forKey: FirstRunOnboardingStorageKeys.completed) as? Bool == true {
             return true
         }
 
-        if defaults.object(forKey: reminderTimeIntervalKey) != nil {
+        if defaults.object(forKey: ReminderSettings.timeIntervalKey) != nil {
             return true
         }
 
-        if defaults.object(forKey: useCloudSummarizationKey) != nil {
+        if defaults.object(forKey: SummarizerProvider.useCloudUserDefaultsKey) != nil {
             return true
         }
 
-        if defaults.object(forKey: useAIReviewInsightsKey) != nil {
+        if defaults.object(forKey: ReviewInsightsProvider.useAIReviewInsightsKey) != nil {
             return true
         }
 

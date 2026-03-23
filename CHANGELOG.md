@@ -17,6 +17,7 @@ Patch on the 0.5.x line: version and build bump plus Xcode packaging defaults ca
 - App target **Swift strict concurrency** set to **minimal**; removed `SWIFT_APPROACHABLE_CONCURRENCY`, `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`, and `SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY` from Grace Notes app build settings.
 - `StartupCoordinator.PersistenceFactory` drops the `@Sendable` requirement (aligned with relaxed concurrency checking).
 - **Accessibility QA (manual):** Settings → Display & Text Size → Text Size (largest) and Accessibility → Display & Text Size → Larger Accessibility Sizes — confirm tab bar (Today / Review / Settings) and sample navigation/toolbar titles remain usable without icon overlap or severe clipping. No snapshot suite covers UIKit chrome; regressions are caught by this pass.
+- Journal: milestone suggestion cards and Settings deep-links share `JournalOnboardingSuggestionEvaluator`; eligibility is recomputed at tap time before changing tabs (PR #79 review). Onboarding and iCloud continuity scans use shared UserDefaults key constants (`FirstRunOnboardingStorageKeys`, `JournalTutorialStorageKeys`, `JournalOnboardingStorageKeys`, `ReminderSettings.timeIntervalKey`, summarizer/review-insight keys) to avoid migration drift.
 
 ## [0.5.0] - 2026-03-21
 
@@ -26,6 +27,7 @@ Insight quality: Review that feels specific and grounded, better chip source mat
 - Journal: first-run guided tutorial on Today—dismissible hints toward Seed (at least one gratitude, need, and person) and Harvest (15 chips), plus one-time congratulations when each milestone is first reached; progress is per install with an optional UI-test reset launch argument (`#60`).
 - Journal: behavior-first onboarding now starts with a minimal welcome and guides the first journal on Today one step at a time (Gratitude → Need → People → Ripening → Harvest → Abundance), replacing the earlier copy-led pager with inline section emphasis and locking (`#71`, `#73`, `#74`).
 - Journal / Settings: milestone-based suggestion cards can route to Settings and highlight the relevant AI, Reminders, or Data & Privacy section so optional setup stays calm and contextual (`#75`).
+- Journal: one-time, skippable post-Seed full-screen journey the first time you reach Seed on Today’s guided entry (`#71`).
 - Journal: brief unlock toast when completion moves up (Seed, Harvest, or full rhythm).
 - (Planned, `#11`) Checkmark or equivalent when all five slots in a section are complete
 

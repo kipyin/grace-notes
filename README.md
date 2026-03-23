@@ -9,12 +9,13 @@ Grace Notes (`感恩记`) guides you through a simple daily rhythm: 5 gratitudes
 ## What's new in 0.5.1 (upcoming)
 
 - **Packaging** — Patch bump on the 0.5.x line: marketing version **0.5.1**, build **2**, Debug builds emit **dSYM** for richer crash logs, and the shared **GraceNotes** scheme’s Run action uses the **Release** configuration (verify this matches your day-to-day workflow in Xcode).
+- **Onboarding** — Milestone cards that jump to Settings share one eligibility rule with the UI and re-check it when you tap; onboarding/iCloud continuity keys use shared constants (see CHANGELOG **Developer** for detail).
 
 ## What's new in 0.5.0 (upcoming)
 
 - **Insight quality** — Review and weekly insights that better reflect your own entries, refined chip-label prompts for AI where used, and clearer feedback when a section is fully filled (`#40`, `#39`, `#11`).
 - **First-run tutorial** — Dismissible hints on Today toward Seed and Harvest, with one-time congratulations when you first reach those tiers (`#60`).
-- **Behavior-first onboarding** — First launch now opens with a minimal welcome, then guides your first journal on Today one step at a time (Gratitude → Need → People → Seed / Ripening / Harvest / Abundance), with optional suggestions for reminders, AI, and iCloud only after those milestones (`#71`, `#72`, `#73`, `#74`, `#75`).
+- **Behavior-first onboarding** — First launch now opens with a minimal welcome, then guides your first journal on Today one step at a time (Gratitude → Need → People → Seed / Ripening / Harvest / Abundance). The first time you reach Seed, an optional skippable full-screen intro can appear; afterward, milestone suggestions for reminders, AI, and iCloud stay contextual (`#71`, `#72`, `#73`, `#74`, `#75`).
 
 See `GraceNotes/docs/07-release-roadmap.md`.
 

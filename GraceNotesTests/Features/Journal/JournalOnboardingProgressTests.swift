@@ -16,7 +16,7 @@ final class JournalOnboardingProgressTests: XCTestCase {
 
     func test_resolvedHasCompletedGuidedJournal_whenCompletedLegacyOnboarding_setsTrue() {
         let defaults = makeIsolatedDefaults()
-        defaults.set(true, forKey: "hasCompletedOnboarding")
+        defaults.set(true, forKey: FirstRunOnboardingStorageKeys.completed)
 
         let resolvedValue = JournalOnboardingProgress.resolvedHasCompletedGuidedJournal(using: defaults)
 
