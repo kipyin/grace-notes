@@ -11,15 +11,13 @@ Patch on the 0.5.x line: version and build bump plus Xcode packaging defaults ca
 - Copy: user-facing **en** / **zh-Hans** avoids **chip** and **journal** in favor of product language (Grace Notes, short labels, spots, entries, and the three section names). Updated onboarding locks, completion hints, startup and save errors, Data & Privacy, Review timeline a11y, AI suggestions, and **Save to Photos** permission text (`Localizable.xcstrings`, `Info.plist` / `InfoPlist.xcstrings`, matching `String(localized:)` keys in app sources).
 - Settings **Cloud AI** toggle and a11y strings use American English **Summarize** (not *Summarise*). `AGENTS.md` and Translator skill call out **American English** for user-facing English strings.
 - String Catalog: additional **en** / **zh-Hans** entries for previously empty keys; Simplified Chinese copy refined for onboarding, Abundance meaning, and AI onboarding lines. Info.plist **Save to Photos** usage description uses **感恩记** and consistent 你/你的 tone (`zh-Hans`).
+- Cloud chip summarization uses shared **`AppInstructionLocale`** for instruction language (aligned with Review insights), with optional `ChipCloudPromptLanguage` for tests; skips obvious low-signal keyboard mash before the network call; drops model output that fails grounding or reads as unrelated generic filler (#39).
+- Review cloud insights `.automatic` prompt language now resolves through **`AppInstructionLocale`** instead of ad hoc bundle checks (#39).
 
 ### Fixed
 - iOS 17: startup no longer crashes when applying global UIKit appearance; `AppInterfaceAppearance.configure()` runs from `UIApplicationDelegate.application(_:didFinishLaunchingWithOptions:)` instead of `App` `init`.
 - Dynamic Type: tab bar item titles cap at **Large** text size so labels no longer overlap icons when the user chooses very large system text (#76). Navigation bar titles and bar-button labels cap at **Extra Extra Large** to reduce cramped chrome while keeping editorial body copy unchanged.
 - Journal: with cloud summarization on, chip text that already fits the on-chip display budget (≤10 display units, same Han/Latin rules as truncation) no longer calls the cloud summarizer (#69).
-
-### Changed
-- Cloud chip summarization uses shared **`AppInstructionLocale`** for instruction language (aligned with Review insights), with optional `ChipCloudPromptLanguage` for tests; skips obvious low-signal keyboard mash before the network call; drops model output that fails grounding or reads as unrelated generic filler (#39).
-- Review cloud insights `.automatic` prompt language now resolves through **`AppInstructionLocale`** instead of ad hoc bundle checks (#39).
 
 ### Developer
 
