@@ -11,11 +11,13 @@ Grace Notes (`感恩记`) guides you through a simple daily rhythm: 5 gratitudes
 - **Packaging** — Patch bump on the 0.5.x line: marketing version **0.5.1**, build **2**, Debug builds emit **dSYM** for richer crash logs, and the shared **GraceNotes** scheme’s Run action uses the **Release** configuration (verify this matches your day-to-day workflow in Xcode).
 - **Onboarding** — Milestone cards that jump to Settings share one eligibility rule with the UI and re-check it when you tap; onboarding/iCloud continuity keys use shared constants (see CHANGELOG **Developer** for detail).
 - **Localization** — String Catalog **zh-Hans** polish (including onboarding and Abundance-related copy) and aligned **Save to Photos** permission wording for **感恩记**.
-- **UI tests** — Journal UI tests use stable chip identifiers, English locale, relaunch-safe launch arguments, and a UI-test SwiftData session key so data survives `terminate()` + `launch()` (see CHANGELOG **Developer**).
+- **Cloud chips (#39)** — Chip cloud summarization picks instruction language the same way as Review (`AppInstructionLocale`), tightens low-signal and ungrounded-output handling, and adds focused unit tests (see CHANGELOG).
+- **Product docs** — Review insight roadmap now separates **#40** (insight-first presentation) from **#80** (deeper insight engine work); see `GraceNotes/docs/07-release-roadmap.md`.
+- **UI tests** — Journal UI tests use stable chip and add-row identifiers, English locale, relaunch-safe launch arguments, optional **`-grace-notes-reset-uitest-store`** between cases, and a UI-test SwiftData session key so data survives `terminate()` + `launch()` when appropriate (see CHANGELOG **Developer**).
 
 ## What's new in 0.5.0 (upcoming)
 
-- **Insight quality** — Review and weekly insights that better reflect your own entries, refined chip-label prompts for AI where used, and clearer feedback when a section is fully filled (`#40`, `#39`, `#11`).
+- **Insight quality** — Review and weekly insights that better reflect your own entries: presentation work as **#40**, deeper generation iteration as **#80**; refined chip-label prompts for AI where used (**#39**); clearer feedback when a section is fully filled (**#11**).
 - **First-run tutorial** — Dismissible hints on Today toward Seed and Harvest, with one-time congratulations when you first reach those tiers (`#60`).
 - **Behavior-first onboarding** — First launch now opens with a minimal welcome, then guides your first journal on Today one step at a time (Gratitude → Need → People → Seed / Ripening / Harvest / Abundance). The first time you reach Seed, an optional skippable full-screen intro can appear; afterward, milestone suggestions for reminders, AI, and iCloud stay contextual (`#71`, `#72`, `#73`, `#74`, `#75`).
 

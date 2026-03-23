@@ -17,7 +17,17 @@ Patch on the 0.5.x line: version and build bump plus Xcode packaging defaults ca
 - Dynamic Type: tab bar item titles cap at **Large** text size so labels no longer overlap icons when the user chooses very large system text (#76). Navigation bar titles and bar-button labels cap at **Extra Extra Large** to reduce cramped chrome while keeping editorial body copy unchanged.
 - Journal: with cloud summarization on, chip text that already fits the on-chip display budget (≤10 display units, same Han/Latin rules as truncation) no longer calls the cloud summarizer (#69).
 
+### Changed
+- Cloud chip summarization uses shared **`AppInstructionLocale`** for instruction language (aligned with Review insights), with optional `ChipCloudPromptLanguage` for tests; skips obvious low-signal keyboard mash before the network call; drops model output that fails grounding or reads as unrelated generic filler (#39).
+- Review cloud insights `.automatic` prompt language now resolves through **`AppInstructionLocale`** instead of ad hoc bundle checks (#39).
+
 ### Developer
+
+- Product docs: Review insight work is split on GitHub — **#40** (insight-first presentation redo) and **#80** (deeper engine iteration); see `GraceNotes/docs/07-release-roadmap.md` and `03-review-insight-quality-contract.md`.
+- UI tests: launch flag **`-grace-notes-reset-uitest-store`** clears the shared UI-test SwiftData store on bootstrap (default in `JournalUITests`); the journal persistence UI test omits it after `terminate()` so relaunch still reads the same file.
+- Unit tests: **`ApiSecrets.cloudApiKeyOverrideForTesting`** keeps hosted `SummarizerProvider` expectations stable when `Info.plist` carries a non-placeholder developer key.
+- UI tests: section **(+)** controls expose stable **`accessibilityIdentifier`** values (`JournalSectionAdd.*`) under `-ui-testing`; `addGratitude` waits for the first gratitude chip after submit.
+- New tests: `CloudSummarizerPromptAndGroundingTests` (+ `CloudSummarizerTestSupport`).
 
 - App **marketing version** `0.5.1`; **bundle version** (`CURRENT_PROJECT_VERSION`) `2` for Grace Notes app configurations (Debug, Release, Demo).
 - Project-level **Debug** and **Demo** build settings use `DEBUG_INFORMATION_FORMAT = dwarf-with-dsym` so Debug-style builds still produce dSYM for symbolication.
