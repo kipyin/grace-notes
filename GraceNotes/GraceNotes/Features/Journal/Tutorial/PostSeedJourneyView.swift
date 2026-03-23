@@ -4,6 +4,8 @@ import SwiftUI
 /// Styled like app onboarding; **Done** (last page) or **Skip** (earlier pages) ends the flow and the guided tutorial.
 struct PostSeedJourneyView: View {
     let onFinish: () -> Void
+    /// When true, hides the Seed congratulations page (0.5.1+ upgraders already at or above Seed).
+    let skipsCongratulationsPage: Bool
 
     @Environment(\.openURL) var openURL
     @Environment(\.scenePhase) private var scenePhase
@@ -27,10 +29,23 @@ struct PostSeedJourneyView: View {
 
     let lastPageIndex = 5
 
+    var firstPageIndex: Int { skipsCongratulationsPage ? 1 : 0 }
+
+    init(onFinish: @escaping () -> Void, skipsCongratulationsPage: Bool = false) {
+        self.onFinish = onFinish
+        self.skipsCongratulationsPage = skipsCongratulationsPage
+        _pageIndex = State(initialValue: skipsCongratulationsPage ? 1 : 0)
+        _reminderState = StateObject(wrappedValue: ReminderSettingsFlowModel())
+        _iCloudAccountState = StateObject(wrappedValue: ICloudAccountStatusModel())
+        _aiCloudStatus = StateObject(wrappedValue: AISettingsCloudStatusModel())
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             TabView(selection: $pageIndex) {
-                congratulationsPage.tag(0)
+                if !skipsCongratulationsPage {
+                    congratulationsPage.tag(0)
+                }
                 pathPage.tag(1)
                 insightsPage.tag(2)
                 remindersPage.tag(3)

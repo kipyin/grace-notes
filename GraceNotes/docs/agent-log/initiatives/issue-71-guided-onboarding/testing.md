@@ -27,7 +27,7 @@ related_pr: 79
 
 1. Complete first-run welcome if shown; land on **Today**.
 2. Add one gratitude, one need, one person (reach **Seed**). Confirm **Post-Seed** full-screen cover appears (no Seed unlock toast stacked per `JournalScreen` logic).
-3. Tap **Skip** on the first page. **Expect**: cover dismisses; guided section locking no longer applies (`hasCompletedGuidedJournal`); milestone suggestion cards stay dismissed (`completePostSeedJourney`).
+3. Tap **Skip** on the first page. **Expect**: cover dismisses; guided section locking no longer applies (`hasCompletedGuidedJournal`). **Suggestion cards** are **not** auto-dismissed by `completePostSeedJourney` — Reminders / AI / iCloud cards may still appear per `JournalOnboardingSuggestionEvaluator` until the user dismisses them or meets eligibility gates.
 
 **Path B — Done after full pager**
 
