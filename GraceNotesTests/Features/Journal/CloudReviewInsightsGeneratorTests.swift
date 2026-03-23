@@ -1,7 +1,7 @@
 import XCTest
 @testable import GraceNotes
 
-// swiftlint:disable file_length type_body_length
+// swiftlint:disable type_body_length
 final class CloudReviewInsightsGeneratorTests: XCTestCase {
     private var urlSession: URLSession!
     private var calendar: Calendar!
@@ -26,7 +26,8 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
     func test_generateInsights_success_returnsCloudInsights() async throws {
         let generator = CloudReviewInsightsGenerator(
             apiKey: "test-key",
-            urlSession: urlSession
+            urlSession: urlSession,
+            promptLanguage: .english
         )
         let innerPayload: [String: Any] = [
             "narrativeSummary": "You kept a calm rhythm this week.",
@@ -40,7 +41,7 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
         setMockResponse(withInnerPayload: innerPayload)
 
         let insights = try await generator.generateInsights(
-            from: [makeEntry(on: date(year: 2026, month: 3, day: 17))],
+            from: threeMeaningfulEntriesInWeekAroundReference(),
             referenceDate: date(year: 2026, month: 3, day: 18),
             calendar: calendar
         )
@@ -57,7 +58,8 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
     func test_generateInsights_invalidPayload_throws() async {
         let generator = CloudReviewInsightsGenerator(
             apiKey: "test-key",
-            urlSession: urlSession
+            urlSession: urlSession,
+            promptLanguage: .english
         )
 
         MockURLProtocol.mockResponse = { _ in
@@ -81,7 +83,7 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
 
         do {
             _ = try await generator.generateInsights(
-                from: [],
+                from: threeMeaningfulEntriesInWeekAroundReference(),
                 referenceDate: date(year: 2026, month: 3, day: 18),
                 calendar: calendar
             )
@@ -94,7 +96,8 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
     func test_generateInsights_httpError_throws() async {
         let generator = CloudReviewInsightsGenerator(
             apiKey: "test-key",
-            urlSession: urlSession
+            urlSession: urlSession,
+            promptLanguage: .english
         )
 
         MockURLProtocol.mockResponse = { _ in
@@ -109,7 +112,7 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
 
         do {
             _ = try await generator.generateInsights(
-                from: [],
+                from: threeMeaningfulEntriesInWeekAroundReference(),
                 referenceDate: date(year: 2026, month: 3, day: 18),
                 calendar: calendar
             )
@@ -122,9 +125,12 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
     func test_generateInsights_clampsMessagesAndThemeLists() async throws {
         let generator = CloudReviewInsightsGenerator(
             apiKey: "test-key",
-            urlSession: urlSession
+            urlSession: urlSession,
+            promptLanguage: .english
         )
-        let longMessage = String(repeating: "a", count: 220)
+        let longTail = String(repeating: "a", count: 220)
+        // Leading theme tokens keep post-clamp copy grounded for validateGroundedQuality.
+        let longMessage = "Rest and Family " + longTail
         let manyThemes: [[String: Any]] = [
             ["label": "Rest", "count": 3],
             ["label": "Family", "count": 2],
@@ -134,7 +140,7 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
         let innerPayload: [String: Any] = [
             "narrativeSummary": longMessage,
             "resurfacingMessage": longMessage,
-            "continuityPrompt": longMessage,
+            "continuityPrompt": "What one step would protect Rest tomorrow? " + longTail,
             "recurringGratitudes": manyThemes,
             "recurringNeeds": manyThemes,
             "recurringPeople": manyThemes
@@ -143,7 +149,7 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
         setMockResponse(withInnerPayload: innerPayload)
 
         let insights = try await generator.generateInsights(
-            from: [makeEntry(on: date(year: 2026, month: 3, day: 17))],
+            from: threeMeaningfulEntriesInWeekAroundReference(),
             referenceDate: date(year: 2026, month: 3, day: 18),
             calendar: calendar
         )
@@ -159,7 +165,8 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
     func test_generateInsights_parsesMarkdownFencedJSONPayload() async throws {
         let generator = CloudReviewInsightsGenerator(
             apiKey: "test-key",
-            urlSession: urlSession
+            urlSession: urlSession,
+            promptLanguage: .english
         )
         let innerPayload: [String: Any] = [
             "narrativeSummary": "This week you reflected on Rest and Family.",
@@ -175,7 +182,7 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
         setMockResponse(withRawContent: "```json\n\(content)\n```")
 
         let insights = try await generator.generateInsights(
-            from: [makeEntry(on: date(year: 2026, month: 3, day: 17))],
+            from: threeMeaningfulEntriesInWeekAroundReference(),
             referenceDate: date(year: 2026, month: 3, day: 18),
             calendar: calendar
         )
@@ -189,7 +196,8 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
     func test_generateInsights_genericContinuityPrompt_isReplacedWithThemePrompt() async throws {
         let generator = CloudReviewInsightsGenerator(
             apiKey: "test-key",
-            urlSession: urlSession
+            urlSession: urlSession,
+            promptLanguage: .english
         )
         let innerPayload: [String: Any] = [
             "narrativeSummary": "You kept a calm rhythm this week.",
@@ -203,7 +211,7 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
         setMockResponse(withInnerPayload: innerPayload)
 
         let insights = try await generator.generateInsights(
-            from: [makeEntry(on: date(year: 2026, month: 3, day: 17))],
+            from: threeMeaningfulEntriesInWeekAroundReference(),
             referenceDate: date(year: 2026, month: 3, day: 18),
             calendar: calendar
         )
@@ -215,7 +223,8 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
     func test_generateInsights_themeLessNarrative_isReplacedWithThemeGroundedNarrative() async throws {
         let generator = CloudReviewInsightsGenerator(
             apiKey: "test-key",
-            urlSession: urlSession
+            urlSession: urlSession,
+            promptLanguage: .english
         )
         let innerPayload: [String: Any] = [
             "narrativeSummary": "You kept a calm rhythm this week.",
@@ -229,7 +238,7 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
         setMockResponse(withInnerPayload: innerPayload)
 
         let insights = try await generator.generateInsights(
-            from: [makeEntry(on: date(year: 2026, month: 3, day: 17))],
+            from: threeMeaningfulEntriesInWeekAroundReference(),
             referenceDate: date(year: 2026, month: 3, day: 18),
             calendar: calendar
         )
@@ -240,12 +249,13 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
     func test_generateInsights_requestPrompt_includesInsightQualityRules() async throws {
         let generator = CloudReviewInsightsGenerator(
             apiKey: "test-key",
-            urlSession: urlSession
+            urlSession: urlSession,
+            promptLanguage: .english
         )
         let requestCapture = makePromptCaptureMock()
 
         _ = try await generator.generateInsights(
-            from: [makeEntry(on: date(year: 2026, month: 3, day: 17))],
+            from: threeMeaningfulEntriesInWeekAroundReference(),
             referenceDate: date(year: 2026, month: 3, day: 18),
             calendar: calendar
         )
@@ -267,10 +277,42 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
         XCTAssertTrue(prompt.contains("continuityPrompt must be a specific follow-up question"))
     }
 
+    func test_generateInsights_requestPrompt_usesSimplifiedChineseWhenPromptLanguageZhHans() async throws {
+        let generator = CloudReviewInsightsGenerator(
+            apiKey: "test-key",
+            urlSession: urlSession,
+            promptLanguage: .simplifiedChinese
+        )
+        let requestCapture = makePromptCaptureMock()
+
+        _ = try await generator.generateInsights(
+            from: threeMeaningfulEntriesInWeekAroundReference(),
+            referenceDate: date(year: 2026, month: 3, day: 18),
+            calendar: calendar
+        )
+        await fulfillment(of: [requestCapture.expectation], timeout: 1.0)
+
+        guard let capturedRequestBody = requestCapture.getBody() else {
+            XCTFail("Expected request body to be captured")
+            return
+        }
+        let requestObject = try JSONSerialization.jsonObject(with: capturedRequestBody)
+        guard let requestDict = requestObject as? [String: Any],
+              let messages = requestDict["messages"] as? [[String: Any]],
+              let prompt = messages.first?["content"] as? String
+        else {
+            return XCTFail("Expected prompt content in request")
+        }
+
+        XCTAssertTrue(prompt.contains("下方是本周记录"))
+        XCTAssertTrue(prompt.contains("只输出合法 JSON"))
+    }
+
     func test_generateInsights_withoutMeaningfulCurrentWeekEntries_throwsBeforeAPICall() async {
         let generator = CloudReviewInsightsGenerator(
             apiKey: "test-key",
-            urlSession: urlSession
+            urlSession: urlSession,
+            promptLanguage: .english
         )
         var didCallAPI = false
         MockURLProtocol.mockResponse = { _ in
@@ -302,9 +344,81 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
         }
     }
 
+    func test_generateInsights_twoMeaningfulEntries_throwsBeforeAPICall() async {
+        let generator = CloudReviewInsightsGenerator(
+            apiKey: "test-key",
+            urlSession: urlSession,
+            promptLanguage: .english
+        )
+        var didCallAPI = false
+        MockURLProtocol.mockResponse = { _ in
+            didCallAPI = true
+            let http = HTTPURLResponse(
+                url: URL(string: "https://example.com")!,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: nil
+            )!
+            return (Data(), http, nil)
+        }
+
+        let first = makeEntry(on: date(year: 2026, month: 3, day: 17))
+        let second = makeEntry(on: date(year: 2026, month: 3, day: 18))
+
+        do {
+            _ = try await generator.generateInsights(
+                from: [first, second],
+                referenceDate: date(year: 2026, month: 3, day: 18),
+                calendar: calendar
+            )
+            XCTFail("Expected insufficient context error")
+        } catch {
+            XCTAssertFalse(didCallAPI)
+        }
+    }
+
+    func test_generateInsights_emptyRecurringListsAfterSanitize_failsQualityGate() async {
+        let generator = CloudReviewInsightsGenerator(
+            apiKey: "test-key",
+            urlSession: urlSession,
+            promptLanguage: .english
+        )
+        let innerPayload: [String: Any] = [
+            "narrativeSummary": "You kept a calm rhythm this week.",
+            "resurfacingMessage": "You mentioned rest 3 times this week.",
+            "continuityPrompt": "What can protect your rest tomorrow?",
+            "recurringGratitudes": [],
+            "recurringNeeds": [],
+            "recurringPeople": []
+        ]
+        setMockResponse(withInnerPayload: innerPayload)
+
+        do {
+            _ = try await generator.generateInsights(
+                from: threeMeaningfulEntriesInWeekAroundReference(),
+                referenceDate: date(year: 2026, month: 3, day: 18),
+                calendar: calendar
+            )
+            XCTFail("Expected quality gate failure")
+        } catch let error as CloudReviewInsightsError {
+            XCTAssertEqual(error, CloudReviewInsightsError.failedQualityGate)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+
 }
 
 private extension CloudReviewInsightsGeneratorTests {
+    /// Three seed+ journal rows in the ISO week containing 2026-03-18 (Mon start, `firstWeekday = 2`).
+    func threeMeaningfulEntriesInWeekAroundReference() -> [JournalEntry] {
+        [
+            makeEntry(on: date(year: 2026, month: 3, day: 17)),
+            makeEntry(on: date(year: 2026, month: 3, day: 18)),
+            makeEntry(on: date(year: 2026, month: 3, day: 19))
+        ]
+    }
+
     func makeEntry(on date: Date) -> JournalEntry {
         JournalEntry(
             entryDate: date,
@@ -406,4 +520,4 @@ private extension CloudReviewInsightsGeneratorTests {
         return (requestCaptured, { capturedRequestBody })
     }
 }
-// swiftlint:enable file_length type_body_length
+// swiftlint:enable type_body_length

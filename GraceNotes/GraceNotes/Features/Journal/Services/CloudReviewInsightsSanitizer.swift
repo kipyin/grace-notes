@@ -55,6 +55,27 @@ struct CloudReviewInsightsSanitizer {
         )
     }
 
+    /// Hard gate after sanitization: reject payloads that are still too generic or not tied to recurring signals.
+    func validateGroundedQuality(_ payload: CloudReviewInsightsPayload) throws {
+        let allThemes = payload.recurringNeeds + payload.recurringPeople + payload.recurringGratitudes
+        guard !allThemes.isEmpty else {
+            throw CloudReviewInsightsError.failedQualityGate
+        }
+
+        guard mentionsAnyTheme(payload.narrativeSummary, themes: allThemes) else {
+            throw CloudReviewInsightsError.failedQualityGate
+        }
+        guard mentionsAnyTheme(payload.resurfacingMessage, themes: allThemes) else {
+            throw CloudReviewInsightsError.failedQualityGate
+        }
+        guard mentionsAnyTheme(payload.continuityPrompt, themes: allThemes) else {
+            throw CloudReviewInsightsError.failedQualityGate
+        }
+        guard !seemsGeneric(payload.continuityPrompt) else {
+            throw CloudReviewInsightsError.failedQualityGate
+        }
+    }
+
     func extractJSONPayload(from content: String) -> String {
         let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.hasPrefix("{"), trimmed.hasSuffix("}") {

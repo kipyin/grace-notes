@@ -1,10 +1,19 @@
 import Foundation
 
+/// Natural language for cloud Review insight *instructions* (not user-facing app strings).
+enum CloudReviewInsightsPromptLanguage: Equatable, Sendable {
+    /// `zh-Hans` when the app’s active localization is Simplified Chinese; otherwise English.
+    case automatic
+    case english
+    case simplifiedChinese
+}
+
 struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
     private let baseURL: String
     private let model: String
     private let apiKey: String
     private let urlSession: URLSession
+    private let promptLanguage: CloudReviewInsightsPromptLanguage
     private let sanitizer = CloudReviewInsightsSanitizer()
     private let maxEntriesForContext = 14
 
@@ -12,12 +21,14 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
         baseURL: String = ApiSecrets.cloudAPIBaseURL,
         model: String = "gpt-4o-mini",
         apiKey: String,
-        urlSession: URLSession = .shared
+        urlSession: URLSession = .shared,
+        promptLanguage: CloudReviewInsightsPromptLanguage = .automatic
     ) {
         self.baseURL = baseURL
         self.model = model
         self.apiKey = apiKey
         self.urlSession = urlSession
+        self.promptLanguage = promptLanguage
     }
 
     func generateInsights(
@@ -31,21 +42,21 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
             .sorted { $0.entryDate < $1.entryDate }
             .suffix(maxEntriesForContext)
         let meaningfulWeeklyEntries = weeklyEntries.filter(\.hasMeaningfulContent)
-        guard !meaningfulWeeklyEntries.isEmpty else {
+        guard meaningfulWeeklyEntries.count >= ReviewInsightsCloudEligibility.minimumMeaningfulEntriesForCloudAI else {
             throw CloudReviewInsightsError.insufficientContext
         }
 
         let contexts = meaningfulWeeklyEntries.map(makeContextEntry)
-        let payload = sanitizer.sanitizePayload(
-            try await callAPI(
-                request: CloudReviewInsightsRequest(
-                    model: model,
-                    messages: [CloudReviewMessage(role: "user", content: prompt(for: contexts))],
-                    maxTokens: 350,
-                    temperature: 0.2
-                )
+        let rawPayload = try await callAPI(
+            request: CloudReviewInsightsRequest(
+                model: model,
+                messages: [CloudReviewMessage(role: "user", content: prompt(for: contexts))],
+                maxTokens: 350,
+                temperature: 0.2
             )
         )
+        let payload = sanitizer.sanitizePayload(rawPayload)
+        try sanitizer.validateGroundedQuality(payload)
         let weeklyInsights = makeWeeklyInsights(from: payload)
 
         return ReviewInsights(
@@ -115,7 +126,33 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
         let data = (try? encoder.encode(entries)) ?? Data("[]".utf8)
         let contextText = String(data: data, encoding: .utf8) ?? "[]"
 
-        return """
+        switch resolvedPromptLanguage {
+        case .simplifiedChinese:
+            return promptSimplifiedChinese(contextText: contextText)
+        case .english, .automatic:
+            return promptEnglish(contextText: contextText)
+        }
+    }
+
+    private var resolvedPromptLanguage: CloudReviewInsightsPromptLanguage {
+        switch promptLanguage {
+        case .automatic:
+            return Self.appUsesSimplifiedChinese ? .simplifiedChinese : .english
+        case .english, .simplifiedChinese:
+            return promptLanguage
+        }
+    }
+
+    /// Matches the app bundle’s active localization (same idea as UI language).
+    private static var appUsesSimplifiedChinese: Bool {
+        guard let preferred = Bundle.main.preferredLocalizations.first else {
+            return false
+        }
+        return preferred == "zh-Hans" || preferred.hasPrefix("zh-Hans")
+    }
+
+    private func promptEnglish(contextText: String) -> String {
+        """
         You are generating weekly journaling insights for a calm guided reflection app.
         Analyze this week's entries and return STRICT JSON with this shape:
         {
@@ -130,6 +167,8 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
         Rules:
         - Keep tone gentle and non-judgmental.
         - Ground messages in the provided week context. Avoid generic wellness phrases.
+        - Prefer one concrete, calm link between two recurring signals when evidence supports it.
+        - Do not invent connections the entries do not support.
         - If recurring themes exist, reference at least one concrete theme label in narrativeSummary.
         - continuityPrompt must be a specific follow-up question tied to the week's themes.
         - Keep each message under 160 characters.
@@ -138,6 +177,35 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
         - Output ONLY valid JSON; no markdown or prose.
 
         Weekly context:
+        \(contextText)
+        """
+    }
+
+    private func promptSimplifiedChinese(contextText: String) -> String {
+        """
+        你在为 App「感恩记」的「回顾」准备本周小结：语气安静、温暖，不要让人有压力。
+        请结合下方本周记录，只输出符合下列结构的 JSON（结构严格；键名用英文，方便程序解析）：
+        {
+          "narrativeSummary": "string",
+          "resurfacingMessage": "string",
+          "continuityPrompt": "string",
+          "recurringGratitudes": [{"label":"string","count":number}],
+          "recurringNeeds": [{"label":"string","count":number}],
+          "recurringPeople": [{"label":"string","count":number}]
+        }
+
+        要求：
+        - 温柔、不评判。
+        - 紧扣下方记录，别写空洞的励志话或养生套话。
+        - 如果本周确实反复出现某些内容，可以用一句简短、具体的话，把两件事轻轻连起来（例如某件感恩的事、某件需要的事、某位牵挂的人）；不要臆测记录里没出现的事。
+        - 若有重复主题，`narrativeSummary` 里至少要点到其中一条，说法尽量贴近用户原文或自然归纳。
+        - `continuityPrompt` 只能是一句具体的追问，和本周内容有关。
+        - `narrativeSummary`、`resurfacingMessage`、`continuityPrompt` 这三段正文用简体中文。
+        - 每段正文不超过 160 个字。
+        - `recurringGratitudes`、`recurringNeeds`、`recurringPeople` 每个列表最多 3 条；`count` 为正整数。
+        - 只输出合法 JSON，不要用 markdown 代码块，不要加任何前言或后记。
+
+        下方是本周记录：
         \(contextText)
         """
     }
@@ -230,11 +298,12 @@ struct CloudReviewTheme: Decodable {
     let count: Int
 }
 
-private enum CloudReviewInsightsError: Error {
+enum CloudReviewInsightsError: Error, Equatable {
     case invalidURL
     case invalidResponse
     case httpError(statusCode: Int)
     case missingContent
     case invalidPayload
     case insufficientContext
+    case failedQualityGate
 }

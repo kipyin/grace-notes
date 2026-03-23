@@ -25,8 +25,23 @@ A good insight must be:
 4. **Continuity-oriented** — includes one clear next-step prompt or question.
 5. **Scannable** — short and readable in one card pass.
 6. **Transparent** — source label is visible (`AI` or `On-device`).
+7. **Gently connective** — when the week supports it, prefer one safe, concrete relationship between two recurring signals instead of a broad summary that tries to cover everything.
 
 If an AI payload fails quality checks, fallback to deterministic output.
+
+Do not force a connection when evidence is thin. The product should prefer a smaller, faithful insight over a clever one.
+
+## Low-entry handling
+
+If the selected timeframe contains fewer than **3 meaningful entries**, skip the cloud AI path and show the deterministic on-device insight instead.
+
+Rationale:
+- thin weeks are more likely to produce speculative or generic AI language
+- the on-device path is the more trustworthy baseline when evidence is limited
+
+Expectation:
+- low-entry weeks should still feel calm, specific, and useful
+- the visible source label should remain accurate (`On-device`)
 
 ---
 
@@ -61,6 +76,10 @@ If an AI payload fails quality checks, fallback to deterministic output.
 ### Sample signals
 - Entries only on 2 days
 - Needs include `sleep`, `clarity`; no strong recurring people theme
+
+### Expected path
+- Use the deterministic on-device insight.
+- Do not call the cloud AI path for this week.
 
 ### Good insight example
 - Narrative: “You showed up for reflection on two days this week and named simple anchors: rest and clarity.”
@@ -100,6 +119,8 @@ If an AI payload fails quality checks, fallback to deterministic output.
    - Replace generic continuity language with theme-specific prompts when themes are available.
 6. Specific resurfacing:
    - Prefer explicit recurring-theme resurfacing copy tied to counts.
+7. Thin-evidence guard:
+   - If fewer than 3 meaningful entries exist in the timeframe, do not call the cloud AI path.
 
 If any hard gate fails, throw and allow provider-level deterministic fallback.
 
@@ -110,3 +131,4 @@ If any hard gate fails, throw and allow provider-level deterministic fallback.
 - Review insights remain meaningful when AI is off.
 - AI-on results are consistently more specific than generic motivational copy.
 - Users can explain “why this insight was shown” by mapping it to their week’s entries.
+- Low-entry weeks resolve through deterministic fallback rather than speculative AI output.

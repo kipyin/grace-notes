@@ -29,7 +29,13 @@ struct ReviewInsightsProvider: Sendable {
     ) async -> ReviewInsights {
         let useAI = UserDefaults.standard.bool(forKey: Self.useAIReviewInsightsKey)
 
-        if useAI, let cloudGenerator {
+        let cloudAllowed = ReviewInsightsCloudEligibility.hasMinimumEvidenceForCloudAI(
+            entries: entries,
+            referenceDate: referenceDate,
+            calendar: calendar
+        )
+
+        if useAI, cloudAllowed, let cloudGenerator {
             if let cloudInsights = try? await cloudGenerator.generateInsights(
                 from: entries,
                 referenceDate: referenceDate,

@@ -221,10 +221,12 @@ Work tracked on branch `release/0.5.0`.
 
 **Scope in**
 - `#35` Reconsider how streaks should be presented
+- Broader Review timeframes such as a month-level view, if later feedback shows the weekly surface is too narrow
 - Monthly calendar, if later user feedback still justifies it
 
 **Why later**
 - Calendar improves scanning, but it does not solve the primary retention gap.
+- Broader timeframes add Review surface area, but they do not directly fix generic insight quality in `#40`.
 - The exploration doc recommends deferring it unless demand or scope clearly supports it.
 
 **Acceptance intent**
