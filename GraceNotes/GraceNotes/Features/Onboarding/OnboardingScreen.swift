@@ -40,7 +40,7 @@ struct OnboardingScreen: View {
                     .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium))
             }
             .buttonStyle(WarmPaperPressStyle())
-            .accessibilityHint(String(localized: "Opens Today and starts the guided journal path."))
+            .accessibilityHint(String(localized: "Opens Today and starts the guided first entry."))
 
             Spacer()
         }

@@ -145,7 +145,7 @@ final class JournalViewModel {
                 PerformanceTrace.end("JournalViewModel.persistChanges", startedAt: saveTrace)
             }
         } catch {
-            saveErrorMessage = String(localized: "Unable to save your journal entry.")
+            saveErrorMessage = String(localized: "Unable to save your entry.")
             PerformanceTrace.end("JournalViewModel.persistChanges.failed", startedAt: saveTrace)
         }
     }

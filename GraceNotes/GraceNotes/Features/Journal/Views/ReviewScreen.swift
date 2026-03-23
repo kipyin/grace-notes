@@ -184,7 +184,7 @@ struct ReviewScreen: View {
                     }
                     .accessibilityLabel(accessibilityTimelineRowLabel(for: entry))
                     .accessibilityIdentifier("ReviewTimelineEntry.\(entry.id.uuidString)")
-                    .accessibilityHint(String(localized: "Opens this day's journal entry."))
+                    .accessibilityHint(String(localized: "Opens that day's entry."))
                     .listRowBackground(AppTheme.reviewPaper)
                 }
             } header: {

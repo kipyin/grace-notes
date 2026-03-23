@@ -50,11 +50,11 @@ enum CompletionBadgeInfo: Equatable {
             )
         case .harvest:
             return String(
-                localized: "Harvest means every chip slot is filled—five gratitudes, five needs, and five people. Add reading notes and reflections to reach Abundance."
+                localized: "Harvest means every spot is filled—five gratitudes, five needs, and five people. Add reading notes and reflections to reach Abundance."
             )
         case .abundance:
             return String(
-                localized: "Abundance means every chip is filled, and you have added reading notes and reflections for today."
+                localized: "Abundance means every spot is filled in Gratitudes, Needs, and People, and you have added reading notes and reflections for today."
             )
         }
     }

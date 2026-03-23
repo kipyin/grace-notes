@@ -206,6 +206,6 @@ enum PersistenceControllerError: LocalizedError {
     case unableToCreateContainer(Error)
 
     var errorDescription: String? {
-        String(localized: "We couldn't finish setting up your journal space. Please try again.")
+        String(localized: "We couldn't finish setting up your Grace Notes space. Please try again.")
     }
 }

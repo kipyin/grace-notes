@@ -8,6 +8,8 @@ Patch on the 0.5.x line: version and build bump plus Xcode packaging defaults ca
 - Journal: **one-time upgrade orientation** on the first launch of **0.5.1** after an older marketing version (e.g. 0.5.0). Users still below **Seed** on Today keep the full guided chip path; users **at or above Seed** see the post-Seed settings-oriented journey **without** the Seed congratulations page. Launch tracks `lastLaunchedMarketingVersion`; migration into `completedGuidedJournal` is deferred until Today’s completion level is known for that cohort.
 
 ### Changed
+- Copy: user-facing **en** / **zh-Hans** avoids **chip** and **journal** in favor of product language (Grace Notes, short labels, spots, entries, and the three section names). Updated onboarding locks, completion hints, startup and save errors, Data & Privacy, Review timeline a11y, AI suggestions, and **Save to Photos** permission text (`Localizable.xcstrings`, `Info.plist` / `InfoPlist.xcstrings`, matching `String(localized:)` keys in app sources).
+- Settings **Cloud AI** toggle and a11y strings use American English **Summarize** (not *Summarise*). `AGENTS.md` and Translator skill call out **American English** for user-facing English strings.
 - String Catalog: additional **en** / **zh-Hans** entries for previously empty keys; Simplified Chinese copy refined for onboarding, Abundance meaning, and AI onboarding lines. Info.plist **Save to Photos** usage description uses **感恩记** and consistent 你/你的 tone (`zh-Hans`).
 
 ### Fixed
@@ -59,8 +61,8 @@ iCloud / SwiftData trust in Settings (storage and attention copy aligned with re
 - Unit tests for journal import (decode, schema rejection, dedupe-by-day, sanitize) plus SwiftData integration tests skipped on Simulator where a second in-memory container crashes the hosted test app.
 
 ### Changed
-- Settings → **Cloud AI**: **Summarise and Insights** toggle is disabled when no usable `CloudSummarizationAPIKey` is configured; AppStorage flags are cleared when opening Settings if the key is missing.
-- Settings copy: **Cloud AI** section uses a **Summarise and Insights** toggle label (section title carries “cloud”); no footer; Reminders drops the redundant intro line; **Data & Privacy** backup actions use **Export a backup** / **Restore from a backup** plus a short helper under Backup; section footers remain dropped (import confirm still explains merge-by-day).
+- Settings → **Cloud AI**: **Summarize and Insights** toggle is disabled when no usable `CloudSummarizationAPIKey` is configured; AppStorage flags are cleared when opening Settings if the key is missing.
+- Settings copy: **Cloud AI** section uses a **Summarize and Insights** toggle label (section title carries “cloud”); no footer; Reminders drops the redundant intro line; **Data & Privacy** backup actions use **Export a backup** / **Restore from a backup** plus a short helper under Backup; section footers remain dropped (import confirm still explains merge-by-day).
 - Data & Privacy storage summary when the journal is on CloudKit (no redundant “iCloud on” body line); attention strings use `.summary` keys; **Open Settings** in account/restriction flows uses a prominent button when signing in or fixing restrictions is the primary action.
 - On-device chip labels no longer use word- or character-based “summarization”; they show a capped prefix of the user’s own text with `...` when truncated. Cloud chip summarization is unchanged.
 - Review → Insights / Timeline uses the system segmented `Picker` (Liquid Glass on iOS 26+) with warm accent tint.

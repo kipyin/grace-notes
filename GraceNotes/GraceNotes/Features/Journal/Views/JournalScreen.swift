@@ -641,7 +641,7 @@ private extension JournalScreen {
         case .aiFeatures:
             return String(localized: "Make Review more specific")
         case .iCloudSync:
-            return String(localized: "Keep this journal with you")
+            return String(localized: "Keep Grace Notes with you")
         }
     }
 
@@ -652,7 +652,7 @@ private extension JournalScreen {
         case .aiFeatures:
             return String(
                 // swiftlint:disable:next line_length
-                localized: "AI features can help with chip labels and Review insights when you want a little more support."
+                localized: "AI features can help with short labels and Review insights when you want a little more support."
             )
         case .iCloudSync:
             return String(localized: "You can turn on iCloud sync in Settings whenever you're ready.")

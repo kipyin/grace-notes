@@ -210,12 +210,12 @@
         }
       }
     },
-    "Abundance means every chip is filled, and you have added reading notes and reflections for today." : {
+    "Abundance means every spot is filled in Gratitudes, Needs, and People, and you have added reading notes and reflections for today." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Abundance means every chip is filled, and you have added reading notes and reflections for today."
+            "value" : "Abundance means every spot is filled in Gratitudes, Needs, and People, and you have added reading notes and reflections for today."
           }
         },
         "zh-Hans" : {
@@ -307,18 +307,18 @@
         }
       }
     },
-    "AI features can help with chip labels and Review insights when you want a little more support." : {
+    "AI features can help with short labels and Review insights when you want a little more support." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "AI features can help with chip labels and Review insights when you want a little more support."
+            "value" : "AI features can help with short labels and Review insights when you want a little more support."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "需要多一点帮忙时，AI 可以帮你起草小标签、帮助生成「回顾」里的洞察。"
+            "value" : "需要多一点帮忙时，AI 可以帮你起短标签、丰富「回顾」里的洞察。"
           }
         }
       }
@@ -371,18 +371,18 @@
         }
       }
     },
-    "Almost ready. Bringing your journal space online..." : {
+    "Almost ready. Bringing your Grace Notes space online..." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Almost ready. Bringing your grace note space online..."
+            "value" : "Almost ready. Bringing your Grace Notes space online..."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "快准备好了，正在启动你的感恩记……"
+            "value" : "快好了，正在把你的感恩记接上网络……"
           }
         }
       }
@@ -751,7 +751,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Storage: your journal uses iCloud sync from this device."
+            "value" : "Storage: Grace Notes uses iCloud sync from this device."
           }
         },
         "zh-Hans" : {
@@ -946,7 +946,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saves all journal entries to a file. To bring entries back, use a Grace Notes backup file."
+            "value" : "Saves all your Grace Notes entries to a file. To bring entries back, use a Grace Notes backup file."
           }
         },
         "zh-Hans" : {
@@ -995,7 +995,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Each calendar day in the file replaces your journal entry for that day if one exists; otherwise a new entry is added. Large imports may take a while to sync with iCloud."
+            "value" : "Each calendar day in the file replaces your entry for that day if one exists; otherwise a new entry is added. Large imports may take a while to sync with iCloud."
           }
         },
         "zh-Hans" : {
@@ -1123,7 +1123,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This backup has too many journal days to import in one go."
+            "value" : "This backup has too many days of entries to import in one go."
           }
         },
         "zh-Hans" : {
@@ -1317,7 +1317,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your journal syncs to iCloud from this device."
+            "value" : "Grace Notes syncs to iCloud from this device."
           }
         },
         "zh-Hans" : {
@@ -1773,12 +1773,12 @@
         }
       }
     },
-    "Harvest means every chip slot is filled—five gratitudes, five needs, and five people. Add reading notes and reflections to reach Abundance." : {
+    "Harvest means every spot is filled—five gratitudes, five needs, and five people. Add reading notes and reflections to reach Abundance." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Harvest means every chip slot is filled—five gratitudes, five needs, and five people. Add reading notes and reflections to reach Abundance."
+            "value" : "Harvest means every spot is filled—five gratitudes, five needs, and five people. Add reading notes and reflections to reach Abundance."
           }
         },
         "zh-Hans" : {
@@ -1871,19 +1871,19 @@
         }
       }
     },
-    "iCloud sync can keep your journal available across your devices. You can enable it in Settings whenever you're ready." : {
+    "iCloud sync can keep Grace Notes available across your devices. You can enable it in Settings whenever you're ready." : {
       "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "iCloud sync can keep your journal available across your devices. You can enable it in Settings whenever you're ready."
+            "value" : "iCloud sync can keep Grace Notes available across your devices. You can enable it in Settings whenever you're ready."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "iCloud 同步可以让感恩记在你的设备之间保持可用。准备好了随时在设置里打开。"
+            "value" : "iCloud 同步可以让感恩记在你的设备间保持同步。准备好了随时在「设置」里打开。"
           }
         }
       }
@@ -2154,12 +2154,12 @@
         }
       }
     },
-    "Keep this journal with you" : {
+    "Keep Grace Notes with you" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Keep this journal with you"
+            "value" : "Keep Grace Notes with you"
           }
         },
         "zh-Hans" : {
@@ -2492,34 +2492,34 @@
         }
       }
     },
-    "Opens this day's journal entry." : {
+    "Opens that day's entry." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Opens this day's grace note."
+            "value" : "Opens that day's entry."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打开当天的感恩记。"
+            "value" : "打开该日的记录。"
           }
         }
       }
     },
-    "Opens Today and starts the guided journal path." : {
+    "Opens Today and starts the guided first entry." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Opens Today and starts the guided journal path."
+            "value" : "Opens Today and starts the guided first entry."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打开「今天」，开始引导式记录。"
+            "value" : "打开「今天」，开始引导式第一条记录。"
           }
         }
       }
@@ -2593,13 +2593,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "When you’re ready, cloud AI can help with short chip labels and Review—use the toggle below; you’ll find more in Settings."
+            "value" : "When you’re ready, cloud AI can help with short labels and Review—use the toggle below; you’ll find more in Settings."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "需要时，云端 AI 可以帮你起小标签、写「回顾」——在下方开关即可，细节可到「设置」里看。"
+            "value" : "需要时，云端 AI 可以帮你起短标签、丰富「回顾」——在下方打开开关即可，更多选项在「设置」。"
           }
         }
       }
@@ -2609,13 +2609,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You’ve taken the first full step on Today. Keep writing at your own pace—there’s more room whenever you want it."
+            "value" : "You’ve taken the first full step on Today. Keep writing in Grace Notes at your own pace—there’s more room whenever you want it."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你已经在「今天」迈出了完整的第一步。按自己的节奏写就好——想多写的时候，自然会有更多空间。"
+            "value" : "你已经在「今天」迈出了完整的第一步。按自己的节奏在感恩记里写就好——想多写的时候，自然会有更多空间。"
           }
         }
       }
@@ -2924,18 +2924,18 @@
         }
       }
     },
-    "Reading Notes open after the chip rows are full." : {
+    "Reading Notes open after Gratitudes, Needs, and People are full." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reading Notes open after the chip rows are full."
+            "value" : "Reading Notes open after Gratitudes, Needs, and People are full."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "小标签行都填满后，即可写阅读笔记。"
+            "value" : "感恩的事、需要的事和牵挂的人都写满后，即可写阅读笔记。"
           }
         }
       }
@@ -2988,18 +2988,18 @@
         }
       }
     },
-    "Reflections open after the chip rows are full." : {
+    "Reflections open after Gratitudes, Needs, and People are full." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reflections open after the chip rows are full."
+            "value" : "Reflections open after Gratitudes, Needs, and People are full."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "小标签行都填满后，即可写反思。"
+            "value" : "感恩的事、需要的事和牵挂的人都写满后，即可写反思。"
           }
         }
       }
@@ -3364,7 +3364,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Turn on Summarise and Insights to check connection status."
+            "value" : "Turn on Summarize and Insights to check connection status."
           }
         },
         "zh-Hans" : {
@@ -3396,7 +3396,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Summarise and Insights"
+            "value" : "Summarize and Insights"
           }
         },
         "zh-Hans" : {
@@ -3914,18 +3914,18 @@
         }
       }
     },
-    "This only changes the chip label." : {
+    "This only changes the short label." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This only changes the chip label."
+            "value" : "This only changes the short label."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这只会更改标签文本。"
+            "value" : "这只会改短标签。"
           }
         }
       }
@@ -4074,18 +4074,18 @@
         }
       }
     },
-    "Unable to save your journal entry." : {
+    "Unable to save your entry." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unable to save your grace note."
+            "value" : "Unable to save your entry."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法保存感恩记。"
+            "value" : "无法保存记录。"
           }
         }
       }
@@ -4188,12 +4188,12 @@
         }
       }
     },
-    "We are setting up your private journal space..." : {
+    "We are setting up your private Grace Notes space..." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "We are setting up your private grace note space..."
+            "value" : "We are setting up your private Grace Notes space..."
           }
         },
         "zh-Hans" : {
@@ -4220,12 +4220,12 @@
         }
       }
     },
-    "We couldn't finish setting up your journal space. Please try again." : {
+    "We couldn't finish setting up your Grace Notes space. Please try again." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "We couldn't finish setting up your grace note space. Please try again."
+            "value" : "We couldn't finish setting up your Grace Notes space. Please try again."
           }
         },
         "zh-Hans" : {
@@ -4448,19 +4448,19 @@
         }
       }
     },
-    "When you want a little help with chip labels or Review, you can explore AI options in Settings." : {
+    "When you want a little help with short labels or Review, you can explore AI options in Settings." : {
       "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "When you want a little help with chip labels or Review, you can explore AI options in Settings."
+            "value" : "When you want a little help with short labels or Review, you can explore AI options in Settings."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "若想为小标签或回顾多要一点帮助，可以在设置里了解 AI 相关选项。"
+            "value" : "若想为短标签或「回顾」多要一点帮助，可以到「设置」里看看 AI 相关选项。"
           }
         }
       }
@@ -4889,18 +4889,18 @@
         }
       }
     },
-    "You've filled the chip rows. Add reading notes and reflections when you're ready for Abundance." : {
+    "You've filled Gratitudes, Needs, and People. Add reading notes and reflections when you're ready for Abundance." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You've filled the chip rows. Add reading notes and reflections when you're ready for Abundance."
+            "value" : "You've filled Gratitudes, Needs, and People. Add reading notes and reflections when you're ready for Abundance."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "小标签行都填满了。想走向「满溢」时，再写阅读笔记和反思就好。"
+            "value" : "感恩的事、需要的事和牵挂的人都写满了。想走向「满溢」时，再写阅读笔记和反思就好。"
           }
         }
       }
@@ -4937,29 +4937,29 @@
         }
       }
     },
-    "You've taken the first full step on Today. Keep journaling at your own pace—there's more room when you're ready." : {
+    "You've taken the first full step on Today. Keep writing in Grace Notes at your own pace—there's more room when you're ready." : {
       "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You've taken the first full step on Today. Keep journaling at your own pace—there's more room when you're ready."
+            "value" : "You've taken the first full step on Today. Keep writing in Grace Notes at your own pace—there's more room when you're ready."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你已经在「今天」迈出了完整的第一步。按自己的节奏写下去就好——准备好了再往里添也可以。"
+            "value" : "你已经在「今天」迈出了完整的第一步。按自己的节奏在感恩记里写就好——想多写的时候，自然会有更多空间。"
           }
         }
       }
     },
-    "Your first Harvest—you filled all fifteen chip slots today. Add reading notes and reflections when you're ready for Abundance." : {
+    "Your first Harvest—you filled all fifteen spots today. Add reading notes and reflections when you're ready for Abundance." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your first Harvest—you filled all fifteen chip slots today. Add reading notes and reflections when you're ready for Abundance."
+            "value" : "Your first Harvest—you filled all fifteen spots today. Add reading notes and reflections when you're ready for Abundance."
           }
         },
         "zh-Hans" : {

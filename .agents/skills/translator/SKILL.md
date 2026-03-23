@@ -23,6 +23,7 @@ Provide focused string recommendations or direct localization edits. When handin
 
 ## Decision Checklist
 
+- English source strings use **American English** spelling.
 - Match the app tone: calm, warm, supportive, and trustworthy.
 - Prefer `感恩记` over `日记` for the product or journal concept.
 - Keep category language consistent: `感恩的事`, `需要的事`, `牵挂的人`.

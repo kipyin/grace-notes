@@ -66,7 +66,7 @@ struct JournalUnlockToastView: View {
         case .firstFifteenChipHarvest:
             return String(
                 // swiftlint:disable:next line_length
-                localized: "Your first Harvest—you filled all fifteen chip slots today. Add reading notes and reflections when you're ready for Abundance."
+                localized: "Your first Harvest—you filled all fifteen spots today. Add reading notes and reflections when you're ready for Abundance."
             )
         case .firstFifteenChipHarvestWithFullRhythm:
             return String(

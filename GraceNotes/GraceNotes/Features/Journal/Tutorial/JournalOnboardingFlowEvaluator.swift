@@ -184,11 +184,11 @@ private extension JournalOnboardingFlowEvaluator {
     }
 
     static func lockedNotesState() -> JournalOnboardingSectionState {
-        .locked(reason: String(localized: "Reading Notes open after the chip rows are full."))
+        .locked(reason: String(localized: "Reading Notes open after Gratitudes, Needs, and People are full."))
     }
 
     static func lockedReflectionsState() -> JournalOnboardingSectionState {
-        .locked(reason: String(localized: "Reflections open after the chip rows are full."))
+        .locked(reason: String(localized: "Reflections open after Gratitudes, Needs, and People are full."))
     }
 
     static func firstGratitudePresentation() -> JournalOnboardingPresentation {
@@ -272,7 +272,7 @@ private extension JournalOnboardingFlowEvaluator {
             title: String(localized: "Harvest"),
             message: String(
                 // swiftlint:disable:next line_length
-                localized: "You've filled the chip rows. Add reading notes and reflections when you're ready for Abundance."
+                localized: "You've filled Gratitudes, Needs, and People. Add reading notes and reflections when you're ready for Abundance."
             ),
             states: chipSectionPresentation(
                 chipState: .available,
