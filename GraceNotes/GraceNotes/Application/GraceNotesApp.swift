@@ -30,12 +30,7 @@ struct GraceNotesApp: App {
         let isXCTestSession = processInfo.environment["XCTestConfigurationFilePath"] != nil
         let isUITestBundle = processInfo.environment["XCTestBundlePath"]?.contains("UITests") == true
         let hasUITestLaunchArgument = processInfo.arguments.contains("-ui-testing")
-        let hasUITestEnvironmentFlag = processInfo.environment["FIVECUBED_UI_TESTING"]
-            .map { value in
-                let normalizedValue = value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-                return normalizedValue == "1" || normalizedValue == "true" || normalizedValue == "yes"
-            } ?? false
-        isRunningUITests = isUITestBundle || hasUITestLaunchArgument || hasUITestEnvironmentFlag
+        isRunningUITests = isUITestBundle || hasUITestLaunchArgument
         isRunningUnitTests = isXCTestSession && !isRunningUITests
 
         if isRunningUITests, processInfo.arguments.contains("-reset-journal-tutorial") {
