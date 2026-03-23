@@ -4,6 +4,9 @@
 
 Patch on the 0.5.x line: version and build bump plus Xcode packaging defaults carried from local workspace changes.
 
+### Added
+- Journal: **one-time upgrade orientation** on the first launch of **0.5.1** after an older marketing version (e.g. 0.5.0). Users still below **Seed** on Today keep the full guided chip path; users **at or above Seed** see the post-Seed settings-oriented journey **without** the Seed congratulations page. Launch tracks `lastLaunchedMarketingVersion`; migration into `completedGuidedJournal` is deferred until Today’s completion level is known for that cohort.
+
 ### Changed
 - String Catalog: additional **en** / **zh-Hans** entries for previously empty keys; Simplified Chinese copy refined for onboarding, Abundance meaning, and AI onboarding lines. Info.plist **Save to Photos** usage description uses **感恩记** and consistent 你/你的 tone (`zh-Hans`).
 
