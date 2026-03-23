@@ -34,7 +34,7 @@ final class ICloudSyncPreferenceResolverTests: XCTestCase {
 
     func test_resolvedCloudSyncEnabled_whenCompletedOnboarding_preservesEnabled() {
         let defaults = makeIsolatedDefaults()
-        defaults.set(true, forKey: "hasCompletedOnboarding")
+        defaults.set(true, forKey: FirstRunOnboardingStorageKeys.completed)
 
         let resolvedValue = ICloudSyncPreferenceResolver.resolvedCloudSyncEnabled(using: defaults)
 

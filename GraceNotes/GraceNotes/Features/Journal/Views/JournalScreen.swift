@@ -447,32 +447,27 @@ private extension JournalScreen {
             isReflectionsFocused
     }
 
+    private var onboardingSuggestionContext: JournalOnboardingSuggestionContext {
+        JournalOnboardingSuggestionContext(
+            entryDate: entryDate,
+            hasCelebratedFirstSeed: tutorialProgress.hasCelebratedFirstSeed,
+            hasCelebratedFirstHarvest: tutorialProgress.hasCelebratedFirstHarvest,
+            dismissedRemindersSuggestion: dismissedRemindersSuggestion,
+            openedRemindersSuggestion: openedRemindersSuggestion,
+            hasConfiguredReminderTime: hasConfiguredReminderTime,
+            dismissedAISuggestion: dismissedAISuggestion,
+            openedAISuggestion: openedAISuggestion,
+            aiFeaturesEnabled: aiFeaturesEnabled,
+            isCloudApiKeyConfigured: ApiSecrets.isCloudApiKeyConfigured,
+            hasCompletedGuidedJournal: hasCompletedGuidedJournal,
+            dismissedICloudSuggestion: dismissedICloudSuggestion,
+            openedICloudSuggestion: openedICloudSuggestion,
+            isICloudSyncEnabled: isICloudSyncEnabled
+        )
+    }
+
     private var onboardingSuggestion: JournalOnboardingSuggestion? {
-        guard entryDate == nil else { return nil }
-
-        if tutorialProgress.hasCelebratedFirstSeed,
-           !dismissedRemindersSuggestion,
-           !openedRemindersSuggestion,
-           !hasConfiguredReminderTime {
-            return .reminders
-        }
-
-        if tutorialProgress.hasCelebratedFirstHarvest,
-           !dismissedAISuggestion,
-           !openedAISuggestion,
-           !aiFeaturesEnabled,
-           ApiSecrets.isCloudApiKeyConfigured {
-            return .aiFeatures
-        }
-
-        if hasCompletedGuidedJournal,
-           !dismissedICloudSuggestion,
-           !openedICloudSuggestion,
-           !isICloudSyncEnabled {
-            return .iCloudSync
-        }
-
-        return nil
+        JournalOnboardingSuggestionEvaluator.currentSuggestion(context: onboardingSuggestionContext)
     }
 
     private var aiFeaturesEnabled: Bool {
@@ -637,6 +632,10 @@ private extension JournalScreen {
     }
 
     private func openSettings(for suggestion: JournalOnboardingSuggestion) {
+        let authorized = JournalOnboardingSuggestionEvaluator.currentSuggestion(
+            context: onboardingSuggestionContext
+        )
+        guard authorized == suggestion else { return }
         markSuggestionOpened(suggestion)
         appNavigation.openSettings(target: settingsTarget(for: suggestion))
     }

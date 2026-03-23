@@ -405,6 +405,7 @@ private extension SettingsScreen {
         }
     }
 
+    /// Scroll targets from `AppNavigationModel` are expected to be set by validated callers (e.g. journal onboarding).
     func focusSettingsTarget(_ target: SettingsScrollTarget, proxy: ScrollViewProxy) {
         settingsHighlightDismissTask?.cancel()
         withAnimation(.easeInOut(duration: 0.24)) {
