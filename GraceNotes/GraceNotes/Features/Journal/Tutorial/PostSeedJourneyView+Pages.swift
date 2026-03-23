@@ -3,7 +3,7 @@ import SwiftUI
 extension PostSeedJourneyView {
     var pageIndicatorRow: some View {
         HStack(spacing: 6) {
-            ForEach(0 ... lastPageIndex, id: \.self) { index in
+            ForEach(firstPageIndex ... lastPageIndex, id: \.self) { index in
                 Circle()
                     .fill(index == pageIndex ? AppTheme.accent : AppTheme.textMuted.opacity(0.35))
                     .frame(width: index == pageIndex ? 8 : 6, height: index == pageIndex ? 8 : 6)
@@ -22,8 +22,8 @@ extension PostSeedJourneyView {
             String(
                 format: String(localized: "PostSeedJourney.pageIndicator"),
                 locale: .current,
-                pageIndex + 1,
-                lastPageIndex + 1
+                pageIndex - firstPageIndex + 1,
+                lastPageIndex - firstPageIndex + 1
             )
         )
     }

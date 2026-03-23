@@ -4,80 +4,78 @@ role: QA Reviewer
 status: in_progress
 updated_at: 2026-03-23
 related_issue: 71
-related_pr: 79
+related_pr: (branch work; orientation 0.5.1 cohort)
 ---
 
-# QA — PR #79 vs `release/0.5.1` (reevaluation)
+# QA — Guided onboarding + 0.5.1 upgrade orientation
 
 ## Context
 
-- PR [#79](https://github.com/kipyin/grace-notes/pull/79) → base `release/0.5.1`; epic [#71](https://github.com/kipyin/grace-notes/issues/71).
-- Agent log: [testing.md](testing.md) (no initiative `brief.md` / `architecture.md` for #71; intent from GitHub epic + code).
-- **Evidence this pass**: full `xcodebuild test` **succeeded** on `platform=iOS Simulator,name=iPhone 15,OS=17.5` (2026-03-23). PR GitHub rollup: Cursor automation check **SUCCESS** (still no separate hosted xcodebuild CI in rollup).
+- **Strategist / Architect intent:** Onboarding / first-week orientation audit (locked: `0.5.1` anchor, one-time upgrade orientation, Seed branch below vs at/above Seed, no silent settings changes, new-install defaults off with UI recommendations).
+- **Code reviewed:** `AppLaunchVersionTracker`, `MarketingVersion`, `JournalOnboardingProgress` (migration + `pending051*` branch), `GraceNotesApp` init order, `JournalScreen` (`evaluatePostSeedJourneyIfNeeded`, `completePostSeedJourney`, `postSeedJourneySkipsCongratulations`), `PostSeedJourneyView` (`skipsCongratulationsPage`), `ICloudSyncPreferenceResolver` onboarding key list.
+- **Agent log:** [testing.md](testing.md) (updated 2026-03-23 to match suggestion behavior after post-Seed finish).
+- **Automated evidence:** Full `xcodebuild test` green on `platform=iOS Simulator,name=iPhone 15,OS=17.5` (includes `Orientation051LaunchTests`, `MarketingVersionTests`).
 
 ## Requirement coverage
 
-- **Behavior-first first journal**: `JournalOnboardingFlowEvaluator` + `JournalScreen` locking/focus; covered by `JournalOnboardingFlowEvaluatorTests`.
-- **Post–Seed journey**: `PostSeedJourneyView`; presented at Seed on Today; **UITests skip the cover** via `ProcessInfo.graceNotesIsRunningUITests` so automated Today flows stay stable — product path still needs manual check in [testing.md](testing.md).
-- **Milestone suggestions → Settings**: `JournalOnboardingSuggestionEvaluator`, `AppNavigationModel`, `JournalScreen.openSettings(for:)`; evaluator unit-tested; navigation not UI-automated end-to-end.
-- **iCloud default / upgrade continuity**: `ICloudSyncPreferenceResolver` + `PersistenceController`; unit tests for main branches; not every continuity key individually asserted.
+| Intent (locked plan) | Implementation | Verdict |
+|----------------------|----------------|---------|
+| Persist `lastLaunchedMarketingVersion`; first launch on `≥ 0.5.1` after `< 0.5.1` flags one-time upgrade cohort | `AppLaunchVersionTracker.applyLaunch` + `MarketingVersion.orientationReleaseAnchor` | **Met** |
+| Run upgrade detection **before** migration closes guided journal | `GraceNotesApp.init`: `applyLaunch` then `resolvedHasCompletedGuidedJournal` | **Met** |
+| Upgrade: defer `completedGuidedJournal` until Today level known; **below Seed** → full guided; **at/above Seed** → treat guided complete for chip path | `pending051GuidedJournalBranchResolution` + `resolvePending051GuidedJournalBranch` in `.task` | **Met** |
+| Upgraders at/above Seed: orientation **without** Seed congratulations page | `postSeedJourneySkipsCongratulations = upgradePath && hasCompletedGuidedJournal` + `PostSeedJourneyView(skipsCongratulationsPage:)` | **Met** |
+| One-time orientation for that upgrade (not every subsequent launch) | `pending051UpgradeOrientation` cleared in `completePostSeedJourney`; second launch `previous == 0.5.1` skips re-flag | **Met** |
+| UITests / unit tests: do not spuriously flag upgrade | `!ProcessInfo.graceNotesIsRunningUITests` in `applyLaunch` | **Met** |
+| Legacy welcome: upgraders who completed welcome **do not** re-see `OnboardingScreen` | Unchanged `@AppStorage(FirstRunOnboardingStorageKeys.completed)` — **by design** per plan | **Met (product)** |
+| No **silent** flip of reminders / AI / iCloud preferences | Journey controls bind to `@AppStorage`; `completePostSeedJourney` only flips onboarding flags | **Met** |
+| New keys + iCloud “continuity” policy | Keys listed in `ICloudSyncPreferenceResolver.onboardingKeys` | **Met** (heuristic continuity); see risks |
 
-**Gaps vs epic #71**
+**Partial / product follow-up**
 
-- Epic acceptance (“complete sequence without reading tutorial”, a11y, zh/en) still relies on **manual** execution of [testing.md](testing.md).
-- Whether one PR should **close** the whole epic remains a **process** question (#71 may stay open for follow-ups).
+- **Installs with no stored prior marketing version** (e.g. very old build never writing the key): first 0.5.1 launch behaves like **first run** for cohort detection, **not** upgrade — Architect open question remains valid.
+- **Multi-device / backup restore:** same as above; not code-verified here.
 
 ## Behavior and regression risks
 
 | Risk | Severity | Notes |
 |------|-----------|--------|
-| UITest vs real user: post-Seed hidden in UI tests | Medium | Real users still see full-screen journey; regressions there are **not** caught by `JournalUITests`. |
-| `JournalScreen` surface area | Medium | Toasts, hints, onboarding, suggestions share one view — rely on unit tests + manual smoke for integration. |
-| Skip/Done ends guided journal + dismisses suggestions | Low–Med (product) | **Documented as intentional** in `PostSeedJourneyView` and prior Strategist record below. |
-| `fullScreenCover` interactive dismiss | Low | Unverified edge path; low likelihood on phone. |
-| `@AppStorage` key literals vs `JournalTutorialStorageKeys` | Low | Drift risk only. |
-
-**Mitigations verified in code/tests**
-
-- Seed unlock toast suppressed when post-Seed would show (non–UI-test runs).
-- `-reset-journal-tutorial` resets onboarding progress.
-- Today UI tests: stable launch args, English locale, chip accessibility ids, persistence across terminate/launch.
+| `lastLaunchedMarketingVersion` absent on first 0.5.1 open | **Medium** | True upgraders from unversioned storage miss `pending051UpgradeOrientation`; acceptable only if product accepts “unknown prior = new cohort.” |
+| `ICloudSyncPreferenceResolver` includes new onboarding keys | **Low–Med** | Increases “existing install” surface for default iCloud resolution; aligns with continuity goal; multi-device side effects need explicit product sign-off if KVS ever syncs these keys. |
+| Post-Seed hidden under UITests | **Medium** | Real-user full-screen journey still **not** driven by UI tests; 0.5.1 skip-congrats path **untested** in UI automation. |
+| `JournalScreen` orchestration | **Medium** | Many gates (`pending051`, `hasSeenPostSeedJourney`, completion level); unit tests cover tracker + branch resolution, not full `evaluatePostSeedJourneyIfNeeded` matrix. |
+| Suggestions after Done/Skip | **Low** | Completing journey **does not** set `dismissed*` suggestion flags; cards may still appear — **correct** vs earlier doc typo; aligns with “no hidden dismiss.” |
 
 ## Code quality gaps
 
-- `JournalScreen` still uses string literals for two `journalTutorial.*` keys instead of `JournalTutorialStorageKeys`.
-- Large `PostSeedJourneyView*` stack without dedicated UI tests for pages/toggles.
-- PR title remains generic for reviewers.
+- `evaluatePostSeedJourneyIfNeeded` / `postSeedJourneySkipsCongratulations` deserve a **focused unit test** (pure logic) to lock the upgrade vs standard matrix.
+- `JournalScreen` remains large; acceptable for now but increases merge conflict and review load.
 
 ## Test gaps
 
-- No `XCTest`/`UITest` for post-Seed pages, Skip/Done, or in-journey toggles.
-- `ICloudSyncPreferenceResolver`: individual continuity keys not each unit-tested.
-- No automated test for suggestion tap → Settings scroll/highlight.
-- Two `JournalUITests` remain **skipped** (timeline row exposure), unrelated to #71 but limits regression signal on Review navigation.
+- No XCTest asserting **presentation** rules for post-Seed (standard vs upgrade, skip congrats).
+- No automated test for `applyLaunch` when `previous` is missing but other legacy keys imply “old user” (if product wants that cohort).
+- Manual matrix in Architect close criteria (0.5.0→0.5.1 below/above Seed, second launch, 0.5.1→0.5.2): **not** all reflected in [testing.md](testing.md) yet — **Test Lead** to extend checklist.
 
 ## Pass / fail recommendation
 
-**Pass (automated merge gate)** — full scheme **TEST SUCCEEDED** on iPhone 15 / iOS 17.5 Simulator; unit + executed UI tests green.
+**Pass (implementation vs locked 0.5.1 onboarding intent)** — version gate, init order, Seed branch, skip-congrats path, and preference boundaries match the audit. Automated suite green on recorded simulator destination.
 
-**Conditional** on **release** until: [testing.md](testing.md) manual smokes are run (post-Seed, Settings deep links, fresh iCloud default), and **Translator** signs off **zh-Hans** if 0.5.1 ships localized copy.
+**Conditional for release:** Execute expanded **manual** matrix for upgrade cohorts; confirm **zh-Hans** for any new/changed copy; resolve **nil previous version** policy with Strategist if support tickets suggest missed orientations.
 
 ## Decision
 
-- **Merge / CI automation**: **Pass** (objective: `xcodebuild test` green as above).
-- **Full epic #71 acceptance**: **Open** — complete manual checklist + localization as above.
-
-## Strategist record — Skip / Done on post–Seed journey
-
-**Product-as-coded:** Skip or Done ends the full-screen journey **and** the guided tutorial (`hasCompletedGuidedJournal`), and dismisses milestone suggestion flags — explicit opt-out. Change requires **Builder** + **Strategist** if Ripening→Abundance guidance must continue after dismiss.
+- **Merge / CI (current tree):** **Pass** — objective test signal + code review above.
+- **Ship / epic closure:** **Conditional** — manual 0.5.1 cohort matrix + localization.
 
 ## Open questions
 
-- Close #71 entirely vs leave open for child items?
-- Add UI tests that **drive** post-Seed (not only skip under `graceNotesIsRunningUITests`)?
+- Should a **missing** `lastLaunchedMarketingVersion` on 0.5.1 first launch still classify as **upgrade** when strong legacy signals exist (e.g. `hasCompletedOnboarding`)?
+- Do any onboarding keys need **explicit non-sync** documentation for multi-device?
+- Add UI or unit tests for `evaluatePostSeedJourneyIfNeeded`?
 
 ## Next owner
 
-- **Test Lead**: Run and tick off [testing.md](testing.md); note date in that file.
-- **Translator**: zh-Hans spot-check for new strings.
-- **Release Manager**: Treat automated gate as satisfied; track manual/translation for ship checklist.
+- **Test Lead:** Extend [testing.md](testing.md) with 0.5.1 upgrade scenarios (below Seed / at Seed / above Seed / second launch); run and date.
+- **Builder:** Optional `JournalScreen` evaluation logic unit tests.
+- **QA Reviewer (follow-up):** Re-pass after manual matrix is ticked.
+- **Release Manager:** Align `release-0-5-1-patch` checklist with this QA.

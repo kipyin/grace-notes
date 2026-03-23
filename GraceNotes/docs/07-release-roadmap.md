@@ -1,10 +1,10 @@
 # Grace Notes Release Roadmap
 
-Date: 2026-03-22
+Date: 2026-03-23
 
 This roadmap turns the strategic priority stack into a release sequence grounded in the current open issue set. For **shipped** scope detail, treat `CHANGELOG.md` as the source of truth and keep this document aligned when tagging releases.
 
-**GitHub milestones:** Open product issues on [kipyin/grace-notes](https://github.com/kipyin/grace-notes) use milestones that mirror the releases below: `0.5.0 - Insight quality and first-week guidance`, `0.6.0 - Trust and ownership`, `0.7.0 - Activation and flexible depth`, and `0.8.x+ - Streak and calendar refinement`. Internal workflow work (e.g. `#41`) stays off milestones. When you add or retarget issues, update this file and the milestone in the same change.
+**GitHub milestones:** Open product issues on [kipyin/grace-notes](https://github.com/kipyin/grace-notes) use milestones that mirror the releases below: `0.5.0 - Insight quality and first-week guidance`, `0.6.0 - Trust and ownership`, `0.7.0 - Activation and flexible depth`, and `0.8.x+ - Streak and calendar refinement`. Internal workflow work stays off user-facing milestones. When you add or retarget issues, update this file and the milestone in the same change.
 
 ## Roadmap principles
 
@@ -142,15 +142,15 @@ Work tracked on branch `release/0.5.0`.
 - `#40` Review page is still generic even with AI Insights
 - `#39` Fine tune AI prompts for chips
 - `#11` Add a check mark after all 5 entries are complete within a section
-- Guided return and first-week support (hints, coaching, or light onboarding tied to Seed/Harvest and the rhythm)—including `#60` first-run Today tutorial and related unlock feedback where shipped under this line
-- `#67` Align journal completion logic (inProgress / seed / harvest / fullness)
-- `#69` Skip cloud chip summarization when input fits chip unit budget (≤10 units)
-- `#70` Commit chip TextField draft on focus loss (not only Return)
-- `#71` Epic: Guided onboarding (behavior-first) + opt-in defaults (AI, reminders, iCloud)
-- `#73` Onboarding: first journal path (Gratitude → Need → People)
-- `#72` Onboarding: iCloud default off + migration notes
-- `#74` Onboarding: Ripening → Harvest → Abundance guided flow
-- `#75` Onboarding: suggest AI, reminders, iCloud after milestones
+- ~~Guided return and first-week support (hints, coaching, or light onboarding tied to Seed/Harvest and the rhythm)—including `#60` first-run Today tutorial and related unlock feedback where shipped under this line~~
+- ~~`#67` Align journal completion logic (inProgress / seed / harvest / fullness)~~
+- ~~`#69` Skip cloud chip summarization when input fits chip unit budget (≤10 units)~~
+- ~~`#70` Commit chip TextField draft on focus loss (not only Return)~~
+- ~~`#71` Epic: Guided onboarding (behavior-first) + opt-in defaults (AI, reminders, iCloud)~~
+- ~~`#73` Onboarding: first journal path (Gratitude → Need → People)~~
+- ~~`#72` Onboarding: iCloud default off + migration notes~~
+- ~~`#74` Onboarding: Ripening → Harvest → Abundance guided flow~~
+- ~~`#75` Onboarding: suggest AI, reminders, iCloud after milestones~~
 
 **Why now**
 - The strategy review identifies weak return on reflection as the biggest blocker and calls for better first-week guidance.
@@ -163,6 +163,20 @@ Work tracked on branch `release/0.5.0`.
 - AI output remains optional and falls back cleanly to deterministic insights.
 - Completion feedback stays calm and legible inside the current ritual.
 - First-week and return flows feel supportive rather than demanding; users understand how to progress without extra pressure.
+
+## 0.5.1 — Upgrade orientation (installed base)
+
+**Goal:** Users upgrading from `0.5.0` (or any build below `0.5.1`) into `0.5.1` get a **one-time** first-week orientation on the first launch of that version; later launches and later versions do not repeat it unless product adds a new rule.
+
+**Scope in**
+- Version-persisted launch tracking (`lastLaunchedMarketingVersion`) and a pending upgrade-orientation flag
+- **Below Seed** on Today: full behavior-first guided journal, then the existing post-Seed journey (including congratulations)
+- **At or above Seed** on Today: skip chip coaching; post-Seed journey starts on the path/insights pages (no Seed congratulations); finish/skip clears the pending flag
+- No automatic changes to reminders, AI, or iCloud preferences during orientation; completing the journey no longer auto-dismisses Today suggestion banners
+
+**Acceptance intent**
+- Fresh install on `0.5.1` is unchanged relative to `0.5.0` onboarding behavior except as defined by the same first-week flows
+- Upgrade cohort sees orientation exactly once; second launch on `0.5.1` does not replay it
 
 ## 0.6.0 — Trust and ownership
 
@@ -219,7 +233,7 @@ Work tracked on branch `release/0.5.0`.
 
 ## Out of product release scope
 
-- `#41` Enhance agents workflow by incorporating `gh` commands
+- ~~`#41` Enhance agents workflow by incorporating `gh` commands~~
 
 This is internal workflow enablement. Track it outside user-facing release packaging.
 

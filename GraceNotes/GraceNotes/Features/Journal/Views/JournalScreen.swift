@@ -51,7 +51,10 @@ struct JournalScreen: View {
     @State private var unlockToastScrollBaseline: CGFloat?
     @State private var tutorialProgress = JournalTutorialProgress()
     @State private var showPostSeedJourney = false
+    @State private var postSeedJourneySkipsCongratulations = false
     @AppStorage(JournalOnboardingStorageKeys.completedGuidedJournal) private var hasCompletedGuidedJournal = false
+    @AppStorage(JournalOnboardingStorageKeys.pending051UpgradeOrientation)
+    private var pending051UpgradeOrientation = false
     @AppStorage(JournalOnboardingStorageKeys.hasSeenPostSeedJourney) private var hasSeenPostSeedJourney = false
     @AppStorage(JournalOnboardingStorageKeys.dismissedRemindersSuggestion)
     private var dismissedRemindersSuggestion = false
@@ -290,7 +293,10 @@ struct JournalScreen: View {
             Text("We couldn't create a share image right now. Please try again.")
         }
         .fullScreenCover(isPresented: $showPostSeedJourney) {
-            PostSeedJourneyView(onFinish: completePostSeedJourney)
+            PostSeedJourneyView(
+                onFinish: completePostSeedJourney,
+                skipsCongratulationsPage: postSeedJourneySkipsCongratulations
+            )
         }
         .onChange(of: showPostSeedJourney) { _, isPresented in
             guard isPresented else { return }
@@ -381,7 +387,7 @@ struct JournalScreen: View {
                 let suppressSeedUnlockToast = entryDate == nil
                     && newLevel == .seed
                     && !hasSeenPostSeedJourney
-                    && !hasCompletedGuidedJournal
+                    && (!hasCompletedGuidedJournal || pending051UpgradeOrientation)
                 if !suppressSeedUnlockToast {
                     presentUnlockToast(for: newLevel, milestoneHighlight: unlockOutcome.milestoneHighlight)
                 }
@@ -415,6 +421,18 @@ struct JournalScreen: View {
                 viewModel.loadEntry(for: date, using: modelContext)
             } else {
                 viewModel.loadTodayIfNeeded(using: modelContext)
+            }
+            let hadPending051GuidedBranch = UserDefaults.standard.bool(
+                forKey: JournalOnboardingStorageKeys.pending051GuidedJournalBranchResolution
+            )
+            JournalOnboardingProgress.resolvePending051GuidedJournalBranch(
+                todayCompletionLevel: viewModel.completionLevel,
+                using: .standard
+            )
+            if hadPending051GuidedBranch {
+                hasCompletedGuidedJournal = UserDefaults.standard.bool(
+                    forKey: JournalOnboardingStorageKeys.completedGuidedJournal
+                )
             }
             previousCompletionLevel = viewModel.completionLevel
             hasInitializedCompletionTracking = true
@@ -506,22 +524,28 @@ private extension JournalScreen {
         hasCompletedGuidedJournal = true
     }
 
-    /// Presents the one-time post-Seed journey for Today when the user is at Seed and the tutorial is still active.
+    /// One-time post-Seed journey: new users at Seed, or 0.5.1 upgraders from Seed upward.
     private func evaluatePostSeedJourneyIfNeeded(for level: JournalCompletionLevel) {
         guard !ProcessInfo.graceNotesIsRunningUITests else { return }
         guard entryDate == nil else { return }
-        guard level == .seed else { return }
         guard !hasSeenPostSeedJourney else { return }
-        guard !hasCompletedGuidedJournal else { return }
+
+        let seedRank = JournalCompletionLevel.seed.tutorialCompletionRank
+        let atOrAboveSeed = level.tutorialCompletionRank >= seedRank
+
+        let standardPath = level == .seed && !hasCompletedGuidedJournal
+        let upgradePath = pending051UpgradeOrientation && atOrAboveSeed
+
+        guard standardPath || upgradePath else { return }
+
+        postSeedJourneySkipsCongratulations = upgradePath && hasCompletedGuidedJournal
         showPostSeedJourney = true
     }
 
     private func completePostSeedJourney() {
+        pending051UpgradeOrientation = false
         hasSeenPostSeedJourney = true
         hasCompletedGuidedJournal = true
-        dismissedRemindersSuggestion = true
-        dismissedAISuggestion = true
-        dismissedICloudSuggestion = true
         showPostSeedJourney = false
     }
 
