@@ -66,7 +66,7 @@ Provide focused string recommendations or direct localization edits. When handin
   Good Chinese: `记录一件感恩的事，然后继续今天的生活。一次有意义的记录不到两分钟就能完成。`
   Bad Chinese: `记录一条感恩，然后继续你的一天。一次有意义的回顾不到两分钟就能完成。`
 
-- English: `Gentle sections for gratitude, needs, and people-in-mind help you begin without overthinking.`
+- English: `Sections for gratitude, needs, and people-in-mind help you begin without overthinking.`
   Good Chinese: `感恩的事、需要的事和牵挂的人这几个栏目，能帮你不必想太多就开始记录。`
   Bad Chinese: `温和的分区会引导你记录感恩、需要和心中惦记的人，帮助你不必过度思考就能开始。`
 
