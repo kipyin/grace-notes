@@ -2,7 +2,14 @@ import XCTest
 @testable import GraceNotes
 
 final class SummarizerProviderTests: XCTestCase {
+    override func setUp() {
+        super.setUp()
+        // Hosted tests use the app Info.plist; local developer keys must not change these expectations.
+        ApiSecrets.cloudApiKeyOverrideForTesting = "YOUR_KEY_HERE"
+    }
+
     override func tearDown() {
+        ApiSecrets.cloudApiKeyOverrideForTesting = nil
         UserDefaults.standard.removeObject(forKey: SummarizerProvider.useCloudUserDefaultsKey)
         super.tearDown()
     }

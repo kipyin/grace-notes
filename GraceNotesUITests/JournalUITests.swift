@@ -9,19 +9,26 @@ final class JournalUITests: XCTestCase {
     }
 
     /// Apply before every `launch()`; a bare `launch()` after `terminate()` can drop arguments on some OS versions.
-    private func configureUITestLaunch(_ app: XCUIApplication) {
-        app.launchArguments = [
+    private func configureUITestLaunch(
+        _ app: XCUIApplication,
+        resetUITestStore: Bool = true
+    ) {
+        var args = [
             "-ui-testing",
             "-AppleLanguages", "(en)",
             "-AppleLocale", "en_US"
         ]
+        if resetUITestStore {
+            args.append("-grace-notes-reset-uitest-store")
+        }
+        app.launchArguments = args
         app.launchEnvironment["FIVECUBED_UI_TESTING"] = "1"
     }
 
     @MainActor
-    private func launchApp() -> XCUIApplication {
+    private func launchApp(resetUITestStore: Bool = true) -> XCUIApplication {
         let app = XCUIApplication()
-        configureUITestLaunch(app)
+        configureUITestLaunch(app, resetUITestStore: resetUITestStore)
         app.launch()
         XCTAssertTrue(
             app.staticTexts["Gratitudes"].waitForExistence(timeout: 5),
@@ -40,11 +47,16 @@ final class JournalUITests: XCTestCase {
         // Prefer tapping an explicit return key because newline typing can be flaky
         // under some simulator keyboard configurations.
         let returnKey = app.keyboards.buttons["Return"]
-        if returnKey.exists {
+        if returnKey.exists, returnKey.isHittable {
             returnKey.tap()
         } else {
             gratitudeField.typeText("\n")
         }
+
+        XCTAssertTrue(
+            app.buttons["JournalGratitudeChip.0"].waitForExistence(timeout: 15),
+            "Expected submitted gratitude chip before continuing."
+        )
     }
 
     @MainActor
@@ -100,7 +112,7 @@ final class JournalUITests: XCTestCase {
         )
 
         app.terminate()
-        configureUITestLaunch(app)
+        configureUITestLaunch(app, resetUITestStore: false)
         app.launch()
         XCTAssertTrue(
             app.staticTexts["Gratitudes"].waitForExistence(timeout: 10),
@@ -169,7 +181,7 @@ final class JournalUITests: XCTestCase {
         gratitudeField.tap()
         gratitudeField.typeText("Draft gratitude in progress")
 
-        let addButton = app.buttons["Add new item in Gratitudes"].firstMatch
+        let addButton = app.buttons["JournalSectionAdd.gratitude"].firstMatch
         XCTAssertTrue(addButton.waitForExistence(timeout: 5))
         addButton.tap()
 

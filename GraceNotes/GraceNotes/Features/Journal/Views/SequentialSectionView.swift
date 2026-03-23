@@ -3,12 +3,6 @@ import QuartzCore
 import UniformTypeIdentifiers
 import UIKit
 
-private enum ChipReorderAnimation {
-    /// Critically damped: no overshoot on lift/release.
-    static let lift = Animation.spring(response: 0.28, dampingFraction: 1)
-    static let release = Animation.spring(response: 0.3, dampingFraction: 1)
-}
-
 private struct HorizontalScrollMetrics: Equatable {
     var viewportWidth: CGFloat = 0
     var contentWidth: CGFloat = 0
@@ -43,6 +37,8 @@ private enum ChipRowScrollElasticity {
 
 private struct AddChipView: View {
     let sectionTitle: String
+    /// Stable query for UI tests (`XCUIApplication` matches this as the element identifier).
+    let accessibilityIdentifier: String?
     let onTap: () -> Void
 
     var body: some View {
@@ -71,6 +67,7 @@ private struct AddChipView: View {
                 sectionTitle
             )
         )
+        .modifier(ConditionalAccessibilityIdentifier(identifier: accessibilityIdentifier))
     }
 }
 
@@ -108,6 +105,8 @@ struct SequentialSectionView: View {
     let inputAccessibilityIdentifier: String?
     /// When set (e.g. UI tests), chips use identifiers `"\(prefix).\(index)"` for stable XCUITest queries.
     let chipAccessibilityIdentifierPrefix: String?
+    /// When set (e.g. UI tests), the section (+) control exposes this `accessibilityIdentifier`.
+    let addChipAccessibilityIdentifier: String?
     let onboardingState: JournalOnboardingSectionState
     let isTransitioning: Bool
     @Binding var inputText: String
@@ -124,6 +123,9 @@ struct SequentialSectionView: View {
     private static let edgeFeatherWidth: CGFloat = 28
     private static let sectionProgressDotsTrailingInset: CGFloat = 8
     @State private var draggingItemID: UUID?
+    /// Chip UUID that last triggered a live reorder during this drag.
+    /// Skips redundant `dropUpdated` work when indices shift but the finger stays on the same chip.
+    @State private var chipReorderHoverTargetItemID: UUID?
     @State private var chipScrollSnapshot = ChipRowScrollSnapshot(
         metrics: HorizontalScrollMetrics(),
         elasticDeltaX: 0,
@@ -141,6 +143,7 @@ struct SequentialSectionView: View {
         slotCount: Int = 5,
         inputAccessibilityIdentifier: String? = nil,
         chipAccessibilityIdentifierPrefix: String? = nil,
+        addChipAccessibilityIdentifier: String? = nil,
         onboardingState: JournalOnboardingSectionState = .standard,
         isTransitioning: Bool = false,
         inputText: Binding<String>,
@@ -163,6 +166,7 @@ struct SequentialSectionView: View {
         self.slotCount = slotCount
         self.inputAccessibilityIdentifier = inputAccessibilityIdentifier
         self.chipAccessibilityIdentifierPrefix = chipAccessibilityIdentifierPrefix
+        self.addChipAccessibilityIdentifier = addChipAccessibilityIdentifier
         self.onboardingState = onboardingState
         self.isTransitioning = isTransitioning
         self._inputText = inputText
@@ -289,7 +293,11 @@ struct SequentialSectionView: View {
                             chipView(for: item, at: index)
                         }
                         if showAddChip, let addNew = onAddNew {
-                            AddChipView(sectionTitle: title, onTap: addNew)
+                            AddChipView(
+                                sectionTitle: title,
+                                accessibilityIdentifier: addChipAccessibilityIdentifier,
+                                onTap: addNew
+                            )
                         }
                     }
                     .padding(.trailing, AppTheme.spacingRegular)
@@ -511,19 +519,11 @@ struct SequentialSectionView: View {
         )
 
         if let onMoveChip {
-            let isSourceOfDrag = draggingItemID == item.id
             chip
                 .modifier(ConditionalAccessibilityIdentifier(identifier: chipIdentifier))
-                .scaleEffect(reduceMotion || !isSourceOfDrag ? 1 : 0.9)
-                .opacity(reduceMotion || !isSourceOfDrag ? 1 : 0.42)
                 .onDrag {
-                    if reduceMotion {
-                        draggingItemID = item.id
-                    } else {
-                        withAnimation(ChipReorderAnimation.lift) {
-                            draggingItemID = item.id
-                        }
-                    }
+                    chipReorderHoverTargetItemID = nil
+                    draggingItemID = item.id
                     return NSItemProvider(object: item.id.uuidString as NSString)
                 } preview: {
                     chip
@@ -536,6 +536,7 @@ struct SequentialSectionView: View {
                         targetIndex: index,
                         items: items,
                         draggingItemID: $draggingItemID,
+                        hoverTargetItemID: $chipReorderHoverTargetItemID,
                         reduceMotion: reduceMotion,
                         onMoveChip: onMoveChip
                     )
@@ -769,57 +770,102 @@ struct ChipReorderDropDelegate: DropDelegate {
     let targetIndex: Int
     let items: [JournalItem]
     @Binding var draggingItemID: UUID?
+    @Binding var hoverTargetItemID: UUID?
     let reduceMotion: Bool
     let onMoveChip: ((Int, Int) -> Void)?
 
+    /// Indices for `JournalViewModel.moveItem`-compatible `onMoveChip`, or nil when no reorder should run.
+    static func chipReorderMoveParameters(
+        activeDragID: UUID,
+        items: [JournalItem],
+        targetIndex: Int
+    ) -> (source: Int, destination: Int)? {
+        guard items.indices.contains(targetIndex) else { return nil }
+        guard let sourceIndex = items.firstIndex(where: { $0.id == activeDragID }) else { return nil }
+        guard sourceIndex != targetIndex else { return nil }
+        let destinationOffset = targetIndex > sourceIndex ? targetIndex + 1 : targetIndex
+        let noOpOffset = sourceIndex + 1
+        guard destinationOffset != sourceIndex, destinationOffset != noOpOffset else { return nil }
+        return (sourceIndex, destinationOffset)
+    }
+
     func dropEntered(info: DropInfo) {
-        dropEntered()
+        applyLiveReorderIfNeeded()
     }
 
     func dropUpdated(info: DropInfo) -> DropProposal? {
-        dropUpdated()
+        applyLiveReorderIfNeeded()
+        return DropProposal(operation: .move)
     }
 
     func performDrop(info: DropInfo) -> Bool {
         performDrop()
     }
 
-    func dropEntered() {
-        // Intentionally no-op: apply reorder only on successful drop.
-    }
-
-    func dropUpdated() -> DropProposal? {
-        DropProposal(operation: .move)
-    }
-
     func performDrop() -> Bool {
         guard let activeDragID = draggingItemID else { return false }
         guard let onMoveChip else {
-            clearDraggingState(animated: false)
+            clearDraggingState()
             return false
         }
-        guard let sourceIndex = items.firstIndex(where: { $0.id == activeDragID }) else {
-            clearDraggingState(animated: false)
+        guard items.indices.contains(targetIndex) else {
+            clearDraggingState()
             return false
         }
-        if sourceIndex == targetIndex {
-            clearDraggingState(animated: true)
-            return true
+        guard items.contains(where: { $0.id == activeDragID }) else {
+            clearDraggingState()
+            return false
         }
-
-        let destinationOffset = targetIndex > sourceIndex ? targetIndex + 1 : targetIndex
-        onMoveChip(sourceIndex, destinationOffset)
-        clearDraggingState(animated: true)
+        let targetItemID = items[targetIndex].id
+        let liveAlreadyAppliedForThisTarget = hoverTargetItemID == targetItemID
+        defer { clearDraggingState() }
+        if !liveAlreadyAppliedForThisTarget,
+           let params = Self.chipReorderMoveParameters(
+               activeDragID: activeDragID,
+               items: items,
+               targetIndex: targetIndex
+           ) {
+            animateReorder {
+                onMoveChip(params.source, params.destination)
+            }
+        }
         return true
     }
 
-    private func clearDraggingState(animated: Bool) {
-        if animated, !reduceMotion {
-            withAnimation(ChipReorderAnimation.release) {
-                draggingItemID = nil
-            }
-        } else {
-            draggingItemID = nil
+    /// Also invoked from unit tests (`DropInfo` is not publicly constructible).
+    internal func applyLiveReorderIfNeeded() {
+        guard let onMoveChip, let activeDragID = draggingItemID else { return }
+        guard items.indices.contains(targetIndex) else { return }
+        let targetItemID = items[targetIndex].id
+        if activeDragID == targetItemID {
+            hoverTargetItemID = nil
+            return
         }
+        if hoverTargetItemID == targetItemID { return }
+        guard let params = Self.chipReorderMoveParameters(
+            activeDragID: activeDragID,
+            items: items,
+            targetIndex: targetIndex
+        ) else { return }
+
+        animateReorder {
+            onMoveChip(params.source, params.destination)
+        }
+        hoverTargetItemID = targetItemID
+    }
+
+    private func animateReorder(_ updates: () -> Void) {
+        if reduceMotion {
+            updates()
+        } else {
+            withAnimation(.snappy(duration: 0.28)) {
+                updates()
+            }
+        }
+    }
+
+    private func clearDraggingState() {
+        draggingItemID = nil
+        hoverTargetItemID = nil
     }
 }

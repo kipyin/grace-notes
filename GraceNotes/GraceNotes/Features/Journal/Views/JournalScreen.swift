@@ -154,6 +154,9 @@ struct JournalScreen: View {
                         chipAccessibilityIdentifierPrefix: ProcessInfo.graceNotesIsRunningUITests
                             ? "JournalGratitudeChip"
                             : nil,
+                        addChipAccessibilityIdentifier: ProcessInfo.graceNotesIsRunningUITests
+                            ? "JournalSectionAdd.gratitude"
+                            : nil,
                         onboardingState: onboardingPresentation.state(for: .gratitude),
                         isTransitioning: isGratitudeTransitioning,
                         inputText: $gratitudeInput,
@@ -176,6 +179,9 @@ struct JournalScreen: View {
                         placeholder: String(localized: "What do you need today?"),
                         slotCount: JournalViewModel.slotCount,
                         inputAccessibilityIdentifier: "Need 1",
+                        addChipAccessibilityIdentifier: ProcessInfo.graceNotesIsRunningUITests
+                            ? "JournalSectionAdd.need"
+                            : nil,
                         onboardingState: onboardingPresentation.state(for: .need),
                         isTransitioning: isNeedTransitioning,
                         inputText: $needInput,
@@ -198,6 +204,9 @@ struct JournalScreen: View {
                         placeholder: String(localized: "Who are you thinking of today?"),
                         slotCount: JournalViewModel.slotCount,
                         inputAccessibilityIdentifier: "Person 1",
+                        addChipAccessibilityIdentifier: ProcessInfo.graceNotesIsRunningUITests
+                            ? "JournalSectionAdd.person"
+                            : nil,
                         onboardingState: onboardingPresentation.state(for: .person),
                         isTransitioning: isPersonTransitioning,
                         inputText: $personInput,
