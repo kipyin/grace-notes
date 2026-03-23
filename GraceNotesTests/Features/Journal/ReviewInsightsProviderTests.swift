@@ -141,8 +141,8 @@ final class ReviewInsightsProviderTests: XCTestCase {
             cloudGenerator: cloud
         )
         let referenceDate = date(year: 2026, month: 3, day: 18)
-        let expectedWeekStart = date(year: 2026, month: 3, day: 16)
-        let expectedWeekEnd = date(year: 2026, month: 3, day: 23)
+        let expectedWeekStart = date(year: 2026, month: 3, day: 12)
+        let expectedWeekEnd = date(year: 2026, month: 3, day: 19)
 
         let insights = await provider.generateInsights(
             from: threeSeedEntriesInWeek(of: referenceDate),
@@ -240,7 +240,7 @@ final class ReviewInsightsProviderTests: XCTestCase {
     }
 
     private func threeSeedEntriesInWeek(of referenceDate: Date) -> [JournalEntry] {
-        let range = ReviewInsightsCloudEligibility.currentWeekRange(
+        let range = ReviewInsightsCloudEligibility.currentReviewPeriod(
             containing: referenceDate,
             calendar: calendar
         )

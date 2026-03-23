@@ -50,7 +50,7 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
         XCTAssertEqual(insights.recurringNeeds.first?.label, "Rest")
         XCTAssertEqual(insights.recurringNeeds.first?.count, 3)
         XCTAssertTrue(insights.narrativeSummary?.contains("Rest") == true)
-        XCTAssertEqual(insights.weeklyInsights.count, 2)
+        XCTAssertEqual(insights.weeklyInsights.count, 1)
         XCTAssertEqual(insights.weeklyInsights.first?.observation, "You mentioned rest 3 times this week.")
         XCTAssertEqual(insights.weeklyInsights.first?.action, "What can protect your rest tomorrow?")
     }
@@ -90,6 +90,45 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
             XCTFail("Expected invalid payload error")
         } catch let error as NSError {
             XCTAssertFalse(error.localizedDescription.isEmpty)
+        }
+    }
+
+    /// OpenAI-style 200 with no completion choices → `missingContent` (distinct from empty journal context).
+    func test_generateInsights_emptyChoices_throwsMissingContent() async {
+        let generator = CloudReviewInsightsGenerator(
+            apiKey: "test-key",
+            urlSession: urlSession,
+            promptLanguage: .english
+        )
+
+        MockURLProtocol.mockResponse = { _ in
+            let response: [String: Any] = ["choices": []]
+            let data: Data
+            do {
+                data = try JSONSerialization.data(withJSONObject: response)
+            } catch {
+                return (nil, nil, error)
+            }
+            let http = HTTPURLResponse(
+                url: URL(string: "https://example.com")!,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: nil
+            )!
+            return (data, http, nil)
+        }
+
+        do {
+            _ = try await generator.generateInsights(
+                from: threeMeaningfulEntriesInWeekAroundReference(),
+                referenceDate: date(year: 2026, month: 3, day: 18),
+                calendar: calendar
+            )
+            XCTFail("Expected missingContent")
+        } catch let error as CloudReviewInsightsError {
+            XCTAssertEqual(error, .missingContent)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
         }
     }
 
@@ -273,7 +312,7 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
             return XCTFail("Expected prompt content in request")
         }
 
-        XCTAssertTrue(prompt.contains("Ground messages in the provided week context"))
+        XCTAssertTrue(prompt.contains("Ground messages in the provided seven-day context"))
         XCTAssertTrue(prompt.contains("continuityPrompt must be a specific follow-up question"))
     }
 
@@ -304,7 +343,7 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
             return XCTFail("Expected prompt content in request")
         }
 
-        XCTAssertTrue(prompt.contains("下方是本周记录"))
+        XCTAssertTrue(prompt.contains("下方是最近七天的记录"))
         XCTAssertTrue(prompt.contains("只输出合法 JSON"))
     }
 
@@ -410,12 +449,12 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
 }
 
 private extension CloudReviewInsightsGeneratorTests {
-    /// Three seed+ journal rows in the ISO week containing 2026-03-18 (Mon start, `firstWeekday = 2`).
+    /// Three seed+ journal rows in the seven-day review period ending 2026-03-18 (Mar 12–18).
     func threeMeaningfulEntriesInWeekAroundReference() -> [JournalEntry] {
         [
+            makeEntry(on: date(year: 2026, month: 3, day: 16)),
             makeEntry(on: date(year: 2026, month: 3, day: 17)),
-            makeEntry(on: date(year: 2026, month: 3, day: 18)),
-            makeEntry(on: date(year: 2026, month: 3, day: 19))
+            makeEntry(on: date(year: 2026, month: 3, day: 18))
         ]
     }
 
