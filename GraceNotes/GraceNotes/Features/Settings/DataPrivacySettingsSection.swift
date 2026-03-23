@@ -4,6 +4,7 @@ struct DataPrivacySettingsSection: View {
     @Binding var isICloudSyncEnabled: Bool
     @ObservedObject var iCloudAccountState: ICloudAccountStatusModel
     let persistenceRuntimeSnapshot: PersistenceRuntimeSnapshot
+    let highlightedTarget: SettingsScrollTarget?
     let openSystemSettings: () -> Void
 
     var body: some View {
@@ -24,6 +25,8 @@ struct DataPrivacySettingsSection: View {
                 }
             }
             .padding(.vertical, AppTheme.spacingTight / 2)
+            .id(SettingsScrollTarget.dataPrivacy)
+            .settingsTargetHighlight(highlightedTarget == .dataPrivacy)
             importExportRow
                 .padding(.vertical, AppTheme.spacingTight / 2)
         } header: {

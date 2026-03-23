@@ -99,6 +99,8 @@ enum AppTheme {
     static let warmPaperMeta = Font.custom("SourceSerif4Roman-Regular", size: 15, relativeTo: .footnote)
     static let warmPaperMetaEmphasis = Font.custom("SourceSerif4Roman-Regular", size: 15, relativeTo: .footnote)
         .weight(.semibold)
+    /// Supporting copy under meta titles (e.g. path criteria); scales with Dynamic Type caption.
+    static let warmPaperCaption = Font.custom("SourceSerif4Roman-Regular", size: 13, relativeTo: .caption)
 
     // MARK: - Interface sans (Outfit)
 
@@ -132,79 +134,91 @@ enum AppTheme {
 
     static func celebrationVisibleSeconds(for level: JournalCompletionLevel) -> Double {
         switch level {
-        case .quickCheckIn:
-            return 0.65
-        case .standardReflection:
-            return 0.95
-        case .fullFiveCubed:
-            return 1.2
-        case .none:
+        case .soil:
             return 0
+        case .seed:
+            return 0.65
+        case .ripening:
+            return 0.78
+        case .harvest:
+            return 0.95
+        case .abundance:
+            return 1.2
         }
     }
 
     static func celebrationEntranceAnimation(for level: JournalCompletionLevel) -> Animation {
         switch level {
-        case .quickCheckIn:
-            return .easeOut(duration: 0.16)
-        case .standardReflection:
-            return .spring(response: 0.34, dampingFraction: 0.76)
-        case .fullFiveCubed:
-            return .spring(response: 0.42, dampingFraction: 0.68)
-        case .none:
+        case .soil:
             return .easeOut(duration: 0.12)
+        case .seed:
+            return .easeOut(duration: 0.16)
+        case .ripening:
+            return .spring(response: 0.3, dampingFraction: 0.78)
+        case .harvest:
+            return .spring(response: 0.34, dampingFraction: 0.76)
+        case .abundance:
+            return .spring(response: 0.42, dampingFraction: 0.68)
         }
     }
 
     static func celebrationExitAnimation(for level: JournalCompletionLevel) -> Animation {
         switch level {
-        case .quickCheckIn:
-            return .easeOut(duration: 0.14)
-        case .standardReflection:
-            return .easeOut(duration: 0.2)
-        case .fullFiveCubed:
-            return .easeOut(duration: 0.24)
-        case .none:
+        case .soil:
             return .easeOut(duration: 0.12)
+        case .seed:
+            return .easeOut(duration: 0.14)
+        case .ripening:
+            return .easeOut(duration: 0.17)
+        case .harvest:
+            return .easeOut(duration: 0.2)
+        case .abundance:
+            return .easeOut(duration: 0.24)
         }
     }
 
     static func celebrationPulseAnimation(for level: JournalCompletionLevel) -> Animation {
         switch level {
-        case .quickCheckIn:
-            return .easeOut(duration: 0.14)
-        case .standardReflection:
-            return .easeOut(duration: 0.2)
-        case .fullFiveCubed:
-            return .easeOut(duration: 0.24)
-        case .none:
+        case .soil:
             return .easeOut(duration: 0.12)
+        case .seed:
+            return .easeOut(duration: 0.14)
+        case .ripening:
+            return .easeOut(duration: 0.17)
+        case .harvest:
+            return .easeOut(duration: 0.2)
+        case .abundance:
+            return .easeOut(duration: 0.24)
         }
     }
 
     static func unlockToastEntranceAnimation(for level: JournalCompletionLevel) -> Animation {
         switch level {
-        case .quickCheckIn:
-            return .easeOut(duration: 0.22)
-        case .standardReflection:
-            return celebrationEntranceAnimation(for: .standardReflection)
-        case .fullFiveCubed:
-            return celebrationEntranceAnimation(for: .fullFiveCubed)
-        case .none:
+        case .soil:
             return .easeOut(duration: 0.12)
+        case .seed:
+            return .easeOut(duration: 0.22)
+        case .ripening:
+            return celebrationEntranceAnimation(for: .ripening)
+        case .harvest:
+            return celebrationEntranceAnimation(for: .harvest)
+        case .abundance:
+            return celebrationEntranceAnimation(for: .abundance)
         }
     }
 
     static func unlockToastExitAnimation(for level: JournalCompletionLevel) -> Animation {
         switch level {
-        case .quickCheckIn:
-            return .easeOut(duration: 0.2)
-        case .standardReflection:
-            return celebrationExitAnimation(for: .standardReflection)
-        case .fullFiveCubed:
-            return celebrationExitAnimation(for: .fullFiveCubed)
-        case .none:
+        case .soil:
             return .easeOut(duration: 0.12)
+        case .seed:
+            return .easeOut(duration: 0.2)
+        case .ripening:
+            return celebrationExitAnimation(for: .ripening)
+        case .harvest:
+            return celebrationExitAnimation(for: .harvest)
+        case .abundance:
+            return celebrationExitAnimation(for: .abundance)
         }
     }
 }

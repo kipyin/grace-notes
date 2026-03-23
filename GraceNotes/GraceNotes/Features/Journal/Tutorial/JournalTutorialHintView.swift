@@ -14,11 +14,11 @@ enum JournalTutorialHintPresentation {
         dismissedHarvestGuidance: Bool
     ) -> JournalTutorialHintKind? {
         guard entryDate == nil else { return nil }
-        if completionLevel == .none, !dismissedSeedGuidance {
+        if completionLevel == .soil, !dismissedSeedGuidance {
             return .seed
         }
         let fifteenSlots = JournalViewModel.slotCount * 3
-        if completionLevel == .quickCheckIn,
+        if completionLevel == .seed || completionLevel == .ripening,
            chipsFilledCount < fifteenSlots,
            !dismissedHarvestGuidance {
             return .harvest
@@ -63,7 +63,7 @@ struct JournalTutorialHintView: View {
         switch kind {
         case .seed:
             return String(
-                localized: "When you're ready, keep writing—a line in Gratitudes, Needs, and People in Mind is enough to begin. Tap the status above anytime if you want a gentle reminder."
+                localized: "When you're ready, keep writing—a line in Gratitudes, Needs, and People in Mind is enough to begin. Tap the status above anytime if you want a reminder."
             )
         case .harvest:
             return String(

@@ -78,7 +78,7 @@ struct ChipView: View {
                     commitRename()
                 }
             } message: {
-                Text(String(localized: "This only changes the chip label."))
+                Text(String(localized: "This only changes the short label."))
             }
     }
 

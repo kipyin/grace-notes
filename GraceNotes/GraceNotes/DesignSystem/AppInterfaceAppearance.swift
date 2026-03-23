@@ -8,16 +8,39 @@ enum AppInterfaceAppearance {
         configureBarButtonItem()
     }
 
-    private static func scaledOutfitFont(name: String, baseSize: CGFloat, textStyle: UIFont.TextStyle) -> UIFont {
+    /// Scales Outfit with Dynamic Type. Optional `limit` caps the maximum point size at that content size category
+    /// so fixed UIKit chrome (especially stacked tab bar items) does not collide when text is very large.
+    private static func scaledOutfitFont(
+        name: String,
+        baseSize: CGFloat,
+        textStyle: UIFont.TextStyle,
+        maximumForContentSizeCategory limit: UIContentSizeCategory? = nil
+    ) -> UIFont {
         guard let font = UIFont(name: name, size: baseSize) else {
             return UIFont.preferredFont(forTextStyle: textStyle)
         }
-        return UIFontMetrics(forTextStyle: textStyle).scaledFont(for: font)
+        let metrics = UIFontMetrics(forTextStyle: textStyle)
+        guard let limit else {
+            return metrics.scaledFont(for: font)
+        }
+        let limitTraits = UITraitCollection(preferredContentSizeCategory: limit)
+        let maxPointSize = metrics.scaledFont(for: font, compatibleWith: limitTraits).pointSize
+        return metrics.scaledFont(for: font, maximumPointSize: maxPointSize)
     }
 
     private static func configureNavigationBar() {
-        let largeTitleFont = scaledOutfitFont(name: "Outfit-SemiBold", baseSize: 34, textStyle: .largeTitle)
-        let inlineTitleFont = scaledOutfitFont(name: "Outfit-SemiBold", baseSize: 17, textStyle: .headline)
+        let largeTitleFont = scaledOutfitFont(
+            name: "Outfit-SemiBold",
+            baseSize: 34,
+            textStyle: .largeTitle,
+            maximumForContentSizeCategory: .extraExtraLarge
+        )
+        let inlineTitleFont = scaledOutfitFont(
+            name: "Outfit-SemiBold",
+            baseSize: 17,
+            textStyle: .headline,
+            maximumForContentSizeCategory: .extraExtraLarge
+        )
 
         let standard = UINavigationBarAppearance()
         standard.configureWithDefaultBackground()
@@ -37,7 +60,12 @@ enum AppInterfaceAppearance {
     }
 
     private static func configureTabBar() {
-        let tabFont = scaledOutfitFont(name: "Outfit-Regular", baseSize: 10, textStyle: .caption2)
+        let tabFont = scaledOutfitFont(
+            name: "Outfit-Regular",
+            baseSize: 10,
+            textStyle: .caption2,
+            maximumForContentSizeCategory: .large
+        )
 
         let itemAppearance = UITabBarItemAppearance()
         itemAppearance.normal.titleTextAttributes = [.font: tabFont]
@@ -55,7 +83,12 @@ enum AppInterfaceAppearance {
     }
 
     private static func configureBarButtonItem() {
-        let font = scaledOutfitFont(name: "Outfit-Regular", baseSize: 17, textStyle: .body)
+        let font = scaledOutfitFont(
+            name: "Outfit-Regular",
+            baseSize: 17,
+            textStyle: .body,
+            maximumForContentSizeCategory: .extraExtraLarge
+        )
         let barButton = UIBarButtonItem.appearance()
         barButton.setTitleTextAttributes([.font: font], for: .normal)
         barButton.setTitleTextAttributes([.font: font], for: .highlighted)

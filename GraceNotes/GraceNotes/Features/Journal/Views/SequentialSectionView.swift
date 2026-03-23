@@ -3,85 +3,42 @@ import QuartzCore
 import UniformTypeIdentifiers
 import UIKit
 
-private enum ChipReorderMotion {
-    /// Slight overshoot so lift/release feels lively without feeling toy-like.
-    static let liftSpring = Animation.spring(response: 0.3, dampingFraction: 0.62)
-    static let releaseSpring = Animation.spring(response: 0.34, dampingFraction: 0.72)
-}
-
 private struct HorizontalScrollMetrics: Equatable {
     var viewportWidth: CGFloat = 0
     var contentWidth: CGFloat = 0
     var contentOffsetX: CGFloat = 0
 }
 
-// MARK: - Chip row elastic scroll (~±3.4% x, ±1.9% y; reduce motion = off)
+// MARK: - Chip row scroll metrics (elastic stretch disabled; keeps edge masks in sync)
 
 private struct ChipRowScrollSnapshot: Equatable {
     var metrics: HorizontalScrollMetrics
-    /// Added to 1.0 for `scaleEffect` (see `ChipRowScrollElasticity`).
+    /// Added to 1.0 for `scaleEffect`; kept at zero (no rubber-band scaling).
     var elasticDeltaX: CGFloat
     var elasticDeltaY: CGFloat
 }
 
-/// Drives `.animation(nil, value:)` so only elastic scaling is non-animated; chip reorder springs stay intact.
+/// Drives `.animation(nil, value:)` so chip-row scale stays non-animated.
 private struct ChipRowElasticAnimationKey: Equatable {
     var deltaX: CGFloat
     var deltaY: CGFloat
 }
 
 private enum ChipRowScrollElasticity {
-    /// Max horizontal deviation from 1.0 (tuned for a clearly readable stretch).
-    static let maxDeltaX: CGFloat = 0.034
-    /// Max vertical deviation from 1.0.
-    static let maxDeltaY: CGFloat = 0.019
-    /// Speed at which velocity-driven deformation approaches its cap (points / second).
-    static let velocityReference: CGFloat = 750
-    /// Maps overscroll distance into extra deformation; uses a fraction of viewport width.
-    static let overscrollViewportFraction: CGFloat = 0.13
-
-    static func clampedDeltas(deltaX: CGFloat, deltaY: CGFloat) -> (CGFloat, CGFloat) {
-        let clampedX = min(max(deltaX, -maxDeltaX), maxDeltaX)
-        let clampedY = min(max(deltaY, -maxDeltaY), maxDeltaY)
-        return (clampedX, clampedY)
-    }
-
     static func deltas(
-        metrics: HorizontalScrollMetrics,
-        velocityPointsPerSec: CGFloat,
-        isUserDragging: Bool,
-        reduceMotion: Bool
+        metrics _: HorizontalScrollMetrics,
+        velocityPointsPerSec _: CGFloat,
+        isUserDragging _: Bool,
+        reduceMotion _: Bool
     ) -> (CGFloat, CGFloat) {
-        guard !reduceMotion, isUserDragging else { return (0, 0) }
-
-        let viewportWidth = metrics.viewportWidth
-        let contentWidth = metrics.contentWidth
-        let offsetX = metrics.contentOffsetX
-        guard viewportWidth > 0, contentWidth > 0 else { return (0, 0) }
-
-        let maxOffset = max(0, contentWidth - viewportWidth)
-        let overscrollLeading = max(0, -offsetX)
-        let overscrollTrailing = max(0, offsetX - maxOffset)
-        let overscroll = max(overscrollLeading, overscrollTrailing)
-
-        let vNorm = min(max(velocityPointsPerSec / velocityReference, -1), 1)
-        var deltaX = vNorm * (maxDeltaX * 0.9)
-        var deltaY = -abs(vNorm) * (maxDeltaY * 0.92)
-
-        if overscroll > 0.35 {
-            let denom = max(viewportWidth * overscrollViewportFraction, 44)
-            let overscrollFactor = min(1, overscroll / denom)
-            let direction: CGFloat = overscrollLeading >= overscrollTrailing ? -1 : 1
-            deltaX += direction * overscrollFactor * (maxDeltaX * 0.85)
-            deltaY += -overscrollFactor * (maxDeltaY * 0.76)
-        }
-
-        return clampedDeltas(deltaX: deltaX, deltaY: deltaY)
+        (0, 0)
     }
 }
 
 private struct AddChipView: View {
     let sectionTitle: String
+    /// Stable query for UI tests (`XCUIApplication` matches this as the element identifier).
+    let accessibilityIdentifier: String?
     let onTap: () -> Void
 
     var body: some View {
@@ -110,6 +67,7 @@ private struct AddChipView: View {
                 sectionTitle
             )
         )
+        .modifier(ConditionalAccessibilityIdentifier(identifier: accessibilityIdentifier))
     }
 }
 
@@ -124,6 +82,7 @@ private struct ConditionalAccessibilityIdentifier: ViewModifier {
     }
 }
 
+// swiftlint:disable type_body_length
 struct SequentialSectionView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -134,14 +93,27 @@ struct SequentialSectionView: View {
     }
 
     let title: String
+    /// Guided onboarding title shown above the section header (e.g. “Start gently”).
+    let guidanceTitle: String?
+    /// Guided onboarding message shown under `guidanceTitle`.
+    let guidanceMessage: String?
+    /// Optional second line under `guidanceMessage` (e.g. keyboard hint).
+    let guidanceMessageSecondary: String?
     let items: [JournalItem]
     let placeholder: String
     let slotCount: Int
     let inputAccessibilityIdentifier: String?
+    /// When set (e.g. UI tests), chips use identifiers `"\(prefix).\(index)"` for stable XCUITest queries.
+    let chipAccessibilityIdentifierPrefix: String?
+    /// When set (e.g. UI tests), the section (+) control exposes this `accessibilityIdentifier`.
+    let addChipAccessibilityIdentifier: String?
+    let onboardingState: JournalOnboardingSectionState
     let isTransitioning: Bool
     @Binding var inputText: String
     let editingIndex: Int?
     let inputFocus: FocusState<Bool>.Binding?
+    /// Fires when the chip field loses focus; handler ignores empty drafts.
+    let onInputFocusLost: (() -> Void)?
     let onSubmit: () -> Void
     let onChipTap: (Int) -> Void
     let onRenameChip: ((Int, String) -> Void)?
@@ -151,6 +123,9 @@ struct SequentialSectionView: View {
     private static let edgeFeatherWidth: CGFloat = 28
     private static let sectionProgressDotsTrailingInset: CGFloat = 8
     @State private var draggingItemID: UUID?
+    /// Chip UUID that last triggered a live reorder during this drag.
+    /// Skips redundant `dropUpdated` work when indices shift but the finger stays on the same chip.
+    @State private var chipReorderHoverTargetItemID: UUID?
     @State private var chipScrollSnapshot = ChipRowScrollSnapshot(
         metrics: HorizontalScrollMetrics(),
         elasticDeltaX: 0,
@@ -160,14 +135,21 @@ struct SequentialSectionView: View {
 
     init(
         title: String,
+        guidanceTitle: String? = nil,
+        guidanceMessage: String? = nil,
+        guidanceMessageSecondary: String? = nil,
         items: [JournalItem],
         placeholder: String,
         slotCount: Int = 5,
         inputAccessibilityIdentifier: String? = nil,
+        chipAccessibilityIdentifierPrefix: String? = nil,
+        addChipAccessibilityIdentifier: String? = nil,
+        onboardingState: JournalOnboardingSectionState = .standard,
         isTransitioning: Bool = false,
         inputText: Binding<String>,
         editingIndex: Int?,
         inputFocus: FocusState<Bool>.Binding? = nil,
+        onInputFocusLost: (() -> Void)? = nil,
         onSubmit: @escaping () -> Void,
         onChipTap: @escaping (Int) -> Void,
         onRenameChip: ((Int, String) -> Void)? = nil,
@@ -176,14 +158,21 @@ struct SequentialSectionView: View {
         onAddNew: (() -> Void)? = nil
     ) {
         self.title = title
+        self.guidanceTitle = guidanceTitle
+        self.guidanceMessage = guidanceMessage
+        self.guidanceMessageSecondary = guidanceMessageSecondary
         self.items = items
         self.placeholder = placeholder
         self.slotCount = slotCount
         self.inputAccessibilityIdentifier = inputAccessibilityIdentifier
+        self.chipAccessibilityIdentifierPrefix = chipAccessibilityIdentifierPrefix
+        self.addChipAccessibilityIdentifier = addChipAccessibilityIdentifier
+        self.onboardingState = onboardingState
         self.isTransitioning = isTransitioning
         self._inputText = inputText
         self.editingIndex = editingIndex
         self.inputFocus = inputFocus
+        self.onInputFocusLost = onInputFocusLost
         self.onSubmit = onSubmit
         self.onChipTap = onChipTap
         self.onRenameChip = onRenameChip
@@ -243,6 +232,14 @@ struct SequentialSectionView: View {
         return items.count < slotCount
     }
 
+    private var isLockedByGuidance: Bool {
+        onboardingState.isLocked
+    }
+
+    private var isInteractionEnabled: Bool {
+        !isTransitioning && !isLockedByGuidance
+    }
+
     private var canScrollChipsLeft: Bool {
         canScrollLeft(for: chipScrollSnapshot.metrics)
     }
@@ -253,13 +250,40 @@ struct SequentialSectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.spacingRegular) {
-            HStack {
-                Text(title)
-                    .font(AppTheme.warmPaperHeader)
-                    .foregroundStyle(AppTheme.journalTextPrimary)
-                Spacer(minLength: AppTheme.spacingTight)
-                sectionProgressDots
-                    .padding(.trailing, Self.sectionProgressDotsTrailingInset)
+            VStack(alignment: .leading, spacing: AppTheme.spacingTight) {
+                if let guidanceTitle, let guidanceMessage {
+                    VStack(alignment: .leading, spacing: AppTheme.spacingTight) {
+                        Text(guidanceTitle)
+                            .font(AppTheme.warmPaperMetaEmphasis)
+                            .foregroundStyle(AppTheme.accentText)
+                        Text(guidanceMessage)
+                            .font(AppTheme.warmPaperBody)
+                            .foregroundStyle(AppTheme.journalTextPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        if let guidanceMessageSecondary {
+                            Text(guidanceMessageSecondary)
+                                .font(AppTheme.warmPaperBody)
+                                .foregroundStyle(AppTheme.journalTextPrimary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                }
+
+                if let guidanceNote = onboardingState.guidanceNote {
+                    Text(guidanceNote)
+                        .font(AppTheme.warmPaperMeta)
+                        .foregroundStyle(AppTheme.journalTextMuted)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                HStack {
+                    Text(title)
+                        .font(AppTheme.warmPaperHeader)
+                        .foregroundStyle(onboardingState.titleColor)
+                    Spacer(minLength: AppTheme.spacingTight)
+                    sectionProgressDots
+                        .padding(.trailing, Self.sectionProgressDotsTrailingInset)
+                }
             }
 
             if !items.isEmpty || showAddChip {
@@ -269,7 +293,11 @@ struct SequentialSectionView: View {
                             chipView(for: item, at: index)
                         }
                         if showAddChip, let addNew = onAddNew {
-                            AddChipView(sectionTitle: title, onTap: addNew)
+                            AddChipView(
+                                sectionTitle: title,
+                                accessibilityIdentifier: addChipAccessibilityIdentifier,
+                                onTap: addNew
+                            )
                         }
                     }
                     .padding(.trailing, AppTheme.spacingRegular)
@@ -293,7 +321,7 @@ struct SequentialSectionView: View {
                         }
                     }
                 }
-                .allowsHitTesting(!isTransitioning)
+                .allowsHitTesting(isInteractionEnabled)
                 .mask {
                     HStack(spacing: 0) {
                         edgeMask(.leading)
@@ -333,7 +361,7 @@ struct SequentialSectionView: View {
                         .modifier(ConditionalAccessibilityIdentifier(identifier: inputAccessibilityIdentifier))
                         .accessibilityLabel(inputAccessibilityLabel)
                         .accessibilityHint(placeholder)
-                        .disabled(isTransitioning)
+                        .disabled(!isInteractionEnabled)
                 } else {
                     TextField(
                         "",
@@ -350,12 +378,12 @@ struct SequentialSectionView: View {
                         .modifier(ConditionalAccessibilityIdentifier(identifier: inputAccessibilityIdentifier))
                         .accessibilityLabel(inputAccessibilityLabel)
                         .accessibilityHint(placeholder)
-                        .disabled(isTransitioning)
+                        .disabled(!isInteractionEnabled)
                 }
             }
 
         }
-        .opacity(isTransitioning ? 0.78 : 1)
+        .journalOnboardingSectionStyle(onboardingState, isTransitioning: isTransitioning)
         .overlay(alignment: .topTrailing) {
             if isTransitioning {
                 HStack(spacing: 6) {
@@ -381,6 +409,12 @@ struct SequentialSectionView: View {
                         title
                     )
                 )
+            }
+        }
+        .onChange(of: isInputFocused) { wasFocused, isFocused in
+            guard let onInputFocusLost else { return }
+            if wasFocused, !isFocused {
+                onInputFocusLost()
             }
         }
         .onAppear {
@@ -474,6 +508,7 @@ struct SequentialSectionView: View {
 
     @ViewBuilder
     private func chipView(for item: JournalItem, at index: Int) -> some View {
+        let chipIdentifier = chipAccessibilityIdentifierPrefix.map { "\($0).\(index)" }
         let chip = ChipView(
             label: item.displayLabel,
             isTruncated: item.isTruncated,
@@ -484,18 +519,11 @@ struct SequentialSectionView: View {
         )
 
         if let onMoveChip {
-            let isSourceOfDrag = draggingItemID == item.id
             chip
-                .scaleEffect(reduceMotion || !isSourceOfDrag ? 1 : 0.9)
-                .opacity(reduceMotion || !isSourceOfDrag ? 1 : 0.42)
+                .modifier(ConditionalAccessibilityIdentifier(identifier: chipIdentifier))
                 .onDrag {
-                    if reduceMotion {
-                        draggingItemID = item.id
-                    } else {
-                        withAnimation(ChipReorderMotion.liftSpring) {
-                            draggingItemID = item.id
-                        }
-                    }
+                    chipReorderHoverTargetItemID = nil
+                    draggingItemID = item.id
                     return NSItemProvider(object: item.id.uuidString as NSString)
                 } preview: {
                     chip
@@ -508,12 +536,14 @@ struct SequentialSectionView: View {
                         targetIndex: index,
                         items: items,
                         draggingItemID: $draggingItemID,
+                        hoverTargetItemID: $chipReorderHoverTargetItemID,
                         reduceMotion: reduceMotion,
                         onMoveChip: onMoveChip
                     )
                 )
         } else {
             chip
+                .modifier(ConditionalAccessibilityIdentifier(identifier: chipIdentifier))
         }
     }
 
@@ -555,6 +585,8 @@ struct SequentialSectionView: View {
         return remaining > 1
     }
 }
+
+// swiftlint:enable type_body_length
 
 private struct HorizontalScrollMetricsReader: UIViewRepresentable {
     let reduceMotion: Bool
@@ -738,57 +770,102 @@ struct ChipReorderDropDelegate: DropDelegate {
     let targetIndex: Int
     let items: [JournalItem]
     @Binding var draggingItemID: UUID?
+    @Binding var hoverTargetItemID: UUID?
     let reduceMotion: Bool
     let onMoveChip: ((Int, Int) -> Void)?
 
+    /// Indices for `JournalViewModel.moveItem`-compatible `onMoveChip`, or nil when no reorder should run.
+    static func chipReorderMoveParameters(
+        activeDragID: UUID,
+        items: [JournalItem],
+        targetIndex: Int
+    ) -> (source: Int, destination: Int)? {
+        guard items.indices.contains(targetIndex) else { return nil }
+        guard let sourceIndex = items.firstIndex(where: { $0.id == activeDragID }) else { return nil }
+        guard sourceIndex != targetIndex else { return nil }
+        let destinationOffset = targetIndex > sourceIndex ? targetIndex + 1 : targetIndex
+        let noOpOffset = sourceIndex + 1
+        guard destinationOffset != sourceIndex, destinationOffset != noOpOffset else { return nil }
+        return (sourceIndex, destinationOffset)
+    }
+
     func dropEntered(info: DropInfo) {
-        dropEntered()
+        applyLiveReorderIfNeeded()
     }
 
     func dropUpdated(info: DropInfo) -> DropProposal? {
-        dropUpdated()
+        applyLiveReorderIfNeeded()
+        return DropProposal(operation: .move)
     }
 
     func performDrop(info: DropInfo) -> Bool {
         performDrop()
     }
 
-    func dropEntered() {
-        // Intentionally no-op: apply reorder only on successful drop.
-    }
-
-    func dropUpdated() -> DropProposal? {
-        DropProposal(operation: .move)
-    }
-
     func performDrop() -> Bool {
         guard let activeDragID = draggingItemID else { return false }
         guard let onMoveChip else {
-            clearDraggingState(animated: false)
+            clearDraggingState()
             return false
         }
-        guard let sourceIndex = items.firstIndex(where: { $0.id == activeDragID }) else {
-            clearDraggingState(animated: false)
+        guard items.indices.contains(targetIndex) else {
+            clearDraggingState()
             return false
         }
-        if sourceIndex == targetIndex {
-            clearDraggingState(animated: true)
-            return true
+        guard items.contains(where: { $0.id == activeDragID }) else {
+            clearDraggingState()
+            return false
         }
-
-        let destinationOffset = targetIndex > sourceIndex ? targetIndex + 1 : targetIndex
-        onMoveChip(sourceIndex, destinationOffset)
-        clearDraggingState(animated: true)
+        let targetItemID = items[targetIndex].id
+        let liveAlreadyAppliedForThisTarget = hoverTargetItemID == targetItemID
+        defer { clearDraggingState() }
+        if !liveAlreadyAppliedForThisTarget,
+           let params = Self.chipReorderMoveParameters(
+               activeDragID: activeDragID,
+               items: items,
+               targetIndex: targetIndex
+           ) {
+            animateReorder {
+                onMoveChip(params.source, params.destination)
+            }
+        }
         return true
     }
 
-    private func clearDraggingState(animated: Bool) {
-        if animated, !reduceMotion {
-            withAnimation(ChipReorderMotion.releaseSpring) {
-                draggingItemID = nil
-            }
-        } else {
-            draggingItemID = nil
+    /// Also invoked from unit tests (`DropInfo` is not publicly constructible).
+    internal func applyLiveReorderIfNeeded() {
+        guard let onMoveChip, let activeDragID = draggingItemID else { return }
+        guard items.indices.contains(targetIndex) else { return }
+        let targetItemID = items[targetIndex].id
+        if activeDragID == targetItemID {
+            hoverTargetItemID = nil
+            return
         }
+        if hoverTargetItemID == targetItemID { return }
+        guard let params = Self.chipReorderMoveParameters(
+            activeDragID: activeDragID,
+            items: items,
+            targetIndex: targetIndex
+        ) else { return }
+
+        animateReorder {
+            onMoveChip(params.source, params.destination)
+        }
+        hoverTargetItemID = targetItemID
+    }
+
+    private func animateReorder(_ updates: () -> Void) {
+        if reduceMotion {
+            updates()
+        } else {
+            withAnimation(.snappy(duration: 0.28)) {
+                updates()
+            }
+        }
+    }
+
+    private func clearDraggingState() {
+        draggingItemID = nil
+        hoverTargetItemID = nil
     }
 }

@@ -74,6 +74,7 @@ The goal is not maximal abstraction or maximal cleverness. The goal is code that
 - Prefer **boring code over surprising code**. Avoid clever one-liners, operator overloading for non-obvious semantics, or patterns that require deep familiarity to understand.
 - Keep types and extensions **small in concept count**. A file should have one primary responsibility. If a type grows large, split by concern (e.g., separate view modifiers from view logic).
 - Use **clear names** that match the product language. If the UI says "Gratitudes", the code should use `gratitudes`. Prefer `JournalEntry` over `JEntry`, `SequentialSectionView` over `SeqSection`.
+- **User-facing English** (`Localizable.xcstrings`, alerts, permissions, onboarding): use **American English** spelling (e.g. *Summarize*, *color*, *behavior*).
 - Make the **main flow easy to scan**: load data → render UI → handle user action → update state → persist. Keep view bodies readable; extract complex subviews with clear names.
 - Prefer a **single obvious representation** for a piece of data. Avoid bouncing between SwiftData `@Model`, DTOs, and ad hoc tuples unless there is a strong reason. Use `JournalExportPayload` for sharing, not raw `JournalEntry`.
 - Keep comments sparse. Add them when they explain **why** something exists or a non-obvious constraint (e.g., "NL extraction can return nil for very short input"). Do not narrate obvious code.

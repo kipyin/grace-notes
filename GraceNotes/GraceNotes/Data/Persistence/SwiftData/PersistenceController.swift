@@ -12,12 +12,12 @@ final class PersistenceController {
 #if USE_DEMO_DATABASE
         false
 #else
-        cloudSyncEnabled(using: .standard)
+        ICloudSyncPreferenceResolver.resolvedCloudSyncEnabled(using: .standard)
 #endif
     }
 
     static func cloudSyncEnabled(using defaults: UserDefaults) -> Bool {
-        defaults.object(forKey: iCloudSyncEnabledKey) as? Bool ?? true
+        ICloudSyncPreferenceResolver.resolvedCloudSyncEnabled(using: defaults)
     }
 
     let container: ModelContainer
@@ -42,7 +42,18 @@ final class PersistenceController {
         }
     }
 
+    /// When `-grace-notes-reset-uitest-store` is present, deletes the on-disk UI-test store before opening it.
+    /// UI tests otherwise reuse one SwiftData file per session key, so data would accumulate across test methods.
+    static func resetUITestStoreIfRequested() {
+        guard ProcessInfo.processInfo.arguments.contains("-grace-notes-reset-uitest-store") else { return }
+        let url = uiTestStoreURL
+        if FileManager.default.fileExists(atPath: url.path) {
+            try? FileManager.default.removeItem(at: url)
+        }
+    }
+
     static func makeForUITesting() throws -> PersistenceController {
+        resetUITestStoreIfRequested()
         let startupTrace = PerformanceTrace.begin("PersistenceController.makeForUITesting")
         let schema = Schema([JournalEntry.self])
         let configuration = ModelConfiguration(
@@ -153,10 +164,22 @@ final class PersistenceController {
             try? fileManager.createDirectory(at: uiTestDirectory, withIntermediateDirectories: true)
         }
 
-        // Use XCTest configuration path to scope storage per test run.
-        // This keeps relaunches in the same run persistent while preventing
-        // stale data from previous test runs from leaking into current runs.
-        let sessionKey = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] ?? UUID().uuidString
+        // Prefer XCTest's config path so parallel runs stay isolated. After `terminate()` + `launch()`,
+        // that env var is often missing in the app; reuse the last key so relaunch hits the same store.
+        let markerURL = uiTestDirectory.appendingPathComponent("active-uitest-session-key.txt", isDirectory: false)
+        let configPath = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] ?? ""
+        let sessionKey: String
+        if !configPath.isEmpty {
+            sessionKey = configPath
+            try? configPath.write(to: markerURL, atomically: true, encoding: .utf8)
+        } else if let remembered = try? String(contentsOf: markerURL, encoding: .utf8),
+                  !remembered.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            sessionKey = remembered
+        } else {
+            sessionKey = UUID().uuidString
+            try? sessionKey.write(to: markerURL, atomically: true, encoding: .utf8)
+        }
+
         let safeSessionKey = sessionKey
             .replacingOccurrences(of: "/", with: "_")
             .replacingOccurrences(of: ":", with: "_")
@@ -194,6 +217,6 @@ enum PersistenceControllerError: LocalizedError {
     case unableToCreateContainer(Error)
 
     var errorDescription: String? {
-        String(localized: "We couldn't finish setting up your journal space. Please try again.")
+        String(localized: "We couldn't finish setting up your Grace Notes space. Please try again.")
     }
 }

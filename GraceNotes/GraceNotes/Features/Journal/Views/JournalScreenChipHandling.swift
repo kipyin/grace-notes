@@ -22,11 +22,11 @@ enum JournalScreenChipHandling {
         operations: ChipSectionOperations,
         isTransitioning: Binding<Bool>
     ) -> Bool {
-        guard beginTransition(isTransitioning) else { return false }
-        defer { endTransition(isTransitioning) }
-
         let trimmed = input.wrappedValue.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return false }
+
+        guard beginTransition(isTransitioning) else { return false }
+        defer { endTransition(isTransitioning) }
 
         if let index = editingIndex.wrappedValue {
             guard let updatedIndex = operations.updateImmediate(index, input.wrappedValue) else { return false }

@@ -1,8 +1,9 @@
+import SwiftData
 import XCTest
 @testable import GraceNotes
 
 final class JournalCompletionLevelTests: XCTestCase {
-    func test_completionLevel_none_whenEntryIsBlank() {
+    func test_completionLevel_soil_whenEntryIsBlank() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 0,
             needsCount: 0,
@@ -11,10 +12,10 @@ final class JournalCompletionLevelTests: XCTestCase {
             reflections: ""
         )
 
-        XCTAssertEqual(level, .none)
+        XCTAssertEqual(level, .soil)
     }
 
-    func test_completionLevel_none_withSingleGratitudeOnly() {
+    func test_completionLevel_soil_withSingleGratitudeOnly() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 1,
             needsCount: 0,
@@ -23,10 +24,10 @@ final class JournalCompletionLevelTests: XCTestCase {
             reflections: ""
         )
 
-        XCTAssertEqual(level, .none)
+        XCTAssertEqual(level, .soil)
     }
 
-    func test_completionLevel_quickCheckIn_withThreeByThreeByThree() {
+    func test_completionLevel_ripening_withThreeByThreeByThree() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 3,
             needsCount: 3,
@@ -35,10 +36,10 @@ final class JournalCompletionLevelTests: XCTestCase {
             reflections: ""
         )
 
-        XCTAssertEqual(level, .quickCheckIn)
+        XCTAssertEqual(level, .ripening)
     }
 
-    func test_completionLevel_none_withMixedContentButMissingOneChipSection() {
+    func test_completionLevel_soil_withMixedContentButMissingOneChipSection() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 2,
             needsCount: 2,
@@ -47,10 +48,10 @@ final class JournalCompletionLevelTests: XCTestCase {
             reflections: ""
         )
 
-        XCTAssertEqual(level, .none)
+        XCTAssertEqual(level, .soil)
     }
 
-    func test_completionLevel_quickCheckIn_withOneGratitudeOneNeedAndOnePerson() {
+    func test_completionLevel_seed_withOneGratitudeOneNeedAndOnePerson() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 1,
             needsCount: 1,
@@ -59,10 +60,22 @@ final class JournalCompletionLevelTests: XCTestCase {
             reflections: ""
         )
 
-        XCTAssertEqual(level, .quickCheckIn)
+        XCTAssertEqual(level, .seed)
     }
 
-    func test_completionLevel_standardReflection_withFiveByFiveByFiveOnly() {
+    func test_completionLevel_seed_withWeakestSectionTwo() {
+        let level = JournalEntry.completionLevel(
+            gratitudesCount: 5,
+            needsCount: 2,
+            peopleCount: 3,
+            readingNotes: "",
+            reflections: ""
+        )
+
+        XCTAssertEqual(level, .seed)
+    }
+
+    func test_completionLevel_harvest_withFiveByFiveByFiveOnly() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 5,
             needsCount: 5,
@@ -71,10 +84,10 @@ final class JournalCompletionLevelTests: XCTestCase {
             reflections: ""
         )
 
-        XCTAssertEqual(level, .standardReflection)
+        XCTAssertEqual(level, .harvest)
     }
 
-    func test_completionLevel_fullFiveCubed_withCurrentFullCriteria() {
+    func test_completionLevel_abundance_withCurrentFullCriteria() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 5,
             needsCount: 5,
@@ -83,6 +96,62 @@ final class JournalCompletionLevelTests: XCTestCase {
             reflections: "Reflections"
         )
 
-        XCTAssertEqual(level, .fullFiveCubed)
+        XCTAssertEqual(level, .abundance)
+    }
+
+    func test_completionStatusSystemImage_matchesCompletionIconDesign() {
+        XCTAssertEqual(JournalCompletionLevel.soil.completionStatusSystemImage(isEmphasized: false), "circle.dotted")
+        XCTAssertEqual(JournalCompletionLevel.soil.completionStatusSystemImage(isEmphasized: true), "circle.dotted")
+
+        XCTAssertEqual(JournalCompletionLevel.seed.completionStatusSystemImage(isEmphasized: false), "leaf")
+        XCTAssertEqual(JournalCompletionLevel.seed.completionStatusSystemImage(isEmphasized: true), "leaf.fill")
+
+        XCTAssertEqual(JournalCompletionLevel.ripening.completionStatusSystemImage(isEmphasized: false), "tree")
+        XCTAssertEqual(JournalCompletionLevel.ripening.completionStatusSystemImage(isEmphasized: true), "tree.fill")
+
+        XCTAssertEqual(JournalCompletionLevel.harvest.completionStatusSystemImage(isEmphasized: false), "sparkles")
+        XCTAssertEqual(JournalCompletionLevel.harvest.completionStatusSystemImage(isEmphasized: true), "sparkles")
+
+        XCTAssertEqual(JournalCompletionLevel.abundance.completionStatusSystemImage(isEmphasized: false), "sun.max")
+        XCTAssertEqual(JournalCompletionLevel.abundance.completionStatusSystemImage(isEmphasized: true), "sun.max.fill")
+    }
+
+    func test_hasHarvestChips_and_hasAbundanceRhythm_alignWithLevels() throws {
+        let context = try makeInMemoryContext()
+        let items = (1...JournalEntry.slotCount).map { JournalItem(fullText: "x\($0)", chipLabel: nil) }
+        let harvestOnly = JournalEntry(
+            gratitudes: items,
+            needs: items,
+            people: items,
+            readingNotes: "",
+            reflections: ""
+        )
+        let abundance = JournalEntry(
+            gratitudes: items,
+            needs: items,
+            people: items,
+            readingNotes: "Notes",
+            reflections: "Reflections"
+        )
+        context.insert(harvestOnly)
+        context.insert(abundance)
+        try context.save()
+
+        XCTAssertTrue(harvestOnly.hasHarvestChips)
+        XCTAssertTrue(harvestOnly.isComplete)
+        XCTAssertFalse(harvestOnly.hasAbundanceRhythm)
+        XCTAssertEqual(harvestOnly.completionLevel, .harvest)
+
+        XCTAssertTrue(abundance.hasAbundanceRhythm)
+        XCTAssertEqual(abundance.completionLevel, .abundance)
+    }
+
+    private func makeInMemoryContext() throws -> ModelContext {
+        let schema = Schema([JournalEntry.self])
+        let storeURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("GraceNotesCompletionLevelTests-\(UUID().uuidString).store")
+        let configuration = ModelConfiguration(schema: schema, url: storeURL)
+        let container = try ModelContainer(for: schema, configurations: configuration)
+        return ModelContext(container)
     }
 }

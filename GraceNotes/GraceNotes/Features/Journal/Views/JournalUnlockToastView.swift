@@ -53,7 +53,7 @@ struct JournalUnlockToastView: View {
     }
 
     private var shouldPlayIconBounce: Bool {
-        !reduceMotion && (level == .standardReflection || level == .fullFiveCubed)
+        !reduceMotion && (level == .harvest || level == .abundance)
     }
 
     private var message: String {
@@ -66,7 +66,7 @@ struct JournalUnlockToastView: View {
         case .firstFifteenChipHarvest:
             return String(
                 // swiftlint:disable:next line_length
-                localized: "Your first Harvest—you've filled every spot in all three sections today. That's a full reflection."
+                localized: "Your first Harvest—you filled all fifteen spots today. Add reading notes and reflections when you're ready for Abundance."
             )
         case .firstFifteenChipHarvestWithFullRhythm:
             return String(
@@ -76,72 +76,71 @@ struct JournalUnlockToastView: View {
             break
         }
         switch level {
-        case .quickCheckIn:
-            return String(localized: "You planted a seed today.")
-        case .standardReflection:
-            return String(localized: "You reached Harvest.")
-        case .fullFiveCubed:
-            return String(localized: "You completed the full rhythm today.")
-        case .none:
+        case .soil:
             return ""
+        case .seed:
+            return String(localized: "You planted a seed today.")
+        case .ripening:
+            return String(localized: "You're growing—at least three in each section. Keep going toward Harvest.")
+        case .harvest:
+            return String(localized: "You reached Harvest.")
+        case .abundance:
+            return String(localized: "You reached Abundance today.")
         }
     }
 
     private var iconName: String {
-        switch level {
-        case .quickCheckIn:
-            return "leaf.fill"
-        case .standardReflection:
-            return "sparkles.rectangle.stack.fill"
-        case .fullFiveCubed:
-            return "checkmark.circle.fill"
-        case .none:
-            return "leaf.fill"
-        }
+        level.completionStatusSystemImage(isEmphasized: true)
     }
 
     private var iconTint: Color {
         switch level {
-        case .quickCheckIn:
-            return AppTheme.journalQuickCheckInText
-        case .standardReflection:
-            return AppTheme.journalStandardText
-        case .fullFiveCubed:
-            return AppTheme.journalFullText
-        case .none:
+        case .soil:
             return AppTheme.journalTextMuted
+        case .seed:
+            return AppTheme.journalQuickCheckInText
+        case .ripening:
+            return AppTheme.journalStandardText
+        case .harvest:
+            return AppTheme.journalStandardText
+        case .abundance:
+            return AppTheme.journalFullText
         }
     }
 
     private var borderTint: Color {
         switch level {
-        case .quickCheckIn:
-            return AppTheme.journalQuickCheckInBorder
-        case .standardReflection:
-            return AppTheme.journalStandardBorder
-        case .fullFiveCubed:
-            return AppTheme.journalFullBorder
-        case .none:
+        case .soil:
             return AppTheme.journalBorder
+        case .seed:
+            return AppTheme.journalQuickCheckInBorder
+        case .ripening:
+            return AppTheme.journalStandardBorder
+        case .harvest:
+            return AppTheme.journalStandardBorder
+        case .abundance:
+            return AppTheme.journalFullBorder
         }
     }
 
     private var shadowTint: Color {
         switch level {
-        case .quickCheckIn:
-            return AppTheme.journalQuickCheckInGlow
-        case .standardReflection:
-            return AppTheme.journalStandardGlow
-        case .fullFiveCubed:
-            return AppTheme.journalFullGlow
-        case .none:
+        case .soil:
             return .clear
+        case .seed:
+            return AppTheme.journalQuickCheckInGlow
+        case .ripening:
+            return AppTheme.journalStandardGlow
+        case .harvest:
+            return AppTheme.journalStandardGlow
+        case .abundance:
+            return AppTheme.journalFullGlow
         }
     }
 
     private var glowAccentColor: Color {
         switch level {
-        case .none:
+        case .soil:
             return AppTheme.journalBorder
         default:
             return shadowTint
