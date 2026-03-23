@@ -122,18 +122,15 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
     private var resolvedPromptLanguage: CloudReviewInsightsPromptLanguage {
         switch promptLanguage {
         case .automatic:
-            return Self.appUsesSimplifiedChinese ? .simplifiedChinese : .english
+            switch AppInstructionLocale.preferred(bundle: Bundle.main) {
+            case .english:
+                return .english
+            case .simplifiedChinese:
+                return .simplifiedChinese
+            }
         case .english, .simplifiedChinese:
             return promptLanguage
         }
-    }
-
-    /// Matches the app bundle’s active localization (same idea as UI language).
-    private static var appUsesSimplifiedChinese: Bool {
-        guard let preferred = Bundle.main.preferredLocalizations.first else {
-            return false
-        }
-        return preferred == "zh-Hans" || preferred.hasPrefix("zh-Hans")
     }
 
     private func promptEnglish(contextText: String) -> String {
