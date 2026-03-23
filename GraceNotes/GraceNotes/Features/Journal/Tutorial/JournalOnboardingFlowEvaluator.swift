@@ -24,6 +24,20 @@ enum JournalOnboardingSectionState: Equatable {
     case locked(reason: String)
 }
 
+/// Title + body copy shown above a single journal section during guided onboarding.
+struct JournalOnboardingSectionGuidance: Equatable {
+    let title: String
+    let message: String
+    /// Optional second line under `message` (e.g. keyboard hint under the first gratitude sentence).
+    let messageSecondary: String?
+
+    init(title: String, message: String, messageSecondary: String? = nil) {
+        self.title = title
+        self.message = message
+        self.messageSecondary = messageSecondary
+    }
+}
+
 struct JournalOnboardingPresentation: Equatable {
     let step: JournalOnboardingStep?
     let title: String?
@@ -43,6 +57,32 @@ struct JournalOnboardingPresentation: Equatable {
 
     func state(for section: JournalOnboardingSection) -> JournalOnboardingSectionState {
         sectionStates[section] ?? .standard
+    }
+
+    /// Per-section placement: linear steps use the active row; multi-active chips use Gratitudes.
+    /// Abundance uses Reading Notes.
+    func sectionGuidance(for section: JournalOnboardingSection) -> JournalOnboardingSectionGuidance? {
+        guard let title, let message, let step else { return nil }
+        let bannerSection: JournalOnboardingSection = switch step {
+        case .gratitude:
+            .gratitude
+        case .need:
+            .need
+        case .person:
+            .person
+        case .ripening, .harvest:
+            .gratitude
+        case .abundance:
+            .readingNotes
+        }
+        guard section == bannerSection else { return nil }
+        let secondary: String? = switch step {
+        case .gratitude:
+            String(localized: "When you're finished, press Return or Enter on your keyboard.")
+        case .need, .person, .ripening, .harvest, .abundance:
+            nil
+        }
+        return JournalOnboardingSectionGuidance(title: title, message: message, messageSecondary: secondary)
     }
 }
 
@@ -205,8 +245,8 @@ private extension JournalOnboardingFlowEvaluator {
             message: String(localized: "You've planted Seed. Keep going until each section has three."),
             states: chipSectionPresentation(
                 chipState: .active,
-                notesState: lockedNotesState(),
-                reflectionsState: lockedReflectionsState()
+                notesState: .active,
+                reflectionsState: .active
             )
         )
     }
@@ -220,8 +260,8 @@ private extension JournalOnboardingFlowEvaluator {
             ),
             states: chipSectionPresentation(
                 chipState: .active,
-                notesState: lockedNotesState(),
-                reflectionsState: lockedReflectionsState()
+                notesState: .active,
+                reflectionsState: .active
             )
         )
     }

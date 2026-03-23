@@ -4,6 +4,29 @@ import SwiftUI
 import SwiftData
 import UIKit
 
+private enum JournalScreenLayout {
+    static let journalScrollCoordinateSpaceName = "journalMainScroll"
+    static let unlockToastScrollDismissThreshold: CGFloat = 20
+}
+
+private struct JournalScrollOffsetPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func journalDismissUnlockToastOnTapOutside(_ isPresented: Bool, dismiss: @escaping () -> Void) -> some View {
+        if isPresented {
+            self.simultaneousGesture(TapGesture().onEnded { _ in dismiss() })
+        } else {
+            self
+        }
+    }
+}
+
 // swiftlint:disable type_body_length
 struct JournalScreen: View {
     @EnvironmentObject private var appNavigation: AppNavigationModel
@@ -24,9 +47,12 @@ struct JournalScreen: View {
     @State private var previousCompletionLevel: JournalCompletionLevel = .soil
     @State private var unlockToastLevel: JournalCompletionLevel?
     @State private var unlockToastMilestone: JournalUnlockMilestoneHighlight = .none
-    @State private var unlockToastDismissTask: Task<Void, Never>?
+    @State private var journalScrollOffsetY: CGFloat = 0
+    @State private var unlockToastScrollBaseline: CGFloat?
     @State private var tutorialProgress = JournalTutorialProgress()
+    @State private var showPostSeedJourney = false
     @AppStorage(JournalOnboardingStorageKeys.completedGuidedJournal) private var hasCompletedGuidedJournal = false
+    @AppStorage(JournalOnboardingStorageKeys.hasSeenPostSeedJourney) private var hasSeenPostSeedJourney = false
     @AppStorage(JournalOnboardingStorageKeys.dismissedRemindersSuggestion)
     private var dismissedRemindersSuggestion = false
     @AppStorage(JournalOnboardingStorageKeys.dismissedAISuggestion)
@@ -82,13 +108,8 @@ struct JournalScreen: View {
                     celebratingLevel: celebratingLevel
                 )
 
-                if let onboardingTitle = onboardingPresentation.title,
-                   let onboardingMessage = onboardingPresentation.message {
-                    JournalOnboardingGuidanceView(
-                        title: onboardingTitle,
-                        message: onboardingMessage
-                    )
-                } else if let hintKind = JournalTutorialHintPresentation.hintKind(
+                if !onboardingPresentation.isGuidanceActive,
+                   let hintKind = JournalTutorialHintPresentation.hintKind(
                     entryDate: entryDate,
                     completionLevel: viewModel.completionLevel,
                     chipsFilledCount: viewModel.chipsFilledCount,
@@ -119,6 +140,10 @@ struct JournalScreen: View {
                 VStack(alignment: .leading, spacing: AppTheme.todayClusterSpacing) {
                     SequentialSectionView(
                         title: String(localized: "Gratitudes"),
+                        guidanceTitle: onboardingPresentation.sectionGuidance(for: .gratitude)?.title,
+                        guidanceMessage: onboardingPresentation.sectionGuidance(for: .gratitude)?.message,
+                        guidanceMessageSecondary: onboardingPresentation.sectionGuidance(for: .gratitude)?
+                            .messageSecondary,
                         items: viewModel.gratitudes,
                         placeholder: String(localized: "What's one thing you're grateful for?"),
                         slotCount: JournalViewModel.slotCount,
@@ -139,6 +164,8 @@ struct JournalScreen: View {
 
                     SequentialSectionView(
                         title: String(localized: "Needs"),
+                        guidanceTitle: onboardingPresentation.sectionGuidance(for: .need)?.title,
+                        guidanceMessage: onboardingPresentation.sectionGuidance(for: .need)?.message,
                         items: viewModel.needs,
                         placeholder: String(localized: "What do you need today?"),
                         slotCount: JournalViewModel.slotCount,
@@ -159,6 +186,8 @@ struct JournalScreen: View {
 
                     SequentialSectionView(
                         title: String(localized: "People in Mind"),
+                        guidanceTitle: onboardingPresentation.sectionGuidance(for: .person)?.title,
+                        guidanceMessage: onboardingPresentation.sectionGuidance(for: .person)?.message,
                         items: viewModel.people,
                         placeholder: String(localized: "Who are you thinking of today?"),
                         slotCount: JournalViewModel.slotCount,
@@ -182,6 +211,10 @@ struct JournalScreen: View {
                 VStack(alignment: .leading, spacing: AppTheme.todayNotesSpacing) {
                     EditableTextSection(
                         title: String(localized: "Reading Notes"),
+                        guidanceTitle: onboardingPresentation.sectionGuidance(for: .readingNotes)?.title,
+                        guidanceMessage: onboardingPresentation.sectionGuidance(for: .readingNotes)?.message,
+                        guidanceMessageSecondary: onboardingPresentation.sectionGuidance(for: .readingNotes)?
+                            .messageSecondary,
                         text: Binding(
                             get: { viewModel.readingNotes },
                             set: { viewModel.updateReadingNotes($0) }
@@ -210,6 +243,19 @@ struct JournalScreen: View {
             .padding(.horizontal, AppTheme.todayHorizontalPadding)
             .padding(.top, AppTheme.todayTopPadding)
             .padding(.bottom, AppTheme.todayBottomPadding)
+            .background(journalScrollOffsetReader)
+            .journalDismissUnlockToastOnTapOutside(unlockToastLevel != nil) {
+                dismissUnlockToastIfNeeded()
+            }
+        }
+        .coordinateSpace(name: JournalScreenLayout.journalScrollCoordinateSpaceName)
+        .onPreferenceChange(JournalScrollOffsetPreferenceKey.self) { offsetY in
+            journalScrollOffsetY = offsetY
+            if unlockToastLevel != nil, let baseline = unlockToastScrollBaseline {
+                if abs(offsetY - baseline) > JournalScreenLayout.unlockToastScrollDismissThreshold {
+                    dismissUnlockToastIfNeeded()
+                }
+            }
         }
         .scrollDismissesKeyboard(.immediately)
         .scrollContentBackground(.hidden)
@@ -240,6 +286,23 @@ struct JournalScreen: View {
         } message: {
             Text("We couldn't create a share image right now. Please try again.")
         }
+        .fullScreenCover(isPresented: $showPostSeedJourney) {
+            PostSeedJourneyView(onFinish: completePostSeedJourney)
+        }
+        .onChange(of: showPostSeedJourney) { _, isPresented in
+            guard isPresented else { return }
+            isGratitudeInputFocused = false
+            isNeedInputFocused = false
+            isPersonInputFocused = false
+            isReadingNotesFocused = false
+            isReflectionsFocused = false
+            UIApplication.shared.sendAction(
+                #selector(UIResponder.resignFirstResponder),
+                to: nil,
+                from: nil,
+                for: nil
+            )
+        }
         .overlay {
             VStack(spacing: 0) {
                 Spacer(minLength: 0)
@@ -247,8 +310,14 @@ struct JournalScreen: View {
                     if let toastLevel = unlockToastLevel {
                         HStack {
                             Spacer(minLength: 0)
-                            JournalUnlockToastView(level: toastLevel, milestoneHighlight: unlockToastMilestone)
-                                .transition(unlockToastTransition(for: toastLevel))
+                            Button {
+                                dismissUnlockToastIfNeeded()
+                            } label: {
+                                JournalUnlockToastView(level: toastLevel, milestoneHighlight: unlockToastMilestone)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityHint(String(localized: "Dismiss"))
+                            .transition(unlockToastTransition(for: toastLevel))
                             Spacer(minLength: 0)
                         }
                         .padding(.horizontal, AppTheme.todayHorizontalPadding)
@@ -280,7 +349,6 @@ struct JournalScreen: View {
             needSummarizationTask?.cancel()
             personSummarizationTask?.cancel()
             statusCelebrationDismissTask?.cancel()
-            unlockToastDismissTask?.cancel()
         }
         .onChange(of: onboardingPresentation.step) { _, newStep in
             focusOnboardingStepIfNeeded(newStep)
@@ -290,6 +358,7 @@ struct JournalScreen: View {
                 previousCompletionLevel = newLevel
                 hasInitializedCompletionTracking = true
                 syncGuidedJournalCompletionIfNeeded(for: newLevel)
+                evaluatePostSeedJourneyIfNeeded(for: newLevel)
                 return
             }
 
@@ -305,12 +374,18 @@ struct JournalScreen: View {
                     hasCelebratedFirstHarvest: tutorialProgress.hasCelebratedFirstHarvest
                 )
                 triggerStatusCelebration(for: newLevel)
-                presentUnlockToast(for: newLevel, milestoneHighlight: unlockOutcome.milestoneHighlight)
+                // Skip Seed unlock toast when the post-seed journey will show (no stacked celebrations).
+                let suppressSeedUnlockToast = entryDate == nil
+                    && newLevel == .seed
+                    && !hasSeenPostSeedJourney
+                    && !hasCompletedGuidedJournal
+                if !suppressSeedUnlockToast {
+                    presentUnlockToast(for: newLevel, milestoneHighlight: unlockOutcome.milestoneHighlight)
+                }
                 tutorialProgress.applyRecording(from: unlockOutcome)
             } else if newRank < previousRank {
                 statusCelebrationDismissTask?.cancel()
                 celebratingLevel = nil
-                unlockToastDismissTask?.cancel()
                 let dismissingLevel = unlockToastLevel
                 let fallbackExit = Animation.easeOut(duration: 0.16)
                 let toastExit = reduceMotion
@@ -319,11 +394,13 @@ struct JournalScreen: View {
                 withAnimation(toastExit) {
                     unlockToastLevel = nil
                     unlockToastMilestone = .none
+                    unlockToastScrollBaseline = nil
                 }
             }
 
             previousCompletionLevel = newLevel
             syncGuidedJournalCompletionIfNeeded(for: newLevel)
+            evaluatePostSeedJourneyIfNeeded(for: newLevel)
         }
         .task {
             if !hasTrackedInitialLoad {
@@ -340,6 +417,7 @@ struct JournalScreen: View {
             hasInitializedCompletionTracking = true
             syncGuidedJournalCompletionIfNeeded(for: viewModel.completionLevel)
             focusOnboardingStepIfNeeded(onboardingPresentation.step)
+            evaluatePostSeedJourneyIfNeeded(for: viewModel.completionLevel)
             PerformanceTrace.end("JournalScreen.loadTask", startedAt: loadTrace)
         }
     }
@@ -430,10 +508,35 @@ private extension JournalScreen {
         hasCompletedGuidedJournal = true
     }
 
+    /// Presents the one-time post-Seed journey for Today when the user is at Seed and the tutorial is still active.
+    private func evaluatePostSeedJourneyIfNeeded(for level: JournalCompletionLevel) {
+        guard entryDate == nil else { return }
+        guard level == .seed else { return }
+        guard !hasSeenPostSeedJourney else { return }
+        guard !hasCompletedGuidedJournal else { return }
+        showPostSeedJourney = true
+    }
+
+    private func completePostSeedJourney() {
+        hasSeenPostSeedJourney = true
+        hasCompletedGuidedJournal = true
+        dismissedRemindersSuggestion = true
+        dismissedAISuggestion = true
+        dismissedICloudSuggestion = true
+        showPostSeedJourney = false
+    }
+
     private func focusOnboardingStepIfNeeded(_ step: JournalOnboardingStep?) {
         guard entryDate == nil else { return }
         guard !hasCompletedGuidedJournal else { return }
         guard !isAnyJournalFieldFocused else { return }
+        focusOnboardingStepForced(step)
+    }
+
+    /// Applies onboarding keyboard focus even when another field still claims focus (e.g. after first-chip submit).
+    private func focusOnboardingStepForced(_ step: JournalOnboardingStep?) {
+        guard entryDate == nil else { return }
+        guard !hasCompletedGuidedJournal else { return }
 
         switch step {
         case .gratitude:
@@ -451,6 +554,26 @@ private extension JournalScreen {
         case .none:
             break
         }
+    }
+
+    private func shouldAdvanceGuidedFocusAfterChipSubmit(section: ChipSection) -> Bool {
+        guard entryDate == nil, !hasCompletedGuidedJournal else { return false }
+        switch onboardingPresentation.step {
+        case .need where section == .gratitude:
+            return viewModel.gratitudes.count == 1
+        case .person where section == .need:
+            return viewModel.needs.count == 1
+        case .ripening where section == .person:
+            return viewModel.people.count == 1
+        default:
+            return false
+        }
+    }
+
+    private func clearChipInputFocus() {
+        isGratitudeInputFocused = false
+        isNeedInputFocused = false
+        isPersonInputFocused = false
     }
 
     private func focusOnboardingChipStep(_ step: JournalOnboardingStep) {
@@ -720,7 +843,14 @@ private extension JournalScreen {
             operations: adapter.operations,
             isTransitioning: adapter.isTransitioning
         )
-        if didSubmit {
+        guard didSubmit else { return }
+        if shouldAdvanceGuidedFocusAfterChipSubmit(section: section) {
+            clearChipInputFocus()
+            Task { @MainActor in
+                await Task.yield()
+                focusOnboardingStepForced(onboardingPresentation.step)
+            }
+        } else {
             restoreInputFocus(adapter.inputFocus)
         }
     }
@@ -734,6 +864,14 @@ private extension JournalScreen {
             isTransitioning: adapter.isTransitioning
         )
         guard didSubmit else { return }
+        if shouldAdvanceGuidedFocusAfterChipSubmit(section: section) {
+            clearChipInputFocus()
+            Task { @MainActor in
+                await Task.yield()
+                focusOnboardingStepForced(onboardingPresentation.step)
+            }
+            return
+        }
         Task { @MainActor in
             await Task.yield()
             if restoreKeyboardFocusIfAnotherJournalTextFieldIsActive() {
@@ -779,21 +917,35 @@ private extension JournalScreen {
         for level: JournalCompletionLevel,
         milestoneHighlight: JournalUnlockMilestoneHighlight
     ) {
-        unlockToastDismissTask?.cancel()
         let entrance = reduceMotion ? nil : AppTheme.unlockToastEntranceAnimation(for: level)
         withAnimation(entrance) {
             unlockToastLevel = level
             unlockToastMilestone = milestoneHighlight
+            unlockToastScrollBaseline = journalScrollOffsetY
         }
-        let visibleSeconds = unlockToastVisibleSeconds(for: level, milestone: milestoneHighlight)
-        unlockToastDismissTask = Task { @MainActor in
-            try? await Task.sleep(for: .seconds(visibleSeconds))
-            guard !Task.isCancelled else { return }
-            let exit = reduceMotion ? nil : AppTheme.unlockToastExitAnimation(for: level)
-            withAnimation(exit) {
-                unlockToastLevel = nil
-                unlockToastMilestone = .none
-            }
+    }
+
+    private func dismissUnlockToastIfNeeded() {
+        guard unlockToastLevel != nil else { return }
+        dismissUnlockToast()
+    }
+
+    private func dismissUnlockToast() {
+        guard let level = unlockToastLevel else { return }
+        let exit = reduceMotion ? nil : AppTheme.unlockToastExitAnimation(for: level)
+        withAnimation(exit) {
+            unlockToastLevel = nil
+            unlockToastMilestone = .none
+            unlockToastScrollBaseline = nil
+        }
+    }
+
+    private var journalScrollOffsetReader: some View {
+        GeometryReader { proxy in
+            Color.clear.preference(
+                key: JournalScrollOffsetPreferenceKey.self,
+                value: proxy.frame(in: .named(JournalScreenLayout.journalScrollCoordinateSpaceName)).minY
+            )
         }
     }
 
@@ -827,31 +979,6 @@ private extension JournalScreen {
                     .combined(with: .scale(scale: 0.93, anchor: .bottom)),
                 removal: .opacity.combined(with: .move(edge: .bottom))
             )
-        }
-    }
-
-    private func unlockToastVisibleSeconds(
-        for level: JournalCompletionLevel,
-        milestone: JournalUnlockMilestoneHighlight
-    ) -> Double {
-        let base: Double
-        switch level {
-        case .soil:
-            base = 0
-        case .seed:
-            base = 2.2
-        case .ripening:
-            base = 2.45
-        case .harvest:
-            base = 2.75
-        case .abundance:
-            base = 3.05
-        }
-        switch milestone {
-        case .none:
-            return base
-        case .firstSeed, .firstFifteenChipHarvest, .firstFifteenChipHarvestWithFullRhythm:
-            return base + 0.6
         }
     }
 
