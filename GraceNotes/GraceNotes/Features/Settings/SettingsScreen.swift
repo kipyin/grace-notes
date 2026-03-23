@@ -20,6 +20,7 @@ struct SettingsScreen: View {
     @State private var isReminderToggleOn = false
     @State private var highlightedTarget: SettingsScrollTarget?
     @State private var settingsHighlightDismissTask: Task<Void, Never>?
+    @State private var showAppTourFromSettings = false
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -75,6 +76,31 @@ struct SettingsScreen: View {
                     highlightedTarget: highlightedTarget,
                     openSystemSettings: { openSystemSettings() }
                 )
+
+                Section {
+                    Button {
+                        showAppTourFromSettings = true
+                    } label: {
+                        HStack(spacing: AppTheme.spacingRegular) {
+                            Text(String(localized: "Settings.showAppTour"))
+                                .font(AppTheme.warmPaperBody)
+                                .foregroundStyle(AppTheme.settingsTextPrimary)
+                            Spacer(minLength: AppTheme.spacingRegular)
+                            Image(systemName: "chevron.right")
+                                .font(AppTheme.outfitSemiboldCaption)
+                                .foregroundStyle(AppTheme.settingsTextMuted)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .frame(minHeight: 44)
+                    .accessibilityHint(String(localized: "Settings.showAppTour.a11yHint"))
+                } header: {
+                    Text(String(localized: "Settings.help.sectionTitle"))
+                        .font(AppTheme.warmPaperHeader)
+                        .foregroundStyle(AppTheme.settingsTextPrimary)
+                        .textCase(nil)
+                }
             }
             .listRowBackground(AppTheme.settingsPaper.opacity(0.9))
             .scrollContentBackground(.hidden)
@@ -125,6 +151,21 @@ struct SettingsScreen: View {
             .onChange(of: appNavigation.settingsScrollTarget) { _, newValue in
                 guard let target = newValue else { return }
                 focusSettingsTarget(target, proxy: proxy)
+            }
+            .fullScreenCover(isPresented: $showAppTourFromSettings) {
+                PostSeedJourneyView(
+                    onFinish: { showAppTourFromSettings = false },
+                    skipsCongratulationsPage: false
+                )
+            }
+            .onChange(of: showAppTourFromSettings) { _, isPresented in
+                guard isPresented else { return }
+                UIApplication.shared.sendAction(
+                    #selector(UIResponder.resignFirstResponder),
+                    to: nil,
+                    from: nil,
+                    for: nil
+                )
             }
         }
     }
