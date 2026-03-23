@@ -18,7 +18,7 @@ struct GraceNotesApp: App {
     @StateObject private var appNavigation = AppNavigationModel()
     @State private var uiTestPersistenceController: PersistenceController?
     @State private var hasRunDeferredStartupTasks = false
-    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @AppStorage(FirstRunOnboardingStorageKeys.completed) private var hasCompletedOnboarding = false
 
     init() {
         let startupTrace = PerformanceTrace.begin("App.init")

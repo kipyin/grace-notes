@@ -2,7 +2,7 @@ import XCTest
 @testable import GraceNotes
 
 final class JournalOnboardingFlowEvaluatorTests: XCTestCase {
-    func test_presentation_pastEntry_isInactive() {
+    func test_presentation_nonNilEntryDate_isInactive() {
         let presentation = JournalOnboardingFlowEvaluator.presentation(
             for: makeContext(
                 entryDate: .now,

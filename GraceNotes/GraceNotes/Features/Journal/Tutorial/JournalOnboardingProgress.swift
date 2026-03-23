@@ -21,10 +21,6 @@ enum JournalOnboardingStorageKeys {
 final class JournalOnboardingProgress {
     private let defaults: UserDefaults
 
-    private static let hasCompletedOnboardingKey = "hasCompletedOnboarding"
-    private static let reminderTimeIntervalKey = "dailyReminderTimeInterval"
-    private static let useCloudSummarizationKey = "useCloudSummarization"
-    private static let useAIReviewInsightsKey = "useAIReviewInsights"
     private static let legacyTutorialKeys = [
         JournalTutorialStorageKeys.dismissedSeedGuidance,
         JournalTutorialStorageKeys.dismissedHarvestGuidance,
@@ -84,19 +80,19 @@ final class JournalOnboardingProgress {
     }
 
     private static func shouldTreatInstallAsPreviouslyOnboarded(using defaults: UserDefaults) -> Bool {
-        if defaults.object(forKey: hasCompletedOnboardingKey) as? Bool == true {
+        if defaults.object(forKey: FirstRunOnboardingStorageKeys.completed) as? Bool == true {
             return true
         }
 
-        if defaults.object(forKey: reminderTimeIntervalKey) != nil {
+        if defaults.object(forKey: ReminderSettings.timeIntervalKey) != nil {
             return true
         }
 
-        if defaults.object(forKey: useCloudSummarizationKey) != nil {
+        if defaults.object(forKey: SummarizerProvider.useCloudUserDefaultsKey) != nil {
             return true
         }
 
-        if defaults.object(forKey: useAIReviewInsightsKey) != nil {
+        if defaults.object(forKey: ReviewInsightsProvider.useAIReviewInsightsKey) != nil {
             return true
         }
 
