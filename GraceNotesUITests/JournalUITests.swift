@@ -22,7 +22,6 @@ final class JournalUITests: XCTestCase {
             args.append("-grace-notes-reset-uitest-store")
         }
         app.launchArguments = args
-        app.launchEnvironment["FIVECUBED_UI_TESTING"] = "1"
     }
 
     @MainActor

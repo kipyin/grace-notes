@@ -39,13 +39,9 @@ struct ReviewScreen: View {
     private let isUiTestingExperience: Bool
 
     init() {
-        let testingFlag = ProcessInfo.processInfo.environment["FIVECUBED_UI_TESTING"]
-            .map { value in
-                let normalizedValue = value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-                return normalizedValue == "1" || normalizedValue == "true" || normalizedValue == "yes"
-            } ?? false
-        isUiTestingExperience = testingFlag
-        _selectedMode = State(initialValue: testingFlag ? .timeline : .insights)
+        let isUiTesting = ProcessInfo.graceNotesIsRunningUITests
+        isUiTestingExperience = isUiTesting
+        _selectedMode = State(initialValue: isUiTesting ? .timeline : .insights)
     }
 
     private var timelineRefreshKey: TimelineRefreshKey {
