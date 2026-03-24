@@ -44,9 +44,9 @@ Paste or adapt:
 ```text
 You are running a Master run for initiative GraceNotes/docs/agent-log/initiatives/<initiative-id>/.
 
-Execute phases in order. For each phase, adopt ONLY that role’s skill from `.agents/skills/<skill-slug>/SKILL.md` (e.g. `strategize`, `architect`, `designer`, `build`, `test`, `qa-review`, `git`) and edit ONLY the files that role owns (see roles-index). After each phase, write handoff fields: Decision, Open Questions, Next Owner.
+Execute phases in order. For each phase, adopt ONLY that role’s skill from `.agents/skills/<skill-slug>/SKILL.md` (e.g. `strategize`, `architect`, `designer`, `build`, `test`, `qa-review`, `vc`) and edit ONLY the files that role owns (see roles-index). After each phase, write handoff fields: Decision, Open Questions, Next Owner.
 
-Phases: (1) Strategist (`strategize`) → brief.md (2) Architect → architecture.md (3) Optional: Strategist reviews architecture; if misaligned, append pushback.md and Architect revises — max 2 rounds (4) Designer only if UI-heavy → design.md (5) Builder (`build`) → code + tests (6) Test Lead (`test`) → testing.md (7) QA Reviewer (`qa-review`) → qa.md (8) Release Manager (`git`) → release.md
+Phases: (1) Strategist (`strategize`) → brief.md (2) Architect → architecture.md (3) Optional: Strategist reviews architecture; if misaligned, append pushback.md and Architect revises — max 2 rounds (4) Designer only if UI-heavy → design.md (5) Builder (`build`) → code + tests (6) Test Lead (`test`) → testing.md (7) QA Reviewer (`qa-review`) → qa.md (8) Release Manager (`vc`) → release.md
 
 If the user chose multi-session mode, STOP after each phase and output the “Next session prompt” block instead of continuing.
 

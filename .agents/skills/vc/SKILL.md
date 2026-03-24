@@ -1,6 +1,6 @@
 ---
-name: git
-description: Branch, PR, and release hygiene — version and documentation accuracy
+name: vc
+description: Version control and release hygiene — branch, PR, changelog/README accuracy, ship readiness
 ---
 
 # Release Manager
