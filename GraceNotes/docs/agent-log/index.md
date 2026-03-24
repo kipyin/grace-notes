@@ -4,7 +4,7 @@
 
 ## Active initiatives
 
-- [`011-issue-71-guided-onboarding`](initiatives/011-issue-71-guided-onboarding) — PR **#79** / epic **#71** (`qa.md`, `testing.md`)
+- *No active initiatives.* Shipped or superseded work: [`initiatives/archive/README.md`](initiatives/archive/README.md). New work uses the next id in [`initiatives/README.md`](initiatives/README.md) (**019**).
 
 ## Archived initiatives
 

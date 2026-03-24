@@ -1,8 +1,8 @@
 ---
 initiative_id: 011-issue-71-guided-onboarding
 role: Test Lead / QA
-status: in_progress
-updated_at: 2026-03-23
+status: completed
+updated_at: 2026-03-25
 related_issue: 71
 related_pr: 79
 ---
@@ -53,4 +53,28 @@ related_pr: 79
 1. When a suggestion card appears, note title (localized keys map to reminders / AI / iCloud copy in `JournalScreen`).
 2. Tap primary action. **Expect**: `openSettings(for:)` recomputes `currentSuggestion` and only proceeds if still eligible; Settings tab selected; scroll/highlight for `.reminders`, `.aiFeatures`, or `.dataPrivacy` per `settingsTarget(for:)`.
 3. Return to Today; confirm no sticky wrong highlight after `clearSettingsTarget` consumption (exercise each target once).
+
+## Inputs Reviewed
+
+- PR **#79** / epic **#71** implementation tree; `GraceNotesTests` + `GraceNotesUITests` as run on **2026-03-23** (see **Automated evidence**).
+
+## Decision
+
+**Go** for the recorded automated run; manual smokes above remain the human checklist. Initiative **archived** **2026-03-25**.
+
+## Open Questions
+
+None for archive; optional expanded **0.5.1** upgrade matrix per sibling **`qa.md`**.
+
+## Next Owner
+
+**None** — initiative archived.
+
+## Rationale
+
+Automated suite provides regression signal for onboarding / post-Seed / UI-test harness changes; manual paths cover flows XCTest does not fully drive.
+
+## Risks
+
+See **`qa.md`** (behavior risks, UITest gaps, nil prior marketing version policy).
 

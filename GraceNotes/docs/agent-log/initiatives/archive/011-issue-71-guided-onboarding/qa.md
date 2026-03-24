@@ -1,15 +1,15 @@
 ---
 initiative_id: 011-issue-71-guided-onboarding
 role: QA Reviewer
-status: in_progress
-updated_at: 2026-03-23
+status: completed
+updated_at: 2026-03-25
 related_issue: 71
-related_pr: (branch work; orientation 0.5.1 cohort)
+related_pr: 79
 ---
 
 # QA — Guided onboarding + 0.5.1 upgrade orientation
 
-## Context
+## Inputs Reviewed
 
 - **Strategist / Architect intent:** Onboarding / first-week orientation audit (locked: `0.5.1` anchor, one-time upgrade orientation, Seed branch below vs at/above Seed, no silent settings changes, new-install defaults off with UI recommendations).
 - **Code reviewed:** `AppLaunchVersionTracker`, `MarketingVersion`, `JournalOnboardingProgress` (migration + `pending051*` branch), `GraceNotesApp` init order, `JournalScreen` (`evaluatePostSeedJourneyIfNeeded`, `completePostSeedJourney`, `postSeedJourneySkipsCongratulations`), `PostSeedJourneyView` (`skipsCongratulationsPage`), `ICloudSyncPreferenceResolver` onboarding key list.
@@ -62,20 +62,25 @@ related_pr: (branch work; orientation 0.5.1 cohort)
 
 **Conditional for release:** Execute expanded **manual** matrix for upgrade cohorts; confirm **zh-Hans** for any new/changed copy; resolve **nil previous version** policy with Strategist if support tickets suggest missed orientations.
 
+## Rationale
+
+Locked **0.5.1** onboarding / upgrade rules are reflected in code paths reviewed above; automated tests provide regression signal where UI automation cannot cover full-screen journeys.
+
+## Risks
+
+See **Behavior and regression risks** and **Test gaps**; highest residual is **nil** `lastLaunchedMarketingVersion` cohort classification and post–Seed paths not fully UI-tested.
+
 ## Decision
 
 - **Merge / CI (current tree):** **Pass** — objective test signal + code review above.
 - **Ship / epic closure:** **Conditional** — manual 0.5.1 cohort matrix + localization.
 
-## Open questions
+## Open Questions
 
 - Should a **missing** `lastLaunchedMarketingVersion` on 0.5.1 first launch still classify as **upgrade** when strong legacy signals exist (e.g. `hasCompletedOnboarding`)?
 - Do any onboarding keys need **explicit non-sync** documentation for multi-device?
 - Add UI or unit tests for `evaluatePostSeedJourneyIfNeeded`?
 
-## Next owner
+## Next Owner
 
-- **Test Lead:** Extend [testing.md](testing.md) with 0.5.1 upgrade scenarios (below Seed / at Seed / above Seed / second launch); run and date.
-- **Builder:** Optional `JournalScreen` evaluation logic unit tests.
-- **QA Reviewer (follow-up):** Re-pass after manual matrix is ticked.
-- **Release Manager:** Align `015-release-0-5-1-patch` checklist with this QA.
+**None** — initiative **archived** **2026-03-25**. Optional follow-up: extend [testing.md](testing.md) with full 0.5.1 upgrade matrix; see archived **`GraceNotes/docs/agent-log/initiatives/archive/015-release-0-5-1-patch/release.md`** for the **0.5.1** ship record.
