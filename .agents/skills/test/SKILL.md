@@ -23,6 +23,22 @@ Set risk-based test depth, run the right level of testing, debug and fix issues 
 - Available test suites and execution constraints
 - Existing initiative context in `GraceNotes/docs/agent-log/initiatives/<initiative-id>/`
 
+## Test execution (macOS)
+
+Run tests via **`make`** from the **repository root** unless a narrow `xcodebuild` one-off is justified. That keeps flags, scheme, and destination aligned with `Makefile`, `README.md`, and **`make ci`**.
+
+| Target | Use when |
+|--------|-----------|
+| `make test` | Default **GraceNotes** scheme — full suite (unit + UI). |
+| `make test-unit` | Only **`GraceNotesTests`** need to run. |
+| `make test-ui` | Only **`GraceNotesUITests`** need to run. |
+| `make test-isolated` | Suspected DerivedData / Xcode contention or hard-to-reproduce flakes. |
+| `make test-demo` | **GraceNotes (Demo)** scheme after reset + simulator warm-up. |
+| `make test-all` | Default scheme, then reset simulators, then demo scheme (see `Makefile`). |
+| `make ci` | Lint + `test-all` — broadest local gate before merge. |
+
+Requires **macOS + Xcode + iOS Simulator** (see repo `AGENTS.md`). On Linux, record in `testing.md` what must be run on a Mac and with which `make` target.
+
 ## Output Format
 
 - `Risk Map`
