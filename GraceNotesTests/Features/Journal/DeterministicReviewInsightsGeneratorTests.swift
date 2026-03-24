@@ -13,7 +13,7 @@ final class DeterministicReviewInsightsTests: XCTestCase {
         generator = DeterministicReviewInsightsGenerator()
     }
 
-    func test_generateInsights_usesCurrentWeekOnly() async throws {
+    func test_generateInsights_usesCurrentReviewPeriodOnly() async throws {
         let reference = date(year: 2026, month: 3, day: 18)
         let inWeekEntry = makeEntry(
             on: date(year: 2026, month: 3, day: 17),
@@ -94,9 +94,9 @@ final class DeterministicReviewInsightsTests: XCTestCase {
             makeEntry(on: date(year: 2026, month: 3, day: 11), needs: ["Rest"])
         ]
         let currentWeekEntries = [
+            makeEntry(on: date(year: 2026, month: 3, day: 16), gratitudes: ["Family connection"]),
             makeEntry(on: date(year: 2026, month: 3, day: 17), gratitudes: ["Family connection"]),
-            makeEntry(on: date(year: 2026, month: 3, day: 18), gratitudes: ["Family connection"]),
-            makeEntry(on: date(year: 2026, month: 3, day: 19), gratitudes: ["Family connection"])
+            makeEntry(on: date(year: 2026, month: 3, day: 18), gratitudes: ["Family connection"])
         ]
 
         let insights = try await generator.generateInsights(
@@ -114,7 +114,7 @@ final class DeterministicReviewInsightsTests: XCTestCase {
     func test_generateInsights_generatesFullCompletionInsight_forSevenFullDays() async throws {
         let reference = date(year: 2026, month: 3, day: 18)
         let fullWeekEntries = (0...6).map { offset in
-            makeFullEntry(on: date(year: 2026, month: 3, day: 16 + offset))
+            makeFullEntry(on: date(year: 2026, month: 3, day: 12 + offset))
         }
 
         let insights = try await generator.generateInsights(
@@ -155,6 +155,12 @@ final class DeterministicReviewInsightsTests: XCTestCase {
         ]
         let currentWeekEntries = [
             makeEntry(
+                on: date(year: 2026, month: 3, day: 16),
+                gratitudes: ["Family"],
+                needs: ["Focus"],
+                people: ["Mia"]
+            ),
+            makeEntry(
                 on: date(year: 2026, month: 3, day: 17),
                 gratitudes: ["Family"],
                 needs: ["Focus"],
@@ -162,12 +168,6 @@ final class DeterministicReviewInsightsTests: XCTestCase {
             ),
             makeEntry(
                 on: date(year: 2026, month: 3, day: 18),
-                gratitudes: ["Family"],
-                needs: ["Focus"],
-                people: ["Mia"]
-            ),
-            makeEntry(
-                on: date(year: 2026, month: 3, day: 19),
                 gratitudes: ["Family"],
                 needs: ["Focus"],
                 people: ["Mia"]

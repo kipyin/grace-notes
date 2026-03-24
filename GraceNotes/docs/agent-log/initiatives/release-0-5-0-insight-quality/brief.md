@@ -3,7 +3,7 @@ initiative_id: release-0-5-0-insight-quality
 role: Strategist
 status: in_progress
 updated_at: 2026-03-21
-related_issue: 40
+related_issue: 40,80
 related_pr: none
 ---
 
@@ -17,7 +17,7 @@ related_pr: none
 
 ## Decision
 
-Ship **0.5.0** on branch `release/0.5.0` with scope centered on **review value**: less generic insights, better chip prompt inputs where AI is used, and **section-complete** feedback (`#11`), without weakening deterministic fallbacks.
+Ship **0.5.0** on branch `release/0.5.0` with scope centered on **review value**: an **insight-first** presentation redo on Review (`#40`), **deeper insight engine** iteration where needed (`#80`), better chip prompt inputs where AI is used (`#39`), and **section-complete** feedback (`#11`), without weakening deterministic fallbacks.
 
 ## Rationale
 

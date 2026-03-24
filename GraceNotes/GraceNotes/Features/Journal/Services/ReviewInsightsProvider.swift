@@ -29,7 +29,13 @@ struct ReviewInsightsProvider: Sendable {
     ) async -> ReviewInsights {
         let useCloudAI = UserDefaults.standard.object(forKey: Self.useCloudAIKey) as? Bool ?? false
 
-        if useCloudAI, let cloudGenerator {
+        let cloudAllowed = ReviewInsightsCloudEligibility.hasMinimumEvidenceForCloudAI(
+            entries: entries,
+            referenceDate: referenceDate,
+            calendar: calendar
+        )
+
+        if useCloudAI, cloudAllowed, let cloudGenerator {
             if let cloudInsights = try? await cloudGenerator.generateInsights(
                 from: entries,
                 referenceDate: referenceDate,
@@ -47,7 +53,7 @@ struct ReviewInsightsProvider: Sendable {
             return deterministicInsights
         }
 
-        let weekRange = weekDateRange(containing: referenceDate, calendar: calendar)
+        let weekRange = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
         let fallbackInsight = ReviewWeeklyInsight(
             pattern: .sparseFallback,
             observation: String(
@@ -75,13 +81,6 @@ struct ReviewInsightsProvider: Sendable {
             ),
             narrativeSummary: nil
         )
-    }
-
-    private func weekDateRange(containing date: Date, calendar: Calendar) -> Range<Date> {
-        let components = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: date)
-        let start = calendar.date(from: components) ?? calendar.startOfDay(for: date)
-        let end = calendar.date(byAdding: .day, value: 7, to: start) ?? start
-        return start..<end
     }
 
     nonisolated(unsafe) static let shared = ReviewInsightsProvider()

@@ -67,6 +67,51 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
         XCTAssertTrue(result)
     }
 
+    func test_isSparseProviderFallback_matchesProviderFallbackShape() {
+        XCTAssertTrue(ReviewInsightsRefreshPolicy.isSparseProviderFallback(makeSparseProviderFallbackInsights()))
+    }
+
+    func test_isSparseProviderFallback_falseWhenRecurringThemesPresent() {
+        var insights = makeSparseProviderFallbackInsights()
+        insights = ReviewInsights(
+            source: insights.source,
+            generatedAt: insights.generatedAt,
+            weekStart: insights.weekStart,
+            weekEnd: insights.weekEnd,
+            weeklyInsights: insights.weeklyInsights,
+            recurringGratitudes: [ReviewInsightTheme(label: "Family", count: 2)],
+            recurringNeeds: insights.recurringNeeds,
+            recurringPeople: insights.recurringPeople,
+            resurfacingMessage: insights.resurfacingMessage,
+            continuityPrompt: insights.continuityPrompt,
+            narrativeSummary: insights.narrativeSummary
+        )
+        XCTAssertFalse(ReviewInsightsRefreshPolicy.isSparseProviderFallback(insights))
+    }
+
+    func test_forcedRefreshOutcome_nilPrevious_appliesGenerated() {
+        let generated = makeSparseProviderFallbackInsights()
+        let outcome = ReviewInsightsRefreshPolicy.forcedRefreshOutcome(previous: nil, generated: generated)
+        XCTAssertEqual(outcome.insights, generated)
+        XCTAssertTrue(outcome.shouldUpdateCachedRefreshKey)
+    }
+
+    func test_forcedRefreshOutcome_preservesRichWhenGeneratedIsSparseFallback() {
+        let previous = makeRichInsights()
+        let generated = makeSparseProviderFallbackInsights()
+        let outcome = ReviewInsightsRefreshPolicy.forcedRefreshOutcome(previous: previous, generated: generated)
+        XCTAssertEqual(outcome.insights, previous)
+        XCTAssertFalse(outcome.shouldUpdateCachedRefreshKey)
+    }
+
+    func test_forcedRefreshOutcome_replacesWhenBothRich() {
+        let previous = makeRichInsights()
+        let generated = makeRichInsights(observation: "Updated observation")
+        let outcome = ReviewInsightsRefreshPolicy.forcedRefreshOutcome(previous: previous, generated: generated)
+        XCTAssertEqual(outcome.insights, generated)
+        XCTAssertTrue(outcome.shouldUpdateCachedRefreshKey)
+    }
+
     private func makeKey(
         weekStart: Date = Date(timeIntervalSince1970: 0),
         useCloudAI: Bool = false,
@@ -76,6 +121,56 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
             weekStart: weekStart,
             useCloudAI: useCloudAI,
             entrySnapshots: snapshots
+        )
+    }
+
+    private func makeSparseProviderFallbackInsights() -> ReviewInsights {
+        let now = Date(timeIntervalSince1970: 1_742_147_200)
+        let fallbackInsight = ReviewWeeklyInsight(
+            pattern: .sparseFallback,
+            observation: "Start with one reflection today to build your weekly review.",
+            action: "What feels most important to carry into next week?",
+            primaryTheme: nil,
+            mentionCount: nil,
+            dayCount: 0
+        )
+        return ReviewInsights(
+            source: .deterministic,
+            generatedAt: now,
+            weekStart: now,
+            weekEnd: now,
+            weeklyInsights: [fallbackInsight],
+            recurringGratitudes: [],
+            recurringNeeds: [],
+            recurringPeople: [],
+            resurfacingMessage: fallbackInsight.observation,
+            continuityPrompt: fallbackInsight.action ?? "",
+            narrativeSummary: nil
+        )
+    }
+
+    private func makeRichInsights(observation: String = "You noted rest often this week.") -> ReviewInsights {
+        let now = Date(timeIntervalSince1970: 1_742_147_200)
+        let insight = ReviewWeeklyInsight(
+            pattern: .recurringTheme,
+            observation: observation,
+            action: "Try a short walk.",
+            primaryTheme: "Rest",
+            mentionCount: 3,
+            dayCount: 2
+        )
+        return ReviewInsights(
+            source: .cloudAI,
+            generatedAt: now,
+            weekStart: now,
+            weekEnd: now,
+            weeklyInsights: [insight],
+            recurringGratitudes: [],
+            recurringNeeds: [],
+            recurringPeople: [],
+            resurfacingMessage: "Resurfacing",
+            continuityPrompt: "Continuity",
+            narrativeSummary: nil
         )
     }
 }

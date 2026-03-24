@@ -1,12 +1,16 @@
 import Foundation
 
-/// Cloud summarization API key resolution order:
-/// 1) Info.plist `CloudSummarizationAPIKey`
-/// 2) Placeholder (`YOUR_KEY_HERE`) which disables cloud use
+/// Cloud summarization API key from the app's merged Info.plist (`CloudSummarizationAPIKey`).
+/// Injected at build time: `Info.plist` contains `$(GRACE_NOTES_CLOUD_API_KEY)`, expanded using
+/// `DeveloperSettings.xcconfig` and optional gitignored `DeveloperSettings.local.xcconfig`.
+/// Value `YOUR_KEY_HERE` disables cloud use.
 ///
-/// Keep real credentials out of git. Prefer a local, untracked plist override.
+/// Keep real credentials out of git.
 enum ApiSecrets {
     private static let placeholderApiKey = "YOUR_KEY_HERE"
+
+    /// When non-nil, replaces bundle key resolution (hosted unit tests where the app plist may carry a developer key).
+    static var cloudApiKeyOverrideForTesting: String?
     /// Shared cloud API base URL for summarization, review insights, and Settings connectivity checks.
     static let cloudAPIBaseURL = "https://chat.cloudapi.vip/v1"
 
@@ -21,7 +25,14 @@ enum ApiSecrets {
         return !trimmed.isEmpty && trimmed != placeholderApiKey
     }
 
-    static let cloudApiKey: String = {
+    static var cloudApiKey: String {
+        if let override = cloudApiKeyOverrideForTesting {
+            return override
+        }
+        return resolvedCloudApiKeyFromInfoPlist
+    }
+
+    private static let resolvedCloudApiKeyFromInfoPlist: String = {
         let infoPlistKey = Bundle.main.object(
             forInfoDictionaryKey: "CloudSummarizationAPIKey"
         ) as? String

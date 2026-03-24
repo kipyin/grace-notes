@@ -2,11 +2,11 @@ import XCTest
 @testable import GraceNotes
 
 final class JournalTutorialUnlockEvaluatorTests: XCTestCase {
-    func test_outcome_noneToQuickCheckIn_firstSeed() {
+    func test_outcome_soilToSeed_firstSeed() {
         let outcome = JournalTutorialUnlockEvaluator.outcome(
-            previousRank: JournalCompletionLevel.none.tutorialCompletionRank,
-            newRank: JournalCompletionLevel.quickCheckIn.tutorialCompletionRank,
-            newLevel: .quickCheckIn,
+            previousRank: JournalCompletionLevel.soil.tutorialCompletionRank,
+            newRank: JournalCompletionLevel.seed.tutorialCompletionRank,
+            newLevel: .seed,
             hasCelebratedFirstSeed: false,
             hasCelebratedFirstHarvest: false
         )
@@ -15,11 +15,11 @@ final class JournalTutorialUnlockEvaluatorTests: XCTestCase {
         XCTAssertEqual(outcome.milestoneHighlight, .firstSeed)
     }
 
-    func test_outcome_quickCheckInToStandard_firstHarvest() {
+    func test_outcome_seedToHarvest_firstHarvest() {
         let outcome = JournalTutorialUnlockEvaluator.outcome(
-            previousRank: JournalCompletionLevel.quickCheckIn.tutorialCompletionRank,
-            newRank: JournalCompletionLevel.standardReflection.tutorialCompletionRank,
-            newLevel: .standardReflection,
+            previousRank: JournalCompletionLevel.seed.tutorialCompletionRank,
+            newRank: JournalCompletionLevel.harvest.tutorialCompletionRank,
+            newLevel: .harvest,
             hasCelebratedFirstSeed: true,
             hasCelebratedFirstHarvest: false
         )
@@ -28,11 +28,11 @@ final class JournalTutorialUnlockEvaluatorTests: XCTestCase {
         XCTAssertEqual(outcome.milestoneHighlight, .firstFifteenChipHarvest)
     }
 
-    func test_outcome_noneToStandard_rankSkip_recordsBoth_highlightsHarvest() {
+    func test_outcome_soilToHarvest_rankSkip_recordsBoth_highlightsHarvest() {
         let outcome = JournalTutorialUnlockEvaluator.outcome(
-            previousRank: JournalCompletionLevel.none.tutorialCompletionRank,
-            newRank: JournalCompletionLevel.standardReflection.tutorialCompletionRank,
-            newLevel: .standardReflection,
+            previousRank: JournalCompletionLevel.soil.tutorialCompletionRank,
+            newRank: JournalCompletionLevel.harvest.tutorialCompletionRank,
+            newLevel: .harvest,
             hasCelebratedFirstSeed: false,
             hasCelebratedFirstHarvest: false
         )
@@ -41,11 +41,11 @@ final class JournalTutorialUnlockEvaluatorTests: XCTestCase {
         XCTAssertEqual(outcome.milestoneHighlight, .firstFifteenChipHarvest)
     }
 
-    func test_outcome_noneToFullFiveCubed_rankSkip_recordsBoth_highlightsHarvestWithRhythm() {
+    func test_outcome_soilToAbundance_rankSkip_recordsBoth_highlightsHarvestWithRhythm() {
         let outcome = JournalTutorialUnlockEvaluator.outcome(
-            previousRank: JournalCompletionLevel.none.tutorialCompletionRank,
-            newRank: JournalCompletionLevel.fullFiveCubed.tutorialCompletionRank,
-            newLevel: .fullFiveCubed,
+            previousRank: JournalCompletionLevel.soil.tutorialCompletionRank,
+            newRank: JournalCompletionLevel.abundance.tutorialCompletionRank,
+            newLevel: .abundance,
             hasCelebratedFirstSeed: false,
             hasCelebratedFirstHarvest: false
         )
@@ -56,9 +56,9 @@ final class JournalTutorialUnlockEvaluatorTests: XCTestCase {
 
     func test_outcome_firstSeedAlreadyCelebrated_noDuplicateRecord() {
         let outcome = JournalTutorialUnlockEvaluator.outcome(
-            previousRank: JournalCompletionLevel.none.tutorialCompletionRank,
-            newRank: JournalCompletionLevel.quickCheckIn.tutorialCompletionRank,
-            newLevel: .quickCheckIn,
+            previousRank: JournalCompletionLevel.soil.tutorialCompletionRank,
+            newRank: JournalCompletionLevel.seed.tutorialCompletionRank,
+            newLevel: .seed,
             hasCelebratedFirstSeed: true,
             hasCelebratedFirstHarvest: false
         )
@@ -66,11 +66,11 @@ final class JournalTutorialUnlockEvaluatorTests: XCTestCase {
         XCTAssertEqual(outcome.milestoneHighlight, .none)
     }
 
-    func test_outcome_standardToFull_noHarvestRecordWhenAlreadyCelebrated() {
+    func test_outcome_harvestToAbundance_noHarvestRecordWhenAlreadyCelebrated() {
         let outcome = JournalTutorialUnlockEvaluator.outcome(
-            previousRank: JournalCompletionLevel.standardReflection.tutorialCompletionRank,
-            newRank: JournalCompletionLevel.fullFiveCubed.tutorialCompletionRank,
-            newLevel: .fullFiveCubed,
+            previousRank: JournalCompletionLevel.harvest.tutorialCompletionRank,
+            newRank: JournalCompletionLevel.abundance.tutorialCompletionRank,
+            newLevel: .abundance,
             hasCelebratedFirstSeed: true,
             hasCelebratedFirstHarvest: true
         )
@@ -81,7 +81,7 @@ final class JournalTutorialUnlockEvaluatorTests: XCTestCase {
         let outcome = JournalTutorialUnlockEvaluator.outcome(
             previousRank: 1,
             newRank: 1,
-            newLevel: .quickCheckIn,
+            newLevel: .seed,
             hasCelebratedFirstSeed: false,
             hasCelebratedFirstHarvest: false
         )

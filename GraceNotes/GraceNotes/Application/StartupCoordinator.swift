@@ -25,7 +25,7 @@ final class StartupCoordinator: ObservableObject {
         )
     }
 
-    typealias PersistenceFactory = @Sendable () async throws -> PersistenceController
+    typealias PersistenceFactory = () async throws -> PersistenceController
 
     @Published private(set) var phase: Phase = .loading
     @Published private(set) var startupMessage: String
@@ -56,7 +56,8 @@ final class StartupCoordinator: ObservableObject {
         self.loadingCopy = loadingCopy
         self.reassuranceCopy = reassuranceCopy
         self.persistenceFactory = persistenceFactory
-        self.startupMessage = loadingCopy.first ?? String(localized: "We are setting up your private journal space...")
+        self.startupMessage = loadingCopy.first
+            ?? String(localized: "We are setting up your private Grace Notes space...")
     }
 
     deinit {
@@ -187,7 +188,7 @@ final class StartupCoordinator: ObservableObject {
 
     private func loadingMessage(for index: Int) -> String {
         guard !loadingCopy.isEmpty else {
-            return String(localized: "We are setting up your private journal space...")
+            return String(localized: "We are setting up your private Grace Notes space...")
         }
         return loadingCopy[safe: index] ?? loadingCopy[0]
     }
@@ -210,15 +211,15 @@ final class StartupCoordinator: ObservableObject {
            !message.isEmpty {
             return message
         }
-        return String(localized: "We couldn't finish setting up your journal space. Please try again.")
+        return String(localized: "We couldn't finish setting up your Grace Notes space. Please try again.")
     }
 }
 
 private extension StartupCoordinator {
     static let defaultLoadingCopy: [String] = [
-        String(localized: "We are setting up your private journal space..."),
+        String(localized: "We are setting up your private Grace Notes space..."),
         String(localized: "Preparing a calm place for your first reflection..."),
-        String(localized: "Almost ready. Bringing your journal space online...")
+        String(localized: "Almost ready. Bringing your Grace Notes space online...")
     ]
 
     static let defaultReassuranceCopy: [String] = [

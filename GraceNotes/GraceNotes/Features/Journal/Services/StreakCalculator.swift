@@ -24,7 +24,8 @@ struct StreakCalculator {
     func summary(from entries: [JournalEntry], now: Date = .now) -> StreakSummary {
         let today = calendar.startOfDay(for: now)
         let basicByDay = buildCompletionByDay(entries: entries) { $0.hasMeaningfulContent }
-        let perfectByDay = buildCompletionByDay(entries: entries) { $0.isComplete || $0.completedAt != nil }
+        // "Perfect" = Abundance (full rhythm). `completedAt` tracks harvest only and must not inflate this streak.
+        let perfectByDay = buildCompletionByDay(entries: entries) { $0.hasAbundanceRhythm }
 
         return StreakSummary(
             basicCurrent: currentStreakLength(byDay: basicByDay, today: today),

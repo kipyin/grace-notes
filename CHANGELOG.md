@@ -1,17 +1,59 @@
 # Changelog
 
+## [0.5.1] - Unreleased
+
+Patch on the 0.5.x line: version and build bump plus Xcode packaging defaults carried from local workspace changes.
+
+### Added
+- Journal: **one-time upgrade orientation** on the first launch of **0.5.1** after an older marketing version (e.g. 0.5.0). Users still below **Seed** on Today keep the full guided chip path; users **at or above Seed** see the post-Seed settings-oriented journey **without** the Seed congratulations page. Launch tracks `lastLaunchedMarketingVersion`; migration into `completedGuidedJournal` is deferred until Today’s completion level is known for that cohort.
+
+### Changed
+- Copy: user-facing **en** / **zh-Hans** avoids **chip** and **journal** in favor of product language (Grace Notes, short labels, spots, entries, and the three section names). Updated onboarding locks, completion hints, startup and save errors, Data & Privacy, Review timeline a11y, AI suggestions, and **Save to Photos** permission text (`Localizable.xcstrings`, `Info.plist` / `InfoPlist.xcstrings`, matching `String(localized:)` keys in app sources).
+- Settings **Cloud AI** toggle and a11y strings use American English **Summarize** (not *Summarise*). `AGENTS.md` and Translator skill call out **American English** for user-facing English strings.
+- String Catalog: additional **en** / **zh-Hans** entries for previously empty keys; Simplified Chinese copy refined for onboarding, Abundance meaning, and AI onboarding lines. Info.plist **Save to Photos** usage description uses **感恩记** and consistent 你/你的 tone (`zh-Hans`).
+- Cloud chip summarization uses shared **`AppInstructionLocale`** for instruction language (aligned with Review insights), with optional `ChipCloudPromptLanguage` for tests; skips obvious low-signal keyboard mash before the network call; drops model output that fails grounding or reads as unrelated generic filler (#39).
+- Review cloud insights `.automatic` prompt language now resolves through **`AppInstructionLocale`** instead of ad hoc bundle checks (#39).
+
+### Fixed
+- iOS 17: startup no longer crashes when applying global UIKit appearance; `AppInterfaceAppearance.configure()` runs from `UIApplicationDelegate.application(_:didFinishLaunchingWithOptions:)` instead of `App` `init`.
+- Dynamic Type: tab bar item titles cap at **Large** text size so labels no longer overlap icons when the user chooses very large system text (#76). Navigation bar titles and bar-button labels cap at **Extra Extra Large** to reduce cramped chrome while keeping editorial body copy unchanged.
+- Journal: with cloud summarization on, chip text that already fits the on-chip display budget (≤10 display units, same Han/Latin rules as truncation) no longer calls the cloud summarizer (#69).
+
+### Developer
+
+- Product docs: Review insight work is split on GitHub — **#40** (insight-first presentation redo) and **#80** (deeper engine iteration); see `GraceNotes/docs/07-release-roadmap.md` and `03-review-insight-quality-contract.md`.
+- UI tests: launch flag **`-grace-notes-reset-uitest-store`** clears the shared UI-test SwiftData store on bootstrap (default in `JournalUITests`); the journal persistence UI test omits it after `terminate()` so relaunch still reads the same file.
+- Unit tests: **`ApiSecrets.cloudApiKeyOverrideForTesting`** keeps hosted `SummarizerProvider` expectations stable when `Info.plist` carries a non-placeholder developer key.
+- UI tests: section **(+)** controls expose stable **`accessibilityIdentifier`** values (`JournalSectionAdd.*`) under `-ui-testing`; `addGratitude` waits for the first gratitude chip after submit.
+- New tests: `CloudSummarizerPromptAndGroundingTests` (+ `CloudSummarizerTestSupport`).
+- Cloud summarization: app `Info.plist` uses `$(GRACE_NOTES_CLOUD_API_KEY)`, expanded from committed `DeveloperSettings.xcconfig` and optional gitignored `DeveloperSettings.local.xcconfig` (see `DeveloperSettings.local.xcconfig.example`); `ITSAppUsesNonExemptEncryption` is `false` for export compliance.
+
+- App **marketing version** `0.5.1`; **bundle version** (`CURRENT_PROJECT_VERSION`) `2` for Grace Notes app configurations (Debug, Release, Demo).
+- Project-level **Debug** and **Demo** build settings use `DEBUG_INFORMATION_FORMAT = dwarf-with-dsym` so Debug-style builds still produce dSYM for symbolication.
+- Shared `GraceNotes.xcscheme`: **Run** uses **Release** build configuration (revert locally if you prefer ⌘R to stay on Debug).
+- App target **Swift strict concurrency** set to **minimal**; removed `SWIFT_APPROACHABLE_CONCURRENCY`, `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`, and `SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY` from Grace Notes app build settings.
+- `StartupCoordinator.PersistenceFactory` drops the `@Sendable` requirement (aligned with relaxed concurrency checking).
+- **Accessibility QA (manual):** Settings → Display & Text Size → Text Size (largest) and Accessibility → Display & Text Size → Larger Accessibility Sizes — confirm tab bar (Today / Review / Settings) and sample navigation/toolbar titles remain usable without icon overlap or severe clipping. No snapshot suite covers UIKit chrome; regressions are caught by this pass.
+- Journal: milestone suggestion cards and Settings deep-links share `JournalOnboardingSuggestionEvaluator`; eligibility is recomputed at tap time before changing tabs (PR #79 review). Onboarding and iCloud continuity scans use shared UserDefaults key constants (`FirstRunOnboardingStorageKeys`, `JournalTutorialStorageKeys`, `JournalOnboardingStorageKeys`, `ReminderSettings.timeIntervalKey`, summarizer/review-insight keys) to avoid migration drift.
+- UI tests: `ProcessInfo.graceNotesIsRunningUITests` centralizes UI-test detection; SwiftData UI-test stores persist across `terminate()` + `launch()` by reusing the last XCTest session key (`active-uitest-session-key.txt`). During UI tests, gratitude chips expose stable accessibility identifiers (`JournalGratitudeChip.<index>`); the post-Seed full-screen journey is skipped; Review keeps timeline/insights chrome when `FIVECUBED_UI_TESTING` is set so an empty journal can still reach the mode picker. `JournalUITests` forces English locale and reapplies `-ui-testing` launch arguments after every relaunch.
+
 ## [0.5.0] - 2026-03-21
 
 Insight quality: Review that feels specific and grounded, better chip source material, calmer completion feedback. Release scope context: `GraceNotes/docs/07-release-roadmap.md` §0.5.0.
 
 ### Added
 - Journal: first-run guided tutorial on Today—dismissible hints toward Seed (at least one gratitude, need, and person) and Harvest (15 chips), plus one-time congratulations when each milestone is first reached; progress is per install with an optional UI-test reset launch argument (`#60`).
+- Journal: behavior-first onboarding now starts with a minimal welcome and guides the first journal on Today one step at a time (Gratitude → Need → People → Ripening → Harvest → Abundance), replacing the earlier copy-led pager with inline section emphasis and locking (`#71`, `#73`, `#74`).
+- Journal / Settings: milestone-based suggestion cards can route to Settings and highlight the relevant AI, Reminders, or Data & Privacy section so optional setup stays calm and contextual (`#75`).
+- Journal: one-time, skippable post-Seed full-screen journey the first time you reach Seed on Today’s guided entry (`#71`).
 - Journal: brief unlock toast when completion moves up (Seed, Harvest, or full rhythm).
 - (Planned, `#11`) Checkmark or equivalent when all five slots in a section are complete
 
 ### Changed
+- Journal: completion semantics aligned with GitHub #67 — **Harvest** is chips-only; **Abundance** is chips plus reading notes and reflections. `completedAt` records harvest; “perfect” streak uses Abundance only (not `completedAt`). Named predicates on `JournalEntry`: `hasHarvestChips`, `hasAbundanceRhythm`. Meaning-card copy, unlock toasts, and related **zh-Hans** strings updated (short labels: **成长** / **满溢** for Ripening / Abundance).
+- Settings / persistence: fresh installs now default **iCloud sync** to off, while upgrades with existing onboarding or preference signals preserve the prior implicit iCloud-on posture through a one-time preference resolution pass (`#72`).
 - System sans typography uses **Outfit** app-wide: UIKit navigation bar, tab bar, and bar-button titles via appearance; SwiftUI root `font` environment; journal inputs keep explicit **Source Serif** / **Playfair** where set (including gratitude/need/person field placeholders).
-- (Planned, `#40`) Review / weekly insights less generic—language tied to recurring themes, people, and counts from real entries
+- Review (#40): cloud weekly insights run only when the current week has **three or more** meaningful journal rows; sanitized AI output must reference recurring themes in narrative, resurfacing, and continuity (and avoid generic continuity phrasing) or the app falls back to on-device insights. Cloud prompt nudges one concrete link between recurring signals when the week supports it.
 - (Planned, `#39`) AI prompts for chip labels tuned to improve review inputs; deterministic paths unchanged in spirit
 
 ### Fixed
@@ -28,8 +70,8 @@ iCloud / SwiftData trust in Settings (storage and attention copy aligned with re
 - Unit tests for journal import (decode, schema rejection, dedupe-by-day, sanitize) plus SwiftData integration tests skipped on Simulator where a second in-memory container crashes the hosted test app.
 
 ### Changed
-- Settings → **Cloud AI**: **Summarise and Insights** toggle is disabled when no usable `CloudSummarizationAPIKey` is configured; AppStorage flags are cleared when opening Settings if the key is missing.
-- Settings copy: **Cloud AI** section uses a **Summarise and Insights** toggle label (section title carries “cloud”); no footer; Reminders drops the redundant intro line; **Data & Privacy** backup actions use **Export a backup** / **Restore from a backup** plus a short helper under Backup; section footers remain dropped (import confirm still explains merge-by-day).
+- Settings → **Cloud AI**: **Summarize and Insights** toggle is disabled when no usable `CloudSummarizationAPIKey` is configured; AppStorage flags are cleared when opening Settings if the key is missing.
+- Settings copy: **Cloud AI** section uses a **Summarize and Insights** toggle label (section title carries “cloud”); no footer; Reminders drops the redundant intro line; **Data & Privacy** backup actions use **Export a backup** / **Restore from a backup** plus a short helper under Backup; section footers remain dropped (import confirm still explains merge-by-day).
 - Data & Privacy storage summary when the journal is on CloudKit (no redundant “iCloud on” body line); attention strings use `.summary` keys; **Open Settings** in account/restriction flows uses a prominent button when signing in or fixing restrictions is the primary action.
 - On-device chip labels no longer use word- or character-based “summarization”; they show a capped prefix of the user’s own text with `...` when truncated. Cloud chip summarization is unchanged.
 - Review → Insights / Timeline uses the system segmented `Picker` (Liquid Glass on iOS 26+) with warm accent tint.

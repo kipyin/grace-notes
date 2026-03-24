@@ -22,13 +22,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Save your journal card image to your photo library."
+            "value" : "Save your Grace Notes share image to your photo library."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "将您的日记卡片图片保存到相册。"
+            "value" : "将感恩记的分享图保存到相册。"
           }
         }
       }

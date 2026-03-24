@@ -23,7 +23,7 @@ struct CloudReviewInsightsSanitizer {
         let fallbackResurfacing = String(
             localized: "You are building momentum by returning to reflection this week."
         )
-        let fallbackContinuity = String(localized: "What is one gentle next step you can take tomorrow?")
+        let fallbackContinuity = String(localized: "What is one next step you can take tomorrow?")
         let recurringGratitudes = sanitizeThemes(payload.recurringGratitudes)
         let recurringNeeds = sanitizeThemes(payload.recurringNeeds)
         let recurringPeople = sanitizeThemes(payload.recurringPeople)
@@ -53,6 +53,27 @@ struct CloudReviewInsightsSanitizer {
             recurringNeeds: recurringNeeds,
             recurringPeople: recurringPeople
         )
+    }
+
+    /// Hard gate after sanitization: reject payloads that are still too generic or not tied to recurring signals.
+    func validateGroundedQuality(_ payload: CloudReviewInsightsPayload) throws {
+        let allThemes = payload.recurringNeeds + payload.recurringPeople + payload.recurringGratitudes
+        guard !allThemes.isEmpty else {
+            throw CloudReviewInsightsError.failedQualityGate
+        }
+
+        guard mentionsAnyTheme(payload.narrativeSummary, themes: allThemes) else {
+            throw CloudReviewInsightsError.failedQualityGate
+        }
+        guard mentionsAnyTheme(payload.resurfacingMessage, themes: allThemes) else {
+            throw CloudReviewInsightsError.failedQualityGate
+        }
+        guard mentionsAnyTheme(payload.continuityPrompt, themes: allThemes) else {
+            throw CloudReviewInsightsError.failedQualityGate
+        }
+        guard !seemsGeneric(payload.continuityPrompt) else {
+            throw CloudReviewInsightsError.failedQualityGate
+        }
     }
 
     func extractJSONPayload(from content: String) -> String {
@@ -163,7 +184,21 @@ struct CloudReviewInsightsSanitizer {
             return candidate
         }
 
-        return sanitizeMessage(message, fallback: fallback)
+        let allThemes = recurringNeeds + recurringPeople + recurringGratitudes
+        let candidate = sanitizeMessage(message, fallback: fallback)
+        guard !allThemes.isEmpty else {
+            return candidate
+        }
+        if mentionsAnyTheme(candidate, themes: allThemes), !seemsGeneric(candidate) {
+            return candidate
+        }
+        let replacement = groundedResurfacingLine(
+            recurringNeeds: recurringNeeds,
+            recurringPeople: recurringPeople,
+            recurringGratitudes: recurringGratitudes,
+            fallback: fallback
+        )
+        return sanitizeMessage(replacement, fallback: fallback)
     }
 
     private func sanitizeContinuityPrompt(
@@ -174,35 +209,87 @@ struct CloudReviewInsightsSanitizer {
         fallback: String
     ) -> String {
         let message = sanitizeMessage(prompt, fallback: fallback)
-        if !seemsGeneric(message) {
+        let allThemes = recurringNeeds + recurringPeople + recurringGratitudes
+        guard !allThemes.isEmpty else {
             return message
         }
 
-        if let topNeed = recurringNeeds.first {
-            let replacement = String(
-                format: String(localized: "What is one small step you can take to support %@ tomorrow?"),
-                topNeed.label
-            )
-            return sanitizeMessage(replacement, fallback: fallback)
-        }
+        if seemsGeneric(message) || !mentionsAnyTheme(message, themes: allThemes) {
+            if let topNeed = recurringNeeds.first {
+                let replacement = String(
+                    format: String(localized: "What is one small step you can take to support %@ tomorrow?"),
+                    topNeed.label
+                )
+                return sanitizeMessage(replacement, fallback: fallback)
+            }
 
-        if let topPerson = recurringPeople.first {
-            let replacement = String(
-                format: String(localized: "How could you connect with %@ in a meaningful way this week?"),
-                topPerson.label
-            )
-            return sanitizeMessage(replacement, fallback: fallback)
-        }
+            if let topPerson = recurringPeople.first {
+                let replacement = String(
+                    format: String(localized: "How could you connect with %@ in a meaningful way this week?"),
+                    topPerson.label
+                )
+                return sanitizeMessage(replacement, fallback: fallback)
+            }
 
-        if let topGratitude = recurringGratitudes.first {
-            let replacement = String(
-                format: String(localized: "How can you carry %@ into tomorrow?"),
-                topGratitude.label
-            )
-            return sanitizeMessage(replacement, fallback: fallback)
+            if let topGratitude = recurringGratitudes.first {
+                let replacement = String(
+                    format: String(localized: "How can you carry %@ into tomorrow?"),
+                    topGratitude.label
+                )
+                return sanitizeMessage(replacement, fallback: fallback)
+            }
         }
 
         return message
+    }
+
+    /// When recurring counts are all 1, the model may omit theme tokens; synthesize a grounded resurfacing line.
+    private func groundedResurfacingLine(
+        recurringNeeds: [CloudReviewTheme],
+        recurringPeople: [CloudReviewTheme],
+        recurringGratitudes: [CloudReviewTheme],
+        fallback: String
+    ) -> String {
+        if let topNeed = recurringNeeds.first {
+            if topNeed.count > 1 {
+                return String(
+                    format: String(localized: "You mentioned %1$@ %2$lld times this week."),
+                    topNeed.label,
+                    topNeed.count
+                )
+            }
+            return String(
+                format: String(localized: "You noted %@ across this week's entries."),
+                topNeed.label
+            )
+        }
+        if let topPerson = recurringPeople.first {
+            if topPerson.count > 1 {
+                return String(
+                    format: String(localized: "You kept %1$@ in mind %2$lld times this week."),
+                    topPerson.label,
+                    topPerson.count
+                )
+            }
+            return String(
+                format: String(localized: "You noted %@ across this week's entries."),
+                topPerson.label
+            )
+        }
+        if let topGratitude = recurringGratitudes.first {
+            if topGratitude.count > 1 {
+                return String(
+                    format: String(localized: "You returned to %1$@ %2$lld times this week."),
+                    topGratitude.label,
+                    topGratitude.count
+                )
+            }
+            return String(
+                format: String(localized: "You noted %@ across this week's entries."),
+                topGratitude.label
+            )
+        }
+        return fallback
     }
 
     private func mentionsAnyTheme(_ message: String, themes: [CloudReviewTheme]) -> Bool {

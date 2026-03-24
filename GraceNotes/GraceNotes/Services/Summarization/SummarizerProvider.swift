@@ -8,9 +8,15 @@ struct SummarizerProvider: Sendable {
 
     private static let useCloudKey = useCloudUserDefaultsKey
     private let fixedSummarizer: (any Summarizer)?
+    /// When set, forces `effectiveUsesCloudForChips()` for unit tests that inject a fixed summarizer (spy).
+    private let effectiveUsesCloudForChipsOverride: Bool?
 
-    init(fixedSummarizer: (any Summarizer)? = nil) {
+    init(
+        fixedSummarizer: (any Summarizer)? = nil,
+        effectiveUsesCloudForChipsOverride: Bool? = nil
+    ) {
         self.fixedSummarizer = fixedSummarizer
+        self.effectiveUsesCloudForChipsOverride = effectiveUsesCloudForChipsOverride
     }
 
     /// Returns the summarizer to use.
@@ -26,9 +32,13 @@ struct SummarizerProvider: Sendable {
         return DeterministicChipLabelSummarizer()
     }
 
-    /// Matches whether chip truncation should follow the cloud summarizer path (toggle + configured key), not live connectivity.
-    /// When a fixed summarizer is injected (tests), returns false so truncation stays on-device.
+    /// Matches whether chip truncation should follow the cloud summarizer path (toggle + configured key),
+    /// not live connectivity. When a fixed summarizer is injected (tests), returns false so truncation
+    /// stays on-device unless `effectiveUsesCloudForChipsOverride` is set.
     func effectiveUsesCloudForChips(userDefaults: UserDefaults = .standard) -> Bool {
+        if let override = effectiveUsesCloudForChipsOverride {
+            return override
+        }
         if fixedSummarizer != nil {
             return false
         }
