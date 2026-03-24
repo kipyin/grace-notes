@@ -66,7 +66,7 @@ If the intent is ambiguous (e.g. two `003-*` folders), ask **one** clarifying qu
 
 **Resolve “init NNN”:** find **exactly one** directory named `NNN-*` under `initiatives/` for active work. If closing and only an archive match exists, report that it is already archived.
 
-**Legacy folders** (e.g. `issue-71-guided-onboarding`, `release-0-5-1-patch`) remain valid paths; do not renumber them in normal stewardship.
+**Pre-migration slugs** (no `NNN-` prefix) may still appear in external links or old chat logs; in-repo paths use numbered ids (e.g. `011-issue-71-guided-onboarding`). Do not renumber existing `NNN-*` folders in normal stewardship.
 
 ## Default template seed (on start)
 

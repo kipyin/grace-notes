@@ -2,9 +2,7 @@
 
 Create one folder per **active** initiative under this directory.
 
-**Naming (new work):** `NNN-short-name` — three-digit zero-padded sequence (repo-wide, including `archive/`), hyphen, kebab-case topic (example: `002-insight-copy-tweaks`). See `.agents/skills/agent-log/SKILL.md` for choosing the next number.
-
-Legacy slugs without this prefix may still appear until migrated.
+**Naming:** `NNN-short-name` — three-digit zero-padded sequence (repo-wide, including `archive/`), hyphen, kebab-case topic. Existing folders use **001**–**015** from a one-time migration (see [`archive/README.md`](archive/README.md)); the next id is **max existing + 1** (currently **016**). See `.agents/skills/agent-log/SKILL.md` for the allocation rule.
 
 Shipped or abandoned handoffs belong in **`archive/`** (see [`archive/README.md`](archive/README.md)).
 

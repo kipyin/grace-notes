@@ -257,6 +257,6 @@ This is internal workflow enablement. Track it outside user-facing release packa
 - `GraceNotes/docs/archive/2026-03-uat-review-notes-release-0.3.3.md` (storage / iCloud reliability signal)
 - `GraceNotes/docs/archive/2026-03-uat-review-notes-release-0.3.4.md`
 - `GraceNotes/docs/archive/2026-03-product-strategy-implementation.md` (iCloud foundation and runtime validation constraints)
-- `GraceNotes/docs/agent-log/initiatives/archive/issue-41-agents-workflow/brief.md`
+- `GraceNotes/docs/agent-log/initiatives/archive/006-issue-41-agents-workflow/brief.md`
 - `CHANGELOG.md`
 - GitHub milestones: https://github.com/kipyin/grace-notes/milestones

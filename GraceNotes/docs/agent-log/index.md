@@ -4,8 +4,8 @@
 
 ## Active initiatives
 
-- [`issue-71-guided-onboarding`](initiatives/issue-71-guided-onboarding) — PR **#79** / epic **#71** (`qa.md`, `testing.md`)
-- [`release-0-5-1-patch`](initiatives/release-0-5-1-patch) — **0.5.1** patch line, integrate from **`main`** (`release.md`)
+- [`011-issue-71-guided-onboarding`](initiatives/011-issue-71-guided-onboarding) — PR **#79** / epic **#71** (`qa.md`, `testing.md`)
+- [`015-release-0-5-1-patch`](initiatives/015-release-0-5-1-patch) — **0.5.1** patch line, integrate from **`main`** (`release.md`)
 
 ## Archived initiatives
 
@@ -17,7 +17,7 @@ Shipped or superseded handoffs: [`initiatives/archive/`](initiatives/archive/REA
 
 - `GraceNotes/docs/agent-log/initiatives/001-guided-onboarding`
 
-Older folders may use legacy slugs (for example `issue-71-guided-onboarding`); do not rename them unless deliberately migrating. GitHub issue/PR numbers belong in YAML frontmatter, not in the numeric prefix.
+Initiative directory names use the `NNN-` prefix; GitHub issue/PR numbers belong in YAML frontmatter, not as the numeric prefix.
 
 Lifecycle scaffolding (start, index/archive upkeep, validation) is described in `.agents/skills/agent-log/SKILL.md`.
 
