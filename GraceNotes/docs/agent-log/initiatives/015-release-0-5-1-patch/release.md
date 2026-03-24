@@ -2,7 +2,7 @@
 initiative_id: 015-release-0-5-1-patch
 role: Release Manager
 status: completed
-updated_at: 2026-03-24
+updated_at: 2026-03-25
 related_issue: none
 related_pr: none
 ---
@@ -68,7 +68,7 @@ Release-window documentation and tag complete the agent-log pipeline; store subm
 
 ## Decision
 
-**Ship:** Documentation and version narrative ready; **`v0.5.1`** tag applied locally after the consolidating commit (see git output). **Push** `main` and **`v0.5.1`** to `origin` when ready.
+**Ship:** **`main`** at **`0759f61`** and annotated tag **`v0.5.1`** **pushed to `origin`** (all release work on `main`, no separate release branch for this tag).
 
 ## Open Questions
 
@@ -77,4 +77,4 @@ Release-window documentation and tag complete the agent-log pipeline; store subm
 
 ## Next Owner
 
-**Human / repo owner** — `git push origin main` and `git push origin v0.5.1` (or `git push --tags`). **agent-log:** archive initiative **015** when you want it off the active list (`GraceNotes/docs/agent-log/index.md`).
+**Human** — App Store Connect / external distribution if applicable. **agent-log:** archive initiative **015** when you want it off the active list (`GraceNotes/docs/agent-log/index.md`).
