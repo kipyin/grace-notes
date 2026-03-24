@@ -35,6 +35,7 @@ struct SettingsScreen: View {
                     Text(String(localized: "Settings.ai.sectionTitle"))
                         .font(AppTheme.warmPaperHeader)
                         .foregroundStyle(AppTheme.settingsTextPrimary)
+                        .textCase(nil)
                 }
 
                 Section {
@@ -66,6 +67,7 @@ struct SettingsScreen: View {
                     Text(String(localized: "Reminders"))
                         .font(AppTheme.warmPaperHeader)
                         .foregroundStyle(AppTheme.settingsTextPrimary)
+                        .textCase(nil)
                 }
 
                 DataPrivacySettingsSection(

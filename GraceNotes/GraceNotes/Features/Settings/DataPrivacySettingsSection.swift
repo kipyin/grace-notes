@@ -33,6 +33,7 @@ struct DataPrivacySettingsSection: View {
             Text(String(localized: "Data & Privacy"))
                 .font(AppTheme.warmPaperHeader)
                 .foregroundStyle(AppTheme.settingsTextPrimary)
+                .textCase(nil)
         }
     }
 }

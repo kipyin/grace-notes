@@ -35,6 +35,7 @@ struct ImportExportSettingsScreen: View {
                 Text(String(localized: "DataPrivacy.importExport.section.export"))
                     .font(AppTheme.warmPaperMeta)
                     .foregroundStyle(AppTheme.settingsTextMuted)
+                    .textCase(nil)
             }
 
             Section {
@@ -49,6 +50,7 @@ struct ImportExportSettingsScreen: View {
                 Text(String(localized: "DataPrivacy.importExport.section.import"))
                     .font(AppTheme.warmPaperMeta)
                     .foregroundStyle(AppTheme.settingsTextMuted)
+                    .textCase(nil)
             }
         }
         .navigationTitle(String(localized: "DataPrivacy.importExport.title"))
