@@ -120,4 +120,4 @@ Both likely stem from **synchronous main-thread work during first use** of a sub
 
 ## Next Owner
 
-`Implementer`, then `Test Lead`, to execute Slice 1 first, preserve the option to ship it independently, and then complete the reminder drill-in flow with validation across permission outcomes.
+`Builder`, then `Test Lead`, to execute Slice 1 first, preserve the option to ship it independently, and then complete the reminder drill-in flow with validation across permission outcomes.

@@ -67,17 +67,17 @@ private extension WeeklyInsightRuleEngine {
 
         let gratitudeStats = buildChipStats(
             from: sortedCurrentEntries,
-            itemsExtractor: { $0.gratitudes },
+            itemsExtractor: { $0.gratitudes ?? [] },
             calendar: calendar
         )
         let needStats = buildChipStats(
             from: sortedCurrentEntries,
-            itemsExtractor: { $0.needs },
+            itemsExtractor: { $0.needs ?? [] },
             calendar: calendar
         )
         let peopleStats = buildChipStats(
             from: sortedCurrentEntries,
-            itemsExtractor: { $0.people },
+            itemsExtractor: { $0.people ?? [] },
             calendar: calendar
         )
 
@@ -148,7 +148,7 @@ private extension WeeklyInsightRuleEngine {
 
         for entry in entries {
             let day = calendar.startOfDay(for: entry.entryDate)
-            for item in entry.gratitudes + entry.needs {
+            for item in (entry.gratitudes ?? []) + (entry.needs ?? []) {
                 accumulateTheme(
                     label: preferredItemLabel(item),
                     day: day,

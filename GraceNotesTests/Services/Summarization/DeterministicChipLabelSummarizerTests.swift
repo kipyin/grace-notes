@@ -10,52 +10,74 @@ final class DeterministicChipLabelSummarizerTests: XCTestCase {
         XCTAssertFalse(result.isTruncated)
     }
 
-    func test_summarize_englishSentence_returnsFirstFiveWords() async throws {
+    func test_summarize_nonEmpty_returnsFullTrimmedText() async throws {
         let input = "I am grateful for my family and friends"
         let result = try await sut.summarize(input, section: .gratitude)
-
-        XCTAssertEqual(result.label, "I am grate")
-        XCTAssertTrue(result.isTruncated)
-    }
-
-    func test_summarize_fiveOrFewerWordsWithinChipBudget_marksNotTruncated() async throws {
-        let input = "Need wisdom today"
-        let result = try await sut.summarize(input, section: .need)
-
-        XCTAssertEqual(result.label, "Need wisdo")
-        XCTAssertTrue(result.isTruncated)
-    }
-
-    func test_summarize_chineseSentence_returnsFirstFiveCharacters() async throws {
-        let input = "今天我感恩有好朋友陪伴"
-        let result = try await sut.summarize(input, section: .gratitude)
-
-        XCTAssertEqual(result.label, "今天我感恩")
-        XCTAssertTrue(result.isTruncated)
-    }
-
-    func test_summarize_chineseWithPunctuation_ignoresPunctuationInLabel() async throws {
-        let input = "我，今天感恩。"
-        let result = try await sut.summarize(input, section: .gratitude)
-
-        XCTAssertEqual(result.label, "我今天感恩")
+        XCTAssertEqual(result.label, input)
         XCTAssertFalse(result.isTruncated)
     }
 
-    func test_summarize_personMixedLanguage_preservesLatinName() async throws {
+    func test_summarize_trimsWhitespace() async throws {
+        let result = try await sut.summarize("  Peace  ", section: .need)
+        XCTAssertEqual(result.label, "Peace")
+        XCTAssertFalse(result.isTruncated)
+    }
+
+    func test_summarize_chinese_returnsFullTrimmedText() async throws {
+        let input = "今天我感恩有好朋友陪伴"
+        let result = try await sut.summarize(input, section: .gratitude)
+        XCTAssertEqual(result.label, input)
+        XCTAssertFalse(result.isTruncated)
+    }
+
+    func test_summarize_preservesPunctuation() async throws {
+        let input = "我，今天感恩。"
+        let result = try await sut.summarize(input, section: .gratitude)
+        XCTAssertEqual(result.label, input)
+        XCTAssertFalse(result.isTruncated)
+    }
+
+    func test_summarize_mixedLanguage_returnsFullTrimmedText() async throws {
         let input = "为 Amy 祷告平安"
         let result = try await sut.summarize(input, section: .person)
+        XCTAssertEqual(result.label, input)
+        XCTAssertFalse(result.isTruncated)
+    }
+}
 
-        XCTAssertEqual(result.label, "为 Amy 祷")
-        XCTAssertTrue(result.label.contains("Amy"))
+final class ChipLabelUnitTruncatorDisplayTests: XCTestCase {
+    func test_displayCappedLabel_longEnglish_addsEllipsis() {
+        let input = "I am grateful for my family and friends"
+        let result = ChipLabelUnitTruncator.displayCappedLabel(from: input)
+        XCTAssertEqual(result.label, "I am grate...")
         XCTAssertTrue(result.isTruncated)
     }
 
-    func test_summarize_fiveOrFewerWords_overTenUnits_capsToChipBudget() async throws {
-        let input = "Extraordinary opportunities for collaboration"
-        let result = try await sut.summarize(input, section: .need)
+    func test_displayCappedLabel_shortText_noEllipsis() {
+        let input = "Peace"
+        let result = ChipLabelUnitTruncator.displayCappedLabel(from: input)
+        XCTAssertEqual(result.label, "Peace")
+        XCTAssertFalse(result.isTruncated)
+    }
 
-        XCTAssertEqual(result.label, String(input.prefix(10)))
+    func test_displayCappedLabel_chinese_addsEllipsisWhenNeeded() {
+        let input = "今天我感恩有好朋友陪伴"
+        let result = ChipLabelUnitTruncator.displayCappedLabel(from: input)
+        XCTAssertEqual(result.label, "今天我感恩...")
         XCTAssertTrue(result.isTruncated)
+    }
+
+    func test_displayCappedLabel_mixedChineseAndLatin_addsEllipsisWhenNeeded() {
+        let input = "为 Amy 祷告平安"
+        let result = ChipLabelUnitTruncator.displayCappedLabel(from: input)
+        XCTAssertEqual(result.label, "为 Amy 祷...")
+        XCTAssertTrue(result.isTruncated)
+    }
+
+    func test_displayCappedLabel_fiveHanFitsExactly_noEllipsis() {
+        let input = "为家人祷告"
+        let result = ChipLabelUnitTruncator.displayCappedLabel(from: input)
+        XCTAssertEqual(result.label, input)
+        XCTAssertFalse(result.isTruncated)
     }
 }

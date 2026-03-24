@@ -7,37 +7,37 @@
 
 import SwiftUI
 import SwiftData
+import UIKit
 
 @main
 struct GraceNotesApp: App {
-    private enum AppTab: Hashable {
-        case today
-        case history
-        case settings
-    }
-
+    @UIApplicationDelegateAdaptor(GraceNotesAppDelegate.self) private var appDelegate
     private let isRunningUITests: Bool
     private let isRunningUnitTests: Bool
     @StateObject private var startupCoordinator: StartupCoordinator
+    @StateObject private var appNavigation = AppNavigationModel()
     @State private var uiTestPersistenceController: PersistenceController?
     @State private var hasRunDeferredStartupTasks = false
-    @State private var selectedTab: AppTab = .today
-    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @AppStorage(FirstRunOnboardingStorageKeys.completed) private var hasCompletedOnboarding = false
 
     init() {
         let startupTrace = PerformanceTrace.begin("App.init")
         AIFeaturesSettings.migrateLegacyCloudFlagIfNeeded()
         let processInfo = ProcessInfo.processInfo
         let isXCTestSession = processInfo.environment["XCTestConfigurationFilePath"] != nil
-        let isUITestBundle = processInfo.environment["XCTestBundlePath"]?.contains("UITests") == true
-        let hasUITestLaunchArgument = processInfo.arguments.contains("-ui-testing")
-        let hasUITestEnvironmentFlag = processInfo.environment["FIVECUBED_UI_TESTING"]
-            .map { value in
-                let normalizedValue = value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-                return normalizedValue == "1" || normalizedValue == "true" || normalizedValue == "yes"
-            } ?? false
-        isRunningUITests = isUITestBundle || hasUITestLaunchArgument || hasUITestEnvironmentFlag
+        isRunningUITests = ProcessInfo.graceNotesIsRunningUITests
         isRunningUnitTests = isXCTestSession && !isRunningUITests
+
+        if !isRunningUnitTests {
+            _ = ICloudSyncPreferenceResolver.resolvedCloudSyncEnabled(using: .standard)
+            AppLaunchVersionTracker.applyLaunch()
+            _ = JournalOnboardingProgress.resolvedHasCompletedGuidedJournal(using: .standard)
+        }
+
+        if isRunningUITests, processInfo.arguments.contains("-reset-journal-tutorial") {
+            JournalTutorialProgress.resetAll()
+            JournalOnboardingProgress.resetAll()
+        }
 
         let preloadedUITestController: PersistenceController?
         if isRunningUITests {
@@ -58,13 +58,16 @@ struct GraceNotesApp: App {
 
     var body: some Scene {
         WindowGroup {
-            if isRunningUnitTests {
-                Color.clear
-            } else if let uiTestController = uiTestPersistenceController {
-                uiTestRootView(using: uiTestController)
-            } else {
-                startupRootView
+            Group {
+                if isRunningUnitTests {
+                    Color.clear
+                } else if let uiTestController = uiTestPersistenceController {
+                    uiTestRootView(using: uiTestController)
+                } else {
+                    startupRootView
+                }
             }
+            .environment(\.font, AppTheme.outfitUI)
         }
     }
 
@@ -74,7 +77,9 @@ struct GraceNotesApp: App {
             .background(AppTheme.background)
             .toolbarBackground(AppTheme.background, for: .tabBar)
             .tint(AppTheme.accent)
+            .environmentObject(appNavigation)
             .modelContainer(controller.container)
+            .environment(\.persistenceRuntimeSnapshot, controller.runtimeSnapshot)
     }
 
     @ViewBuilder
@@ -97,10 +102,12 @@ struct GraceNotesApp: App {
                 .background(AppTheme.background)
                 .toolbarBackground(AppTheme.background, for: .tabBar)
                 .tint(AppTheme.accent)
+                .environmentObject(appNavigation)
                 .task {
                     await runDeferredStartupTasksIfNeeded(using: controller)
                 }
                 .modelContainer(controller.container)
+                .environment(\.persistenceRuntimeSnapshot, controller.runtimeSnapshot)
         }
     }
 
@@ -120,7 +127,7 @@ struct GraceNotesApp: App {
             return .retryableFailure(message: message)
         case .ready:
             return .loading(
-                message: String(localized: "We are setting up your private journal space..."),
+                message: String(localized: "We are setting up your private Grace Notes space..."),
                 isReassurance: false
             )
         }
@@ -140,7 +147,7 @@ struct GraceNotesApp: App {
     }
 
     private var mainTabView: some View {
-        TabView(selection: $selectedTab) {
+        TabView(selection: $appNavigation.selectedTab) {
             NavigationStack {
                 JournalScreen()
             }
@@ -149,7 +156,7 @@ struct GraceNotesApp: App {
             }
             .tag(AppTab.today)
             NavigationStack {
-                DeferredReviewRoot(isSelected: selectedTab == .history)
+                DeferredReviewRoot(isSelected: appNavigation.selectedTab == .history)
             }
             .tabItem {
                 Label(String(localized: "Review"), systemImage: "clock.arrow.circlepath")
@@ -171,7 +178,6 @@ struct GraceNotesApp: App {
         hasRunDeferredStartupTasks = true
 
 #if USE_DEMO_DATABASE
-        guard PersistenceController.isDemoDatabaseEnabled else { return }
         PerformanceTrace.instant("Starting deferred demo seeding")
         await Task.yield()
         let context = ModelContext(controller.container)

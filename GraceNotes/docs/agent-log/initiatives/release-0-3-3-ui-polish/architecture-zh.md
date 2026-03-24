@@ -177,4 +177,4 @@ Impeccable-style 技能为本精修版本的系统性审查与执行框架，用
 
 ## 下一负责人
 
-`Implementer`，随后 `Test Lead`，负责执行先审计、再按界面精修的顺序（先运行 `/audit`，再按界面运行 `/polish`，最后跨界面验证），验证完成标准，确保本版本呈现为精修与 cohesive 而非功能扩展。
+`Builder`，随后 `Test Lead`，负责执行先审计、再按界面精修的顺序（先运行 `/audit`，再按界面运行 `/polish`，最后跨界面验证），验证完成标准，确保本版本呈现为精修与 cohesive 而非功能扩展。

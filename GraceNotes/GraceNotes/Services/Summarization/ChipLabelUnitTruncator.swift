@@ -3,6 +3,13 @@ import Foundation
 struct ChipLabelUnitTruncator {
     static let maxUnits = 10
 
+    /// Applies the chip display budget and appends `...` when the text is truncated.
+    static func displayCappedLabel(from text: String, maxUnits: Int = maxUnits) -> SummarizationResult {
+        let capped = truncate(text, maxUnits: maxUnits)
+        let label = capped.isTruncated ? "\(capped.label)..." : capped.label
+        return SummarizationResult(label: label, isTruncated: capped.isTruncated)
+    }
+
     static func truncate(_ text: String, maxUnits: Int = maxUnits) -> SummarizationResult {
         guard !text.isEmpty else { return SummarizationResult(label: "", isTruncated: false) }
 

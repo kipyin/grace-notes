@@ -75,8 +75,8 @@ final class CloudSummarizerTests: XCTestCase {
         XCTAssertFalse(result.isTruncated)
     }
 
-    func test_summarize_successPath_longLabel_keepsFullResponse() async throws {
-        let longLabel = String(repeating: "a", count: 25)
+    func test_summarize_successPath_longLabel_keepsFullResponseWhenGrounded() async throws {
+        let longLabel = "Long " + String(repeating: "x", count: 30)
         MockURLProtocol.mockResponse = { _ in
             let json: [String: Any] = [
                 "choices": [
@@ -215,7 +215,7 @@ final class CloudSummarizerTests: XCTestCase {
         let input = "Extraordinary opportunities for collaboration"
         let result = try await summarizer.summarize(input, section: .need)
 
-        XCTAssertEqual(result.label, String(input.prefix(10)))
-        XCTAssertTrue(result.isTruncated)
+        XCTAssertEqual(result.label, input)
+        XCTAssertFalse(result.isTruncated)
     }
 }

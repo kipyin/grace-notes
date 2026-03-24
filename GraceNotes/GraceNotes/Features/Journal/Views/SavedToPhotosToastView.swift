@@ -2,6 +2,8 @@ import SwiftUI
 
 /// Toast shown when the user saves the share image to Photos.
 struct SavedToPhotosToastView: View {
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: "checkmark.circle.fill")
@@ -18,6 +20,7 @@ struct SavedToPhotosToastView: View {
             RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
                 .stroke(AppTheme.journalBorder, lineWidth: 1)
         )
+        .journalToastOuterGlow(accentColor: AppTheme.journalComplete, reduceTransparency: reduceTransparency)
         .padding(.bottom, 32)
     }
 }

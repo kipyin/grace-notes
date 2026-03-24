@@ -17,6 +17,31 @@ final class ReviewInsightsProviderTests: XCTestCase {
         super.tearDown()
     }
 
+    func test_generateInsights_aiEnabled_skipsCloudWhenFewerThanThreeMeaningfulEntriesInWeek() async {
+        UserDefaults.standard.set(true, forKey: ReviewInsightsProvider.useAIReviewInsightsKey)
+        let cloudInsight = weeklyInsightStub(observation: "Cloud observation", theme: "Rest", days: 3)
+        let deterministicInsight = weeklyInsightStub(
+            observation: "Deterministic observation",
+            theme: "Rest",
+            days: 2
+        )
+        let provider = ReviewInsightsProvider(
+            deterministicGenerator: StubReviewInsightsGenerator(
+                result: .success(makeInsights(source: .deterministic, weeklyInsights: [deterministicInsight]))
+            ),
+            cloudGenerator: StubReviewInsightsGenerator(
+                result: .success(makeInsights(source: .cloudAI, weeklyInsights: [cloudInsight]))
+            )
+        )
+        let reference = date(year: 2026, month: 3, day: 18)
+        let entries = [makeSeedEntry(on: date(year: 2026, month: 3, day: 17)), makeSeedEntry(on: reference)]
+
+        let insights = await provider.generateInsights(from: entries, referenceDate: reference, calendar: calendar)
+
+        XCTAssertEqual(insights.source, .deterministic)
+        XCTAssertEqual(insights.weeklyInsights.first?.observation, "Deterministic observation")
+    }
+
     func test_generateInsights_aiEnabled_returnsCloudInsightsWhenAvailable() async {
         UserDefaults.standard.set(true, forKey: ReviewInsightsProvider.useAIReviewInsightsKey)
         let cloud = StubReviewInsightsGenerator(
@@ -42,9 +67,10 @@ final class ReviewInsightsProviderTests: XCTestCase {
             cloudGenerator: cloud
         )
 
+        let reference = date(year: 2026, month: 3, day: 18)
         let insights = await provider.generateInsights(
-            from: [],
-            referenceDate: Date(timeIntervalSince1970: 1_742_147_200),
+            from: threeSeedEntriesInWeek(of: reference),
+            referenceDate: reference,
             calendar: calendar
         )
 
@@ -95,9 +121,10 @@ final class ReviewInsightsProviderTests: XCTestCase {
             cloudGenerator: cloud
         )
 
+        let reference = date(year: 2026, month: 3, day: 18)
         let insights = await provider.generateInsights(
-            from: [],
-            referenceDate: Date(timeIntervalSince1970: 1_742_147_200),
+            from: threeSeedEntriesInWeek(of: reference),
+            referenceDate: reference,
             calendar: calendar
         )
 
@@ -114,11 +141,11 @@ final class ReviewInsightsProviderTests: XCTestCase {
             cloudGenerator: cloud
         )
         let referenceDate = date(year: 2026, month: 3, day: 18)
-        let expectedWeekStart = date(year: 2026, month: 3, day: 16)
-        let expectedWeekEnd = date(year: 2026, month: 3, day: 23)
+        let expectedWeekStart = date(year: 2026, month: 3, day: 12)
+        let expectedWeekEnd = date(year: 2026, month: 3, day: 19)
 
         let insights = await provider.generateInsights(
-            from: [],
+            from: threeSeedEntriesInWeek(of: referenceDate),
             referenceDate: referenceDate,
             calendar: calendar
         )
@@ -190,6 +217,42 @@ final class ReviewInsightsProviderTests: XCTestCase {
         components.day = day
         components.timeZone = calendar.timeZone
         return calendar.date(from: components)!
+    }
+
+    private func makeSeedEntry(on date: Date) -> JournalEntry {
+        JournalEntry(
+            entryDate: date,
+            gratitudes: [JournalItem(fullText: "Gratitude", chipLabel: "Gratitude")],
+            needs: [JournalItem(fullText: "Need", chipLabel: "Need")],
+            people: [JournalItem(fullText: "Person", chipLabel: "Person")]
+        )
+    }
+
+    private func weeklyInsightStub(observation: String, theme: String, days: Int) -> ReviewWeeklyInsight {
+        ReviewWeeklyInsight(
+            pattern: .recurringTheme,
+            observation: observation,
+            action: "Action",
+            primaryTheme: theme,
+            mentionCount: days,
+            dayCount: days
+        )
+    }
+
+    private func threeSeedEntriesInWeek(of referenceDate: Date) -> [JournalEntry] {
+        let range = ReviewInsightsCloudEligibility.currentReviewPeriod(
+            containing: referenceDate,
+            calendar: calendar
+        )
+        let start = range.lowerBound
+        let day1 = start
+        let day2 = calendar.date(byAdding: .day, value: 1, to: start) ?? start
+        let day3 = calendar.date(byAdding: .day, value: 2, to: start) ?? start
+        return [
+            makeSeedEntry(on: day1),
+            makeSeedEntry(on: day2),
+            makeSeedEntry(on: day3)
+        ]
     }
 }
 

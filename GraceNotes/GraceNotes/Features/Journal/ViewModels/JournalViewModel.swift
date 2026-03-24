@@ -114,9 +114,9 @@ final class JournalViewModel {
         defer { isHydrating = false }
 
         entryDate = entry.entryDate
-        gratitudes = entry.gratitudes
-        needs = entry.needs
-        people = entry.people
+        gratitudes = entry.gratitudes ?? []
+        needs = entry.needs ?? []
+        people = entry.people ?? []
         readingNotes = entry.readingNotes
         reflections = entry.reflections
     }
@@ -131,7 +131,8 @@ final class JournalViewModel {
         entry.readingNotes = readingNotes.trimmingCharacters(in: .whitespacesAndNewlines)
         entry.reflections = reflections.trimmingCharacters(in: .whitespacesAndNewlines)
         entry.updatedAt = nowProvider()
-        entry.completedAt = entry.isComplete ? (entry.completedAt ?? nowProvider()) : nil
+        // First time the user reaches harvest (all chip slots); cleared if chips drop below 5/5/5.
+        entry.completedAt = entry.hasHarvestChips ? (entry.completedAt ?? nowProvider()) : nil
 
         do {
             try context.save()
@@ -144,7 +145,7 @@ final class JournalViewModel {
                 PerformanceTrace.end("JournalViewModel.persistChanges", startedAt: saveTrace)
             }
         } catch {
-            saveErrorMessage = String(localized: "Unable to save your journal entry.")
+            saveErrorMessage = String(localized: "Unable to save your entry.")
             PerformanceTrace.end("JournalViewModel.persistChanges.failed", startedAt: saveTrace)
         }
     }
@@ -171,9 +172,16 @@ final class JournalViewModel {
         autosaveTrigger.send(())
     }
 
+    /// True when today's entry meets **Abundance** (full rhythm), not harvest-only.
     var completedToday: Bool {
         guard journalEntry != nil else { return false }
-        return completionLevel == .fullFiveCubed
+        return JournalEntry.criteriaMet(
+            gratitudesCount: gratitudes.count,
+            needsCount: needs.count,
+            peopleCount: people.count,
+            readingNotes: readingNotes,
+            reflections: reflections
+        )
     }
 
     /// Total chip slots across gratitudes, needs, and people (5 x 3 = 15).

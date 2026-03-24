@@ -19,6 +19,10 @@ function_body_length:
 cyclomatic_complexity:
   warning: 10
   error: 15
+# Several primary screens sit just above the default 400-line cap; keep a single consistent threshold.
+file_length:
+  warning: 620
+  error: 1200
 identifier_name:
   min_length: 3
   max_length: 40

@@ -12,7 +12,7 @@ related_pr: 49
 ## Inputs Reviewed
 
 - `brief.md` in this initiative
-- Existing role rule files in `.cursor/rules/`
+- Existing role skills in `.agents/skills/` (formerly `.cursor/rules/`)
 - Existing `AGENTS.md`
 
 ## Decision

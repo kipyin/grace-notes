@@ -40,9 +40,9 @@ struct JournalDataExportService {
         JournalDataExportEntry(
             id: entry.id,
             entryDate: entry.entryDate,
-            gratitudes: entry.gratitudes.map(makeExportItem),
-            needs: entry.needs.map(makeExportItem),
-            people: entry.people.map(makeExportItem),
+            gratitudes: (entry.gratitudes ?? []).map(makeExportItem),
+            needs: (entry.needs ?? []).map(makeExportItem),
+            people: (entry.people ?? []).map(makeExportItem),
             readingNotes: entry.readingNotes,
             reflections: entry.reflections,
             createdAt: entry.createdAt,

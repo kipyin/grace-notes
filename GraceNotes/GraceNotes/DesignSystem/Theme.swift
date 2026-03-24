@@ -99,6 +99,20 @@ enum AppTheme {
     static let warmPaperMeta = Font.custom("SourceSerif4Roman-Regular", size: 15, relativeTo: .footnote)
     static let warmPaperMetaEmphasis = Font.custom("SourceSerif4Roman-Regular", size: 15, relativeTo: .footnote)
         .weight(.semibold)
+    /// Supporting copy under meta titles (e.g. path criteria); scales with Dynamic Type caption.
+    static let warmPaperCaption = Font.custom("SourceSerif4Roman-Regular", size: 13, relativeTo: .caption)
+
+    // MARK: - Interface sans (Outfit)
+
+    /// Default SwiftUI sans; inherited by controls unless a view sets `.font` (journal uses `warmPaper*` instead).
+    static let outfitUI = Font.custom("Outfit-Regular", size: 17, relativeTo: .body)
+
+    static let outfitSemiboldHeadline = Font.custom("Outfit-SemiBold", size: 17, relativeTo: .headline)
+    static let outfitRegularTitle3 = Font.custom("Outfit-Regular", size: 20, relativeTo: .title3)
+    static let outfitSemiboldSubheadline = Font.custom("Outfit-SemiBold", size: 15, relativeTo: .subheadline)
+
+    /// Disclosure chevrons and other compact chrome.
+    static let outfitSemiboldCaption = Font.custom("Outfit-SemiBold", size: 12, relativeTo: .caption2)
 
     // MARK: - Spacing & Radius
 
@@ -120,53 +134,91 @@ enum AppTheme {
 
     static func celebrationVisibleSeconds(for level: JournalCompletionLevel) -> Double {
         switch level {
-        case .quickCheckIn:
-            return 0.65
-        case .standardReflection:
-            return 0.95
-        case .fullFiveCubed:
-            return 1.2
-        case .none:
+        case .soil:
             return 0
+        case .seed:
+            return 0.65
+        case .ripening:
+            return 0.78
+        case .harvest:
+            return 0.95
+        case .abundance:
+            return 1.2
         }
     }
 
     static func celebrationEntranceAnimation(for level: JournalCompletionLevel) -> Animation {
         switch level {
-        case .quickCheckIn:
-            return .easeOut(duration: 0.16)
-        case .standardReflection:
-            return .spring(response: 0.34, dampingFraction: 0.76)
-        case .fullFiveCubed:
-            return .spring(response: 0.42, dampingFraction: 0.68)
-        case .none:
+        case .soil:
             return .easeOut(duration: 0.12)
+        case .seed:
+            return .easeOut(duration: 0.16)
+        case .ripening:
+            return .spring(response: 0.3, dampingFraction: 0.78)
+        case .harvest:
+            return .spring(response: 0.34, dampingFraction: 0.76)
+        case .abundance:
+            return .spring(response: 0.42, dampingFraction: 0.68)
         }
     }
 
     static func celebrationExitAnimation(for level: JournalCompletionLevel) -> Animation {
         switch level {
-        case .quickCheckIn:
-            return .easeOut(duration: 0.14)
-        case .standardReflection:
-            return .easeOut(duration: 0.2)
-        case .fullFiveCubed:
-            return .easeOut(duration: 0.24)
-        case .none:
+        case .soil:
             return .easeOut(duration: 0.12)
+        case .seed:
+            return .easeOut(duration: 0.14)
+        case .ripening:
+            return .easeOut(duration: 0.17)
+        case .harvest:
+            return .easeOut(duration: 0.2)
+        case .abundance:
+            return .easeOut(duration: 0.24)
         }
     }
 
     static func celebrationPulseAnimation(for level: JournalCompletionLevel) -> Animation {
         switch level {
-        case .quickCheckIn:
-            return .easeOut(duration: 0.14)
-        case .standardReflection:
-            return .easeOut(duration: 0.2)
-        case .fullFiveCubed:
-            return .easeOut(duration: 0.24)
-        case .none:
+        case .soil:
             return .easeOut(duration: 0.12)
+        case .seed:
+            return .easeOut(duration: 0.14)
+        case .ripening:
+            return .easeOut(duration: 0.17)
+        case .harvest:
+            return .easeOut(duration: 0.2)
+        case .abundance:
+            return .easeOut(duration: 0.24)
+        }
+    }
+
+    static func unlockToastEntranceAnimation(for level: JournalCompletionLevel) -> Animation {
+        switch level {
+        case .soil:
+            return .easeOut(duration: 0.12)
+        case .seed:
+            return .easeOut(duration: 0.22)
+        case .ripening:
+            return celebrationEntranceAnimation(for: .ripening)
+        case .harvest:
+            return celebrationEntranceAnimation(for: .harvest)
+        case .abundance:
+            return celebrationEntranceAnimation(for: .abundance)
+        }
+    }
+
+    static func unlockToastExitAnimation(for level: JournalCompletionLevel) -> Animation {
+        switch level {
+        case .soil:
+            return .easeOut(duration: 0.12)
+        case .seed:
+            return .easeOut(duration: 0.2)
+        case .ripening:
+            return celebrationExitAnimation(for: .ripening)
+        case .harvest:
+            return celebrationExitAnimation(for: .harvest)
+        case .abundance:
+            return celebrationExitAnimation(for: .abundance)
         }
     }
 }
@@ -191,6 +243,29 @@ struct WarmPaperInputStyle: ViewModifier {
 extension View {
     func warmPaperInputStyle() -> some View {
         modifier(WarmPaperInputStyle())
+    }
+
+    /// Soft tier-tinted halo around journal toasts; collapses to a single modest shadow when Reduce Transparency is on.
+    func journalToastOuterGlow(accentColor: Color, reduceTransparency: Bool) -> some View {
+        modifier(JournalToastOuterGlowModifier(accentGlow: accentColor, reduceTransparency: reduceTransparency))
+    }
+}
+
+/// Feathered outer glow for floating journal toasts (unlock, saved-to-photos).
+private struct JournalToastOuterGlowModifier: ViewModifier {
+    let accentGlow: Color
+    let reduceTransparency: Bool
+
+    func body(content: Content) -> some View {
+        if reduceTransparency {
+            content
+                .shadow(color: .black.opacity(0.16), radius: 4, x: 0, y: 2)
+        } else {
+            content
+                .shadow(color: accentGlow.opacity(0.14), radius: 6, x: 0, y: 2)
+                .shadow(color: accentGlow.opacity(0.09), radius: 16, x: 0, y: 3)
+                .shadow(color: accentGlow.opacity(0.05), radius: 28, x: 0, y: 0)
+        }
     }
 }
 

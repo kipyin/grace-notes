@@ -2,13 +2,17 @@ import XCTest
 @testable import GraceNotes
 
 final class PersistenceControllerTests: XCTestCase {
-    func test_cloudSyncEnabled_whenKeyMissing_defaultsToTrue() {
+    func test_cloudSyncEnabled_whenKeyMissing_defaultsToFalse() {
         let defaults = makeIsolatedDefaults()
         defaults.removeObject(forKey: PersistenceController.iCloudSyncEnabledKey)
 
         let resolvedValue = PersistenceController.cloudSyncEnabled(using: defaults)
 
-        XCTAssertTrue(resolvedValue)
+        XCTAssertFalse(resolvedValue)
+        XCTAssertEqual(
+            defaults.object(forKey: PersistenceController.iCloudSyncEnabledKey) as? Bool,
+            false
+        )
     }
 
     func test_cloudSyncEnabled_whenKeySetFalse_returnsFalse() {

@@ -24,6 +24,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		37DE0A102F70000100955D3E /* DeveloperSettings.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = DeveloperSettings.xcconfig; sourceTree = "<group>"; };
 		37D873302F66C99400955D3E /* GraceNotes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GraceNotes.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		37D8733F2F66C99500955D3E /* GraceNotesTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GraceNotesTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		37D873492F66C99500955D3E /* GraceNotesUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GraceNotesUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -75,6 +76,7 @@
 		37D873272F66C99400955D3E = {
 			isa = PBXGroup;
 			children = (
+				37DE0A102F70000100955D3E /* DeveloperSettings.xcconfig */,
 				37D873322F66C99400955D3E /* GraceNotes */,
 				37D873422F66C99500955D3E /* ../GraceNotesTests */,
 				37D8734C2F66C99500955D3E /* ../GraceNotesUITests */,
@@ -244,17 +246,21 @@
 			inputPaths = (
 				"$(PROJECT_DIR)/GraceNotes/Resources/Fonts/PlayfairDisplay-Variable.ttf",
 				"$(PROJECT_DIR)/GraceNotes/Resources/Fonts/SourceSerif4-Variable.ttf",
+				"$(PROJECT_DIR)/GraceNotes/Resources/Fonts/Outfit-Regular.ttf",
+				"$(PROJECT_DIR)/GraceNotes/Resources/Fonts/Outfit-SemiBold.ttf",
 			);
 			name = "Copy Fonts to bundle";
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(BUILT_PRODUCTS_DIR)/$(WRAPPER_NAME)/Fonts/PlayfairDisplay-Variable.ttf",
-				"$(BUILT_PRODUCTS_DIR)/$(WRAPPER_NAME)/Fonts/SourceSerif4-Variable.ttf",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Fonts/PlayfairDisplay-Variable.ttf",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Fonts/SourceSerif4-Variable.ttf",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Fonts/Outfit-Regular.ttf",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Fonts/Outfit-SemiBold.ttf",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "FONT_SRC=\"${PROJECT_DIR}/GraceNotes/Resources/Fonts\"\nFONT_DEST=\"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Fonts\"\nmkdir -p \"$FONT_DEST\"\nfor f in \"$FONT_SRC\"/*.ttf; do\n  [ -f \"$f\" ] && cp \"$f\" \"$FONT_DEST/\"\ndone\n";
+			shellScript = "set -euo pipefail\n\nFONT_SRC=\"${PROJECT_DIR}/GraceNotes/Resources/Fonts\"\nFONT_DEST=\"${TARGET_BUILD_DIR}/${WRAPPER_NAME}/Fonts\"\n\nmkdir -p \"$FONT_DEST\"\ncp \"${FONT_SRC}/PlayfairDisplay-Variable.ttf\" \"${SCRIPT_OUTPUT_FILE_0}\"\ncp \"${FONT_SRC}/SourceSerif4-Variable.ttf\" \"${SCRIPT_OUTPUT_FILE_1}\"\ncp \"${FONT_SRC}/Outfit-Regular.ttf\" \"${SCRIPT_OUTPUT_FILE_2}\"\ncp \"${FONT_SRC}/Outfit-SemiBold.ttf\" \"${SCRIPT_OUTPUT_FILE_3}\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -345,7 +351,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -432,17 +438,19 @@
 		};
 		37D873542F66C99500955D3E /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 37DE0A102F70000100955D3E /* DeveloperSettings.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = GraceNotes.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = C2ST94AYSS;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Grace Notes";
+				INFOPLIST_KEY_CFBundleDisplayName = "感恩记";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -454,15 +462,12 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.4;
+				MARKETING_VERSION = 0.5.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gracenotes.GraceNotes;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_STRICT_CONCURRENCY = complete;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -470,17 +475,19 @@
 		};
 		37D873552F66C99500955D3E /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 37DE0A102F70000100955D3E /* DeveloperSettings.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = GraceNotes.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = C2ST94AYSS;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Grace Notes";
+				INFOPLIST_KEY_CFBundleDisplayName = "感恩记";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -492,15 +499,12 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.4;
+				MARKETING_VERSION = 0.5.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gracenotes.GraceNotes;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_STRICT_CONCURRENCY = complete;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -624,7 +628,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -655,17 +659,19 @@
 		};
 		8EED0A13313A958000DE0001 /* Demo */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 37DE0A102F70000100955D3E /* DeveloperSettings.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = GraceNotes.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = C2ST94AYSS;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Grace Notes";
+				INFOPLIST_KEY_CFBundleDisplayName = "感恩记";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -677,15 +683,12 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.4;
+				MARKETING_VERSION = 0.5.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gracenotes.GraceNotes;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_STRICT_CONCURRENCY = complete;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

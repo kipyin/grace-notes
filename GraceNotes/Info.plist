@@ -3,9 +3,11 @@
 <plist version="1.0">
 <dict>
 	<key>CloudSummarizationAPIKey</key>
-	<string>YOUR_KEY_HERE</string>
+	<string>$(GRACE_NOTES_CLOUD_API_KEY)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Save your journal card image to your photo library.</string>
+	<string>Save your Grace Notes share image to your photo library.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
@@ -14,6 +16,8 @@
 	<array>
 		<string>Fonts/PlayfairDisplay-Variable.ttf</string>
 		<string>Fonts/SourceSerif4-Variable.ttf</string>
+		<string>Fonts/Outfit-Regular.ttf</string>
+		<string>Fonts/Outfit-SemiBold.ttf</string>
 	</array>
 </dict>
 </plist>

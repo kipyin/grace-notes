@@ -1,8 +1,10 @@
 # Grace Notes Release Roadmap
 
-Date: 2026-03-18
+Date: 2026-03-23
 
-This roadmap turns the strategic priority stack into a release sequence grounded in the current open issue set.
+This roadmap turns the strategic priority stack into a release sequence grounded in the current open issue set. For **shipped** scope detail, treat `CHANGELOG.md` as the source of truth and keep this document aligned when tagging releases.
+
+**GitHub milestones:** Open product issues on [kipyin/grace-notes](https://github.com/kipyin/grace-notes) use milestones that mirror the releases below: `0.5.0 - Insight quality and first-week guidance`, `0.6.0 - Trust and ownership`, `0.7.0 - Activation and flexible depth`, and `0.8.x+ - Streak and calendar refinement`. Internal workflow work stays off user-facing milestones. When you add or retarget issues, update this file and the milestone in the same change.
 
 ## Roadmap principles
 
@@ -11,6 +13,7 @@ This roadmap turns the strategic priority stack into a release sequence grounded
 3. Treat trust and ownership as product, not back-office infrastructure.
 4. Lower pressure without diluting the core reflection ritual.
 5. Keep internal workflow improvements separate from user-facing releases.
+6. Resolve sync and persistence trust before deepening review intelligence.
 
 ## Release sequence
 
@@ -54,8 +57,8 @@ This roadmap turns the strategic priority stack into a release sequence grounded
 - Presentation refinements that strengthen trust and calmness without changing the underlying feature set
 
 **Why now**
-- `0.3.2` repaired the most visible reliability failures, but the app still needs a cohesion pass so those fixes feel truly shipped rather than merely stabilized
-- This is the right size for a patch release and keeps `0.4.0` focused on the bigger product return: better insight quality
+- `0.3.2` repaired the most visible reliability failures, but the app still needs a cohesion pass so those fixes feel truly shipped rather than merely stabilized.
+- This patch size kept momentum without front-loading trust infrastructure (sync reliability) before controls and copy caught up.
 
 **Acceptance intent**
 - Primary surfaces feel visually and tonally consistent
@@ -78,77 +81,154 @@ This roadmap turns the strategic priority stack into a release sequence grounded
 
 **Why now**
 - `0.3.3` improved overall polish, but completion semantics and trust controls still had avoidable ambiguity in day-to-day use.
-- This patch closes those gaps while keeping `0.4.0` focused on insight quality.
+- This patch added explicit iCloud preference and messaging; operational sync reliability is sequenced next in `0.4.0`.
 
 **Acceptance intent**
 - Users can understand what each completion level means without leaving the Today flow.
 - Completion states are coherent across Today and Review.
 - Data trust controls are explicit, understandable, and easy to verify.
 
-## 0.4.0 — Insight quality
+## 0.3.5 — Released (2026-03-20)
 
-**Goal:** Make review feel specific, trustworthy, and grounded in the user’s own entries.
+**Goal:** Keep release packaging deterministic and metadata consistent.
+
+**Release status**
+- Shipped as `0.3.5` patch release.
+- See `CHANGELOG.md` for final packaged scope details.
 
 **Scope in**
-- `#40` Review page is still generic even with AI Insights
-- `#39` Fine tune AI prompts for chips
-- `#11` Add a check mark after all 5 entries are complete within a section
+- Font-copy build phase writes to the target build directory with explicit output paths for reliable app packaging
+- Marketing version alignment for Grace Notes app configurations
 
 **Why now**
-- The strategy review identifies weak return on reflection as the biggest blocker.
-- Better chip labeling improves the source material for review summaries.
+- Small maintenance window before the next minor focus on sync trust.
 
 **Acceptance intent**
-- Review language references real recurring themes, people, and counts.
+- Release builds are repeatable; version labels match packaged artifacts.
+
+## 0.4.0 — iCloud / SwiftData sync reliability
+
+**Goal:** Make multi-device and cloud-backed storage feel dependable, legible, and recoverable—not only configurable.
+
+**Release status**
+- Shipped as `0.4.0` minor release (2026-03-21).
+- See `CHANGELOG.md` for final packaged scope details.
+
+**Scope in**
+- User-visible sync health or last-known state where APIs and product tone allow (SwiftData + CloudKit)
+- Behavior and Settings copy that match real outcomes, including failure and fallback paths (e.g. local store when CloudKit container creation fails)
+- Clearer recovery semantics when toggling iCloud sync or when sync is unavailable
+- Documented manual validation on signed builds and real devices (full CloudKit validation is not available in Linux CI; see `AGENTS.md`)
+
+**Why now**
+- Strategy review ranks trust—and a visible sync story—as the second-biggest product gap after review value.
+- `0.3.4` shipped the sync toggle and privacy copy; users still need confidence that sync actually behaves.
+- UAT (`08-uat-review-notes-release-0.3.3.md`) called out hardening storage and reliable iCloud sync.
+
+**Acceptance intent**
+- Users can infer whether their data is intended to be cloud-backed and what to do when something goes wrong.
+- No silent mismatch between what Settings promises and what the persistence layer does.
+- Multi-device checks are defined and repeatable for releases that touch persistence.
+
+**Versioning note:** If marketing needs the `0.4.0` label for insight work instead, ship sync reliability as a patch (e.g. `0.3.6`) first, then proceed with insight as `0.4.0`; document that swap in this file when chosen.
+
+## 0.5.0 — Insight quality and first-week guidance
+
+Work tracked on branch `release/0.5.0`.
+
+**Goal:** Make review feel specific, trustworthy, and grounded in the user’s own entries, while giving new and returning users calm first-week guidance that does not dilute the core ritual.
+
+**Scope in**
+- `#40` Review → Insights **insight-first** presentation redo (layout, hierarchy, framing; ship before leaning on engine-only fixes for “generic” feel)
+- `#80` Review **insight engine** depth: prompts, sanitizer iteration, fixture audits, and contract-conformance testing (see `03-review-insight-quality-contract.md`)
+- `#39` Fine tune AI prompts for chips
+- `#11` Add a check mark after all 5 entries are complete within a section
+- ~~Guided return and first-week support (hints, coaching, or light onboarding tied to Seed/Harvest and the rhythm)—including `#60` first-run Today tutorial and related unlock feedback where shipped under this line~~
+- ~~`#67` Align journal completion logic (inProgress / seed / harvest / fullness)~~
+- ~~`#69` Skip cloud chip summarization when input fits chip unit budget (≤10 units)~~
+- ~~`#70` Commit chip TextField draft on focus loss (not only Return)~~
+- ~~`#71` Epic: Guided onboarding (behavior-first) + opt-in defaults (AI, reminders, iCloud)~~
+- ~~`#73` Onboarding: first journal path (Gratitude → Need → People)~~
+- ~~`#72` Onboarding: iCloud default off + migration notes~~
+- ~~`#74` Onboarding: Ripening → Harvest → Abundance guided flow~~
+- ~~`#75` Onboarding: suggest AI, reminders, iCloud after milestones~~
+
+**Why now**
+- The strategy review identifies weak return on reflection as the biggest blocker and calls for better first-week guidance.
+- Better chip labeling improves the source material for review summaries.
+- Activation for the first week does not need to wait on flexible-depth modes (`0.7.0`); it belongs alongside insight work in this release.
+- This lane follows `0.4.0` so insight investment and guidance sit on firmer data-trust footing.
+
+**Acceptance intent**
+- **#40:** Review → Insights feels insight-first; primary weekly content is clearly the hero of the mode.
+- **#80:** Review language increasingly references real recurring themes, people, and counts per the quality contract.
 - AI output remains optional and falls back cleanly to deterministic insights.
 - Completion feedback stays calm and legible inside the current ritual.
+- First-week and return flows feel supportive rather than demanding; users understand how to progress without extra pressure.
 
-## 0.5.0 — Trust and ownership
+## 0.5.1 — Upgrade orientation (installed base)
+
+**Goal:** Users upgrading from `0.5.0` (or any build below `0.5.1`) into `0.5.1` get a **one-time** first-week orientation on the first launch of that version; later launches and later versions do not repeat it unless product adds a new rule.
+
+**Scope in**
+- Version-persisted launch tracking (`lastLaunchedMarketingVersion`) and a pending upgrade-orientation flag
+- **Below Seed** on Today: full behavior-first guided journal, then the existing post-Seed journey (including congratulations)
+- **At or above Seed** on Today: skip chip coaching; post-Seed journey starts on the path/insights pages (no Seed congratulations); finish/skip clears the pending flag
+- No automatic changes to reminders, AI, or iCloud preferences during orientation; completing the journey no longer auto-dismisses Today suggestion banners
+
+**Acceptance intent**
+- Fresh install on `0.5.1` is unchanged relative to `0.5.0` onboarding behavior except as defined by the same first-week flows
+- Upgrade cohort sees orientation exactly once; second launch on `0.5.1` does not replay it
+
+## 0.6.0 — Trust and ownership
 
 **Goal:** Make Grace Notes feel safe to adopt as a real grace note practice.
 
 **Scope in**
-- Structured import to complement existing export
-- Simpler backup or sync confidence wins
-- Clear privacy messaging for local versus cloud behavior
+- Deeper **backup and ownership** UX beyond what shipped in `0.4.0` (JSON import/export is already available); e.g. clearer in-app guidance, edge cases, or portability story
+- Clear privacy messaging for local versus cloud behavior (extends, does not replace, `0.4.0` sync truthfulness)
 - `zh-Hant` localization if release capacity allows
+- `#50` Add a show orientation again toggle in Settings
 
 **Why now**
 - Users need confidence that their reflections are portable and recoverable.
-- Export shipped in `0.2.3`, so import and clearer ownership are the natural next step.
+- Export shipped in `0.2.3` and structured import shipped in `0.4.0`; this lane focuses on trust copy and ownership clarity once review quality and first-week guidance (`0.5.0`) are stronger.
 
 **Acceptance intent**
 - Users can restore from a prior export.
 - Data ownership and privacy posture are easy to understand.
 
-## 0.6.0 — Activation and flexible depth
+## 0.7.0 — Activation and flexible depth
 
-**Goal:** Reduce pressure while preserving the structured reflection wedge.
+**Goal:** Reduce pressure through flexible depth and optional modes while preserving the structured reflection wedge. First-week and guided-return baseline ships in `0.5.0`; this release deepens how users can vary intensity over time.
 
 **Scope in**
 - Lighter success states for low-energy days
-- Guided return and first-week support
 - Quick versus full reflection modes
 - Prompt packs or weekly reflection modes only if they deepen the ritual
 
 **Why now**
+- Guided return and first-week support are sequenced in `0.5.0`.
 - Some activation groundwork already shipped in `0.2.3`.
-- This lane should build on a stable, useful, and trusted product.
+- This lane builds on a stable, useful, trusted product and the `0.5.0` activation baseline.
 
 **Acceptance intent**
-- Users can keep the habit on lower-energy days.
-- The app feels supportive rather than demanding.
+- Users can keep the habit on lower-energy days via lighter success states and clear quick paths.
+- Optional depth (prompt packs, weekly reflection) strengthens the ritual without feeling noisy or mandatory.
+- The app remains supportive rather than demanding as these options grow.
 
-## 0.6.x+ — Streak and calendar refinement
+## 0.8.x+ — Streak and calendar refinement
 
 **Goal:** Improve time-based review surfaces after the core value loop is stronger.
 
 **Scope in**
 - `#35` Reconsider how streaks should be presented
+- Broader Review timeframes such as a month-level view, if later feedback shows the weekly surface is too narrow
 - Monthly calendar, if later user feedback still justifies it
 
 **Why later**
 - Calendar improves scanning, but it does not solve the primary retention gap.
+- Broader timeframes add Review surface area, but they do not directly fix generic insight quality in `#40`.
 - The exploration doc recommends deferring it unless demand or scope clearly supports it.
 
 **Acceptance intent**
@@ -157,7 +237,7 @@ This roadmap turns the strategic priority stack into a release sequence grounded
 
 ## Out of product release scope
 
-- `#41` Enhance agents workflow by incorporating `gh` commands
+- ~~`#41` Enhance agents workflow by incorporating `gh` commands~~
 
 This is internal workflow enablement. Track it outside user-facing release packaging.
 
@@ -168,6 +248,9 @@ This is internal workflow enablement. Track it outside user-facing release packa
 - `GraceNotes/docs/04-review-insight-examples.md`
 - `GraceNotes/docs/05-exploration-calendar-view.md`
 - `GraceNotes/docs/06-tech-debt-backlog.md`
+- `GraceNotes/docs/08-uat-review-notes-release-0.3.3.md` (storage / iCloud reliability signal)
 - `GraceNotes/docs/09-uat-review-notes-release-0.3.4.md`
+- `GraceNotes/docs/archive/2026-03-product-strategy-implementation.md` (iCloud foundation and runtime validation constraints)
 - `GraceNotes/docs/agent-log/initiatives/issue-41-agents-workflow/brief.md`
 - `CHANGELOG.md`
+- GitHub milestones: https://github.com/kipyin/grace-notes/milestones

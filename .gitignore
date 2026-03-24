@@ -30,4 +30,5 @@ DerivedData/
 
 # Local secrets (do not commit real keys)
 GraceNotes/Secrets.plist
+GraceNotes/DeveloperSettings.local.xcconfig
 GraceNotes/GraceNotes/Services/Summarization/ApiSecrets.local.swift

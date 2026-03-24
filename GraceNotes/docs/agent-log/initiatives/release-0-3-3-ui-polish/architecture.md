@@ -159,7 +159,7 @@ Impeccable-style skills are the systematic review and execution framework for th
 
 ## Implementation Handoff
 
-- **Implementers**:
+- **Builders**:
   - Start with `/audit` on the four in-scope surfaces to establish a prioritized defect inventory; use findings to drive work but **do not** expand scope beyond in-scope polish dimensions.
   - Run `/polish` **per surface** after completing that surface's edits, not only once at the end. Use the polish skill checklist (visual alignment, typography, color, interaction states, copy, edge cases) as the verification step for each surface.
   - When a surface reveals clustered issues, use the narrowest relevant skill (`/arrange`, `/typeset`, `/clarify`, `/normalize`, `/harden`) first, then run `/polish` before moving on.
@@ -176,4 +176,4 @@ Impeccable-style skills are the systematic review and execution framework for th
 
 ## Next Owner
 
-`Implementer`, then `Test Lead`, to execute the audit-first, surface-by-surface polish sequence (run `/audit` first, then `/polish` per surface, then final cross-surface verification), validate close criteria, and ensure the release reads as polish and cohesion rather than feature expansion.
+`Builder`, then `Test Lead`, to execute the audit-first, surface-by-surface polish sequence (run `/audit` first, then `/polish` per surface, then final cross-surface verification), validate close criteria, and ensure the release reads as polish and cohesion rather than feature expansion.

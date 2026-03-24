@@ -12,7 +12,7 @@ related_issue: 36,37,32
 
 - `GraceNotes/docs/07-release-roadmap.md` (release sequence and issue grouping)
 - `GraceNotes/docs/agent-log/SCHEMA.md`
-- `.cursor/rules/architect.mdc`
+- `.agents/skills/architect/SKILL.md`
 
 ## Decision
 
@@ -67,4 +67,4 @@ Scope the next initiative to `#36` and `#37` together as a single input-pipeline
 
 ## Next Owner
 
-`Implementer`, then `Test Lead`, to execute hardening and validate close criteria.
+`Builder`, then `Test Lead`, to execute hardening and validate close criteria.

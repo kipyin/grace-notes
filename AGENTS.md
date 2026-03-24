@@ -49,18 +49,21 @@ brew install swiftlint
 
 ## Role governance
 
-Keep role behavior in `.cursor/rules/` as the single source of truth for role-specific instructions. Use short role names and mapped files:
+Keep role behavior in `.agents/skills/` as the single source of truth for role-specific instructions (same tree as Impeccable task skills). Use short role names and mapped files:
 
-- `Strategist` -> `.cursor/rules/strategist.mdc`
-- `Architect` -> `.cursor/rules/architect.mdc`
-- `Implementer` -> `.cursor/rules/implementer.mdc`
-- `Release Manager` -> `.cursor/rules/release-manager.mdc`
-- `QA Reviewer` -> `.cursor/rules/qa-reviewer.mdc`
-- `Test Lead` -> `.cursor/rules/test-lead.mdc`
+- `Strategist` -> `.agents/skills/strategist/SKILL.md`
+- `Designer` -> `.agents/skills/designer/SKILL.md`
+- `Architect` -> `.agents/skills/architect/SKILL.md`
+- `Translator` -> `.agents/skills/translator/SKILL.md`
+- `Builder` -> `.agents/skills/builder/SKILL.md`
+- `Release Manager` -> `.agents/skills/release-manager/SKILL.md`
+- `QA Reviewer` -> `.agents/skills/qa-reviewer/SKILL.md`
+- `Test Lead` -> `.agents/skills/test-lead/SKILL.md`
+- Role index and shared contract -> `.agents/skills/roles-index/SKILL.md`
 
 Use `GraceNotes/docs/agent-log/` as the canonical source for role-to-role interaction, handoffs, and deferred pushback context.
 
-Keep `AGENTS.md` focused on global constraints that apply to every role, while `.cursor/rules/` defines role behavior.
+Keep `AGENTS.md` focused on global constraints that apply to every role, while `.agents/skills/` defines role behavior for the mapped roles above.
 
 ## Code style
 
@@ -71,6 +74,7 @@ The goal is not maximal abstraction or maximal cleverness. The goal is code that
 - Prefer **boring code over surprising code**. Avoid clever one-liners, operator overloading for non-obvious semantics, or patterns that require deep familiarity to understand.
 - Keep types and extensions **small in concept count**. A file should have one primary responsibility. If a type grows large, split by concern (e.g., separate view modifiers from view logic).
 - Use **clear names** that match the product language. If the UI says "Gratitudes", the code should use `gratitudes`. Prefer `JournalEntry` over `JEntry`, `SequentialSectionView` over `SeqSection`.
+- **User-facing English** (`Localizable.xcstrings`, alerts, permissions, onboarding): use **American English** spelling (e.g. *Summarize*, *color*, *behavior*).
 - Make the **main flow easy to scan**: load data → render UI → handle user action → update state → persist. Keep view bodies readable; extract complex subviews with clear names.
 - Prefer a **single obvious representation** for a piece of data. Avoid bouncing between SwiftData `@Model`, DTOs, and ad hoc tuples unless there is a strong reason. Use `JournalExportPayload` for sharing, not raw `JournalEntry`.
 - Keep comments sparse. Add them when they explain **why** something exists or a non-obvious constraint (e.g., "NL extraction can return nil for very short input"). Do not narrate obvious code.

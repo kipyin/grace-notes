@@ -69,7 +69,7 @@ Both issues directly break first impression and core journaling momentum. The ro
 
 ## Open Questions
 
-- None at the strategist level. Product direction is set; technical fit and exact copy variants should be finalized by `Architect` and `Implementer`.
+- None at the strategist level. Product direction is set; technical fit and exact copy variants should be finalized by `Architect` and `Builder`.
 
 ## Next Owner
 

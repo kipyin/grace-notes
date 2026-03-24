@@ -31,7 +31,9 @@ struct ReviewInsightTheme: Equatable, Hashable, Sendable {
 struct ReviewInsights: Equatable, Sendable {
     let source: ReviewInsightSource
     let generatedAt: Date
+    /// Start of the review period (`ReviewInsightsPeriod`), inclusive (start of local day).
     let weekStart: Date
+    /// End of the review period, exclusive (start of the day after the reference day).
     let weekEnd: Date
     let weeklyInsights: [ReviewWeeklyInsight]
     let recurringGratitudes: [ReviewInsightTheme]

@@ -7,12 +7,7 @@ private func displayReadyChipResult(
     guard shouldLimitToChipUnits else {
         return SummarizationResult(label: result.label, isTruncated: false)
     }
-    let capped = ChipLabelUnitTruncator.truncate(result.label)
-    let label = capped.isTruncated ? "\(capped.label)..." : capped.label
-    return SummarizationResult(
-        label: label,
-        isTruncated: capped.isTruncated
-    )
+    return ChipLabelUnitTruncator.displayCappedLabel(from: result.label)
 }
 
 extension JournalViewModel {
@@ -21,7 +16,11 @@ extension JournalViewModel {
     }
 
     private func summarizeForChip(_ text: String, section: SummarizationSection) async -> SummarizationResult {
-        let shouldLimitToChipUnits = !isAIFeaturesEnabled
+        let usesCloudChips = summarizerProvider.effectiveUsesCloudForChips()
+        let shouldLimitToChipUnits = !usesCloudChips
+        if usesCloudChips, !ChipLabelUnitTruncator.truncate(text).isTruncated {
+            return ChipLabelUnitTruncator.displayCappedLabel(from: text)
+        }
         let summarizer = summarizerProvider.currentSummarizer()
         return await Task.detached(priority: .utility) {
             do {
@@ -36,7 +35,7 @@ extension JournalViewModel {
 
     private func makeInterimResult(for text: String, section: SummarizationSection) -> SummarizationResult {
         let interim = deterministicChipLabelSummarizer.summarizeSync(text, section: section)
-        return displayReadyChipResult(interim, shouldLimitToChipUnits: !isAIFeaturesEnabled)
+        return displayReadyChipResult(interim, shouldLimitToChipUnits: !summarizerProvider.effectiveUsesCloudForChips())
     }
 
     private func makeInterimItem(
@@ -294,7 +293,7 @@ extension JournalViewModel {
         guard !trimmed.isEmpty else { return false }
         let renamed = displayReadyChipResult(
             SummarizationResult(label: trimmed, isTruncated: false),
-            shouldLimitToChipUnits: !isAIFeaturesEnabled
+            shouldLimitToChipUnits: !summarizerProvider.effectiveUsesCloudForChips()
         )
         guard item.chipLabel != renamed.label || item.isTruncated != renamed.isTruncated else { return false }
 
@@ -302,10 +301,6 @@ extension JournalViewModel {
         item.isTruncated = renamed.isTruncated
         scheduleAutosave()
         return true
-    }
-
-    private var isAIFeaturesEnabled: Bool {
-        AIFeaturesSettings.isEnabled()
     }
 
     /// Returns true if the item was removed (valid index).

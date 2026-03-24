@@ -206,9 +206,9 @@ final class JournalViewModelTests: XCTestCase {
         let descriptor = FetchDescriptor<JournalEntry>()
         let entries = try context.fetch(descriptor)
         XCTAssertEqual(entries.count, 1)
-        XCTAssertEqual(entries[0].gratitudes.map(\.fullText), ["Family"])
-        XCTAssertEqual(entries[0].needs.map(\.fullText), ["Peace"])
-        XCTAssertEqual(entries[0].people.map(\.fullText), ["Alice"])
+        XCTAssertEqual((entries[0].gratitudes ?? []).map(\.fullText), ["Family"])
+        XCTAssertEqual((entries[0].needs ?? []).map(\.fullText), ["Peace"])
+        XCTAssertEqual((entries[0].people ?? []).map(\.fullText), ["Alice"])
         XCTAssertEqual(entries[0].readingNotes, "Matthew 5")
         XCTAssertEqual(entries[0].reflections, "Be patient today")
     }

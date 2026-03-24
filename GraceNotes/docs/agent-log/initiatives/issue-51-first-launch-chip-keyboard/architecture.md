@@ -12,7 +12,7 @@ related_issue: 51
 
 - [GraceNotes/docs/agent-log/initiatives/issue-51-first-launch-chip-keyboard/brief.md](./brief.md)
 - [GraceNotes/docs/agent-log/SCHEMA.md](../../SCHEMA.md)
-- [.cursor/rules/architect.mdc](../../../../../.cursor/rules/architect.mdc)
+- [.agents/skills/architect/SKILL.md](../../../../../.agents/skills/architect/SKILL.md)
 - [GraceNotes/GraceNotes/Features/Journal/Views/JournalScreen.swift](../../../GraceNotes/Features/Journal/Views/JournalScreen.swift)
 - [GraceNotes/GraceNotes/Features/Journal/Views/JournalScreenChipHandling.swift](../../../GraceNotes/Features/Journal/Views/JournalScreenChipHandling.swift)
 - [GraceNotes/GraceNotes/Features/Journal/ViewModels/JournalViewModel.swift](../../../GraceNotes/Features/Journal/ViewModels/JournalViewModel.swift)
@@ -117,7 +117,7 @@ flowchart TD
 
 ## Next Owner
 
-`Implementer`, then `Test Lead`.
+`Builder`, then `Test Lead`.
 
 Implementation handoff expectations:
 

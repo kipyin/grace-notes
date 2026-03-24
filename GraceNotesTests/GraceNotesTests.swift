@@ -282,36 +282,106 @@ final class JournalScreenChipHandlingTests: XCTestCase {
 
 @MainActor
 final class ChipReorderDropDelegateTests: XCTestCase {
-    func test_dropEntered_doesNotApplyMoveUntilDropCompletes() {
+    func test_applyLiveReorder_movesWhenDraggingOverDifferentChip() {
         let first = JournalItem(fullText: "First")
         let second = JournalItem(fullText: "Second")
         let items = [first, second]
         var draggingItemID: UUID? = first.id
-        var didMove = false
+        var hoverTargetItemID: UUID?
+        var moveCount = 0
 
         let delegate = ChipReorderDropDelegate(
             targetIndex: 1,
             items: items,
             draggingItemID: Binding(get: { draggingItemID }, set: { draggingItemID = $0 }),
-            onMoveChip: { _, _ in didMove = true }
+            hoverTargetItemID: Binding(get: { hoverTargetItemID }, set: { hoverTargetItemID = $0 }),
+            reduceMotion: true,
+            onMoveChip: { _, _ in moveCount += 1 }
         )
 
-        delegate.dropEntered()
-        XCTAssertFalse(didMove)
+        delegate.applyLiveReorderIfNeeded()
+        XCTAssertEqual(moveCount, 1)
+        XCTAssertEqual(hoverTargetItemID, second.id)
+    }
 
-        let didHandleDrop = delegate.performDrop()
-        XCTAssertTrue(didHandleDrop)
-        XCTAssertTrue(didMove)
+    func test_applyLiveReorder_secondCall_sameTargetSkipsExtraMove() {
+        let first = JournalItem(fullText: "First")
+        let second = JournalItem(fullText: "Second")
+        let items = [first, second]
+        var draggingItemID: UUID? = first.id
+        var hoverTargetItemID: UUID?
+        var moveCount = 0
+
+        let delegate = ChipReorderDropDelegate(
+            targetIndex: 1,
+            items: items,
+            draggingItemID: Binding(get: { draggingItemID }, set: { draggingItemID = $0 }),
+            hoverTargetItemID: Binding(get: { hoverTargetItemID }, set: { hoverTargetItemID = $0 }),
+            reduceMotion: true,
+            onMoveChip: { _, _ in moveCount += 1 }
+        )
+
+        delegate.applyLiveReorderIfNeeded()
+        delegate.applyLiveReorderIfNeeded()
+        XCTAssertEqual(moveCount, 1)
+    }
+
+    func test_performDrop_withoutPriorLiveReorder_appliesMoveWhenNeeded() {
+        let first = JournalItem(fullText: "First")
+        let second = JournalItem(fullText: "Second")
+        let items = [first, second]
+        var draggingItemID: UUID? = first.id
+        var hoverTargetItemID: UUID?
+        var moveCount = 0
+
+        let delegate = ChipReorderDropDelegate(
+            targetIndex: 1,
+            items: items,
+            draggingItemID: Binding(get: { draggingItemID }, set: { draggingItemID = $0 }),
+            hoverTargetItemID: Binding(get: { hoverTargetItemID }, set: { hoverTargetItemID = $0 }),
+            reduceMotion: true,
+            onMoveChip: { _, _ in moveCount += 1 }
+        )
+
+        XCTAssertTrue(delegate.performDrop())
+        XCTAssertEqual(moveCount, 1)
+        XCTAssertNil(draggingItemID)
+    }
+
+    func test_performDrop_afterLiveReflowWhenAlreadyPlaced_skipsMoveButClearsState() {
+        let first = JournalItem(fullText: "First")
+        let second = JournalItem(fullText: "Second")
+        let items = [second, first]
+        var draggingItemID: UUID? = first.id
+        var hoverTargetItemID: UUID? = second.id
+        var moveCount = 0
+
+        let delegate = ChipReorderDropDelegate(
+            targetIndex: 0,
+            items: items,
+            draggingItemID: Binding(get: { draggingItemID }, set: { draggingItemID = $0 }),
+            hoverTargetItemID: Binding(get: { hoverTargetItemID }, set: { hoverTargetItemID = $0 }),
+            reduceMotion: true,
+            onMoveChip: { _, _ in moveCount += 1 }
+        )
+
+        XCTAssertTrue(delegate.performDrop())
+        XCTAssertEqual(moveCount, 0)
+        XCTAssertNil(draggingItemID)
+        XCTAssertNil(hoverTargetItemID)
     }
 
     func test_performDrop_withoutInternalDrag_returnsFalse() {
         let item = JournalItem(fullText: "Only")
         var draggingItemID: UUID?
+        var hoverTargetItemID: UUID?
         var didMove = false
         let delegate = ChipReorderDropDelegate(
             targetIndex: 0,
             items: [item],
             draggingItemID: Binding(get: { draggingItemID }, set: { draggingItemID = $0 }),
+            hoverTargetItemID: Binding(get: { hoverTargetItemID }, set: { hoverTargetItemID = $0 }),
+            reduceMotion: true,
             onMoveChip: { _, _ in didMove = true }
         )
 
@@ -319,5 +389,32 @@ final class ChipReorderDropDelegateTests: XCTestCase {
 
         XCTAssertFalse(didHandleDrop)
         XCTAssertFalse(didMove)
+    }
+
+    func test_chipReorderMoveParameters_nilWhenHoveringDraggedChip() {
+        let first = JournalItem(fullText: "First")
+        let second = JournalItem(fullText: "Second")
+        let items = [first, second]
+        XCTAssertNil(
+            ChipReorderDropDelegate.chipReorderMoveParameters(
+                activeDragID: first.id,
+                items: items,
+                targetIndex: 0
+            )
+        )
+    }
+
+    func test_chipReorderMoveParameters_movesEarlierItemTowardLaterChip() {
+        let first = JournalItem(fullText: "First")
+        let second = JournalItem(fullText: "Second")
+        let third = JournalItem(fullText: "Third")
+        let items = [first, second, third]
+        let params = ChipReorderDropDelegate.chipReorderMoveParameters(
+            activeDragID: first.id,
+            items: items,
+            targetIndex: 2
+        )
+        XCTAssertEqual(params?.source, 0)
+        XCTAssertEqual(params?.destination, 3)
     }
 }

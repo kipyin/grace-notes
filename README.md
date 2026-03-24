@@ -6,12 +6,34 @@ A journaling iOS app for daily gratitude, reflection, and people in mind.
 
 Grace Notes (`感恩记`) guides you through a simple daily rhythm: 5 gratitudes, 5 needs, 5 people in mind, reading notes, and space for what you're thinking and learning. The app offers a quiet, low-friction place for gratitude and reflection, with a gentle framing that feels welcoming rather than pushy.
 
-## What's new in 0.3.2
+## What's new in 0.5.1 (upcoming)
 
-- First-launch startup now shows an immediate loading surface with calm rotating copy, reassurance, and retry-safe recovery instead of appearing frozen.
-- Daily reminder setup now uses a dedicated drill-in flow with explicit permission prompting and clearer denied/off guidance.
-- Reminder status now reflects live notification authorization plus pending schedule state rather than optimistic toggle intent.
-- Input-pipeline stabilization fixes preserve typed text and keep keyboard momentum when committing entries and adding chips.
+- **Packaging** — Patch bump on the 0.5.x line: marketing version **0.5.1**, build **2**, Debug builds emit **dSYM** for richer crash logs, and the shared **GraceNotes** scheme’s Run action uses the **Release** configuration (verify this matches your day-to-day workflow in Xcode).
+- **Onboarding** — Milestone cards that jump to Settings share one eligibility rule with the UI and re-check it when you tap; onboarding/iCloud continuity keys use shared constants (see CHANGELOG **Developer** for detail).
+- **Localization** — String Catalog **zh-Hans** polish (including onboarding and Abundance-related copy) and aligned **Save to Photos** permission wording for **感恩记**.
+- **Cloud chips (#39)** — Chip cloud summarization picks instruction language the same way as Review (`AppInstructionLocale`), tightens low-signal and ungrounded-output handling, and adds focused unit tests (see CHANGELOG).
+- **Product docs** — Review insight roadmap now separates **#40** (insight-first presentation) from **#80** (deeper insight engine work); see `GraceNotes/docs/07-release-roadmap.md`.
+- **UI tests** — Journal UI tests use stable chip and add-row identifiers, English locale, relaunch-safe launch arguments, optional **`-grace-notes-reset-uitest-store`** between cases, and a UI-test SwiftData session key so data survives `terminate()` + `launch()` when appropriate (see CHANGELOG **Developer**).
+
+## What's new in 0.5.0 (upcoming)
+
+- **Insight quality** — Review and weekly insights that better reflect your own entries: presentation work as **#40**, deeper generation iteration as **#80**; refined chip-label prompts for AI where used (**#39**); clearer feedback when a section is fully filled (**#11**).
+- **First-run tutorial** — Dismissible hints on Today toward Seed and Harvest, with one-time congratulations when you first reach those tiers (`#60`).
+- **Behavior-first onboarding** — First launch now opens with a minimal welcome, then guides your first journal on Today one step at a time (Gratitude → Need → People → Seed / Ripening / Harvest / Abundance). The first time you reach Seed, an optional skippable full-screen intro can appear; afterward, milestone suggestions for reminders, AI, and iCloud stay contextual (`#71`, `#72`, `#73`, `#74`, `#75`).
+
+See `GraceNotes/docs/07-release-roadmap.md`.
+
+## What's new in 0.4.0
+
+- **JSON import** — In Settings → Data & Privacy, import a Grace Notes export to merge or restore by calendar day (with a clear confirm step). Export remains available as before.
+- **iCloud trust in Settings** — Storage and attention copy match how the app actually persists (including fallback and preference mismatch); when you need to open iOS Settings to fix the account, that action is easier to spot.
+- **AI row** — When cloud AI is on, you get inline connection status, optional reachability check, and a Reminders-style layout (toggle + tappable status).
+- **On-device chip labels** show a capped prefix of your own text (with ellipsis when needed); cloud summarization is unchanged.
+
+## What's new in 0.3.5
+
+- This patch is a maintenance release focused on release metadata and packaging consistency.
+- Font resources now use deterministic build outputs during app packaging for more reliable release builds.
 
 ## Features
 
@@ -22,8 +44,8 @@ Grace Notes (`感恩记`) guides you through a simple daily rhythm: 5 gratitudes
 - **Shareable cards** – Generate a formatted image of a day's entry and share via the iOS share sheet.
 - **Reminders** – Optional daily notification to complete today's 5³.
 - **Advanced review insights** – Optional AI-generated weekly reflection summary with deterministic on-device fallback.
-- **Data trust controls** – private-by-default storage plus full JSON export for backup and ownership.
-- **First-run onboarding** – A short welcome flow introducing calm structure, review value, and low-pressure progress.
+- **Data trust controls** – private-by-default storage plus JSON export and import for backup and ownership.
+- **First-run onboarding** – A minimal welcome followed by a guided first journal path on Today, with milestone-based opt-in suggestions for reminders, AI, and iCloud.
 - **Habit support** – Streak plus tiered completion states (Quick, Standard, Full 5³) to reduce all-or-nothing pressure.
 
 ## Requirements

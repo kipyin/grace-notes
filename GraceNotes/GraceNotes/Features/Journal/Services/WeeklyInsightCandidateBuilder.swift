@@ -111,7 +111,7 @@ private extension WeeklyInsightCandidateBuilder {
         var completionByDay: [Date: Bool] = [:]
         for entry in entries {
             let day = calendar.startOfDay(for: entry.entryDate)
-            completionByDay[day] = (completionByDay[day] ?? false) || entry.isComplete
+            completionByDay[day] = (completionByDay[day] ?? false) || entry.hasHarvestChips
         }
 
         guard completionByDay.count == 7 else { return nil }
@@ -371,7 +371,7 @@ private extension WeeklyInsightCandidateBuilder {
         }
 
         let totalChips = entries.reduce(0) { partialResult, entry in
-            partialResult + entry.gratitudes.count + entry.needs.count + entry.people.count
+            partialResult + (entry.gratitudes ?? []).count + (entry.needs ?? []).count + (entry.people ?? []).count
         }
         let totalLongText = entries.reduce(0) { partialResult, entry in
             partialResult

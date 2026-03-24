@@ -6,7 +6,7 @@ This document captures:
 1. product-quality examples of "good insights",
 2. technical language for implementation requirements.
 
-See also: `03-review-insight-quality-contract.md` for the full contract.
+See also: `03-review-insight-quality-contract.md` for the full contract (and **#40** / **#80** for how presentation vs engine work is split on GitHub).
 
 ## 1) Product purpose
 
@@ -17,6 +17,12 @@ The Review page is designed to make reflection compound over time:
 
 AI is optional. On-device deterministic insights are baseline behavior.
 
+When AI is used, it should behave like a **Gentle Connector**:
+- prefer one safe, concrete relationship between recurring signals when the week supports it
+- stay grounded in the user's real entries rather than summarizing all categories at once
+- avoid deep psychological narratives, prescriptions, or generic wellness language
+- avoid forcing a connection when the week is too thin to support one
+
 ## 2) Good insight examples from sample weeks
 
 ## Sample Week A — Tired but steady
@@ -24,7 +30,7 @@ AI is optional. On-device deterministic insights are baseline behavior.
   - Gratitudes: sunlight (3), daughter’s laughter (2), coffee with spouse (2)
   - Needs: rest (4), focus time (3), boundaries (2)
   - People: Mia (3), Daniel (2)
-- Good output:
+- Good output (AI or On-device):
   - Narrative: "This week you kept returning to family moments while also naming a strong need for rest and focus."
   - Resurfacing: "You mentioned rest 4 times this week."
   - Continuity: "What one boundary could protect 30 minutes of rest tomorrow?"
@@ -34,7 +40,7 @@ AI is optional. On-device deterministic insights are baseline behavior.
   - Gratitudes: neighbor check-ins (2), prayer time (3)
   - Needs: patience (3), emotional margin (2)
   - People: Mom (4), Alex (3)
-- Good output:
+- Good output (AI or On-device):
   - Narrative: "Your week centered on caring presence, especially for Mom, while you asked for patience and emotional margin."
   - Resurfacing: "You kept Mom in mind 4 times this week."
   - Continuity: "What is one gentle way to support Mom this weekend without draining yourself?"
@@ -43,7 +49,10 @@ AI is optional. On-device deterministic insights are baseline behavior.
 - Signals:
   - Entries on 2 days only
   - Needs include sleep and clarity
-- Good output:
+- Expected path:
+  - Use the deterministic on-device insight.
+  - Do not call the cloud AI path for this week.
+- Good output (On-device):
   - Narrative: "You showed up for reflection on two days this week and named simple anchors: rest and clarity."
   - Resurfacing: "You returned to rest-related needs this week."
   - Continuity: "What would make tomorrow’s check-in easy to start?"

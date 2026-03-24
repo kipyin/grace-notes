@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Grace Notes — Data &amp; Privacy backup copy variants</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f8f4ef;
+      --card: #ffffff;
+      --text: #2c2c2c;
+      --muted: #5c5346;
+      --accent: #c77b5b;
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 28px 20px 48px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+      font-size: 17px;
+      line-height: 1.45;
+    }
+
+    h1 {
+      font-family: "Playfair Display", Georgia, serif;
+      font-size: 1.65rem;
+      font-weight: 600;
+      margin: 0 0 8px;
+      letter-spacing: 0.02em;
+    }
+
+    .intro {
+      max-width: 42rem;
+      margin: 0 0 28px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .variants {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+
+    .variant-label {
+      font-family: system-ui, sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 10px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 20px 20px 18px;
+      box-shadow: 0 1px 0 rgba(44, 44, 44, 0.06);
+    }
+
+    .card-title {
+      font-family: "Playfair Display", Georgia, serif;
+      font-size: 22px;
+      font-weight: 400;
+      margin: 0 0 16px;
+      color: var(--text);
+    }
+
+    .storage-meta {
+      font-size: 15px;
+      color: var(--muted);
+      margin: 0 0 4px;
+    }
+
+    .storage-body {
+      margin: 0 0 18px;
+      color: var(--text);
+      font-size: 17px;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 12px 22px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 17px;
+      font-family: "Source Serif 4", Georgia, serif;
+      margin-bottom: 4px;
+    }
+
+    .backup {
+      margin-top: 18px;
+      padding-top: 4px;
+    }
+
+    .backup-meta {
+      font-size: 15px;
+      color: var(--muted);
+      margin: 0 0 6px;
+    }
+
+    .backup-helper {
+      font-size: 15px;
+      color: var(--muted);
+      margin: 0 0 12px;
+      line-height: 1.4;
+    }
+
+    a.action {
+      display: block;
+      color: var(--muted);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      padding: 10px 0;
+      min-height: 44px;
+      line-height: 1.35;
+    }
+
+    a.action:hover {
+      color: var(--text);
+    }
+
+    .row-primary {
+      display: block;
+      color: var(--text);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      padding: 6px 0 0;
+      font-size: 17px;
+    }
+
+    .row-sub {
+      display: block;
+      font-size: 14px;
+      color: var(--muted);
+      margin: 2px 0 10px;
+      padding-bottom: 4px;
+    }
+
+    .row-wrap {
+      padding: 6px 0 4px;
+      min-height: 44px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Backup &amp; restore copy</h1>
+  <p class="intro">
+    Static mockups for Settings → Data &amp; Privacy. Colors and type align with
+    <code>AppTheme.background</code> (#F8F4EF), settings text, and Playfair / Source Serif 4.
+  </p>
+
+  <div class="variants">
+    <section>
+      <p class="variant-label">Variant 1 — Baseline (current long labels)</p>
+      <div class="card">
+        <h2 class="card-title">Data &amp; Privacy</h2>
+        <p class="storage-meta">Storage</p>
+        <p class="storage-body">Entries stay on this device. They aren’t synced to iCloud because this device isn’t signed in.</p>
+        <span class="pill">Open Settings</span>
+        <div class="backup">
+          <p class="backup-meta">Backup</p>
+          <a class="action" href="#">Export Grace Notes data (JSON)</a>
+          <a class="action" href="#">Import Grace Notes data (JSON)</a>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <p class="variant-label">Variant 2 — Short CTAs</p>
+      <div class="card">
+        <h2 class="card-title">Data &amp; Privacy</h2>
+        <p class="storage-meta">Storage</p>
+        <p class="storage-body">Entries stay on this device. They aren’t synced to iCloud because this device isn’t signed in.</p>
+        <span class="pill">Open Settings</span>
+        <div class="backup">
+          <p class="backup-meta">Backup</p>
+          <a class="action" href="#">Export a backup</a>
+          <a class="action" href="#">Restore from a backup</a>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <p class="variant-label">Variant 3 — Short CTAs + helper (shipped in app)</p>
+      <div class="card">
+        <h2 class="card-title">Data &amp; Privacy</h2>
+        <p class="storage-meta">Storage</p>
+        <p class="storage-body">Entries stay on this device. They aren’t synced to iCloud because this device isn’t signed in.</p>
+        <span class="pill">Open Settings</span>
+        <div class="backup">
+          <p class="backup-meta">Backup</p>
+          <p class="backup-helper">Saves all journal entries to a file. To bring entries back, use a Grace Notes backup file.</p>
+          <a class="action" href="#">Export a backup</a>
+          <a class="action" href="#">Restore from a backup</a>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <p class="variant-label">Variant 4 — Primary line + subtitle per row</p>
+      <div class="card">
+        <h2 class="card-title">Data &amp; Privacy</h2>
+        <p class="storage-meta">Storage</p>
+        <p class="storage-body">Entries stay on this device. They aren’t synced to iCloud because this device isn’t signed in.</p>
+        <span class="pill">Open Settings</span>
+        <div class="backup">
+          <p class="backup-meta">Backup</p>
+          <div class="row-wrap">
+            <a class="row-primary" href="#">Export a backup</a>
+            <span class="row-sub">Grace Notes backup file</span>
+          </div>
+          <div class="row-wrap">
+            <a class="row-primary" href="#">Restore from a backup</a>
+            <span class="row-sub">Choose a file you exported from Grace Notes</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

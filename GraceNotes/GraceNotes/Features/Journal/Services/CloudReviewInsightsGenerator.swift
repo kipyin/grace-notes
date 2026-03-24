@@ -1,23 +1,34 @@
 import Foundation
 
+/// Natural language for cloud Review insight *instructions* (not user-facing app strings).
+enum CloudReviewInsightsPromptLanguage: Equatable, Sendable {
+    /// `zh-Hans` when the app’s active localization is Simplified Chinese; otherwise English.
+    case automatic
+    case english
+    case simplifiedChinese
+}
+
 struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
     private let baseURL: String
     private let model: String
     private let apiKey: String
     private let urlSession: URLSession
+    private let promptLanguage: CloudReviewInsightsPromptLanguage
     private let sanitizer = CloudReviewInsightsSanitizer()
     private let maxEntriesForContext = 14
 
     init(
-        baseURL: String = "https://chat.cloudapi.vip/v1",
+        baseURL: String = ApiSecrets.cloudAPIBaseURL,
         model: String = "gpt-4o-mini",
         apiKey: String,
-        urlSession: URLSession = .shared
+        urlSession: URLSession = .shared,
+        promptLanguage: CloudReviewInsightsPromptLanguage = .automatic
     ) {
         self.baseURL = baseURL
         self.model = model
         self.apiKey = apiKey
         self.urlSession = urlSession
+        self.promptLanguage = promptLanguage
     }
 
     func generateInsights(
@@ -25,27 +36,27 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
         referenceDate: Date,
         calendar: Calendar = .current
     ) async throws -> ReviewInsights {
-        let weekRange = weekDateRange(containing: referenceDate, calendar: calendar)
+        let weekRange = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
         let weeklyEntries = entries
             .filter { weekRange.contains($0.entryDate) }
             .sorted { $0.entryDate < $1.entryDate }
             .suffix(maxEntriesForContext)
         let meaningfulWeeklyEntries = weeklyEntries.filter(\.hasMeaningfulContent)
-        guard !meaningfulWeeklyEntries.isEmpty else {
+        guard meaningfulWeeklyEntries.count >= ReviewInsightsCloudEligibility.minimumMeaningfulEntriesForCloudAI else {
             throw CloudReviewInsightsError.insufficientContext
         }
 
         let contexts = meaningfulWeeklyEntries.map(makeContextEntry)
-        let payload = sanitizer.sanitizePayload(
-            try await callAPI(
-                request: CloudReviewInsightsRequest(
-                    model: model,
-                    messages: [CloudReviewMessage(role: "user", content: prompt(for: contexts))],
-                    maxTokens: 350,
-                    temperature: 0.2
-                )
+        let rawPayload = try await callAPI(
+            request: CloudReviewInsightsRequest(
+                model: model,
+                messages: [CloudReviewMessage(role: "user", content: prompt(for: contexts))],
+                maxTokens: 350,
+                temperature: 0.2
             )
         )
+        let payload = sanitizer.sanitizePayload(rawPayload)
+        try sanitizer.validateGroundedQuality(payload)
         let weeklyInsights = makeWeeklyInsights(from: payload)
 
         return ReviewInsights(
@@ -79,31 +90,16 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
             dayCount: nil
         )
 
-        guard !payload.narrativeSummary.isEmpty else { return [firstInsight] }
-        let secondInsight = ReviewWeeklyInsight(
-            pattern: .continuityShift,
-            observation: payload.narrativeSummary,
-            action: nil,
-            primaryTheme: primaryTheme,
-            mentionCount: nil,
-            dayCount: nil
-        )
-        return [firstInsight, secondInsight]
-    }
-
-    private func weekDateRange(containing date: Date, calendar: Calendar) -> Range<Date> {
-        let components = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: date)
-        let start = calendar.date(from: components) ?? calendar.startOfDay(for: date)
-        let end = calendar.date(byAdding: .day, value: 7, to: start) ?? start
-        return start..<end
+        // `narrativeSummary` is shown separately on the review card; do not echo it as a second weekly insight.
+        return [firstInsight]
     }
 
     private func makeContextEntry(from entry: JournalEntry) -> CloudReviewContextEntry {
         CloudReviewContextEntry(
             date: entry.entryDate.formatted(date: .abbreviated, time: .omitted),
-            gratitudes: entry.gratitudes.map(\.fullText),
-            needs: entry.needs.map(\.fullText),
-            people: entry.people.map(\.fullText),
+            gratitudes: (entry.gratitudes ?? []).map(\.fullText),
+            needs: (entry.needs ?? []).map(\.fullText),
+            people: (entry.people ?? []).map(\.fullText),
             readingNotes: entry.readingNotes,
             reflections: entry.reflections
         )
@@ -115,9 +111,32 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
         let data = (try? encoder.encode(entries)) ?? Data("[]".utf8)
         let contextText = String(data: data, encoding: .utf8) ?? "[]"
 
-        return """
-        You are generating weekly journaling insights for a calm guided reflection app.
-        Analyze this week's entries and return STRICT JSON with this shape:
+        switch resolvedPromptLanguage {
+        case .simplifiedChinese:
+            return promptSimplifiedChinese(contextText: contextText)
+        case .english, .automatic:
+            return promptEnglish(contextText: contextText)
+        }
+    }
+
+    private var resolvedPromptLanguage: CloudReviewInsightsPromptLanguage {
+        switch promptLanguage {
+        case .automatic:
+            switch AppInstructionLocale.preferred(bundle: Bundle.main) {
+            case .english:
+                return .english
+            case .simplifiedChinese:
+                return .simplifiedChinese
+            }
+        case .english, .simplifiedChinese:
+            return promptLanguage
+        }
+    }
+
+    private func promptEnglish(contextText: String) -> String {
+        """
+        You are generating journaling insights for a guided reflection app.
+        Analyze the entries from the past seven days and return STRICT JSON with this shape:
         {
           "narrativeSummary": "string",
           "resurfacingMessage": "string",
@@ -128,21 +147,54 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
         }
 
         Rules:
-        - Keep tone gentle and non-judgmental.
-        - Ground messages in the provided week context. Avoid generic wellness phrases.
+        - Do not judge or pressure the user. Ground every line in their entries.
+        - Ground messages in the provided seven-day context. Avoid generic wellness phrases.
+        - Prefer one concrete, calm link between two recurring signals when evidence supports it.
+        - Do not invent connections the entries do not support.
         - If recurring themes exist, reference at least one concrete theme label in narrativeSummary.
-        - continuityPrompt must be a specific follow-up question tied to the week's themes.
+        - continuityPrompt must be a specific follow-up question tied to recent themes in these entries.
         - Keep each message under 160 characters.
         - Return at most 3 items per recurring list.
         - Counts must be positive integers.
         - Output ONLY valid JSON; no markdown or prose.
 
-        Weekly context:
+        Entries from the past seven days:
         \(contextText)
         """
     }
 
-    private func callAPI(request: CloudReviewInsightsRequest) async throws -> CloudReviewInsightsPayload {
+    private func promptSimplifiedChinese(contextText: String) -> String {
+        """
+        你在为 App「感恩记」的「回顾」准备最近七天的小结：平实、不施压。
+        请结合下方最近七天的记录，只输出符合下列结构的 JSON（结构严格；键名用英文，方便程序解析）：
+        {
+          "narrativeSummary": "string",
+          "resurfacingMessage": "string",
+          "continuityPrompt": "string",
+          "recurringGratitudes": [{"label":"string","count":number}],
+          "recurringNeeds": [{"label":"string","count":number}],
+          "recurringPeople": [{"label":"string","count":number}]
+        }
+
+        要求：
+        - 不评判、不施压；说法贴着记录走。
+        - 紧扣下方记录，别写空洞的励志话或养生套话。
+        - 如果最近七天里确实反复出现某些内容，可以用一句简短、具体的话，把两件事连起来（例如某件感恩的事、某件需要的事、某位牵挂的人）；不要臆测记录里没出现的事。
+        - 若有重复主题，`narrativeSummary` 里至少要点到其中一条，说法尽量贴近用户原文或自然归纳。
+        - `continuityPrompt` 只能是一句具体的追问，和这些记录里的内容有关。
+        - `narrativeSummary`、`resurfacingMessage`、`continuityPrompt` 这三段正文用简体中文。
+        - 每段正文不超过 160 个字。
+        - `recurringGratitudes`、`recurringNeeds`、`recurringPeople` 每个列表最多 3 条；`count` 为正整数。
+        - 只输出合法 JSON，不要用 markdown 代码块，不要加任何前言或后记。
+
+        下方是最近七天的记录：
+        \(contextText)
+        """
+    }
+
+    private func callAPI(
+        request: CloudReviewInsightsRequest
+    ) async throws -> CloudReviewInsightsPayload {
         guard let url = URL(string: "\(baseURL)/chat/completions") else {
             throw CloudReviewInsightsError.invalidURL
         }
@@ -162,10 +214,7 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
             throw CloudReviewInsightsError.httpError(statusCode: http.statusCode)
         }
 
-        let responseBody = try JSONDecoder().decode(CloudReviewInsightsResponse.self, from: data)
-        guard let content = responseBody.choices.first?.message.content else {
-            throw CloudReviewInsightsError.missingContent
-        }
+        let content = try decodeAssistantMessageContent(from: data)
 
         let parsedData = Data(sanitizer.extractJSONPayload(from: content).utf8)
         do {
@@ -173,6 +222,14 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
         } catch {
             throw CloudReviewInsightsError.invalidPayload
         }
+    }
+
+    private func decodeAssistantMessageContent(from data: Data) throws -> String {
+        let responseBody = try JSONDecoder().decode(CloudReviewInsightsResponse.self, from: data)
+        guard let content = responseBody.choices.first?.message.content else {
+            throw CloudReviewInsightsError.missingContent
+        }
+        return content
     }
 }
 
@@ -230,11 +287,12 @@ struct CloudReviewTheme: Decodable {
     let count: Int
 }
 
-private enum CloudReviewInsightsError: Error {
+enum CloudReviewInsightsError: Error, Equatable {
     case invalidURL
     case invalidResponse
     case httpError(statusCode: Int)
     case missingContent
     case invalidPayload
     case insufficientContext
+    case failedQualityGate
 }

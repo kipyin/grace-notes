@@ -12,7 +12,7 @@ related_pr: 49
 ## Inputs Reviewed
 
 - GitHub issue `#41`: "Enhance agents workflow by incorporating `gh` commands"
-- Existing role governance direction in `.cursor/rules/`
+- Existing role governance direction in `.agents/skills/` (role `SKILL.md` files)
 - Existing docs spread between `doc/` and `GraceNotes/docs/`
 
 ## Decision

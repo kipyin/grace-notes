@@ -1,13 +1,14 @@
 import SwiftUI
 import SwiftData
 
+// swiftlint:disable type_body_length
 struct ReviewScreen: View {
     private struct TimelineRefreshKey: Hashable {
         let entryCount: Int
         let newestEntryUpdateAt: Date
     }
 
-    private enum ReviewMode: CaseIterable, Identifiable {
+    private enum ReviewMode: CaseIterable, Hashable, Identifiable {
         case insights
         case timeline
 
@@ -34,6 +35,8 @@ struct ReviewScreen: View {
 
     private let calendar = Calendar.current
     private let reviewInsightsProvider = ReviewInsightsProvider.shared
+    /// When true, keep Review list chrome (mode picker + identifiers) even with zero entries so UI tests can navigate.
+    private let isUiTestingExperience: Bool
 
     init() {
         let testingFlag = ProcessInfo.processInfo.environment["FIVECUBED_UI_TESTING"]
@@ -41,6 +44,7 @@ struct ReviewScreen: View {
                 let normalizedValue = value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
                 return normalizedValue == "1" || normalizedValue == "true" || normalizedValue == "yes"
             } ?? false
+        isUiTestingExperience = testingFlag
         _selectedMode = State(initialValue: testingFlag ? .timeline : .insights)
     }
 
@@ -53,7 +57,7 @@ struct ReviewScreen: View {
 
     private var currentInsightsRefreshKey: ReviewInsightsRefreshKey {
         ReviewInsightsRefreshKey(
-            weekStart: currentWeekStart,
+            weekStart: currentReviewPeriod.lowerBound,
             useAIReviewInsights: useAIReviewInsights,
             entrySnapshots: weeklyEntriesForRefresh.map {
                 ReviewEntrySnapshot(id: $0.id, updatedAt: $0.updatedAt)
@@ -61,23 +65,17 @@ struct ReviewScreen: View {
         )
     }
 
-    private var currentWeekRange: Range<Date> {
-        let weekEnd = calendar.date(byAdding: .day, value: 7, to: currentWeekStart) ?? currentWeekStart
-        return currentWeekStart..<weekEnd
+    private var currentReviewPeriod: Range<Date> {
+        ReviewInsightsPeriod.currentPeriod(containing: Date(), calendar: calendar)
     }
 
     private var weeklyEntriesForRefresh: [JournalEntry] {
-        entries.filter { currentWeekRange.contains($0.entryDate) }
-    }
-
-    private var currentWeekStart: Date {
-        let components = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: Date())
-        return calendar.date(from: components) ?? calendar.startOfDay(for: Date())
+        entries.filter { currentReviewPeriod.contains($0.entryDate) }
     }
 
     var body: some View {
         Group {
-            if entries.isEmpty {
+            if entries.isEmpty && !isUiTestingExperience {
                 emptyState
             } else {
                 historyList
@@ -119,6 +117,7 @@ struct ReviewScreen: View {
             switch selectedMode {
             case .insights:
                 insightsSection
+                insightsPullToRefreshScrollAssist
             case .timeline:
                 timelineSections
             }
@@ -128,6 +127,14 @@ struct ReviewScreen: View {
         .scrollContentBackground(.hidden)
         .background(AppTheme.reviewBackground)
         .animation(reduceMotion ? nil : .easeOut(duration: 0.2), value: selectedMode)
+        .refreshable {
+            switch selectedMode {
+            case .insights:
+                await refreshReviewInsights(force: true)
+            case .timeline:
+                refreshTimelineGroups()
+            }
+        }
         .safeAreaInset(edge: .bottom) {
             Color.clear.frame(height: AppTheme.spacingSection + AppTheme.floatingTabBarClearance)
         }
@@ -135,29 +142,29 @@ struct ReviewScreen: View {
 
     private var reviewModeSection: some View {
         Section {
-            HStack(spacing: 6) {
+            ReviewModeSegmentedControl(selectedMode: $selectedMode)
+                .listRowBackground(AppTheme.reviewBackground)
+        }
+    }
+
+    /// System segmented `Picker` so iOS 26+ picks up the platform Liquid Glass styling without custom chrome.
+    private struct ReviewModeSegmentedControl: View {
+        @Binding var selectedMode: ReviewMode
+
+        var body: some View {
+            Picker(selection: $selectedMode) {
                 ForEach(ReviewMode.allCases) { mode in
-                    ReviewModeOptionButton(
-                        title: mode.localizedTitle,
-                        isSelected: mode == selectedMode,
-                        accessibilityValue: reviewModeSelectionValue(for: mode),
-                        accessibilityIdentifier: accessibilityReviewModeIdentifier(for: mode)
-                    ) {
-                        selectedMode = mode
-                    }
+                    Text(mode.localizedTitle)
+                        .tag(mode)
                 }
+            } label: {
+                Text(String(localized: "Review mode"))
             }
-            .padding(4)
-            .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(AppTheme.reviewPaper)
-            )
-            .accessibilityElement(children: .contain)
-            .accessibilityLabel(String(localized: "Review mode"))
-            .accessibilityValue(selectedMode.localizedTitle)
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .tint(AppTheme.reviewAccent)
             .accessibilityHint(String(localized: "Choose insights or timeline"))
             .accessibilityIdentifier("ReviewModePicker")
-            .listRowBackground(AppTheme.reviewBackground)
         }
     }
 
@@ -166,6 +173,17 @@ struct ReviewScreen: View {
             ReviewSummaryCard(insights: reviewInsights, isLoading: isLoadingInsights)
                 .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
                 .listRowBackground(AppTheme.reviewBackground)
+        }
+    }
+
+    /// `List.refreshable` only engages when the scroll view can overscroll; a short insights stack often cannot.
+    private var insightsPullToRefreshScrollAssist: some View {
+        Section {
+            Color.clear
+                .frame(height: 280)
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+                .accessibilityHidden(true)
         }
     }
 
@@ -181,7 +199,7 @@ struct ReviewScreen: View {
                     }
                     .accessibilityLabel(accessibilityTimelineRowLabel(for: entry))
                     .accessibilityIdentifier("ReviewTimelineEntry.\(entry.id.uuidString)")
-                    .accessibilityHint(String(localized: "Opens this day's journal entry."))
+                    .accessibilityHint(String(localized: "Opens that day's entry."))
                     .listRowBackground(AppTheme.reviewPaper)
                 }
             } header: {
@@ -212,6 +230,8 @@ struct ReviewScreen: View {
         )
         guard shouldRefresh else { return }
 
+        let previousForForcedRefresh = force ? reviewInsights : nil
+
         isLoadingInsights = true
         let generatedInsights = await reviewInsightsProvider.generateInsights(
             from: entries,
@@ -219,17 +239,31 @@ struct ReviewScreen: View {
             calendar: calendar
         )
         guard !Task.isCancelled else {
-            if refreshKey == currentInsightsRefreshKey {
-                isLoadingInsights = false
-            }
+            isLoadingInsights = false
             return
         }
-        guard refreshKey == currentInsightsRefreshKey else {
+        if !force, refreshKey != currentInsightsRefreshKey {
+            isLoadingInsights = false
             return
         }
 
-        reviewInsights = generatedInsights
-        lastInsightsRefreshKey = shouldCacheRefreshKey(for: generatedInsights) ? refreshKey : nil
+        let outcome: ReviewInsightsRefreshPolicy.ForcedRefreshOutcome
+        if force {
+            outcome = ReviewInsightsRefreshPolicy.forcedRefreshOutcome(
+                previous: previousForForcedRefresh,
+                generated: generatedInsights
+            )
+        } else {
+            outcome = ReviewInsightsRefreshPolicy.ForcedRefreshOutcome(
+                insights: generatedInsights,
+                shouldUpdateCachedRefreshKey: true
+            )
+        }
+
+        reviewInsights = outcome.insights
+        if outcome.shouldUpdateCachedRefreshKey {
+            lastInsightsRefreshKey = shouldCacheRefreshKey(for: generatedInsights) ? refreshKey : nil
+        }
         isLoadingInsights = false
     }
 
@@ -257,75 +291,21 @@ struct ReviewScreen: View {
 
     private func completionText(for completionLevel: JournalCompletionLevel) -> String {
         switch completionLevel {
-        case .fullFiveCubed:
+        case .abundance:
+            return String(localized: "Abundance")
+        case .harvest:
             return String(localized: "Harvest")
-        case .standardReflection:
-            return String(localized: "Harvest")
-        case .quickCheckIn:
+        case .ripening:
+            return String(localized: "Ripening")
+        case .seed:
             return String(localized: "Seed")
-        case .none:
-            return String(localized: "In Progress")
+        case .soil:
+            return String(localized: "Soil")
         }
     }
 
-    private func accessibilityReviewModeIdentifier(for mode: ReviewMode) -> String {
-        switch mode {
-        case .insights:
-            return "ReviewMode.insights"
-        case .timeline:
-            return "ReviewMode.timeline"
-        }
-    }
-
-    private func reviewModeSelectionValue(for mode: ReviewMode) -> String {
-        mode == selectedMode ? String(localized: "Selected") : String(localized: "Not selected")
-    }
 }
-
-private struct ReviewModeOptionButton: View {
-    let title: String
-    let isSelected: Bool
-    let accessibilityValue: String
-    let accessibilityIdentifier: String
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(AppTheme.warmPaperBody.weight(.semibold))
-                .foregroundStyle(isSelected ? AppTheme.reviewOnAccent : AppTheme.reviewTextMuted)
-                .frame(maxWidth: .infinity)
-                .frame(minHeight: 44)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(isSelected ? AppTheme.reviewAccent : .clear)
-                )
-        }
-        .buttonStyle(WarmPaperPressStyle())
-        .accessibilityLabel(title)
-        .accessibilityValue(accessibilityValue)
-        .accessibilityHint(String(localized: "Choose insights or timeline"))
-        .accessibilityIdentifier(accessibilityIdentifier)
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
-    }
-}
-
-enum HistoryEntryGrouping {
-    static func groupedByMonth(
-        entries: [JournalEntry],
-        calendar: Calendar
-    ) -> [(key: Date, entries: [JournalEntry])] {
-        let grouped = Dictionary(grouping: entries) { entry -> Date in
-            let components = calendar.dateComponents([.year, .month], from: entry.entryDate)
-            return calendar.date(from: components) ?? entry.entryDate
-        }
-        return grouped.keys.sorted(by: >).map { month in
-            let groupedEntries = grouped[month] ?? []
-            return (month, groupedEntries)
-        }
-    }
-}
-
+// swiftlint:enable type_body_length
 private struct HistoryRow: View {
     let entry: JournalEntry
 
@@ -367,15 +347,15 @@ private struct HistoryRow: View {
     @ViewBuilder
     private func completionBadge(lineLimit: Int) -> some View {
         switch entry.completionLevel {
-        case .fullFiveCubed:
+        case .abundance:
             statusChip(
-                text: String(localized: "Harvest"),
+                text: String(localized: "Abundance"),
                 textColor: AppTheme.reviewCompleteText,
                 backgroundColor: AppTheme.reviewCompleteBackground,
                 borderColor: AppTheme.reviewCompleteBorder
             )
             .lineLimit(lineLimit)
-        case .standardReflection:
+        case .harvest:
             statusChip(
                 text: String(localized: "Harvest"),
                 textColor: AppTheme.reviewStandardText,
@@ -383,7 +363,15 @@ private struct HistoryRow: View {
                 borderColor: AppTheme.reviewStandardBorder
             )
             .lineLimit(lineLimit)
-        case .quickCheckIn:
+        case .ripening:
+            statusChip(
+                text: String(localized: "Ripening"),
+                textColor: AppTheme.reviewStandardText,
+                backgroundColor: AppTheme.reviewStandardBackground,
+                borderColor: AppTheme.reviewStandardBorder
+            )
+            .lineLimit(lineLimit)
+        case .seed:
             statusChip(
                 text: String(localized: "Seed"),
                 textColor: AppTheme.reviewQuickStartText,
@@ -391,9 +379,9 @@ private struct HistoryRow: View {
                 borderColor: AppTheme.reviewQuickStartBorder
             )
             .lineLimit(lineLimit)
-        case .none:
+        case .soil:
             statusChip(
-                text: String(localized: "In Progress"),
+                text: String(localized: "Soil"),
                 textColor: AppTheme.reviewTextMuted,
                 backgroundColor: AppTheme.reviewBackground,
                 borderColor: AppTheme.border
@@ -485,6 +473,8 @@ private struct ReviewSummaryCard: View {
                     .foregroundStyle(AppTheme.reviewTextMuted)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .fixedSize(horizontal: false, vertical: true)
         .padding(16)
         .background(AppTheme.reviewPaper)
         .clipShape(RoundedRectangle(cornerRadius: 16))
