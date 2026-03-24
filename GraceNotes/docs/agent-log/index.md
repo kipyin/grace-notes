@@ -4,7 +4,9 @@
 
 ## Active initiatives
 
-- None indexed here. Start the next initiative under [`initiatives/`](initiatives/) (next id **021**, see [initiatives/README.md](initiatives/README.md)).
+- [#85](https://github.com/kipyin/grace-notes/issues/85) Insights screen follow-through and hierarchy polish → [`021-issue-85-insights-screen-follow-through`](initiatives/021-issue-85-insights-screen-follow-through/).
+
+Start the next initiative under [`initiatives/`](initiatives/) (next id **022**, see [initiatives/README.md](initiatives/README.md)).
 
 Shipped or superseded work: [`initiatives/archive/README.md`](initiatives/archive/README.md).
 
