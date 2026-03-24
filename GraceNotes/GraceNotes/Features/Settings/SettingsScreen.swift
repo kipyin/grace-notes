@@ -2,9 +2,8 @@ import SwiftUI
 import UIKit
 
 struct SettingsScreen: View {
-    /// Default false to align with SummarizerProvider; first launch uses on-device NL summarization.
-    @AppStorage("useCloudSummarization") private var useCloudSummarization = false
-    @AppStorage(ReviewInsightsProvider.useAIReviewInsightsKey) private var useAIReviewInsights = false
+    /// Default false to align with SummarizerProvider; when cloud is off we use the on-device deterministic chip label summarizer.
+    @AppStorage(SummarizerProvider.useCloudUserDefaultsKey) private var useCloudSummarization = false
     @AppStorage(PersistenceController.iCloudSyncEnabledKey) private var isICloudSyncEnabled = false
     @EnvironmentObject private var appNavigation: AppNavigationModel
     @Environment(\.openURL) private var openURL
@@ -139,9 +138,6 @@ struct SettingsScreen: View {
             .onChange(of: useCloudSummarization) { _, _ in
                 syncAICloudStatusModel()
             }
-            .onChange(of: useAIReviewInsights) { _, _ in
-                syncAICloudStatusModel()
-            }
             .onChange(of: reminderState.selectedTime) { _, _ in
                 reminderState.handleSelectedTimeChanged()
             }
@@ -174,7 +170,7 @@ struct SettingsScreen: View {
 
 private extension SettingsScreen {
     var aiFeaturesOn: Bool {
-        useCloudSummarization || useAIReviewInsights
+        useCloudSummarization
     }
 
     var canRunAIConnectivityCheck: Bool {
@@ -189,7 +185,6 @@ private extension SettingsScreen {
     func clampCloudAIFeaturesIfApiKeyMissing() {
         guard !ApiSecrets.isCloudApiKeyConfigured, aiFeaturesOn else { return }
         useCloudSummarization = false
-        useAIReviewInsights = false
         syncAICloudStatusModel()
     }
 
@@ -249,7 +244,6 @@ private extension SettingsScreen {
             get: { aiFeaturesOn },
             set: { enabled in
                 useCloudSummarization = enabled
-                useAIReviewInsights = enabled
                 syncAICloudStatusModel()
             }
         )

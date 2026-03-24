@@ -178,7 +178,7 @@ extension PostSeedJourneyView {
     // MARK: - AI (aligned with Settings)
 
     var aiFeaturesOn: Bool {
-        useCloudSummarization || useAIReviewInsights
+        useCloudSummarization
     }
 
     var canRunAIConnectivityCheck: Bool {
@@ -192,7 +192,6 @@ extension PostSeedJourneyView {
     func clampCloudAIFeaturesIfApiKeyMissing() {
         guard !ApiSecrets.isCloudApiKeyConfigured, aiFeaturesOn else { return }
         useCloudSummarization = false
-        useAIReviewInsights = false
         syncAICloudStatusModel()
     }
 
@@ -214,7 +213,6 @@ extension PostSeedJourneyView {
             get: { aiFeaturesOn },
             set: { enabled in
                 useCloudSummarization = enabled
-                useAIReviewInsights = enabled
                 syncAICloudStatusModel()
             }
         )

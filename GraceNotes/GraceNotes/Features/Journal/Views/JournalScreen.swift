@@ -69,7 +69,6 @@ struct JournalScreen: View {
     @AppStorage(JournalOnboardingStorageKeys.openedICloudSuggestion)
     private var openedICloudSuggestion = false
     @AppStorage(SummarizerProvider.useCloudUserDefaultsKey) private var useCloudSummarization = false
-    @AppStorage(ReviewInsightsProvider.useAIReviewInsightsKey) private var useAIReviewInsights = false
     @AppStorage(PersistenceController.iCloudSyncEnabledKey) private var isICloudSyncEnabled = false
     @AppStorage(JournalTutorialStorageKeys.dismissedSeedGuidance) private var dismissedSeedGuidance = false
     @AppStorage(JournalTutorialStorageKeys.dismissedHarvestGuidance) private var dismissedHarvestGuidance = false
@@ -501,7 +500,7 @@ private extension JournalScreen {
     }
 
     private var aiFeaturesEnabled: Bool {
-        useCloudSummarization || useAIReviewInsights
+        useCloudSummarization
     }
 
     private var hasConfiguredReminderTime: Bool {

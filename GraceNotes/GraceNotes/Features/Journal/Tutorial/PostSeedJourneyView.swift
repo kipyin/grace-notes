@@ -15,7 +15,6 @@ struct PostSeedJourneyView: View {
     @Environment(\.verticalSizeClass) var verticalSizeClass
 
     @AppStorage(SummarizerProvider.useCloudUserDefaultsKey) var useCloudSummarization = false
-    @AppStorage(ReviewInsightsProvider.useAIReviewInsightsKey) var useAIReviewInsights = false
     @AppStorage(PersistenceController.iCloudSyncEnabledKey) var isICloudSyncEnabled = false
 
     @StateObject var reminderState = ReminderSettingsFlowModel()
@@ -91,9 +90,6 @@ struct PostSeedJourneyView: View {
             reminderState.handleSelectedTimeChanged()
         }
         .onChange(of: useCloudSummarization) { _, _ in
-            syncAICloudStatusModel()
-        }
-        .onChange(of: useAIReviewInsights) { _, _ in
             syncAICloudStatusModel()
         }
         .alert(

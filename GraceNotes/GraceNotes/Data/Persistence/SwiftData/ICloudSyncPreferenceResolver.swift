@@ -45,7 +45,7 @@ enum ICloudSyncPreferenceResolver {
             return true
         }
 
-        if defaults.object(forKey: ReviewInsightsProvider.useAIReviewInsightsKey) != nil {
+        if defaults.object(forKey: ReviewInsightsProvider.legacyAIFeaturesUserDefaultsKey) != nil {
             return true
         }
 

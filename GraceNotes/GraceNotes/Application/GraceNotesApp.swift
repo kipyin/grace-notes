@@ -22,6 +22,7 @@ struct GraceNotesApp: App {
 
     init() {
         let startupTrace = PerformanceTrace.begin("App.init")
+        ReviewInsightsProvider.migrateLegacyAIFeaturesToggleIfNeeded()
         let processInfo = ProcessInfo.processInfo
         let isXCTestSession = processInfo.environment["XCTestConfigurationFilePath"] != nil
         isRunningUITests = ProcessInfo.graceNotesIsRunningUITests
@@ -136,6 +137,7 @@ struct GraceNotesApp: App {
     private var readyContent: some View {
         if isRunningUITests {
             mainTabView
+                .environmentObject(appNavigation)
         } else if !hasCompletedOnboarding {
             OnboardingScreen {
                 hasCompletedOnboarding = true

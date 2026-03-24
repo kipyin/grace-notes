@@ -1,17 +1,22 @@
 import Foundation
 
 struct ReviewInsightsProvider: Sendable {
-    static let useAIReviewInsightsKey = "useAIReviewInsights"
+    static let aiFeaturesEnabledKey = SummarizerProvider.useCloudUserDefaultsKey
+    /// Legacy key removed by `migrateLegacyAIFeaturesToggleIfNeeded`; still consulted for install-continuity heuristics.
+    static let legacyAIFeaturesUserDefaultsKey = "useAIReviewInsights"
 
     private let deterministicGenerator: any ReviewInsightsGenerating
     private let cloudGenerator: (any ReviewInsightsGenerating)?
+    private let userDefaults: UserDefaults
 
     init(
         deterministicGenerator: any ReviewInsightsGenerating = DeterministicReviewInsightsGenerator(),
         cloudGenerator: (any ReviewInsightsGenerating)? = nil,
-        apiKey: String = ApiSecrets.cloudApiKey
+        apiKey: String = ApiSecrets.cloudApiKey,
+        userDefaults: UserDefaults = .standard
     ) {
         self.deterministicGenerator = deterministicGenerator
+        self.userDefaults = userDefaults
 
         if let cloudGenerator {
             self.cloudGenerator = cloudGenerator
@@ -22,12 +27,21 @@ struct ReviewInsightsProvider: Sendable {
         }
     }
 
+    static func migrateLegacyAIFeaturesToggleIfNeeded(defaults: UserDefaults = .standard) {
+        guard let legacyValue = defaults.object(forKey: legacyAIFeaturesUserDefaultsKey) as? Bool else {
+            return
+        }
+        let currentAIFeaturesValue = defaults.object(forKey: aiFeaturesEnabledKey) as? Bool ?? false
+        defaults.set(currentAIFeaturesValue || legacyValue, forKey: aiFeaturesEnabledKey)
+        defaults.removeObject(forKey: legacyAIFeaturesUserDefaultsKey)
+    }
+
     func generateInsights(
         from entries: [JournalEntry],
         referenceDate: Date,
         calendar: Calendar = .current
     ) async -> ReviewInsights {
-        let useAI = UserDefaults.standard.bool(forKey: Self.useAIReviewInsightsKey)
+        let useAI = userDefaults.object(forKey: Self.aiFeaturesEnabledKey) as? Bool ?? false
 
         let cloudAllowed = ReviewInsightsCloudEligibility.hasMinimumEvidenceForCloudAI(
             entries: entries,
