@@ -29,19 +29,28 @@ struct CloudReviewInsightsSanitizer {
         let recurringPeople = sanitizeThemes(payload.recurringPeople)
         let allThemes = recurringNeeds + recurringPeople + recurringGratitudes
 
+        let resurfacingMessage = sanitizeResurfacingMessage(
+            payload.resurfacingMessage,
+            recurringGratitudes: recurringGratitudes,
+            recurringNeeds: recurringNeeds,
+            recurringPeople: recurringPeople,
+            fallback: fallbackResurfacing
+        )
+        var narrativeSummary = sanitizeNarrativeSummary(
+            payload.narrativeSummary,
+            allThemes: allThemes,
+            fallback: fallbackNarrative
+        )
+        narrativeSummary = repairNarrativeWhenParrotsResurfacing(
+            narrative: narrativeSummary,
+            resurfacing: resurfacingMessage,
+            allThemes: allThemes,
+            fallback: fallbackNarrative
+        )
+
         return CloudReviewInsightsPayload(
-            narrativeSummary: sanitizeNarrativeSummary(
-                payload.narrativeSummary,
-                allThemes: allThemes,
-                fallback: fallbackNarrative
-            ),
-            resurfacingMessage: sanitizeResurfacingMessage(
-                payload.resurfacingMessage,
-                recurringGratitudes: recurringGratitudes,
-                recurringNeeds: recurringNeeds,
-                recurringPeople: recurringPeople,
-                fallback: fallbackResurfacing
-            ),
+            narrativeSummary: narrativeSummary,
+            resurfacingMessage: resurfacingMessage,
             continuityPrompt: sanitizeContinuityPrompt(
                 payload.continuityPrompt,
                 recurringGratitudes: recurringGratitudes,
@@ -71,9 +80,8 @@ struct CloudReviewInsightsSanitizer {
         guard mentionsAnyTheme(payload.continuityPrompt, themes: allThemes) else {
             throw CloudReviewInsightsError.failedQualityGate
         }
-        guard !seemsGeneric(payload.continuityPrompt) else {
-            throw CloudReviewInsightsError.failedQualityGate
-        }
+        // `sanitizeContinuityPrompt` already substitutes generic copy; substring checks here false-positive when a
+        // theme label overlaps a generic-phrase token (e.g. localized fallbacks embedding user themes).
     }
 
     func extractJSONPayload(from content: String) -> String {
@@ -97,6 +105,50 @@ struct CloudReviewInsightsSanitizer {
             return content
         }
         return String(trimmed[startIndex...endIndex])
+    }
+
+    /// When the model echoes the same line for Observation and Thinking, swap in distinct copy that still
+    /// references themes.
+    private func repairNarrativeWhenParrotsResurfacing(
+        narrative: String,
+        resurfacing: String,
+        allThemes: [CloudReviewTheme],
+        fallback: String
+    ) -> String {
+        guard narrativeParrotsResurfacing(narrative, resurfacing) else {
+            return narrative
+        }
+        guard !allThemes.isEmpty else {
+            return sanitizeMessage(fallback, fallback: fallback)
+        }
+        if allThemes.count >= 2 {
+            let firstLabel = allThemes[0].label
+            let secondLabel = allThemes[1].label
+            let line = String(
+                format: String(localized: "%1$@ kept showing up alongside %2$@ in what you wrote this week."),
+                firstLabel,
+                secondLabel
+            )
+            return sanitizeMessage(line, fallback: fallback)
+        }
+        let theme = allThemes[0].label
+        let line = String(
+            format: String(localized: "Across several entries, %@ was a thread you returned to often."),
+            theme
+        )
+        return sanitizeMessage(line, fallback: fallback)
+    }
+
+    private func narrativeParrotsResurfacing(_ narrative: String, _ resurfacing: String) -> Bool {
+        let normalizedNarrative = normalizeForMatching(narrative)
+        let normalizedResurfacing = normalizeForMatching(resurfacing)
+        guard !normalizedNarrative.isEmpty, !normalizedResurfacing.isEmpty else { return false }
+        if normalizedNarrative == normalizedResurfacing { return true }
+        if normalizedNarrative.count >= 24, normalizedResurfacing.count >= 24,
+           normalizedNarrative.contains(normalizedResurfacing) || normalizedResurfacing.contains(normalizedNarrative) {
+            return true
+        }
+        return false
     }
 
     private func sanitizeMessage(_ message: String, fallback: String) -> String {
@@ -138,6 +190,7 @@ struct CloudReviewInsightsSanitizer {
         return message
     }
 
+    // swiftlint:disable function_body_length
     private func sanitizeResurfacingMessage(
         _ message: String,
         recurringGratitudes: [CloudReviewTheme],
@@ -200,6 +253,8 @@ struct CloudReviewInsightsSanitizer {
         )
         return sanitizeMessage(replacement, fallback: fallback)
     }
+
+    // swiftlint:enable function_body_length
 
     private func sanitizeContinuityPrompt(
         _ prompt: String,
@@ -295,10 +350,37 @@ struct CloudReviewInsightsSanitizer {
     private func mentionsAnyTheme(_ message: String, themes: [CloudReviewTheme]) -> Bool {
         let normalizedMessage = normalizeForMatching(message)
         return themes.contains { theme in
-            let normalizedLabel = normalizeForMatching(theme.label)
-            guard !normalizedLabel.isEmpty else { return false }
-            return normalizedMessage.contains(normalizedLabel)
+            labelReferencedInMessage(theme.label, normalizedMessage: normalizedMessage)
         }
+    }
+
+    /// Full-label substring match first; then token / adjacent-pair passes so short paraphrases still tie to themes.
+    private func labelReferencedInMessage(_ label: String, normalizedMessage: String) -> Bool {
+        let normalizedLabel = normalizeForMatching(label)
+        guard !normalizedLabel.isEmpty else { return false }
+        if normalizedMessage.contains(normalizedLabel) {
+            return true
+        }
+        let tokens = normalizedLabel.split(whereSeparator: { !$0.isLetter && !$0.isNumber })
+        for token in tokens where token.count >= 3 {
+            if normalizedMessage.contains(String(token)) {
+                return true
+            }
+        }
+        let chars = Array(normalizedLabel)
+        guard chars.count >= 2 else {
+            return false
+        }
+        for index in 0..<(chars.count - 1) {
+            if chars[index].isASCII, chars[index + 1].isASCII {
+                continue
+            }
+            let pair = String([chars[index], chars[index + 1]])
+            if normalizedMessage.contains(pair) {
+                return true
+            }
+        }
+        return false
     }
 
     private func seemsGeneric(_ message: String) -> Bool {

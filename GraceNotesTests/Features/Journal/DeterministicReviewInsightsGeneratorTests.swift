@@ -146,6 +146,51 @@ final class DeterministicReviewInsightsTests: XCTestCase {
         )
     }
 
+    func test_weeklyInsightCandidateBuilder_narrativeSummary_usesSecondObservationWhenDistinct() {
+        let builder = WeeklyInsightCandidateBuilder(textNormalizer: WeeklyInsightTextNormalizer())
+        let first = ReviewWeeklyInsight(
+            pattern: .recurringTheme,
+            observation: "Alpha observation line.",
+            action: "Q1?",
+            primaryTheme: "Alpha",
+            mentionCount: 2,
+            dayCount: 2
+        )
+        let second = ReviewWeeklyInsight(
+            pattern: .continuityShift,
+            observation: "Beta observation line.",
+            action: "Q2?",
+            primaryTheme: "Beta",
+            mentionCount: 2,
+            dayCount: 2
+        )
+        XCTAssertEqual(builder.narrativeSummary(from: [first, second]), "Beta observation line.")
+    }
+
+    func test_weeklyInsightCandidateBuilder_narrativeSummary_whenObservationsDuplicate_usesBothThemesLine() {
+        let builder = WeeklyInsightCandidateBuilder(textNormalizer: WeeklyInsightTextNormalizer())
+        let shared = "Same observation text."
+        let first = ReviewWeeklyInsight(
+            pattern: .recurringTheme,
+            observation: shared,
+            action: "Q1?",
+            primaryTheme: "Rest",
+            mentionCount: 2,
+            dayCount: 2
+        )
+        let second = ReviewWeeklyInsight(
+            pattern: .recurringPeople,
+            observation: shared,
+            action: "Q2?",
+            primaryTheme: "Mia",
+            mentionCount: 2,
+            dayCount: 2
+        )
+        let summary = builder.narrativeSummary(from: [first, second])
+        XCTAssertTrue(summary?.contains("Rest") == true)
+        XCTAssertTrue(summary?.contains("Mia") == true)
+    }
+
     func test_generateInsights_limitsInsightCountToTwo() async throws {
         let reference = date(year: 2026, month: 3, day: 18)
         let previousWeekEntries = [
@@ -197,10 +242,7 @@ final class DeterministicReviewInsightsTests: XCTestCase {
             "Start with one reflection today to build your weekly review."
         )
         XCTAssertEqual(insights.weeklyInsights.first?.pattern, .sparseFallback)
-        XCTAssertEqual(
-            insights.narrativeSummary,
-            "Start with one reflection today to build your weekly review."
-        )
+        XCTAssertNil(insights.narrativeSummary)
     }
 
     func test_generateInsights_preservesOriginalMixedLanguageLabelWhileGroupingCaseInsensitively() async throws {

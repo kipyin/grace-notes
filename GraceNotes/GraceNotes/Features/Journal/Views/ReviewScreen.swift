@@ -243,24 +243,31 @@ struct ReviewScreen: View {
             return
         }
 
-        let outcome: ReviewInsightsRefreshPolicy.ForcedRefreshOutcome
-        if force {
-            outcome = ReviewInsightsRefreshPolicy.forcedRefreshOutcome(
-                previous: previousForForcedRefresh,
-                generated: generatedInsights
-            )
-        } else {
-            outcome = ReviewInsightsRefreshPolicy.ForcedRefreshOutcome(
-                insights: generatedInsights,
-                shouldUpdateCachedRefreshKey: true
-            )
-        }
+        let outcome = reviewInsightsRefreshOutcome(
+            force: force,
+            previous: previousForForcedRefresh,
+            generated: generatedInsights
+        )
 
         reviewInsights = outcome.insights
         if outcome.shouldUpdateCachedRefreshKey {
             lastInsightsRefreshKey = shouldCacheRefreshKey(for: generatedInsights) ? refreshKey : nil
         }
         isLoadingInsights = false
+    }
+
+    private func reviewInsightsRefreshOutcome(
+        force: Bool,
+        previous: ReviewInsights?,
+        generated: ReviewInsights
+    ) -> ReviewInsightsRefreshPolicy.ForcedRefreshOutcome {
+        if force {
+            return ReviewInsightsRefreshPolicy.forcedRefreshOutcome(previous: previous, generated: generated)
+        }
+        return ReviewInsightsRefreshPolicy.ForcedRefreshOutcome(
+            insights: generated,
+            shouldUpdateCachedRefreshKey: true
+        )
     }
 
     private func monthYearString(from date: Date) -> String {
@@ -406,219 +413,5 @@ private struct HistoryRow: View {
                     .stroke(borderColor.opacity(0.8), lineWidth: 1)
             )
             .accessibilityLabel(text)
-    }
-}
-
-private struct ReviewSummaryCard: View {
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-
-    let insights: ReviewInsights?
-    let isLoading: Bool
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(String(localized: "This Week"))
-                .font(AppTheme.warmPaperHeader)
-                .foregroundStyle(AppTheme.reviewTextPrimary)
-                .accessibilityAddTraits(.isHeader)
-
-            if isLoading, insights == nil {
-                ProgressView()
-                    .tint(AppTheme.reviewAccent)
-            } else if let insights {
-                sourceRow(for: insights.source)
-
-                Text(weekRangeText(insights))
-                    .font(AppTheme.warmPaperMeta)
-                    .foregroundStyle(AppTheme.reviewTextMuted)
-
-                if shouldShowNarrativeSummary(for: insights),
-                   let narrativeSummary = insights.narrativeSummary {
-                    Text(narrativeSummary)
-                        .font(AppTheme.warmPaperBody)
-                        .foregroundStyle(AppTheme.reviewTextPrimary)
-                        .lineSpacing(4)
-                }
-
-                if !insights.weeklyInsights.isEmpty {
-                    ReviewWeeklyInsightsSection(items: insights.weeklyInsights)
-                } else {
-                    Text(insights.resurfacingMessage)
-                        .font(AppTheme.warmPaperMeta)
-                        .foregroundStyle(AppTheme.reviewTextMuted)
-                        .lineSpacing(2)
-
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(String(localized: "Continue with"))
-                            .font(AppTheme.warmPaperBody.weight(.semibold))
-                            .foregroundStyle(AppTheme.reviewTextPrimary)
-                            .accessibilityAddTraits(.isHeader)
-                        Text(insights.continuityPrompt)
-                            .font(AppTheme.warmPaperBody)
-                            .foregroundStyle(AppTheme.reviewTextPrimary)
-                            .lineSpacing(3)
-                    }
-                }
-
-                ReviewThemeRow(title: String(localized: "Recurring Gratitudes"), items: insights.recurringGratitudes)
-                ReviewThemeRow(title: String(localized: "Recurring Needs"), items: insights.recurringNeeds)
-                ReviewThemeRow(title: String(localized: "People in Mind"), items: insights.recurringPeople)
-            } else {
-                Text(String(localized: "Start writing this week to unlock review insights."))
-                    .font(AppTheme.warmPaperBody)
-                    .foregroundStyle(AppTheme.reviewTextMuted)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .fixedSize(horizontal: false, vertical: true)
-        .padding(16)
-        .background(AppTheme.reviewPaper)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(AppTheme.border.opacity(0.4), lineWidth: 1)
-        )
-    }
-
-    @ViewBuilder
-    private func sourceRow(for source: ReviewInsightSource) -> some View {
-        if dynamicTypeSize.isAccessibilitySize {
-            VStack(alignment: .leading, spacing: 8) {
-                sourceLabelAndChip(for: source)
-            }
-        } else {
-            ViewThatFits(in: .horizontal) {
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    sourceLabelAndChip(for: source)
-                    Spacer(minLength: 0)
-                }
-                VStack(alignment: .leading, spacing: 8) {
-                    sourceLabelAndChip(for: source)
-                }
-            }
-        }
-    }
-
-    private func sourceLabelAndChip(for source: ReviewInsightSource) -> some View {
-        HStack(spacing: 8) {
-            Text(String(localized: "Source"))
-                .font(AppTheme.warmPaperBody.weight(.semibold))
-                .foregroundStyle(AppTheme.reviewTextPrimary)
-            Text(insightSourceText(source))
-                .font(AppTheme.warmPaperBody)
-                .foregroundStyle(AppTheme.reviewTextMuted)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(AppTheme.reviewBackground)
-                .clipShape(Capsule())
-        }
-    }
-
-    private func insightSourceText(_ source: ReviewInsightSource) -> String {
-        switch source {
-        case .cloudAI:
-            return String(localized: "AI")
-        case .deterministic:
-            return String(localized: "On-device")
-        }
-    }
-
-    private func weekRangeText(_ insights: ReviewInsights) -> String {
-        let calendar = Calendar.current
-        let inclusiveEnd = calendar.date(byAdding: .day, value: -1, to: insights.weekEnd) ?? insights.weekEnd
-        let startText = insights.weekStart.formatted(.dateTime.month(.abbreviated).day())
-        let endText = inclusiveEnd.formatted(.dateTime.month(.abbreviated).day())
-        return String(
-            format: String(localized: "%1$@ to %2$@"),
-            startText,
-            endText
-        )
-    }
-
-    private func shouldShowNarrativeSummary(for insights: ReviewInsights) -> Bool {
-        guard let narrativeSummary = insights.narrativeSummary?.trimmingCharacters(in: .whitespacesAndNewlines),
-              !narrativeSummary.isEmpty
-        else {
-            return false
-        }
-        guard let firstInsightObservation = insights.weeklyInsights.first?.observation else {
-            return true
-        }
-        return normalizedInsightText(narrativeSummary) != normalizedInsightText(firstInsightObservation)
-    }
-
-    private func normalizedInsightText(_ value: String) -> String {
-        value
-            .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
-            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-}
-
-private struct ReviewWeeklyInsightsSection: View {
-    let items: [ReviewWeeklyInsight]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(String(localized: "Insights"))
-                .font(AppTheme.warmPaperBody.weight(.semibold))
-                .foregroundStyle(AppTheme.reviewTextPrimary)
-                .accessibilityAddTraits(.isHeader)
-
-            ForEach(Array(items.enumerated()), id: \.element) { index, item in
-                VStack(alignment: .leading, spacing: 6) {
-                    if index > 0 {
-                        Divider()
-                    }
-
-                    Text(item.observation)
-                        .font(AppTheme.warmPaperBody)
-                        .foregroundStyle(AppTheme.reviewTextPrimary)
-                        .lineSpacing(2)
-
-                    if let action = item.action, !action.isEmpty {
-                        Text(action)
-                            .font(AppTheme.warmPaperMeta)
-                            .foregroundStyle(AppTheme.reviewTextMuted)
-                            .lineSpacing(2)
-                    }
-                }
-            }
-        }
-    }
-}
-
-private struct ReviewThemeRow: View {
-    let title: String
-    let items: [ReviewInsightTheme]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(title)
-                .font(AppTheme.warmPaperBody.weight(.semibold))
-                .foregroundStyle(AppTheme.reviewTextPrimary)
-                .accessibilityAddTraits(.isHeader)
-
-            if items.isEmpty {
-                Text(String(localized: "No recurring patterns yet"))
-                    .font(AppTheme.warmPaperBody)
-                    .foregroundStyle(AppTheme.reviewTextMuted)
-            } else {
-                VStack(alignment: .leading, spacing: 4) {
-                    ForEach(items, id: \.self) { item in
-                        Text(
-                            String(
-                                format: String(localized: "%1$@ (%2$lld)"),
-                                item.label,
-                                item.count
-                            )
-                        )
-                        .font(AppTheme.warmPaperBody)
-                        .foregroundStyle(AppTheme.reviewTextMuted)
-                        .lineSpacing(2)
-                    }
-                }
-            }
-        }
     }
 }

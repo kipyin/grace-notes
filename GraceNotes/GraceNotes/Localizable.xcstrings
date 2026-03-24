@@ -195,6 +195,38 @@
         }
       }
     },
+    "A next step" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A next step"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下一步"
+          }
+        }
+      }
+    },
+    "A thread" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A thread"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "发现"
+          }
+        }
+      }
+    },
     "Abundance" : {
       "localizations" : {
         "en" : {
@@ -619,6 +651,7 @@
       }
     },
     "Continue with" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2284,6 +2317,7 @@
       }
     },
     "No recurring patterns yet" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3979,6 +4013,22 @@
         }
       }
     },
+    "This week" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This week"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本周"
+          }
+        }
+      }
+    },
     "This Week" : {
       "localizations" : {
         "en" : {
@@ -4007,6 +4057,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "本周你的反思常常回到 %@ 这个主题。"
+          }
+        }
+      }
+    },
+    "%1$@ kept showing up alongside %2$@ in what you wrote this week." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ kept showing up alongside %2$@ in what you wrote this week."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这一周里，你写下的内容中，%1$@ 和 %2$@ 常常一起出现。"
+          }
+        }
+      }
+    },
+    "Across several entries, %@ was a thread you returned to often." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Across several entries, %@ was a thread you returned to often."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在多条记录里，%@ 是你常常回到的一条线。"
+          }
+        }
+      }
+    },
+    "Both %1$@ and %2$@ showed up more than once in your week." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Both %1$@ and %2$@ showed up more than once in your week."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ 和 %2$@ 在这周都出现了不止一次。"
+          }
+        }
+      }
+    },
+    "That thread around %@ showed up across more than one day this week." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "That thread around %@ showed up across more than one day this week."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "与 %@ 相关的那条线，这周不止出现在一天里。"
           }
         }
       }
@@ -4431,6 +4545,22 @@
         }
       }
     },
+    "What's one thing you're glad happened, even if small?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What's one thing you're glad happened, even if small?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本周有没有一件小事，让你心里觉得还好它发生了？"
+          }
+        }
+      }
+    },
     "What's one thing you're grateful for?" : {
       "localizations" : {
         "en" : {
@@ -4510,6 +4640,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "写完后，在键盘上轻按换行保存。"
+          }
+        }
+      }
+    },
+    "When you're ready, a few lines can still hold a lot." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When you're ready, a few lines can still hold a lot."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当你准备好时，寥寥数语也能承载很多。"
           }
         }
       }

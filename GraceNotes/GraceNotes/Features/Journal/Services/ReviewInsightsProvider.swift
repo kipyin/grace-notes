@@ -50,14 +50,13 @@ struct ReviewInsightsProvider: Sendable {
             calendar: calendar
         )
 
-        if useAI, cloudAllowed, let cloudGenerator {
-            if let cloudInsights = try? await cloudGenerator.generateInsights(
-                from: entries,
-                referenceDate: referenceDate,
-                calendar: calendar
-            ) {
-                return cloudInsights
-            }
+        if useAI, cloudAllowed, let cloudGenerator,
+           let cloudInsights = try? await cloudGenerator.generateInsights(
+            from: entries,
+            referenceDate: referenceDate,
+            calendar: calendar
+           ) {
+            return cloudInsights
         }
 
         if let deterministicInsights = try? await deterministicGenerator.generateInsights(
@@ -68,6 +67,10 @@ struct ReviewInsightsProvider: Sendable {
             return deterministicInsights
         }
 
+        return sparseFallbackInsights(referenceDate: referenceDate, calendar: calendar)
+    }
+
+    private func sparseFallbackInsights(referenceDate: Date, calendar: Calendar) -> ReviewInsights {
         let weekRange = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
         let fallbackInsight = ReviewWeeklyInsight(
             pattern: .sparseFallback,

@@ -1,6 +1,6 @@
 import Foundation
 
-// swiftlint:disable file_length function_body_length
+// swiftlint:disable function_body_length
 struct WeeklyInsightCandidateBuilder {
     let defaultContinuityPrompt = String(
         localized: "What feels most important to carry into next week?"
@@ -97,7 +97,46 @@ struct WeeklyInsightCandidateBuilder {
 
     func narrativeSummary(from insights: [ReviewWeeklyInsight]) -> String? {
         guard !insights.isEmpty else { return nil }
-        return insights.map(\.observation).joined(separator: " ")
+        if insights.count >= 2 {
+            let first = insights[0].observation
+            let second = insights[1].observation
+            if !observationsAreEffectivelyDuplicate(first, second) {
+                return second
+            }
+            let themeA = insights[0].primaryTheme
+            let themeB = insights[1].primaryTheme
+            if let firstTheme = themeA, let secondTheme = themeB,
+               !firstTheme.isEmpty, !secondTheme.isEmpty,
+               !textNormalizer.themesMatch(
+                   textNormalizer.normalizeThemeLabel(firstTheme),
+                   against: [textNormalizer.normalizeThemeLabel(secondTheme)]
+               ) {
+                return String(
+                    format: String(localized: "Both %1$@ and %2$@ showed up more than once in your week."),
+                    firstTheme,
+                    secondTheme
+                )
+            }
+            return second
+        }
+        if let theme = insights[0].primaryTheme, !theme.isEmpty {
+            return String(
+                format: String(localized: "That thread around %@ showed up across more than one day this week."),
+                theme
+            )
+        }
+        return nil
+    }
+
+    private func observationsAreEffectivelyDuplicate(_ lhs: String, _ rhs: String) -> Bool {
+        normalizeObservationLine(lhs) == normalizeObservationLine(rhs)
+    }
+
+    private func normalizeObservationLine(_ value: String) -> String {
+        value
+            .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
 

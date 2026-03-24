@@ -90,7 +90,8 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
             dayCount: nil
         )
 
-        // `narrativeSummary` is shown separately on the review card; do not echo it as a second weekly insight.
+        // `narrativeSummary` maps to the Thinking panel on `ReviewSummaryCard`; keep a single `weeklyInsights`
+        // row so the flat payload and this array stay aligned for Observation / Action (#80).
         return [firstInsight]
     }
 
@@ -149,6 +150,11 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
         Rules:
         - Do not judge or pressure the user. Ground every line in their entries.
         - Ground messages in the provided seven-day context. Avoid generic wellness phrases.
+        - resurfacingMessage is Observation: factual resurfacing only (counts, who/what showed up).
+        - Keep Observation free of therapy clichés or feelings interpretation.
+        - narrativeSummary is Thinking: one sentence naming a relationship or pattern across signals.
+        - Thinking must use different wording than resurfacingMessage; do not repeat the same counts or structure.
+        - continuityPrompt is Action: one short, invitational follow-up question tied to those themes.
         - Prefer one concrete, calm link between two recurring signals when evidence supports it.
         - Do not invent connections the entries do not support.
         - If recurring themes exist, reference at least one concrete theme label in narrativeSummary.
@@ -179,6 +185,9 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
         要求：
         - 不评判、不施压；说法贴着记录走。
         - 紧扣下方记录，别写空洞的励志话或养生套话。
+        - `resurfacingMessage` 只写「观察」：事实性复盘（频次、反复出现的人/事），不要心理诊断式措辞。
+        - `narrativeSummary` 写「思考」：用**不同于** `resurfacingMessage` 的句式，点出信号之间的关系或模式；不要简单重复同一句话或同一组数字。
+        - `continuityPrompt` 写「行动」：一句简短、可接住的追问。
         - 如果最近七天里确实反复出现某些内容，可以用一句简短、具体的话，把两件事连起来（例如某件感恩的事、某件需要的事、某位牵挂的人）；不要臆测记录里没出现的事。
         - 若有重复主题，`narrativeSummary` 里至少要点到其中一条，说法尽量贴近用户原文或自然归纳。
         - `continuityPrompt` 只能是一句具体的追问，和这些记录里的内容有关。
@@ -217,8 +226,10 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
         let content = try decodeAssistantMessageContent(from: data)
 
         let parsedData = Data(sanitizer.extractJSONPayload(from: content).utf8)
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
         do {
-            return try JSONDecoder().decode(CloudReviewInsightsPayload.self, from: parsedData)
+            return try decoder.decode(CloudReviewInsightsPayload.self, from: parsedData)
         } catch {
             throw CloudReviewInsightsError.invalidPayload
         }
@@ -280,11 +291,72 @@ struct CloudReviewInsightsPayload: Decodable {
     let recurringGratitudes: [CloudReviewTheme]
     let recurringNeeds: [CloudReviewTheme]
     let recurringPeople: [CloudReviewTheme]
+
+    enum CodingKeys: String, CodingKey {
+        case narrativeSummary
+        case resurfacingMessage
+        case continuityPrompt
+        case recurringGratitudes
+        case recurringNeeds
+        case recurringPeople
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        narrativeSummary = try container.decodeIfPresent(String.self, forKey: .narrativeSummary) ?? ""
+        resurfacingMessage = try container.decodeIfPresent(String.self, forKey: .resurfacingMessage) ?? ""
+        continuityPrompt = try container.decodeIfPresent(String.self, forKey: .continuityPrompt) ?? ""
+        recurringGratitudes = try container.decodeIfPresent([CloudReviewTheme].self, forKey: .recurringGratitudes) ?? []
+        recurringNeeds = try container.decodeIfPresent([CloudReviewTheme].self, forKey: .recurringNeeds) ?? []
+        recurringPeople = try container.decodeIfPresent([CloudReviewTheme].self, forKey: .recurringPeople) ?? []
+    }
+
+    init(
+        narrativeSummary: String,
+        resurfacingMessage: String,
+        continuityPrompt: String,
+        recurringGratitudes: [CloudReviewTheme],
+        recurringNeeds: [CloudReviewTheme],
+        recurringPeople: [CloudReviewTheme]
+    ) {
+        self.narrativeSummary = narrativeSummary
+        self.resurfacingMessage = resurfacingMessage
+        self.continuityPrompt = continuityPrompt
+        self.recurringGratitudes = recurringGratitudes
+        self.recurringNeeds = recurringNeeds
+        self.recurringPeople = recurringPeople
+    }
 }
 
 struct CloudReviewTheme: Decodable {
     let label: String
     let count: Int
+
+    enum CodingKeys: String, CodingKey {
+        case label
+        case count
+    }
+
+    init(label: String, count: Int) {
+        self.label = label
+        self.count = count
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let rawLabel = try container.decodeIfPresent(String.self, forKey: .label) ?? ""
+        label = rawLabel
+        if let intVal = try? container.decode(Int.self, forKey: .count) {
+            count = max(0, intVal)
+        } else if let doubleVal = try? container.decode(Double.self, forKey: .count) {
+            count = max(0, Int(doubleVal.rounded()))
+        } else if let strVal = try? container.decode(String.self, forKey: .count) {
+            let trimmed = strVal.trimmingCharacters(in: .whitespacesAndNewlines)
+            count = max(0, Int(trimmed) ?? 1)
+        } else {
+            count = 1
+        }
+    }
 }
 
 enum CloudReviewInsightsError: Error, Equatable {

@@ -201,6 +201,32 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
         XCTAssertLessThanOrEqual(insights.continuityPrompt.count, 160)
     }
 
+    func test_generateInsights_parsesSnakeCaseKeysAndFlexibleCounts() async throws {
+        let generator = CloudReviewInsightsGenerator(
+            apiKey: "test-key",
+            urlSession: urlSession,
+            promptLanguage: .english
+        )
+        let innerPayload: [String: Any] = [
+            "narrative_summary": "This week you reflected on Rest and Family.",
+            "resurfacing_message": "You mentioned Rest 3 times this week.",
+            "continuity_prompt": "What can protect your Rest tomorrow?",
+            "recurring_gratitudes": [["label": "Family", "count": NSNumber(value: 2.0)]],
+            "recurring_needs": [["label": "Rest", "count": NSNumber(value: 3.4)]],
+            "recurring_people": [["label": "Alex", "count": NSNumber(value: 2.0)]]
+        ]
+        setMockResponse(withInnerPayload: innerPayload)
+
+        let insights = try await generator.generateInsights(
+            from: threeMeaningfulEntriesInWeekAroundReference(),
+            referenceDate: date(year: 2026, month: 3, day: 18),
+            calendar: calendar
+        )
+
+        XCTAssertEqual(insights.source, .cloudAI)
+        XCTAssertEqual(insights.recurringNeeds.first?.count, 3) // JSON double 3.4 rounds to 3
+    }
+
     func test_generateInsights_parsesMarkdownFencedJSONPayload() async throws {
         let generator = CloudReviewInsightsGenerator(
             apiKey: "test-key",
@@ -259,6 +285,36 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
         XCTAssertFalse(insights.continuityPrompt.contains("one day at a time"))
     }
 
+    func test_generateInsights_duplicateNarrativeAndResurfacing_isRepairedToDistinctThinkingLine() async throws {
+        let generator = CloudReviewInsightsGenerator(
+            apiKey: "test-key",
+            urlSession: urlSession,
+            promptLanguage: .english
+        )
+        let duplicateLine = "You mentioned Rest 3 times this week."
+        let innerPayload: [String: Any] = [
+            "narrativeSummary": duplicateLine,
+            "resurfacingMessage": duplicateLine,
+            "continuityPrompt": "What can protect your Rest tomorrow?",
+            "recurringGratitudes": [["label": "Family", "count": 2]],
+            "recurringNeeds": [["label": "Rest", "count": 3]],
+            "recurringPeople": [["label": "Alex", "count": 2]]
+        ]
+
+        setMockResponse(withInnerPayload: innerPayload)
+
+        let insights = try await generator.generateInsights(
+            from: threeMeaningfulEntriesInWeekAroundReference(),
+            referenceDate: date(year: 2026, month: 3, day: 18),
+            calendar: calendar
+        )
+
+        XCTAssertNotEqual(insights.narrativeSummary, duplicateLine)
+        XCTAssertTrue(insights.narrativeSummary?.contains("Rest") == true)
+        let narrative = insights.narrativeSummary ?? ""
+        XCTAssertTrue(narrative.contains("Family") || narrative.contains("Alex"))
+    }
+
     func test_generateInsights_themeLessNarrative_isReplacedWithThemeGroundedNarrative() async throws {
         let generator = CloudReviewInsightsGenerator(
             apiKey: "test-key",
@@ -314,6 +370,8 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
 
         XCTAssertTrue(prompt.contains("Ground messages in the provided seven-day context"))
         XCTAssertTrue(prompt.contains("continuityPrompt must be a specific follow-up question"))
+        XCTAssertTrue(prompt.contains("resurfacingMessage is Observation"))
+        XCTAssertTrue(prompt.contains("narrativeSummary is Thinking"))
     }
 
     func test_generateInsights_requestPrompt_usesSimplifiedChineseWhenPromptLanguageZhHans() async throws {
