@@ -15,7 +15,7 @@ Grace Notes (`感恩记`) guides you through a simple daily rhythm: 5 gratitudes
 - **Product docs** — Review insight roadmap now separates **#40** (insight-first presentation) from **#80** (deeper insight engine work); see `GraceNotes/docs/07-release-roadmap.md`.
 - **UI tests** — Journal UI tests use stable chip and add-row identifiers, English locale, relaunch-safe launch arguments, optional **`-grace-notes-reset-uitest-store`** between cases, and a UI-test SwiftData session key so data survives `terminate()` + `launch()` when appropriate (see CHANGELOG **Developer**).
 
-## What's new in 0.5.0 (upcoming)
+## What's new in 0.5.0
 
 - **Insight quality** — Review and weekly insights that better reflect your own entries: presentation work as **#40**, deeper generation iteration as **#80**; refined chip-label prompts for AI where used (**#39**); clearer feedback when a section is fully filled (**#11**).
 - **First-run tutorial** — Dismissible hints on Today toward Seed and Harvest, with one-time congratulations when you first reach those tiers (`#60`).

@@ -1,4 +1,3 @@
-// swiftlint:disable file_length
 import Combine
 import SwiftUI
 import SwiftData
