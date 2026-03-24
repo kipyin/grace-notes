@@ -1,5 +1,5 @@
 ---
-initiative_id: issue-<number>-<slug>
+initiative_id: NNN-short-topic
 role: <role-name>
 status: active
 updated_at: YYYY-MM-DD

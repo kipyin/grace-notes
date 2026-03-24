@@ -60,6 +60,7 @@ Keep role behavior in `.agents/skills/` as the single source of truth for role-s
 - `Release Manager` -> `.agents/skills/release-manager/SKILL.md`
 - `QA Reviewer` -> `.agents/skills/qa-reviewer/SKILL.md`
 - `Test Lead` -> `.agents/skills/test-lead/SKILL.md`
+- `agent-log` -> `.agents/skills/agent-log/SKILL.md` (initiative folder lifecycle: start, maintain, archive)
 - Role index and shared contract -> `.agents/skills/roles-index/SKILL.md`
 
 Use `GraceNotes/docs/agent-log/` as the canonical source for role-to-role interaction, handoffs, and deferred pushback context.

@@ -13,9 +13,13 @@ Shipped or superseded handoffs: [`initiatives/archive/`](initiatives/archive/REA
 
 ## Initiative directory convention
 
-Use a stable slug, usually `issue-<number>-<short-topic>`:
+**New initiatives** use a monotonic three-digit prefix and a short kebab-case name: `NNN-name` (example: `001-guided-onboarding`).
 
-- `GraceNotes/docs/agent-log/initiatives/issue-71-guided-onboarding`
+- `GraceNotes/docs/agent-log/initiatives/001-guided-onboarding`
+
+Older folders may use legacy slugs (for example `issue-71-guided-onboarding`); do not rename them unless deliberately migrating. GitHub issue/PR numbers belong in YAML frontmatter, not in the numeric prefix.
+
+Lifecycle scaffolding (start, index/archive upkeep, validation) is described in `.agents/skills/agent-log/SKILL.md`.
 
 ## Fast path (small changes)
 

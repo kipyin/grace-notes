@@ -58,3 +58,4 @@ Treat `GraceNotes/docs/agent-log/` as canonical for role-to-role interaction.
 - Keep continuity fields present: `Decision`, `Open Questions`, `Next Owner`.
 - Use `pushback.md` for deferrals and include a clear revisit trigger.
 - Prefer substance over formatting; do not block progress on cosmetic structure.
+- For **new** initiative folders, ids use `NNN-kebab-name` (monotonic three-digit prefix). Use `.agents/skills/agent-log/SKILL.md` to start, maintain index/archive, and validate — without replacing Strategist/Architect/Builder judgments.

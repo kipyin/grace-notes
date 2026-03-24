@@ -1,5 +1,5 @@
 ---
-initiative_id: issue-<number>-<slug>
+initiative_id: NNN-short-topic
 role: QA Reviewer
 status: in_progress
 updated_at: YYYY-MM-DD

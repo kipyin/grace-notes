@@ -15,8 +15,8 @@ usage() {
   echo
   echo "Examples:"
   echo "  $0"
-  echo "  $0 GraceNotes/docs/agent-log/initiatives/issue-71-guided-onboarding"
-  echo "  $0 --strict GraceNotes/docs/agent-log/initiatives/issue-71-guided-onboarding/qa.md"
+  echo "  $0 GraceNotes/docs/agent-log/initiatives/001-guided-onboarding"
+  echo "  $0 --strict GraceNotes/docs/agent-log/initiatives/001-guided-onboarding/qa.md"
 }
 
 warn() {

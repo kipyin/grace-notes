@@ -2,6 +2,8 @@
 
 Shipped or superseded handoffs live here so **`initiatives/`** stays limited to **active** work.
 
+**New initiatives** use ids `NNN-kebab-name` (see `.agents/skills/agent-log/SKILL.md`). Rows below include **legacy** slugs from before that convention.
+
 | Slug | Notes |
 |------|--------|
 | `ai-features-settings-status` | Settings AI row / connection status |
@@ -18,4 +20,4 @@ Shipped or superseded handoffs live here so **`initiatives/`** stays limited to 
 | `release-0-4-0-icloud-sync-trust` | **0.4.0** iCloud / import trust |
 | `release-0-5-0-insight-quality` | **0.5.0** insight quality (**#40**, **#80**, etc.) |
 
-**Active** initiatives remain at `../issue-71-guided-onboarding/`, `../release-0-5-1-patch/`, etc.
+**Active** initiatives remain at `../<initiative-id>/` (see [../README.md](../README.md) and [../../index.md](../../index.md)).

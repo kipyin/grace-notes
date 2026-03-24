@@ -20,7 +20,7 @@ Use when helpful:
 
 ```yaml
 ---
-initiative_id: issue-71-guided-onboarding
+initiative_id: 001-guided-onboarding
 role: Strategist
 status: in_progress
 updated_at: 2026-03-24
@@ -28,6 +28,8 @@ related_issue: 71
 related_pr: 79
 ---
 ```
+
+`initiative_id` must match the initiative directory name. Use `related_issue` / `related_pr` for GitHub numbers; the `NNN-` prefix is only the next free sequence id (see `.agents/skills/agent-log/SKILL.md`).
 
 ## Pushback Entry Schema
 
