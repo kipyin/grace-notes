@@ -194,7 +194,7 @@ private extension JournalOnboardingFlowEvaluator {
     static func firstGratitudePresentation() -> JournalOnboardingPresentation {
         presentation(
             step: .gratitude,
-            title: String(localized: "Start gently"),
+            title: "",
             message: String(localized: "Start with one gratitude."),
             states: [
                 .gratitude: .active,

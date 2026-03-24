@@ -344,7 +344,8 @@ struct PostSeedJourneyPathStrip: View {
 // MARK: - Sample insights preview
 
 struct PostSeedJourneyInsightsPreview: View {
-    private static let fadeBandHeight: CGFloat = 100
+    private static let fadeBandHeight: CGFloat = 120
+    private static let previewClipHeight: CGFloat = 328
 
     /// Same review period as ``ReviewScreen`` (past seven calendar days) and the shared “%1$@ to %2$@” range line.
     private var sampleWeekRangeLine: String {
@@ -368,15 +369,15 @@ struct PostSeedJourneyInsightsPreview: View {
                 LinearGradient(
                     stops: [
                         .init(color: .white, location: 0),
-                        .init(color: .white, location: 0.38),
-                        .init(color: .white.opacity(0.35), location: 0.72),
+                        .init(color: .white, location: 0.56),
+                        .init(color: .white.opacity(0.35), location: 0.84),
                         .init(color: .clear, location: 1)
                     ],
                     startPoint: .top,
                     endPoint: .bottom
                 )
             )
-            .frame(height: 220, alignment: .top)
+            .frame(height: Self.previewClipHeight, alignment: .top)
             .clipped()
             .overlay(alignment: .bottom) {
                 LinearGradient(
@@ -410,14 +411,18 @@ struct PostSeedJourneyInsightsPreview: View {
                 .foregroundStyle(AppTheme.reviewTextPrimary)
 
             VStack(alignment: .leading, spacing: 8) {
-                sampleBullet(String(localized: "PostSeedJourney.sampleInsights.bullet1"))
-                sampleBullet(String(localized: "PostSeedJourney.sampleInsights.bullet2"))
-            }
+                sampleInsightRow(
+                    observation: String(localized: "PostSeedJourney.sampleInsights.row1.observation"),
+                    action: String(localized: "PostSeedJourney.sampleInsights.row1.action")
+                )
 
-            Text(String(localized: "PostSeedJourney.sampleInsights.tryLine"))
-                .font(AppTheme.warmPaperMeta)
-                .foregroundStyle(AppTheme.reviewTextMuted)
-                .fixedSize(horizontal: false, vertical: true)
+                Divider()
+
+                sampleInsightRow(
+                    observation: String(localized: "PostSeedJourney.sampleInsights.row2.observation"),
+                    action: String(localized: "PostSeedJourney.sampleInsights.row2.action")
+                )
+            }
 
             // Extra lines so fade has content to soften against
             Text(String(localized: "PostSeedJourney.sampleInsights.filler"))
@@ -435,14 +440,19 @@ struct PostSeedJourneyInsightsPreview: View {
         )
     }
 
-    private func sampleBullet(_ text: String) -> some View {
-        HStack(alignment: .top, spacing: 8) {
-            Text("•")
-                .font(AppTheme.warmPaperBody)
-                .foregroundStyle(AppTheme.reviewTextMuted)
-            Text(text)
+    /// Mirrors ``ReviewWeeklyInsightsSection``: body observation plus muted follow-up line (not an in-app text field).
+    private func sampleInsightRow(observation: String, action: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(observation)
                 .font(AppTheme.warmPaperBody)
                 .foregroundStyle(AppTheme.reviewTextPrimary)
+                .lineSpacing(2)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Text(action)
+                .font(AppTheme.warmPaperMeta)
+                .foregroundStyle(AppTheme.reviewTextMuted)
+                .lineSpacing(2)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }

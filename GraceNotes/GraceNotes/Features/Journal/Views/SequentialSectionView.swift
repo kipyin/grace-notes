@@ -93,7 +93,7 @@ struct SequentialSectionView: View {
     }
 
     let title: String
-    /// Guided onboarding title shown above the section header (e.g. “Start gently”).
+    /// Guided onboarding title shown above the section header (optional; omitted when empty).
     let guidanceTitle: String?
     /// Guided onboarding message shown under `guidanceTitle`.
     let guidanceMessage: String?
@@ -251,11 +251,13 @@ struct SequentialSectionView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.spacingRegular) {
             VStack(alignment: .leading, spacing: AppTheme.spacingTight) {
-                if let guidanceTitle, let guidanceMessage {
+                if let guidanceMessage, !guidanceMessage.isEmpty {
                     VStack(alignment: .leading, spacing: AppTheme.spacingTight) {
-                        Text(guidanceTitle)
-                            .font(AppTheme.warmPaperMetaEmphasis)
-                            .foregroundStyle(AppTheme.accentText)
+                        if let guidanceTitle, !guidanceTitle.isEmpty {
+                            Text(guidanceTitle)
+                                .font(AppTheme.warmPaperMetaEmphasis)
+                                .foregroundStyle(AppTheme.accentText)
+                        }
                         Text(guidanceMessage)
                             .font(AppTheme.warmPaperBody)
                             .foregroundStyle(AppTheme.journalTextPrimary)

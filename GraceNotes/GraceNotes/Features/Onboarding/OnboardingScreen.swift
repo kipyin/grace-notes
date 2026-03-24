@@ -12,11 +12,6 @@ struct OnboardingScreen: View {
                 .foregroundStyle(AppTheme.textPrimary)
 
             VStack(alignment: .leading, spacing: AppTheme.spacingRegular) {
-                Text(String(localized: "We'll guide your first entry on Today—one quiet step at a time."))
-                    .font(AppTheme.warmPaperBody)
-                    .foregroundStyle(AppTheme.textMuted)
-                    .fixedSize(horizontal: false, vertical: true)
-
                 Text(String(localized: "Start with one gratitude, and the rest will follow."))
                     .font(AppTheme.warmPaperMetaEmphasis)
                     .foregroundStyle(AppTheme.accentText)

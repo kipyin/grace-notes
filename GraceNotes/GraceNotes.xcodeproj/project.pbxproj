@@ -24,10 +24,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		37DE0A102F70000100955D3E /* DeveloperSettings.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = DeveloperSettings.xcconfig; sourceTree = "<group>"; };
 		37D873302F66C99400955D3E /* GraceNotes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GraceNotes.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		37D8733F2F66C99500955D3E /* GraceNotesTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GraceNotesTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		37D873492F66C99500955D3E /* GraceNotesUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GraceNotesUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		37DE0A102F70000100955D3E /* DeveloperSettings.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = DeveloperSettings.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */

@@ -15,6 +15,7 @@ Use short, clear role names (1-2 words, noun title):
 - `Architect`
 - `Builder`
 - `Translator`
+- `Marketing`
 - `Release Manager`
 - `QA Reviewer`
 - `Test Lead`

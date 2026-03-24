@@ -20,6 +20,7 @@ final class JournalOnboardingFlowEvaluatorTests: XCTestCase {
 
         XCTAssertEqual(presentation.step, .gratitude)
         let gratitudeGuidance = presentation.sectionGuidance(for: .gratitude)
+        XCTAssertEqual(gratitudeGuidance?.title, "")
         XCTAssertEqual(gratitudeGuidance?.message, String(localized: "Start with one gratitude."))
         XCTAssertEqual(
             gratitudeGuidance?.messageSecondary,

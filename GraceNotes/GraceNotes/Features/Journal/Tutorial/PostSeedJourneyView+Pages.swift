@@ -137,20 +137,23 @@ extension PostSeedJourneyView {
 
     var insightsPage: some View {
         journeyPage {
-            Text(String(localized: "Depth and insights"))
-                .font(AppTheme.warmPaperHeader)
-                .foregroundStyle(AppTheme.textPrimary)
+            VStack(alignment: .leading, spacing: AppTheme.spacingTight) {
+                Text(String(localized: "Depth and insights"))
+                    .font(AppTheme.warmPaperHeader)
+                    .foregroundStyle(AppTheme.textPrimary)
 
-            Text(
-                String(
-                    localized: "PostSeedJourney.insights.intro"
+                Text(
+                    String(
+                        localized: "PostSeedJourney.insights.intro"
+                    )
                 )
-            )
-            .font(AppTheme.warmPaperBody)
-            .foregroundStyle(AppTheme.textMuted)
-            .fixedSize(horizontal: false, vertical: true)
+                .font(AppTheme.warmPaperBody)
+                .foregroundStyle(AppTheme.textMuted)
+                .fixedSize(horizontal: false, vertical: true)
+            }
 
             PostSeedJourneyInsightsPreview()
+                .padding(.top, AppTheme.spacingWide)
         }
     }
 

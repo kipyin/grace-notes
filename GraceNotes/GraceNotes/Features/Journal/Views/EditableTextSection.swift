@@ -33,11 +33,13 @@ struct EditableTextSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.spacingTight) {
-            if let guidanceTitle, let guidanceMessage {
+            if let guidanceMessage, !guidanceMessage.isEmpty {
                 VStack(alignment: .leading, spacing: AppTheme.spacingTight) {
-                    Text(guidanceTitle)
-                        .font(AppTheme.warmPaperMetaEmphasis)
-                        .foregroundStyle(AppTheme.accentText)
+                    if let guidanceTitle, !guidanceTitle.isEmpty {
+                        Text(guidanceTitle)
+                            .font(AppTheme.warmPaperMetaEmphasis)
+                            .foregroundStyle(AppTheme.accentText)
+                    }
                     Text(guidanceMessage)
                         .font(AppTheme.warmPaperBody)
                         .foregroundStyle(AppTheme.journalTextPrimary)
