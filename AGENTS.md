@@ -10,7 +10,7 @@
 
 ### Platform constraint
 
-This project **requires macOS + Xcode 15+** to build, run, and test. The Cloud Agent Linux VM cannot compile Swift code that depends on iOS SDK frameworks (SwiftUI, SwiftData, UIKit). There is no backend, no API server, and no web UI—everything runs on-device in the iOS Simulator.
+This project **requires macOS + Xcode 26+** to build, run, and test with the **default** Makefile simulator destinations (iPhone 17 family / iOS 26 runtimes). The Cloud Agent Linux VM cannot compile Swift code that depends on iOS SDK frameworks (SwiftUI, SwiftData, UIKit). There is no backend, no API server, and no web UI—everything runs on-device in the iOS Simulator.
 
 ### What works on Linux
 
@@ -25,7 +25,7 @@ This project **requires macOS + Xcode 15+** to build, run, and test. The Cloud A
 
 ### Build and test commands (macOS only)
 
-Prefer **`make`** from the repo root so destinations and flags stay aligned with `Makefile` (`make ci`, `make test`, `make test-matrix`). Destinations are validated/resolved by `Scripts/simulator_destination.py` (Python 3).
+Prefer **`make`** from the repo root so destinations and flags stay aligned with `Makefile` (`make ci`, `make test`, `make test-matrix`). Destinations are validated/resolved by `Scripts/simulator_destination.py` (Python 3). For copy-paste `platform=…` strings, run `make list-simulator-destinations`.
 
 ```bash
 make ci
@@ -33,7 +33,7 @@ make ci
 xcodebuild \
   -project GraceNotes/GraceNotes.xcodeproj \
   -scheme GraceNotes \
-  -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=latest' \
   test
 ```
 

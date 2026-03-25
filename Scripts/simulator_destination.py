@@ -53,12 +53,51 @@ def parse_runtime_version_from_key(runtime_key: str) -> Optional[str]:
     return None
 
 
+def _simctl_json(simctl_args: List[str]) -> dict:
+    """Run `xcrun simctl … --json` and parse JSON. Exit 4 on tooling failures."""
+    cmd = ["xcrun", "simctl", *simctl_args]
+    try:
+        completed = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except FileNotFoundError:
+        print(
+            "ERROR: `xcrun` was not found. Install Xcode and use the full Xcode app "
+            "(not Command Line Tools only) for iOS Simulator support.",
+            file=sys.stderr,
+        )
+        sys.exit(4)
+    except subprocess.CalledProcessError as exc:
+        print("ERROR: simctl command failed:", file=sys.stderr)
+        print(" ", " ".join(cmd), file=sys.stderr)
+        err_out = (exc.stderr or "").strip()
+        if err_out:
+            print(err_out, file=sys.stderr)
+        print(
+            "",
+            "If Xcode is installed, select it with:",
+            "  sudo xcode-select -s /Applications/Xcode.app/Contents/Developer",
+            sep="\n",
+            file=sys.stderr,
+        )
+        sys.exit(4)
+
+    try:
+        return json.loads(completed.stdout)
+    except json.JSONDecodeError:
+        print(
+            "ERROR: simctl returned output that is not valid JSON. "
+            "Try updating Xcode or re-running the command.",
+            file=sys.stderr,
+        )
+        sys.exit(4)
+
+
 def load_runtime_versions() -> Dict[str, str]:
-    raw = subprocess.check_output(
-        ["xcrun", "simctl", "list", "runtimes", "--json"],
-        text=True,
-    )
-    data = json.loads(raw)
+    data = _simctl_json(["list", "runtimes", "--json"])
     versions: Dict[str, str] = {}
     for runtime in data.get("runtimes", []):
         identifier = runtime.get("identifier", "")
@@ -71,11 +110,7 @@ def load_runtime_versions() -> Dict[str, str]:
 
 
 def load_available_ios_devices() -> List[Dict[str, str]]:
-    raw = subprocess.check_output(
-        ["xcrun", "simctl", "list", "devices", "available", "--json"],
-        text=True,
-    )
-    data = json.loads(raw)
+    data = _simctl_json(["list", "devices", "available", "--json"])
     runtime_versions = load_runtime_versions()
 
     rows: List[Dict[str, str]] = []

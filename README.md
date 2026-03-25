@@ -60,8 +60,8 @@ See `GraceNotes/docs/07-release-roadmap.md`.
 
 ## Requirements
 
-- Xcode 15 or later
-- iOS 17+
+- Xcode 26 or later (default `make` destinations and the test matrix assume **iPhone 17**-family simulators and **iOS 26** runtimes; use an older Xcode only if you override `DESTINATION` and `TEST_DESTINATION_MATRIX` to match what that Xcode installs)
+- iOS 17+ (app deployment target; see the Xcode project)
 
 ## Getting Started
 

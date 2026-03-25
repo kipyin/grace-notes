@@ -1,6 +1,6 @@
 PROJECT := GraceNotes/GraceNotes.xcodeproj
 SCHEME := GraceNotes
-DESTINATION ?= platform=iOS Simulator,name=iPhone 17,OS=latest
+DESTINATION ?= platform=iOS Simulator,name=iPhone 17 Pro,OS=latest
 TEST_DESTINATION_MATRIX ?= iPhone XR@17.5;iPhone 17 Pro@26.3
 ISOLATED_DERIVED_DATA := /tmp/GraceNotes-TestDerivedData
 UNIT_TEST_BUNDLE := GraceNotesTests
