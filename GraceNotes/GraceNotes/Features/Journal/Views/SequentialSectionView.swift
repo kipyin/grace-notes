@@ -1,99 +1,7 @@
 import SwiftUI
-import QuartzCore
-import UniformTypeIdentifiers
-import UIKit
 
-// This shared section view centralizes editing, drag/drop, and accessories pending extraction work.
-// swiftlint:disable file_length
-
-private struct HorizontalScrollMetrics: Equatable {
-    var viewportWidth: CGFloat = 0
-    var contentWidth: CGFloat = 0
-    var contentOffsetX: CGFloat = 0
-}
-
-// MARK: - Chip row scroll metrics (elastic stretch disabled; keeps edge masks in sync)
-
-private struct ChipRowScrollSnapshot: Equatable {
-    var metrics: HorizontalScrollMetrics
-    /// Added to 1.0 for `scaleEffect`; kept at zero (no rubber-band scaling).
-    var elasticDeltaX: CGFloat
-    var elasticDeltaY: CGFloat
-}
-
-/// Drives `.animation(nil, value:)` so chip-row scale stays non-animated.
-private struct ChipRowElasticAnimationKey: Equatable {
-    var deltaX: CGFloat
-    var deltaY: CGFloat
-}
-
-private enum ChipRowScrollElasticity {
-    static func deltas(
-        metrics _: HorizontalScrollMetrics,
-        velocityPointsPerSec _: CGFloat,
-        isUserDragging _: Bool,
-        reduceMotion _: Bool
-    ) -> (CGFloat, CGFloat) {
-        (0, 0)
-    }
-}
-
-private struct AddChipView: View {
-    let sectionTitle: String
-    /// Stable query for UI tests (`XCUIApplication` matches this as the element identifier).
-    let accessibilityIdentifier: String?
-    let onTap: () -> Void
-
-    var body: some View {
-        Button(action: onTap) {
-            Image(systemName: "plus.circle.fill")
-                .font(AppTheme.outfitRegularTitle3)
-                .foregroundStyle(AppTheme.journalTextMuted)
-                .padding(.horizontal, AppTheme.spacingRegular)
-                .padding(.vertical, AppTheme.spacingTight)
-                .frame(minWidth: 44, minHeight: 44)
-                .background(AppTheme.journalComplete.opacity(0.2))
-                .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusLarge))
-        }
-        .buttonStyle(WarmPaperPressStyle())
-        .accessibilityLabel(
-            String(
-                format: String(localized: "Add new item in %@"),
-                locale: Locale.current,
-                sectionTitle
-            )
-        )
-        .accessibilityHint(
-            String(
-                format: String(localized: "Adds another item in %@"),
-                locale: Locale.current,
-                sectionTitle
-            )
-        )
-        .modifier(ConditionalAccessibilityIdentifier(identifier: accessibilityIdentifier))
-    }
-}
-
-private struct ConditionalAccessibilityIdentifier: ViewModifier {
-    let identifier: String?
-    func body(content: Content) -> some View {
-        if let id = identifier {
-            content.accessibilityIdentifier(id)
-        } else {
-            content
-        }
-    }
-}
-
-// swiftlint:disable type_body_length
 struct SequentialSectionView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    private enum SlotStatus {
-        case edited
-        case editing
-        case pending
-    }
 
     let title: String
     /// Guided onboarding title shown above the section header (optional; omitted when empty).
@@ -123,8 +31,6 @@ struct SequentialSectionView: View {
     let onMoveChip: ((Int, Int) -> Void)?
     let onDeleteChip: ((Int) -> Void)?
     let onAddNew: (() -> Void)?
-    private static let edgeFeatherWidth: CGFloat = 28
-    private static let sectionProgressDotsTrailingInset: CGFloat = 8
     @State private var draggingItemID: UUID?
     /// Chip UUID that last triggered a live reorder during this drag.
     /// Skips redundant `dropUpdated` work when indices shift but the finger stays on the same chip.
@@ -184,10 +90,6 @@ struct SequentialSectionView: View {
         self.onAddNew = onAddNew
     }
 
-    private var showInput: Bool {
-        items.count < slotCount || editingIndex != nil
-    }
-
     private var isInputFocused: Bool {
         inputFocus?.wrappedValue ?? false
     }
@@ -196,7 +98,7 @@ struct SequentialSectionView: View {
         isInputFocused && !reduceMotion
     }
 
-    private var slotStatuses: [SlotStatus] {
+    private var slotStatuses: [SequentialSectionSlotStatus] {
         (0..<slotCount).map { index in
             if editingIndex == index {
                 return .editing
@@ -222,206 +124,36 @@ struct SequentialSectionView: View {
         )
     }
 
-    private var inputAccessibilityLabel: String {
-        String(
-            format: String(localized: "%@ input"),
-            locale: Locale.current,
-            title
-        )
-    }
-
-    private var showAddChip: Bool {
-        guard onAddNew != nil, !items.isEmpty else { return false }
-        return items.count < slotCount
-    }
-
-    private var isLockedByGuidance: Bool {
-        onboardingState.isLocked
-    }
-
-    private var isInteractionEnabled: Bool {
-        !isTransitioning && !isLockedByGuidance
-    }
-
-    private var canScrollChipsLeft: Bool {
-        canScrollLeft(for: chipScrollSnapshot.metrics)
-    }
-
-    private var canScrollChipsRight: Bool {
-        canScrollRight(for: chipScrollSnapshot.metrics)
-    }
-
     var body: some View {
-        VStack(alignment: .leading, spacing: AppTheme.spacingRegular) {
-            VStack(alignment: .leading, spacing: AppTheme.spacingTight) {
-                if let guidanceMessage, !guidanceMessage.isEmpty {
-                    VStack(alignment: .leading, spacing: AppTheme.spacingTight) {
-                        if let guidanceTitle, !guidanceTitle.isEmpty {
-                            Text(guidanceTitle)
-                                .font(AppTheme.warmPaperMetaEmphasis)
-                                .foregroundStyle(AppTheme.accentText)
-                        }
-                        Text(guidanceMessage)
-                            .font(AppTheme.warmPaperBody)
-                            .foregroundStyle(AppTheme.journalTextPrimary)
-                            .fixedSize(horizontal: false, vertical: true)
-                        if let guidanceMessageSecondary {
-                            Text(guidanceMessageSecondary)
-                                .font(AppTheme.warmPaperBody)
-                                .foregroundStyle(AppTheme.journalTextPrimary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
-                }
-
-                if let guidanceNote = onboardingState.guidanceNote {
-                    Text(guidanceNote)
-                        .font(AppTheme.warmPaperMeta)
-                        .foregroundStyle(AppTheme.journalTextMuted)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                HStack {
-                    Text(title)
-                        .font(AppTheme.warmPaperHeader)
-                        .foregroundStyle(onboardingState.titleColor)
-                    Spacer(minLength: AppTheme.spacingTight)
-                    sectionProgressDots
-                        .padding(.trailing, Self.sectionProgressDotsTrailingInset)
-                }
-            }
-
-            if !items.isEmpty || showAddChip {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: AppTheme.spacingTight) {
-                        ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                            chipView(for: item, at: index)
-                        }
-                        if showAddChip, let addNew = onAddNew {
-                            AddChipView(
-                                sectionTitle: title,
-                                accessibilityIdentifier: addChipAccessibilityIdentifier,
-                                onTap: addNew
-                            )
-                        }
-                    }
-                    .padding(.trailing, AppTheme.spacingRegular)
-                    .scaleEffect(
-                        x: 1 + chipScrollSnapshot.elasticDeltaX,
-                        y: 1 + chipScrollSnapshot.elasticDeltaY,
-                        anchor: .center
-                    )
-                    .animation(
-                        nil,
-                        value: ChipRowElasticAnimationKey(
-                            deltaX: chipScrollSnapshot.elasticDeltaX,
-                            deltaY: chipScrollSnapshot.elasticDeltaY
-                        )
-                    )
-                    .background {
-                        HorizontalScrollMetricsReader(reduceMotion: reduceMotion) { snapshot in
-                            if chipScrollSnapshot != snapshot {
-                                chipScrollSnapshot = snapshot
-                            }
-                        }
-                    }
-                }
-                .allowsHitTesting(isInteractionEnabled)
-                .mask {
-                    HStack(spacing: 0) {
-                        edgeMask(.leading)
-                        Rectangle()
-                            .fill(.black)
-                        edgeMask(.trailing)
-                    }
-                }
-                .overlay {
-                    HStack(spacing: 0) {
-                        edgeFeather(.leading)
-                            .opacity(canScrollChipsLeft ? 1 : 0)
-                        Spacer()
-                        edgeFeather(.trailing)
-                            .opacity(canScrollChipsRight ? 1 : 0)
-                    }
-                    .padding(.horizontal, -AppTheme.spacingRegular)
-                    .allowsHitTesting(false)
-                }
-            }
-
-            if showInput {
-                if let inputFocus {
-                    TextField(
-                        "",
-                        text: $inputText,
-                        prompt: Text(placeholder)
-                            .font(AppTheme.warmPaperBody)
-                            .foregroundStyle(AppTheme.journalInputPlaceholder)
-                    )
-                        .font(AppTheme.warmPaperBody)
-                        .foregroundStyle(AppTheme.journalTextPrimary)
-                        .textInputAutocapitalization(.sentences)
-                        .onSubmit { onSubmit() }
-                        .focused(inputFocus)
-                        .warmPaperInputStyle()
-                        .modifier(ConditionalAccessibilityIdentifier(identifier: inputAccessibilityIdentifier))
-                        .accessibilityLabel(inputAccessibilityLabel)
-                        .accessibilityHint(placeholder)
-                        .disabled(!isInteractionEnabled)
-                } else {
-                    TextField(
-                        "",
-                        text: $inputText,
-                        prompt: Text(placeholder)
-                            .font(AppTheme.warmPaperBody)
-                            .foregroundStyle(AppTheme.journalInputPlaceholder)
-                    )
-                        .font(AppTheme.warmPaperBody)
-                        .foregroundStyle(AppTheme.journalTextPrimary)
-                        .textInputAutocapitalization(.sentences)
-                        .onSubmit { onSubmit() }
-                        .warmPaperInputStyle()
-                        .modifier(ConditionalAccessibilityIdentifier(identifier: inputAccessibilityIdentifier))
-                        .accessibilityLabel(inputAccessibilityLabel)
-                        .accessibilityHint(placeholder)
-                        .disabled(!isInteractionEnabled)
-                }
-            }
-
-        }
-        .journalOnboardingSectionStyle(onboardingState, isTransitioning: isTransitioning)
-        .overlay(alignment: .topTrailing) {
-            if isTransitioning {
-                HStack(spacing: 6) {
-                    ProgressView()
-                        .controlSize(.small)
-                    Text(String(localized: "Updating…"))
-                        .font(AppTheme.warmPaperMeta)
-                        .foregroundStyle(AppTheme.journalTextMuted)
-                }
-                .padding(.horizontal, AppTheme.spacingTight)
-                .padding(.vertical, 6)
-                .background(AppTheme.journalPaper.opacity(0.92))
-                .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium))
-                .overlay(
-                    RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
-                        .stroke(AppTheme.journalInputBorder.opacity(0.7), lineWidth: 1)
-                )
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(
-                    String(
-                        format: String(localized: "%@ section is updating."),
-                        locale: Locale.current,
-                        title
-                    )
-                )
-            }
-        }
-        .onChange(of: isInputFocused) { wasFocused, isFocused in
-            guard let onInputFocusLost else { return }
-            if wasFocused, !isFocused {
-                onInputFocusLost()
-            }
-        }
+        SequentialSectionPrimaryColumn(
+            reduceMotion: reduceMotion,
+            title: title,
+            guidanceTitle: guidanceTitle,
+            guidanceMessage: guidanceMessage,
+            guidanceMessageSecondary: guidanceMessageSecondary,
+            items: items,
+            placeholder: placeholder,
+            slotCount: slotCount,
+            inputAccessibilityIdentifier: inputAccessibilityIdentifier,
+            chipAccessibilityIdentifierPrefix: chipAccessibilityIdentifierPrefix,
+            addChipAccessibilityIdentifier: addChipAccessibilityIdentifier,
+            onboardingState: onboardingState,
+            isTransitioning: isTransitioning,
+            editingIndex: editingIndex,
+            inputFocus: inputFocus,
+            onInputFocusLost: onInputFocusLost,
+            onSubmit: onSubmit,
+            onChipTap: onChipTap,
+            onRenameChip: onRenameChip,
+            onMoveChip: onMoveChip,
+            onDeleteChip: onDeleteChip,
+            onAddNew: onAddNew,
+            inputText: $inputText,
+            chipScrollSnapshot: $chipScrollSnapshot,
+            draggingItemID: $draggingItemID,
+            chipReorderHoverTargetItemID: $chipReorderHoverTargetItemID,
+            progressDots: sectionProgressDots
+        )
         .onAppear {
             updateEditingPulseAnimation()
         }
@@ -462,7 +194,7 @@ struct SequentialSectionView: View {
         .accessibilityLabel(progressAccessibilityLabel)
     }
 
-    private func dotFill(for status: SlotStatus) -> Color {
+    private func dotFill(for status: SequentialSectionSlotStatus) -> Color {
         switch status {
         case .edited:
             return AppTheme.journalComplete
@@ -473,7 +205,7 @@ struct SequentialSectionView: View {
         }
     }
 
-    private func dotBorder(for status: SlotStatus) -> Color {
+    private func dotBorder(for status: SequentialSectionSlotStatus) -> Color {
         switch status {
         case .edited:
             return .clear
@@ -484,7 +216,7 @@ struct SequentialSectionView: View {
         }
     }
 
-    private func dotBorderWidth(for status: SlotStatus) -> CGFloat {
+    private func dotBorderWidth(for status: SequentialSectionSlotStatus) -> CGFloat {
         switch status {
         case .edited:
             return 0
@@ -495,7 +227,7 @@ struct SequentialSectionView: View {
         }
     }
 
-    private func dotDiameter(for status: SlotStatus) -> CGFloat {
+    private func dotDiameter(for status: SequentialSectionSlotStatus) -> CGFloat {
         status == .editing ? 11.5 : 10
     }
 
@@ -509,381 +241,5 @@ struct SequentialSectionView: View {
         withAnimation(.easeOut(duration: 0.82).repeatForever(autoreverses: false)) {
             isEditingPulseExpanded = true
         }
-    }
-
-    @ViewBuilder
-    private func chipView(for item: JournalItem, at index: Int) -> some View {
-        let chipIdentifier = chipAccessibilityIdentifierPrefix.map { "\($0).\(index)" }
-        let chip = ChipView(
-            label: item.displayLabel,
-            isTruncated: item.isTruncated,
-            isSelected: editingIndex == index,
-            onTap: { onChipTap(index) },
-            onRenameLabel: onRenameChip.map { handler in { handler(index, $0) } },
-            onDelete: onDeleteChip.map { handler in { handler(index) } }
-        )
-
-        if let onMoveChip {
-            chip
-                .modifier(ConditionalAccessibilityIdentifier(identifier: chipIdentifier))
-                .onDrag {
-                    chipReorderHoverTargetItemID = nil
-                    draggingItemID = item.id
-                    return NSItemProvider(object: item.id.uuidString as NSString)
-                } preview: {
-                    chip
-                        .scaleEffect(reduceMotion ? 1 : 1.07)
-                        .shadow(color: .black.opacity(0.14), radius: 8, x: 0, y: 4)
-                }
-                .onDrop(
-                    of: [UTType.text],
-                    delegate: ChipReorderDropDelegate(
-                        targetIndex: index,
-                        items: items,
-                        draggingItemID: $draggingItemID,
-                        hoverTargetItemID: $chipReorderHoverTargetItemID,
-                        reduceMotion: reduceMotion,
-                        onMoveChip: onMoveChip
-                    )
-                )
-        } else {
-            chip
-                .modifier(ConditionalAccessibilityIdentifier(identifier: chipIdentifier))
-        }
-    }
-
-    private func edgeFeather(_ edge: HorizontalEdge) -> some View {
-        LinearGradient(
-            colors: edge == .leading
-                ? [AppTheme.journalBackground, AppTheme.journalBackground.opacity(0)]
-                : [AppTheme.journalBackground.opacity(0), AppTheme.journalBackground],
-            startPoint: .leading,
-            endPoint: .trailing
-        )
-        .frame(width: Self.edgeFeatherWidth)
-    }
-
-    private func edgeMask(_ edge: HorizontalEdge) -> some View {
-        if edge == .leading {
-            LinearGradient(
-                colors: canScrollChipsLeft ? [.clear, .black] : [.black, .black],
-                startPoint: .leading,
-                endPoint: .trailing
-            )
-            .frame(width: Self.edgeFeatherWidth)
-        } else {
-            LinearGradient(
-                colors: canScrollChipsRight ? [.black, .clear] : [.black, .black],
-                startPoint: .leading,
-                endPoint: .trailing
-            )
-            .frame(width: Self.edgeFeatherWidth)
-        }
-    }
-
-    private func canScrollLeft(for metrics: HorizontalScrollMetrics) -> Bool {
-        metrics.contentOffsetX > 1
-    }
-
-    private func canScrollRight(for metrics: HorizontalScrollMetrics) -> Bool {
-        let remaining = metrics.contentWidth - (metrics.contentOffsetX + metrics.viewportWidth)
-        return remaining > 1
-    }
-}
-
-// swiftlint:enable type_body_length
-
-private struct HorizontalScrollMetricsReader: UIViewRepresentable {
-    let reduceMotion: Bool
-    let onChange: (ChipRowScrollSnapshot) -> Void
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(reduceMotion: reduceMotion, onChange: onChange)
-    }
-
-    func makeUIView(context: Context) -> UIView {
-        let view = MetricsProbeView(frame: .zero)
-        view.isUserInteractionEnabled = false
-        context.coordinator.hostView = view
-        view.onLayoutChange = { [weak coordinator = context.coordinator] in
-            coordinator?.attachIfPossible()
-        }
-        return view
-    }
-
-    func updateUIView(_ uiView: UIView, context: Context) {
-        context.coordinator.reduceMotion = reduceMotion
-        context.coordinator.onChange = onChange
-        context.coordinator.attachIfPossible()
-    }
-
-    final class Coordinator: NSObject {
-        weak var hostView: UIView?
-        weak var observedScrollView: UIScrollView?
-        var reduceMotion: Bool
-        var onChange: (ChipRowScrollSnapshot) -> Void
-        private var contentSizeObservation: NSKeyValueObservation?
-        private var contentOffsetObservation: NSKeyValueObservation?
-        private var boundsObservation: NSKeyValueObservation?
-
-        private var lastOffsetX: CGFloat?
-        private var lastSampleTime: CFTimeInterval?
-        private var smoothedVelocity: CGFloat = 0
-        private var isUserDraggingScroll = false
-        private var lastPublishedSnapshot: ChipRowScrollSnapshot?
-        private var pendingPublishWorkItem: DispatchWorkItem?
-
-        init(reduceMotion: Bool, onChange: @escaping (ChipRowScrollSnapshot) -> Void) {
-            self.reduceMotion = reduceMotion
-            self.onChange = onChange
-        }
-
-        deinit {
-            detachPanTarget()
-        }
-
-        func attachIfPossible() {
-            guard let hostView else { return }
-            guard let scrollView = findAncestorScrollView(from: hostView) else { return }
-            if observedScrollView === scrollView {
-                publishSnapshot()
-                return
-            }
-
-            detachPanTarget()
-            tearDownObservations()
-
-            lastOffsetX = nil
-            lastSampleTime = nil
-            smoothedVelocity = 0
-            isUserDraggingScroll = false
-            lastPublishedSnapshot = nil
-            pendingPublishWorkItem?.cancel()
-            pendingPublishWorkItem = nil
-
-            observedScrollView = scrollView
-            scrollView.panGestureRecognizer.addTarget(self, action: #selector(handlePan(_:)))
-
-            contentSizeObservation = scrollView.observe(\.contentSize, options: [.new]) { [weak self] _, _ in
-                self?.publishSnapshot()
-            }
-            contentOffsetObservation = scrollView.observe(\.contentOffset, options: [.new]) { [weak self] _, _ in
-                self?.publishSnapshot()
-            }
-            boundsObservation = scrollView.observe(\.bounds, options: [.new]) { [weak self] _, _ in
-                self?.publishSnapshot()
-            }
-            publishSnapshot()
-        }
-
-        private func tearDownObservations() {
-            contentSizeObservation = nil
-            contentOffsetObservation = nil
-            boundsObservation = nil
-            lastPublishedSnapshot = nil
-            pendingPublishWorkItem?.cancel()
-            pendingPublishWorkItem = nil
-        }
-
-        private func detachPanTarget() {
-            observedScrollView?.panGestureRecognizer.removeTarget(self, action: #selector(handlePan(_:)))
-        }
-
-        @objc private func handlePan(_ recognizer: UIPanGestureRecognizer) {
-            switch recognizer.state {
-            case .began:
-                isUserDraggingScroll = true
-                publishSnapshot()
-            case .changed:
-                isUserDraggingScroll = true
-            case .ended, .cancelled, .failed:
-                isUserDraggingScroll = false
-                smoothedVelocity = 0
-                lastOffsetX = nil
-                lastSampleTime = nil
-                publishSnapshot()
-            default:
-                break
-            }
-        }
-
-        private func publishSnapshot() {
-            guard let scrollView = observedScrollView else { return }
-
-            let metrics = HorizontalScrollMetrics(
-                viewportWidth: scrollView.bounds.width,
-                contentWidth: scrollView.contentSize.width,
-                contentOffsetX: scrollView.contentOffset.x
-            )
-
-            let now = CACurrentMediaTime()
-            if let previousX = lastOffsetX, let previousTime = lastSampleTime, now > previousTime {
-                let deltaTime = CGFloat(now - previousTime)
-                if deltaTime > 0.000001 {
-                    let instantVelocity = (metrics.contentOffsetX - previousX) / deltaTime
-                    smoothedVelocity = smoothedVelocity * 0.82 + instantVelocity * 0.18
-                }
-            }
-            lastOffsetX = metrics.contentOffsetX
-            lastSampleTime = now
-
-            let (deltaX, deltaY) = ChipRowScrollElasticity.deltas(
-                metrics: metrics,
-                velocityPointsPerSec: smoothedVelocity,
-                isUserDragging: isUserDraggingScroll,
-                reduceMotion: reduceMotion
-            )
-
-            let snapshot = ChipRowScrollSnapshot(
-                metrics: metrics,
-                elasticDeltaX: deltaX,
-                elasticDeltaY: deltaY
-            )
-            guard snapshot != lastPublishedSnapshot else { return }
-            lastPublishedSnapshot = snapshot
-            // KVO / layout can invoke this during SwiftUI view updates; async avoids
-            // "Modifying state during view update" when the callback touches @State.
-            pendingPublishWorkItem?.cancel()
-            let callback = onChange
-            let workItem = DispatchWorkItem {
-                callback(snapshot)
-            }
-            pendingPublishWorkItem = workItem
-            DispatchQueue.main.async(execute: workItem)
-        }
-
-        private func findAncestorScrollView(from view: UIView) -> UIScrollView? {
-            var currentView: UIView? = view
-            while let candidate = currentView?.superview {
-                if let scrollView = candidate as? UIScrollView {
-                    return scrollView
-                }
-                currentView = candidate
-            }
-            return nil
-        }
-    }
-}
-
-private final class MetricsProbeView: UIView {
-    var onLayoutChange: (() -> Void)?
-
-    override func didMoveToWindow() {
-        super.didMoveToWindow()
-        onLayoutChange?()
-    }
-
-    override func didMoveToSuperview() {
-        super.didMoveToSuperview()
-        onLayoutChange?()
-    }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        onLayoutChange?()
-    }
-}
-
-struct ChipReorderDropDelegate: DropDelegate {
-    let targetIndex: Int
-    let items: [JournalItem]
-    @Binding var draggingItemID: UUID?
-    @Binding var hoverTargetItemID: UUID?
-    let reduceMotion: Bool
-    let onMoveChip: ((Int, Int) -> Void)?
-
-    /// Indices for `JournalViewModel.moveItem`-compatible `onMoveChip`, or nil when no reorder should run.
-    static func chipReorderMoveParameters(
-        activeDragID: UUID,
-        items: [JournalItem],
-        targetIndex: Int
-    ) -> (source: Int, destination: Int)? {
-        guard items.indices.contains(targetIndex) else { return nil }
-        guard let sourceIndex = items.firstIndex(where: { $0.id == activeDragID }) else { return nil }
-        guard sourceIndex != targetIndex else { return nil }
-        let destinationOffset = targetIndex > sourceIndex ? targetIndex + 1 : targetIndex
-        let noOpOffset = sourceIndex + 1
-        guard destinationOffset != sourceIndex, destinationOffset != noOpOffset else { return nil }
-        return (sourceIndex, destinationOffset)
-    }
-
-    func dropEntered(info: DropInfo) {
-        applyLiveReorderIfNeeded()
-    }
-
-    func dropUpdated(info: DropInfo) -> DropProposal? {
-        applyLiveReorderIfNeeded()
-        return DropProposal(operation: .move)
-    }
-
-    func performDrop(info: DropInfo) -> Bool {
-        performDrop()
-    }
-
-    func performDrop() -> Bool {
-        guard let activeDragID = draggingItemID else { return false }
-        guard let onMoveChip else {
-            clearDraggingState()
-            return false
-        }
-        guard items.indices.contains(targetIndex) else {
-            clearDraggingState()
-            return false
-        }
-        guard items.contains(where: { $0.id == activeDragID }) else {
-            clearDraggingState()
-            return false
-        }
-        let targetItemID = items[targetIndex].id
-        let liveAlreadyAppliedForThisTarget = hoverTargetItemID == targetItemID
-        defer { clearDraggingState() }
-        if !liveAlreadyAppliedForThisTarget,
-           let params = Self.chipReorderMoveParameters(
-               activeDragID: activeDragID,
-               items: items,
-               targetIndex: targetIndex
-           ) {
-            animateReorder {
-                onMoveChip(params.source, params.destination)
-            }
-        }
-        return true
-    }
-
-    /// Also invoked from unit tests (`DropInfo` is not publicly constructible).
-    internal func applyLiveReorderIfNeeded() {
-        guard let onMoveChip, let activeDragID = draggingItemID else { return }
-        guard items.indices.contains(targetIndex) else { return }
-        let targetItemID = items[targetIndex].id
-        if activeDragID == targetItemID {
-            hoverTargetItemID = nil
-            return
-        }
-        if hoverTargetItemID == targetItemID { return }
-        guard let params = Self.chipReorderMoveParameters(
-            activeDragID: activeDragID,
-            items: items,
-            targetIndex: targetIndex
-        ) else { return }
-
-        animateReorder {
-            onMoveChip(params.source, params.destination)
-        }
-        hoverTargetItemID = targetItemID
-    }
-
-    private func animateReorder(_ updates: () -> Void) {
-        if reduceMotion {
-            updates()
-        } else {
-            withAnimation(.snappy(duration: 0.28)) {
-                updates()
-            }
-        }
-    }
-
-    private func clearDraggingState() {
-        draggingItemID = nil
-        hoverTargetItemID = nil
     }
 }
