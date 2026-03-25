@@ -49,6 +49,7 @@ final class ReviewInsightsCacheTests: XCTestCase {
             var insights = sampleInsights(weekStart: weekStart)
             insights = ReviewInsights(
                 source: insights.source,
+                presentationMode: insights.presentationMode,
                 generatedAt: calendar.date(byAdding: .hour, value: index, to: weekStart)!,
                 weekStart: insights.weekStart,
                 weekEnd: insights.weekEnd,
@@ -59,6 +60,7 @@ final class ReviewInsightsCacheTests: XCTestCase {
                 resurfacingMessage: insights.resurfacingMessage,
                 continuityPrompt: insights.continuityPrompt,
                 narrativeSummary: insights.narrativeSummary,
+                weekStats: insights.weekStats,
                 cloudSkippedReason: insights.cloudSkippedReason
             )
             await cache.storeIfEligible(insights, calendar: calendar)
@@ -119,6 +121,7 @@ final class ReviewInsightsCacheTests: XCTestCase {
         let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart)!
         return ReviewInsights(
             source: .deterministic,
+            presentationMode: .insight,
             generatedAt: weekStart,
             weekStart: weekStart,
             weekEnd: weekEnd,
@@ -138,6 +141,7 @@ final class ReviewInsightsCacheTests: XCTestCase {
             resurfacingMessage: "A thread from your week.",
             continuityPrompt: "One small next step.",
             narrativeSummary: "A gentle arc.",
+            weekStats: sampleWeekStats(weekStart: weekStart),
             cloudSkippedReason: nil
         )
     }
@@ -146,6 +150,7 @@ final class ReviewInsightsCacheTests: XCTestCase {
         let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart)!
         return ReviewInsights(
             source: .deterministic,
+            presentationMode: .statsFirst,
             generatedAt: weekStart,
             weekStart: weekStart,
             weekEnd: weekEnd,
@@ -165,7 +170,34 @@ final class ReviewInsightsCacheTests: XCTestCase {
             resurfacingMessage: "",
             continuityPrompt: "",
             narrativeSummary: nil,
+            weekStats: sampleWeekStats(weekStart: weekStart),
             cloudSkippedReason: nil
+        )
+    }
+
+    private func sampleWeekStats(weekStart: Date) -> ReviewWeekStats {
+        ReviewWeekStats(
+            reflectionDays: 2,
+            meaningfulEntryCount: 2,
+            completionMix: ReviewWeekCompletionMix(
+                soilDays: 0,
+                seedDays: 1,
+                ripeningDays: 0,
+                harvestDays: 1,
+                abundanceDays: 0
+            ),
+            activity: [
+                ReviewDayActivity(date: weekStart, hasMeaningfulContent: true),
+                ReviewDayActivity(
+                    date: calendar.date(byAdding: .day, value: 1, to: weekStart)!,
+                    hasMeaningfulContent: true
+                )
+            ],
+            sectionTotals: ReviewWeekSectionTotals(
+                gratitudeMentions: 2,
+                needMentions: 1,
+                peopleMentions: 0
+            )
         )
     }
 }
