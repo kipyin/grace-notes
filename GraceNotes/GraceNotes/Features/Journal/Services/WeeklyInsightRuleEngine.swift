@@ -110,7 +110,16 @@ private extension WeeklyInsightRuleEngine {
     }
 
     private func reflectionDayCount(from entries: [JournalEntry], calendar: Calendar) -> Int {
-        Set(entries.filter(\.hasMeaningfulContent).map { calendar.startOfDay(for: $0.entryDate) }).count
+        Set(
+            entries
+                .filter { $0.hasMeaningfulContent || hasReflectionSurfaceText($0) }
+                .map { calendar.startOfDay(for: $0.entryDate) }
+        ).count
+    }
+
+    private func hasReflectionSurfaceText(_ entry: JournalEntry) -> Bool {
+        !textNormalizer.trimmed(entry.readingNotes).isEmpty
+            || !textNormalizer.trimmed(entry.reflections).isEmpty
     }
 
     private func buildChipStats(
