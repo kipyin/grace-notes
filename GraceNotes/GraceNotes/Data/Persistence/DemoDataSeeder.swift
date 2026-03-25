@@ -4,7 +4,7 @@ import SwiftData
 
 @MainActor
 enum DemoDataSeeder {
-    private static let seedVersion = 1
+    private static let seedVersion = 3
     private static let seedVersionKey = "demoDataSeedVersion"
 
     static func seedIfNeeded(context: ModelContext, calendar: Calendar = .current) {
@@ -83,13 +83,17 @@ enum DemoDataSeeder {
         let twoDaysAgo = calendar.date(byAdding: .day, value: -2, to: today) ?? today
         let threeDaysAgo = calendar.date(byAdding: .day, value: -3, to: today) ?? today
         let fourDaysAgo = calendar.date(byAdding: .day, value: -4, to: today) ?? today
+        let fiveDaysAgo = calendar.date(byAdding: .day, value: -5, to: today) ?? today
+        let sixDaysAgo = calendar.date(byAdding: .day, value: -6, to: today) ?? today
 
         return [
             makeTodayPayload(entryDate: today, completedAt: now),
             makeYesterdayPayload(entryDate: yesterday),
             makeBlankPayload(entryDate: twoDaysAgo),
             makeThreeDaysAgoPayload(entryDate: threeDaysAgo, completedAt: now),
-            makeFourDaysAgoPayload(entryDate: fourDaysAgo)
+            makeFourDaysAgoPayload(entryDate: fourDaysAgo),
+            makeFiveDaysAgoPayload(entryDate: fiveDaysAgo),
+            makeSixDaysAgoPayload(entryDate: sixDaysAgo)
         ]
     }
 
@@ -135,12 +139,12 @@ enum DemoDataSeeder {
             needs: [
                 item("Need to rest my eyes", "Rest eyes"),
                 item("想要更好的時間管理", "時間管理"),
-                item("Need to follow up on one message", "Follow up"),
-                item("需要提早睡覺", "提早睡")
+                item("Need to follow up on one message", "Follow up")
             ],
             people: [
                 item("Pray for my friend interview", "Friend interview"),
-                item("Call dad tonight", "Call dad")
+                item("Call dad tonight", "Call dad"),
+                item("Thank my manager for yesterday's feedback", "Manager follow-up")
             ],
             readingNotes: "",
             reflections: "A little tired, but still thankful.",
@@ -197,20 +201,56 @@ enum DemoDataSeeder {
                 item("Grateful for morning prayer", "Morning prayer"),
                 item("Thankful for smooth commute", "Smooth commute"),
                 item("感恩 coffee break", "Coffee break"),
-                item("Great feedback from teammate", "Team feedback")
+                item("Great feedback from teammate", "Team feedback"),
+                item("Lunch outside in good weather", "Lunch outside")
             ],
             needs: [
                 item("Need one focused work block", "Focused block"),
                 item("需要 more patience", "More patience"),
-                item("Need to prep tomorrow plan", "Prep tomorrow")
+                item("Need to prep tomorrow plan", "Prep tomorrow"),
+                item("Need to drink more water", "Drink more water"),
+                item("Want one quiet evening", "Quiet evening")
             ],
             people: [
                 item("Check on grandma", "Grandma check"),
                 item("Message project partner", "Partner message"),
-                item("Pray for pastor", "Pray pastor")
+                item("Pray for pastor", "Pray pastor"),
+                item("Call mom after dinner", "妈妈 weekly call"),
+                item("Send notes to mentor", "Mentor check-in")
             ],
-            readingNotes: "A short note on practicing patience during interruptions.",
-            reflections: "I handled less than planned but stayed calm.",
+            readingNotes: "",
+            reflections: "",
+            completedAt: nil
+        )
+    }
+
+    /// A text-only day still counts as writing in Review without filling any chip sections.
+    private static func makeFiveDaysAgoPayload(entryDate: Date) -> DemoEntryPayload {
+        DemoEntryPayload(
+            entryDate: entryDate,
+            gratitudes: [],
+            needs: [],
+            people: [],
+            readingNotes: "Psalm 23 stayed with me during a busier day than expected.",
+            reflections: "I did not fill the prompts, but I still wanted to remember this feeling before sleep.",
+            completedAt: nil
+        )
+    }
+
+    private static func makeSixDaysAgoPayload(entryDate: Date) -> DemoEntryPayload {
+        DemoEntryPayload(
+            entryDate: entryDate,
+            gratitudes: [
+                item("Morning prayer before work", "Morning prayer")
+            ],
+            needs: [
+                item("需要多休息", "多休息")
+            ],
+            people: [
+                item("Thinking of mom", "媽媽 weekly call")
+            ],
+            readingNotes: "",
+            reflections: "",
             completedAt: nil
         )
     }

@@ -11,6 +11,7 @@ struct ReviewInsightsProvider: Sendable {
 
     private let deterministicGenerator: any ReviewInsightsGenerating
     private let cloudGenerator: (any ReviewInsightsGenerating)?
+    private let aggregatesBuilder = WeeklyReviewAggregatesBuilder()
     private let userDefaults: UserDefaults
 
     init(
@@ -55,11 +56,20 @@ struct ReviewInsightsProvider: Sendable {
 
         if useAI, cloudAllowed, let cloudGenerator {
             do {
-                return try await cloudGenerator.generateInsights(
+                let cloudInsights = try await cloudGenerator.generateInsights(
                     from: entries,
                     referenceDate: referenceDate,
                     calendar: calendar
                 )
+                if cloudInsights.presentationMode == .statsFirst {
+                    return await deterministicOrSparseInsights(
+                        from: entries,
+                        referenceDate: referenceDate,
+                        calendar: calendar,
+                        cloudSkippedReason: .insufficientPatternSignalThisWeek
+                    )
+                }
+                return cloudInsights
             } catch {
                 Self.logger.debug("Cloud review insights failed: \(String(describing: error), privacy: .private)")
                 return await deterministicOrSparseInsights(
@@ -105,6 +115,7 @@ struct ReviewInsightsProvider: Sendable {
         }
 
         return sparseFallbackInsights(
+            from: entries,
             referenceDate: referenceDate,
             calendar: calendar,
             cloudSkippedReason: cloudSkippedReason
@@ -112,11 +123,21 @@ struct ReviewInsightsProvider: Sendable {
     }
 
     private func sparseFallbackInsights(
+        from entries: [JournalEntry],
         referenceDate: Date,
         calendar: Calendar,
         cloudSkippedReason: ReviewCloudInsightSkipReason?
     ) -> ReviewInsights {
         let weekRange = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
+        let previousPeriod = ReviewInsightsPeriod.previousPeriod(before: weekRange, calendar: calendar)
+        let currentWeekEntries = entries.filter { weekRange.contains($0.entryDate) }
+        let previousWeekEntries = entries.filter { previousPeriod.contains($0.entryDate) }
+        let aggregates = aggregatesBuilder.build(
+            currentPeriod: weekRange,
+            currentWeekEntries: currentWeekEntries,
+            previousWeekEntries: previousWeekEntries,
+            calendar: calendar
+        )
         let fallbackInsight = ReviewWeeklyInsight(
             pattern: .sparseFallback,
             observation: String(
@@ -131,6 +152,7 @@ struct ReviewInsightsProvider: Sendable {
         )
         return ReviewInsights(
             source: .deterministic,
+            presentationMode: .statsFirst,
             generatedAt: referenceDate,
             weekStart: weekRange.lowerBound,
             weekEnd: weekRange.upperBound,
@@ -143,6 +165,7 @@ struct ReviewInsightsProvider: Sendable {
                 localized: "What feels most important to carry into next week?"
             ),
             narrativeSummary: nil,
+            weekStats: aggregates.stats,
             cloudSkippedReason: cloudSkippedReason
         )
     }

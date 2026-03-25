@@ -8,12 +8,15 @@ enum CloudReviewInsightsPromptLanguage: Equatable, Sendable {
     case simplifiedChinese
 }
 
+// Prompt blocks are intentionally long; keep line breaks for translators and reviewers.
+// swiftlint:disable line_length function_body_length
 struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
     private let baseURL: String
     private let model: String
     private let apiKey: String
     private let urlSession: URLSession
     private let promptLanguage: CloudReviewInsightsPromptLanguage
+    private let aggregatesBuilder = WeeklyReviewAggregatesBuilder()
     private let sanitizer = CloudReviewInsightsSanitizer()
     private let maxEntriesForContext = 14
 
@@ -37,30 +40,60 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
         calendar: Calendar = .current
     ) async throws -> ReviewInsights {
         let weekRange = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
-        let weeklyEntries = entries
+        let previousPeriod = ReviewInsightsPeriod.previousPeriod(before: weekRange, calendar: calendar)
+        let currentWeekEntries = entries
             .filter { weekRange.contains($0.entryDate) }
             .sorted { $0.entryDate < $1.entryDate }
+        let previousWeekEntries = entries
+            .filter { previousPeriod.contains($0.entryDate) }
+            .sorted { $0.entryDate < $1.entryDate }
+        let weeklyEntries = currentWeekEntries
             .suffix(maxEntriesForContext)
         let meaningfulWeeklyEntries = weeklyEntries.filter(\.hasMeaningfulContent)
         guard meaningfulWeeklyEntries.count >= ReviewInsightsCloudEligibility.minimumMeaningfulEntriesForCloudAI else {
             throw CloudReviewInsightsError.insufficientContext
         }
+        let aggregates = aggregatesBuilder.build(
+            currentPeriod: weekRange,
+            currentWeekEntries: currentWeekEntries,
+            previousWeekEntries: previousWeekEntries,
+            calendar: calendar
+        )
+        let deviceRecurringLists = recurringLists(from: aggregates)
 
         let contexts = meaningfulWeeklyEntries.map(makeContextEntry)
-        let rawPayload = try await callAPI(
+        let typedRaw = try await callTypedInsightAPI(
             request: CloudReviewInsightsRequest(
                 model: model,
                 messages: [CloudReviewMessage(role: "user", content: prompt(for: contexts))],
-                maxTokens: 800,
-                temperature: 0.2
+                maxTokens: 600,
+                temperature: 0.15
             )
         )
-        let payload = sanitizer.sanitizePayload(rawPayload)
+        guard !deviceRecurringLists.gratitudes.isEmpty
+            || !deviceRecurringLists.needs.isEmpty
+            || !deviceRecurringLists.people.isEmpty else {
+            throw CloudReviewInsightsError.failedQualityGate
+        }
+        let resolved = try CloudStructuredInsightResolver.resolve(
+            typedRaw,
+            gratitudes: deviceRecurringLists.gratitudes,
+            needs: deviceRecurringLists.needs,
+            people: deviceRecurringLists.people
+        )
+        let rendered = CloudStructuredReviewInsightRenderer.makePayload(
+            resolved: resolved,
+            recurringGratitudes: deviceRecurringLists.gratitudes,
+            recurringNeeds: deviceRecurringLists.needs,
+            recurringPeople: deviceRecurringLists.people
+        )
+        let payload = sanitizer.sanitizeStructuredPayload(rendered)
         try sanitizer.validateGroundedQuality(payload)
         let weeklyInsights = makeWeeklyInsights(from: payload)
 
         return ReviewInsights(
             source: .cloudAI,
+            presentationMode: aggregates.supportsInsightNarrative ? .insight : .statsFirst,
             generatedAt: referenceDate,
             weekStart: weekRange.lowerBound,
             weekEnd: weekRange.upperBound,
@@ -71,6 +104,7 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
             resurfacingMessage: payload.resurfacingMessage,
             continuityPrompt: payload.continuityPrompt,
             narrativeSummary: payload.narrativeSummary,
+            weekStats: aggregates.stats,
             cloudSkippedReason: nil
         )
     }
@@ -137,33 +171,33 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
 
     private func promptEnglish(contextText: String) -> String {
         """
-        You are generating journaling insights for a guided reflection app.
-        Analyze the entries from the past seven days and return STRICT JSON with this shape:
+        You are selecting one structured weekly insight for a guided reflection app.
+        Analyze the entries from the past seven days and return STRICT JSON with exactly this shape:
         {
-          "narrativeSummary": "string",
-          "resurfacingMessage": "string",
-          "continuityPrompt": "string",
+          "insightType": "cooccurrence" | "contrast" | "temporalShift" | "personThemePairing" | "dominantCategory",
+          "primaryTheme": {"label":"string","category":"gratitudes"|"needs"|"people"},
+          "secondaryTheme": {"label":"string","category":"gratitudes"|"needs"|"people"} | null,
+          "evidenceDays": number | null,
           "recurringGratitudes": [{"label":"string","count":number}],
           "recurringNeeds": [{"label":"string","count":number}],
           "recurringPeople": [{"label":"string","count":number}]
         }
 
-        Rules:
-        - Do not judge or pressure the user. Ground every line in their entries.
-        - Ground messages in the provided seven-day context. Avoid generic wellness phrases.
-        - resurfacingMessage is Observation: factual resurfacing only (counts, who/what showed up).
-        - Keep Observation free of therapy clichés or feelings interpretation.
-        - narrativeSummary is Thinking: one sentence naming a relationship or pattern across signals.
-        - Thinking must use different wording than resurfacingMessage; do not repeat the same counts or structure.
-        - continuityPrompt is Action: one short, invitational follow-up question tied to those themes.
-        - Prefer one concrete, calm link between two recurring signals when evidence supports it.
-        - Do not invent connections the entries do not support.
-        - If recurring themes exist, reference at least one concrete theme label in narrativeSummary.
-        - continuityPrompt must be a specific follow-up question tied to recent themes in these entries.
-        - Keep each message under 160 characters.
-        - Return at most 3 items per recurring list.
-        - Counts must be positive integers.
-        - Output ONLY valid JSON; no markdown or prose.
+        The app renders user-facing Observation / Thinking / Action copy locally from your typed choice. Do not output narrativeSummary, resurfacingMessage, or continuityPrompt.
+
+        insightType — pick the single best fit:
+        - cooccurrence: two themes that tend to appear together; secondaryTheme required; categories may repeat or differ.
+        - contrast: a recurring gratitude vs a recurring need; secondaryTheme required; categories must be gratitudes for one theme and needs for the other (order of primary/secondary may be either way).
+        - temporalShift: one theme grows clearer in the second half of the week; secondaryTheme must be null; evidenceDays optional—if present, integer ≥ 2 for days of support.
+        - personThemePairing: primaryTheme.category must be people; secondaryTheme required with category gratitudes or needs; person + theme co-occur in the week.
+        - dominantCategory: the strongest single recurring theme; secondaryTheme null; primaryTheme points at that label and its category.
+
+        recurring* lists: at most 3 items each; positive integer counts; labels must match short phrases distilled from the entries (same language as the journal text). Every label in primaryTheme and secondaryTheme must appear in the matching recurring list for that category.
+
+        Shared rules:
+        - Ground every label and count in the entry JSON; no invented people, habits, or goals.
+        - No character judgments, therapy clichés, or motivational filler.
+        - Output ONLY valid JSON; no markdown fences or prose outside the JSON object.
 
         Entries from the past seven days:
         \(contextText)
@@ -172,39 +206,40 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
 
     private func promptSimplifiedChinese(contextText: String) -> String {
         """
-        你在为 App「感恩记」的「回顾」准备最近七天的小结：平实、不施压。
-        请结合下方最近七天的记录，只输出符合下列结构的 JSON（结构严格；键名用英文，方便程序解析）：
+        你在为 App「感恩记」的「回顾」从最近七天里**选定一种结构化洞察**：平实、可核对、不施压。
+        请只输出符合下列结构的 JSON（键名保持英文，便于解析；label 正文与记录语言一致，通常为简体中文）：
         {
-          "narrativeSummary": "string",
-          "resurfacingMessage": "string",
-          "continuityPrompt": "string",
+          "insightType": "cooccurrence" | "contrast" | "temporalShift" | "personThemePairing" | "dominantCategory",
+          "primaryTheme": {"label":"string","category":"gratitudes"|"needs"|"people"},
+          "secondaryTheme": {"label":"string","category":"gratitudes"|"needs"|"people"} | null,
+          "evidenceDays": number | null,
           "recurringGratitudes": [{"label":"string","count":number}],
           "recurringNeeds": [{"label":"string","count":number}],
           "recurringPeople": [{"label":"string","count":number}]
         }
 
-        要求：
-        - 不评判、不施压；说法贴着记录走。
-        - 紧扣下方记录，别写空洞的励志话或养生套话。
-        - `resurfacingMessage` 只写「观察」：事实性复盘（频次、反复出现的人/事），不要心理诊断式措辞。
-        - `narrativeSummary` 写「思考」：用**不同于** `resurfacingMessage` 的句式，点出信号之间的关系或模式；不要简单重复同一句话或同一组数字。
-        - `continuityPrompt` 写「行动」：一句简短、可接住的追问。
-        - 如果最近七天里确实反复出现某些内容，可以用一句简短、具体的话，把两件事连起来（例如某件感恩的事、某件需要的事、某位牵挂的人）；不要臆测记录里没出现的事。
-        - 若有重复主题，`narrativeSummary` 里至少要点到其中一条，说法尽量贴近用户原文或自然归纳。
-        - `continuityPrompt` 只能是一句具体的追问，和这些记录里的内容有关。
-        - `narrativeSummary`、`resurfacingMessage`、`continuityPrompt` 这三段正文用简体中文。
-        - 每段正文不超过 160 个字。
-        - `recurringGratitudes`、`recurringNeeds`、`recurringPeople` 每个列表最多 3 条；`count` 为正整数。
-        - 只输出合法 JSON，不要用 markdown 代码块，不要加任何前言或后记。
+        App 会在本地根据你的结构化结果生成「观察 / 思考 / 行动」正文。**不要**输出 narrativeSummary、resurfacingMessage、continuityPrompt。
+
+        insightType 含义（只选最贴切的一种）：
+        - cooccurrence：两个主题常一起出现；必须有 secondaryTheme；类别可相同或不同。
+        - contrast：一条重复感恩主题 vs 一条重复需要主题；必须有 secondaryTheme；两人分别为 gratitudes 与 needs（primary/secondary 顺序不限）。
+        - temporalShift：同一主题在周内后段更明显；secondaryTheme 必须为 null；evidenceDays 可省略，若填写须为 ≥ 2 的整数。
+        - personThemePairing：primaryTheme.category 必须是 people；secondaryTheme 必填且为 gratitudes 或 needs；人与该主题在周记录里常同现。
+        - dominantCategory：本周最强的一条重复主题；secondaryTheme 为 null；primaryTheme 指向该标签及对应 category。
+
+        recurring*：每类最多 3 条；count 为正整数；label 必须与条目原文短语一致。primaryTheme / secondaryTheme 里的每个 label 必须出现在对应 category 的 recurring 列表中。
+
+        共用：所有标签与次数必须能从下方 JSON 记录核对；禁止臆测记录未出现的人或事；禁止心理诊断式与空洞励志套话。
+        只输出合法 JSON，不要使用 markdown 代码块，不要加前言或后记。
 
         下方是最近七天的记录：
         \(contextText)
         """
     }
 
-    private func callAPI(
+    private func callTypedInsightAPI(
         request: CloudReviewInsightsRequest
-    ) async throws -> CloudReviewInsightsPayload {
+    ) async throws -> CloudTypedInsightAPIResponse {
         guard let url = URL(string: "\(baseURL)/chat/completions") else {
             throw CloudReviewInsightsError.invalidURL
         }
@@ -230,7 +265,7 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         do {
-            return try decoder.decode(CloudReviewInsightsPayload.self, from: parsedData)
+            return try decoder.decode(CloudTypedInsightAPIResponse.self, from: parsedData)
         } catch {
             throw CloudReviewInsightsError.invalidPayload
         }
@@ -242,6 +277,21 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
             throw CloudReviewInsightsError.missingContent
         }
         return content
+    }
+}
+// swiftlint:enable line_length function_body_length
+
+private extension CloudReviewInsightsGenerator {
+    func recurringLists(from aggregates: WeeklyReviewAggregates) -> CloudSanitizedRecurringThemeLists {
+        CloudSanitizedRecurringThemeLists(
+            gratitudes: aggregates.recurringGratitudes.map(makeCloudReviewTheme),
+            needs: aggregates.recurringNeeds.map(makeCloudReviewTheme),
+            people: aggregates.recurringPeople.map(makeCloudReviewTheme)
+        )
+    }
+
+    func makeCloudReviewTheme(from theme: ReviewInsightTheme) -> CloudReviewTheme {
+        CloudReviewTheme(label: theme.label, count: theme.count)
     }
 }
 
@@ -329,7 +379,7 @@ struct CloudReviewInsightsPayload: Decodable {
     }
 }
 
-struct CloudReviewTheme: Decodable {
+struct CloudReviewTheme: Decodable, Equatable {
     let label: String
     let count: Int
 

@@ -75,6 +75,7 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
         var insights = makeSparseProviderFallbackInsights()
         insights = ReviewInsights(
             source: insights.source,
+            presentationMode: insights.presentationMode,
             generatedAt: insights.generatedAt,
             weekStart: insights.weekStart,
             weekEnd: insights.weekEnd,
@@ -85,6 +86,7 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
             resurfacingMessage: insights.resurfacingMessage,
             continuityPrompt: insights.continuityPrompt,
             narrativeSummary: insights.narrativeSummary,
+            weekStats: insights.weekStats,
             cloudSkippedReason: insights.cloudSkippedReason
         )
         XCTAssertFalse(ReviewInsightsRefreshPolicy.isSparseProviderFallback(insights))
@@ -137,6 +139,7 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
         )
         return ReviewInsights(
             source: .deterministic,
+            presentationMode: .statsFirst,
             generatedAt: now,
             weekStart: now,
             weekEnd: now,
@@ -147,6 +150,7 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
             resurfacingMessage: fallbackInsight.observation,
             continuityPrompt: fallbackInsight.action ?? "",
             narrativeSummary: nil,
+            weekStats: sampleWeekStats(now),
             cloudSkippedReason: nil
         )
     }
@@ -163,6 +167,7 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
         )
         return ReviewInsights(
             source: .cloudAI,
+            presentationMode: .insight,
             generatedAt: now,
             weekStart: now,
             weekEnd: now,
@@ -173,7 +178,28 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
             resurfacingMessage: "Resurfacing",
             continuityPrompt: "Continuity",
             narrativeSummary: nil,
+            weekStats: sampleWeekStats(now),
             cloudSkippedReason: nil
+        )
+    }
+
+    private func sampleWeekStats(_ weekStart: Date) -> ReviewWeekStats {
+        ReviewWeekStats(
+            reflectionDays: 2,
+            meaningfulEntryCount: 2,
+            completionMix: ReviewWeekCompletionMix(
+                soilDays: 0,
+                seedDays: 1,
+                ripeningDays: 0,
+                harvestDays: 1,
+                abundanceDays: 0
+            ),
+            activity: [ReviewDayActivity(date: weekStart, hasReflectiveActivity: true)],
+            sectionTotals: ReviewWeekSectionTotals(
+                gratitudeMentions: 2,
+                needMentions: 1,
+                peopleMentions: 0
+            )
         )
     }
 }

@@ -88,6 +88,57 @@ final class ReviewInsightsProviderTests: XCTestCase {
         XCTAssertNil(insights.cloudSkippedReason)
     }
 
+    func test_generateInsights_cloudStatsFirstFallsBackToDeterministic() async {
+        testDefaults.set(true, forKey: ReviewInsightsProvider.aiFeaturesEnabledKey)
+        let cloud = StubReviewInsightsGenerator(
+            result: .success(
+                makeInsights(
+                    source: .cloudAI,
+                    weeklyInsights: [
+                        ReviewWeeklyInsight(
+                            pattern: .recurringTheme,
+                            observation: "Cloud observation",
+                            action: "Cloud action",
+                            primaryTheme: "Rest",
+                            mentionCount: 1,
+                            dayCount: 1
+                        )
+                    ]
+                ).withPresentationMode(.statsFirst)
+            )
+        )
+        let deterministic = StubReviewInsightsGenerator(
+            result: .success(
+                makeInsights(
+                    source: .deterministic,
+                    weeklyInsights: [
+                        weeklyInsightStub(
+                            observation: "Deterministic observation",
+                            theme: "Rest",
+                            days: 2
+                        )
+                    ]
+                )
+            )
+        )
+        let provider = ReviewInsightsProvider(
+            deterministicGenerator: deterministic,
+            cloudGenerator: cloud,
+            userDefaults: testDefaults
+        )
+
+        let reference = date(year: 2026, month: 3, day: 18)
+        let insights = await provider.generateInsights(
+            from: threeSeedEntriesInWeek(of: reference),
+            referenceDate: reference,
+            calendar: calendar
+        )
+
+        XCTAssertEqual(insights.source, .deterministic)
+        XCTAssertEqual(insights.weeklyInsights.first?.observation, "Deterministic observation")
+        XCTAssertEqual(insights.cloudSkippedReason, .insufficientPatternSignalThisWeek)
+    }
+
     func test_generateInsights_aiDisabled_usesDeterministicInsights() async {
         testDefaults.set(false, forKey: ReviewInsightsProvider.aiFeaturesEnabledKey)
         let cloud = StubReviewInsightsGenerator(result: .success(makeInsights(source: .cloudAI)))
@@ -419,6 +470,7 @@ final class ReviewInsightsProviderTests: XCTestCase {
         let now = Date(timeIntervalSince1970: 1_742_147_200)
         return ReviewInsights(
             source: source,
+            presentationMode: .insight,
             generatedAt: now,
             weekStart: now,
             weekEnd: now,
@@ -429,7 +481,32 @@ final class ReviewInsightsProviderTests: XCTestCase {
             resurfacingMessage: "message",
             continuityPrompt: "prompt",
             narrativeSummary: nil,
+            weekStats: sampleWeekStats(),
             cloudSkippedReason: nil
+        )
+    }
+
+    private func sampleWeekStats() -> ReviewWeekStats {
+        ReviewWeekStats(
+            reflectionDays: 3,
+            meaningfulEntryCount: 3,
+            completionMix: ReviewWeekCompletionMix(
+                soilDays: 0,
+                seedDays: 0,
+                ripeningDays: 1,
+                harvestDays: 2,
+                abundanceDays: 0
+            ),
+            activity: [
+                ReviewDayActivity(date: Date(timeIntervalSince1970: 1), hasReflectiveActivity: true),
+                ReviewDayActivity(date: Date(timeIntervalSince1970: 2), hasReflectiveActivity: true),
+                ReviewDayActivity(date: Date(timeIntervalSince1970: 3), hasReflectiveActivity: true)
+            ],
+            sectionTotals: ReviewWeekSectionTotals(
+                gratitudeMentions: 3,
+                needMentions: 2,
+                peopleMentions: 1
+            )
         )
     }
 

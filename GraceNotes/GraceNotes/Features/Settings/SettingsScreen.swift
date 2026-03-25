@@ -26,18 +26,20 @@ struct SettingsScreen: View {
     var body: some View {
         ScrollViewReader { proxy in
             List {
-                Section {
-                    VStack(alignment: .leading, spacing: AppTheme.spacingRegular) {
-                        aiConnectionControlRow
+                if AppFeatureFlags.cloudAIUserFacingEnabled {
+                    Section {
+                        VStack(alignment: .leading, spacing: AppTheme.spacingRegular) {
+                            aiConnectionControlRow
+                        }
+                        .padding(.vertical, AppTheme.spacingTight / 2)
+                        .id(SettingsScrollTarget.aiFeatures)
+                        .settingsTargetHighlight(highlightedTarget == .aiFeatures)
+                    } header: {
+                        Text(String(localized: "Settings.ai.sectionTitle"))
+                            .font(AppTheme.warmPaperHeader)
+                            .foregroundStyle(AppTheme.settingsTextPrimary)
+                            .textCase(nil)
                     }
-                    .padding(.vertical, AppTheme.spacingTight / 2)
-                    .id(SettingsScrollTarget.aiFeatures)
-                    .settingsTargetHighlight(highlightedTarget == .aiFeatures)
-                } header: {
-                    Text(String(localized: "Settings.ai.sectionTitle"))
-                        .font(AppTheme.warmPaperHeader)
-                        .foregroundStyle(AppTheme.settingsTextPrimary)
-                        .textCase(nil)
                 }
 
                 Section {
@@ -113,23 +115,30 @@ struct SettingsScreen: View {
             }
             .navigationTitle(String(localized: "Settings"))
             .onAppear {
+                guard AppFeatureFlags.cloudAIUserFacingEnabled else { return }
                 clampCloudAIFeaturesIfApiKeyMissing()
             }
             .task {
                 ReviewInsightsProvider.migrateLegacyAIFeaturesToggleIfNeeded()
                 useAIFeatures = AIFeaturesSettings.isEnabled()
-                clampCloudAIFeaturesIfApiKeyMissing()
+                if AppFeatureFlags.cloudAIUserFacingEnabled {
+                    clampCloudAIFeaturesIfApiKeyMissing()
+                }
                 await reminderState.refreshStatus()
                 syncReminderControlState(with: reminderState.liveStatus)
                 iCloudAccountState.refresh()
-                syncAICloudStatusModel()
-                aiCloudStatus.scheduleThrottledAutoCheckIfNeeded()
+                if AppFeatureFlags.cloudAIUserFacingEnabled {
+                    syncAICloudStatusModel()
+                    aiCloudStatus.scheduleThrottledAutoCheckIfNeeded()
+                }
                 if let target = appNavigation.settingsScrollTarget {
                     focusSettingsTarget(target, proxy: proxy)
                 }
             }
             .onDisappear {
-                aiCloudStatus.onSettingsDisappear()
+                if AppFeatureFlags.cloudAIUserFacingEnabled {
+                    aiCloudStatus.onSettingsDisappear()
+                }
                 settingsHighlightDismissTask?.cancel()
             }
             .onChange(of: scenePhase) { _, newValue in
@@ -138,10 +147,13 @@ struct SettingsScreen: View {
                     await reminderState.refreshStatus()
                 }
                 iCloudAccountState.refresh()
-                aiCloudStatus.sceneDidBecomeActive()
-                syncAICloudStatusModel()
+                if AppFeatureFlags.cloudAIUserFacingEnabled {
+                    aiCloudStatus.sceneDidBecomeActive()
+                    syncAICloudStatusModel()
+                }
             }
             .onChange(of: useAIFeatures) { _, _ in
+                guard AppFeatureFlags.cloudAIUserFacingEnabled else { return }
                 syncAICloudStatusModel()
             }
             .onChange(of: reminderState.selectedTime) { _, _ in

@@ -1,7 +1,7 @@
 import Foundation
 import SwiftData
 
-enum JournalCompletionLevel: String, Equatable {
+enum JournalCompletionLevel: String, Equatable, Hashable, Sendable, Codable {
     case soil
     case seed
     case ripening

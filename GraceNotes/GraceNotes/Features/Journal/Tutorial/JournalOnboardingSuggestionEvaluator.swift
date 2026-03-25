@@ -30,7 +30,8 @@ enum JournalOnboardingSuggestionEvaluator {
             return .reminders
         }
 
-        if context.hasCelebratedFirstHarvest,
+        if AppFeatureFlags.cloudAIUserFacingEnabled,
+           context.hasCelebratedFirstHarvest,
            !context.dismissedAISuggestion,
            !context.openedAISuggestion,
            !context.aiFeaturesEnabled,

@@ -2,6 +2,20 @@ import XCTest
 @testable import GraceNotes
 
 final class OnboardingSuggestionEvaluatorTests: XCTestCase {
+    private var originalCloudAIUserFacingEnabled: Bool!
+
+    override func setUp() {
+        super.setUp()
+        originalCloudAIUserFacingEnabled = AppFeatureFlags.cloudAIUserFacingEnabled
+        AppFeatureFlags.cloudAIUserFacingEnabled = false
+    }
+
+    override func tearDown() {
+        AppFeatureFlags.cloudAIUserFacingEnabled = originalCloudAIUserFacingEnabled
+        originalCloudAIUserFacingEnabled = nil
+        super.tearDown()
+    }
+
     func test_currentSuggestion_nonNilEntryDate_returnsNil() {
         let context = baseContext(entryDate: .now)
 
@@ -24,7 +38,18 @@ final class OnboardingSuggestionEvaluatorTests: XCTestCase {
         XCTAssertEqual(JournalOnboardingSuggestionEvaluator.currentSuggestion(context: context), .reminders)
     }
 
-    func test_currentSuggestion_remindersSatisfied_aiEligible_returnsAIFeatures() {
+    func test_currentSuggestion_remindersSatisfied_aiEligible_returnsNilWhenFeatureFlagOff() {
+        var context = baseContext(entryDate: nil)
+        context.hasConfiguredReminderTime = true
+        context.hasCelebratedFirstHarvest = true
+        context.isCloudApiKeyConfigured = true
+
+        XCTAssertNil(JournalOnboardingSuggestionEvaluator.currentSuggestion(context: context))
+    }
+
+    func test_currentSuggestion_remindersSatisfied_aiEligible_returnsAIFeaturesWhenFeatureFlagOn() {
+        AppFeatureFlags.cloudAIUserFacingEnabled = true
+
         var context = baseContext(entryDate: nil)
         context.hasConfiguredReminderTime = true
         context.hasCelebratedFirstHarvest = true

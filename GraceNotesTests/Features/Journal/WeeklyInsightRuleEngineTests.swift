@@ -17,7 +17,12 @@ final class WeeklyInsightRuleEngineTests: XCTestCase {
     }
 
     func test_analyze_emptyWeek_returnsSparseFallbackInsight() {
+        let currentPeriod = ReviewInsightsPeriod.currentPeriod(
+            containing: date(year: 2026, month: 3, day: 18),
+            calendar: calendar
+        )
         let analysis = ruleEngine.analyze(
+            currentPeriod: currentPeriod,
             currentWeekEntries: [],
             previousWeekEntries: [],
             calendar: calendar
@@ -61,6 +66,10 @@ final class WeeklyInsightRuleEngineTests: XCTestCase {
             try context.save()
 
             let analysis = ruleEngine.analyze(
+                currentPeriod: ReviewInsightsPeriod.currentPeriod(
+                    containing: date(year: 2026, month: 3, day: 19),
+                    calendar: calendar
+                ),
                 currentWeekEntries: currentEntries,
                 previousWeekEntries: [],
                 calendar: calendar
@@ -87,6 +96,10 @@ final class WeeklyInsightRuleEngineTests: XCTestCase {
             try context.save()
 
             let analysis = ruleEngine.analyze(
+                currentPeriod: ReviewInsightsPeriod.currentPeriod(
+                    containing: date(year: 2026, month: 3, day: 19),
+                    calendar: calendar
+                ),
                 currentWeekEntries: currentEntries,
                 previousWeekEntries: previousEntries,
                 calendar: calendar
@@ -110,6 +123,10 @@ final class WeeklyInsightRuleEngineTests: XCTestCase {
             try context.save()
 
             let analysis = ruleEngine.analyze(
+                currentPeriod: ReviewInsightsPeriod.currentPeriod(
+                    containing: date(year: 2026, month: 3, day: 18),
+                    calendar: calendar
+                ),
                 currentWeekEntries: currentEntries,
                 previousWeekEntries: [],
                 calendar: calendar
@@ -136,6 +153,10 @@ final class WeeklyInsightRuleEngineTests: XCTestCase {
             try context.save()
 
             let analysis = ruleEngine.analyze(
+                currentPeriod: ReviewInsightsPeriod.currentPeriod(
+                    containing: date(year: 2026, month: 3, day: 18),
+                    calendar: calendar
+                ),
                 currentWeekEntries: entries,
                 previousWeekEntries: [],
                 calendar: calendar
@@ -145,6 +166,8 @@ final class WeeklyInsightRuleEngineTests: XCTestCase {
             let insight = analysis.weeklyInsights[0]
             XCTAssertEqual(insight.pattern, .sparseFallback)
             XCTAssertEqual(insight.dayCount, 1)
+            XCTAssertEqual(analysis.weekStats.reflectionDays, 1)
+            XCTAssertEqual(analysis.presentationMode, .statsFirst)
             XCTAssertNotEqual(
                 insight.observation,
                 "Start with one reflection today to build your weekly review.",

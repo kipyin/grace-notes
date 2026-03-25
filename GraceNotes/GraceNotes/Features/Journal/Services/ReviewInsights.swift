@@ -5,10 +5,91 @@ enum ReviewInsightSource: String, Sendable, Codable {
     case cloudAI
 }
 
+enum ReviewPresentationMode: String, Equatable, Sendable, Codable {
+    case statsFirst
+    case insight
+}
+
+enum ReviewStatsSectionKind: String, CaseIterable, Equatable, Sendable, Codable {
+    case gratitudes
+    case needs
+    case people
+}
+
+struct ReviewDayActivity: Equatable, Hashable, Sendable, Codable {
+    let date: Date
+    let hasReflectiveActivity: Bool
+    let strongestCompletionLevel: JournalCompletionLevel?
+
+    private enum CodingKeys: String, CodingKey {
+        case date
+        case hasReflectiveActivity = "hasMeaningfulContent"
+        case strongestCompletionLevel
+    }
+
+    init(
+        date: Date,
+        hasReflectiveActivity: Bool,
+        strongestCompletionLevel: JournalCompletionLevel? = nil
+    ) {
+        self.date = date
+        self.hasReflectiveActivity = hasReflectiveActivity
+        self.strongestCompletionLevel = strongestCompletionLevel
+    }
+}
+
+struct ReviewWeekCompletionMix: Equatable, Sendable, Codable {
+    let soilDays: Int
+    let seedDays: Int
+    let ripeningDays: Int
+    let harvestDays: Int
+    let abundanceDays: Int
+
+    var highCompletionDays: Int {
+        harvestDays + abundanceDays
+    }
+}
+
+struct ReviewWeekSectionTotals: Equatable, Sendable, Codable {
+    let gratitudeMentions: Int
+    let needMentions: Int
+    let peopleMentions: Int
+
+    var dominantSection: ReviewStatsSectionKind? {
+        let ranked = [
+            (ReviewStatsSectionKind.gratitudes, gratitudeMentions),
+            (ReviewStatsSectionKind.needs, needMentions),
+            (ReviewStatsSectionKind.people, peopleMentions)
+        ].sorted { lhs, rhs in
+            if lhs.1 != rhs.1 {
+                return lhs.1 > rhs.1
+            }
+            return lhs.0.rawValue < rhs.0.rawValue
+        }
+        guard let first = ranked.first, first.1 > 0 else {
+            return nil
+        }
+        if ranked.count > 1, ranked[1].1 == first.1 {
+            return nil
+        }
+        return first.0
+    }
+}
+
+struct ReviewWeekStats: Equatable, Sendable, Codable {
+    let reflectionDays: Int
+    let meaningfulEntryCount: Int
+    let completionMix: ReviewWeekCompletionMix
+    let activity: [ReviewDayActivity]
+    let sectionTotals: ReviewWeekSectionTotals
+}
+
 /// Set when the user enabled Cloud AI but this digest still used the on-device path (see issue #83).
 enum ReviewCloudInsightSkipReason: String, Equatable, Sendable, Codable {
     /// Fewer than the minimum meaningful reflections for cloud generation this review week.
     case insufficientEvidenceThisWeek
+    /// Enough entries existed for cloud, but the week still lacked a clear recurring pattern worth narrative insight.
+    case insufficientPatternSignalThisWeek
     /// No cloud generator (for example, missing API key in this build).
     case cloudMisconfigured
     /// Device offline, DNS failure, or connection lost before a response.
@@ -36,6 +117,10 @@ extension ReviewCloudInsightSkipReason {
         case .insufficientEvidenceThisWeek:
             String(
                 localized: "Cloud insights need at least three meaningful reflections in this review week. With lighter weeks, Grace Notes keeps this digest on your device."
+            )
+        case .insufficientPatternSignalThisWeek:
+            String(
+                localized: "This week had enough to summarize, but not enough repetition for a clear cloud insight. Grace Notes kept this review on your device."
             )
         case .cloudMisconfigured:
             String(
@@ -100,6 +185,7 @@ struct ReviewInsightTheme: Equatable, Hashable, Sendable, Codable {
 
 struct ReviewInsights: Equatable, Sendable, Codable {
     let source: ReviewInsightSource
+    let presentationMode: ReviewPresentationMode
     let generatedAt: Date
     /// Start of the review period (`ReviewInsightsPeriod`), inclusive (start of local day).
     let weekStart: Date
@@ -112,14 +198,16 @@ struct ReviewInsights: Equatable, Sendable, Codable {
     let resurfacingMessage: String
     let continuityPrompt: String
     let narrativeSummary: String?
+    let weekStats: ReviewWeekStats
     /// Present when Cloud AI was enabled at generation time but the digest used the on-device path.
     let cloudSkippedReason: ReviewCloudInsightSkipReason?
 }
 
 extension ReviewInsights {
-    func withCloudSkippedReason(_ reason: ReviewCloudInsightSkipReason?) -> ReviewInsights {
+    func withPresentationMode(_ mode: ReviewPresentationMode) -> ReviewInsights {
         ReviewInsights(
             source: source,
+            presentationMode: mode,
             generatedAt: generatedAt,
             weekStart: weekStart,
             weekEnd: weekEnd,
@@ -130,6 +218,26 @@ extension ReviewInsights {
             resurfacingMessage: resurfacingMessage,
             continuityPrompt: continuityPrompt,
             narrativeSummary: narrativeSummary,
+            weekStats: weekStats,
+            cloudSkippedReason: cloudSkippedReason
+        )
+    }
+
+    func withCloudSkippedReason(_ reason: ReviewCloudInsightSkipReason?) -> ReviewInsights {
+        ReviewInsights(
+            source: source,
+            presentationMode: presentationMode,
+            generatedAt: generatedAt,
+            weekStart: weekStart,
+            weekEnd: weekEnd,
+            weeklyInsights: weeklyInsights,
+            recurringGratitudes: recurringGratitudes,
+            recurringNeeds: recurringNeeds,
+            recurringPeople: recurringPeople,
+            resurfacingMessage: resurfacingMessage,
+            continuityPrompt: continuityPrompt,
+            narrativeSummary: narrativeSummary,
+            weekStats: weekStats,
             cloudSkippedReason: reason
         )
     }

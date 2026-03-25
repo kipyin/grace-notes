@@ -13,6 +13,7 @@ struct DeterministicReviewInsightsGenerator: ReviewInsightsGenerating {
         let currentWeekEntries = entries.filter { currentPeriod.contains($0.entryDate) }
         let previousWeekEntries = entries.filter { previousPeriod.contains($0.entryDate) }
         let analysis = ruleEngine.analyze(
+            currentPeriod: currentPeriod,
             currentWeekEntries: currentWeekEntries,
             previousWeekEntries: previousWeekEntries,
             calendar: calendar
@@ -20,6 +21,7 @@ struct DeterministicReviewInsightsGenerator: ReviewInsightsGenerating {
 
         return ReviewInsights(
             source: .deterministic,
+            presentationMode: analysis.presentationMode,
             generatedAt: referenceDate,
             weekStart: currentPeriod.lowerBound,
             weekEnd: currentPeriod.upperBound,
@@ -30,6 +32,7 @@ struct DeterministicReviewInsightsGenerator: ReviewInsightsGenerating {
             resurfacingMessage: analysis.resurfacingMessage,
             continuityPrompt: analysis.continuityPrompt,
             narrativeSummary: analysis.narrativeSummary,
+            weekStats: analysis.weekStats,
             cloudSkippedReason: nil
         )
     }

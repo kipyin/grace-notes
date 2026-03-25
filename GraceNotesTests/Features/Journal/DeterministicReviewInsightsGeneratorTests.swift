@@ -1,6 +1,7 @@
 import XCTest
 @testable import GraceNotes
 
+// swiftlint:disable type_body_length
 final class DeterministicReviewInsightsTests: XCTestCase {
     private var calendar: Calendar!
     private var generator: DeterministicReviewInsightsGenerator!
@@ -128,6 +129,46 @@ final class DeterministicReviewInsightsTests: XCTestCase {
         XCTAssertEqual(completionInsight?.dayCount, 7)
     }
 
+    func test_generateInsights_activityTracksStrongestCompletionPerDay() async throws {
+        let reference = date(year: 2026, month: 3, day: 19)
+        let seedDay = date(year: 2026, month: 3, day: 17)
+        let harvestDay = date(year: 2026, month: 3, day: 18)
+        let textOnlyDay = date(year: 2026, month: 3, day: 19)
+        let insights = try await generator.generateInsights(
+            from: [
+                makeEntry(on: seedDay, gratitudes: ["Family"], needs: ["Rest"], people: ["Mia"]),
+                JournalEntry(
+                    entryDate: harvestDay,
+                    gratitudes: (1...5).map { JournalItem(fullText: "Gratitude \($0)", chipLabel: "Gratitude \($0)") },
+                    needs: (1...5).map { JournalItem(fullText: "Need \($0)", chipLabel: "Need \($0)") },
+                    people: (1...5).map { JournalItem(fullText: "Person \($0)", chipLabel: "Person \($0)") }
+                ),
+                makeEntry(on: textOnlyDay, readingNotes: "Short note from the day")
+            ],
+            referenceDate: reference,
+            calendar: calendar
+        )
+
+        XCTAssertEqual(
+            insights.weekStats.activity
+                .first(where: { calendar.isDate($0.date, inSameDayAs: seedDay) })?
+                .strongestCompletionLevel,
+            .seed
+        )
+        XCTAssertEqual(
+            insights.weekStats.activity
+                .first(where: { calendar.isDate($0.date, inSameDayAs: harvestDay) })?
+                .strongestCompletionLevel,
+            .harvest
+        )
+        XCTAssertEqual(
+            insights.weekStats.activity
+                .first(where: { calendar.isDate($0.date, inSameDayAs: textOnlyDay) })?
+                .strongestCompletionLevel,
+            .soil
+        )
+    }
+
     func test_generateInsights_returnsSparseFallback_whenSignalsAreTooLow() async throws {
         let reference = date(year: 2026, month: 3, day: 18)
         let oneEmptyEntry = makeEntry(on: date(year: 2026, month: 3, day: 17))
@@ -140,6 +181,7 @@ final class DeterministicReviewInsightsTests: XCTestCase {
 
         XCTAssertEqual(insights.weeklyInsights.count, 1)
         XCTAssertEqual(insights.weeklyInsights.first?.pattern, .sparseFallback)
+        XCTAssertEqual(insights.presentationMode, .statsFirst)
         XCTAssertEqual(
             insights.weeklyInsights.first?.observation,
             "Start with one reflection today to build your weekly review."
@@ -257,6 +299,31 @@ final class DeterministicReviewInsightsTests: XCTestCase {
         )
 
         XCTAssertLessThanOrEqual(insights.weeklyInsights.count, 2)
+        XCTAssertEqual(insights.presentationMode, .insight)
+        XCTAssertEqual(insights.weekStats.reflectionDays, 3)
+    }
+
+    func test_generateInsights_includesWeekStatsActivityAndCompletionMix() async throws {
+        let reference = date(year: 2026, month: 3, day: 18)
+        let entries = [
+            makeFullEntry(on: date(year: 2026, month: 3, day: 17)),
+            makeEntry(on: date(year: 2026, month: 3, day: 18), gratitudes: ["Family"], needs: ["Rest"], people: ["Mia"])
+        ]
+
+        let insights = try await generator.generateInsights(
+            from: entries,
+            referenceDate: reference,
+            calendar: calendar
+        )
+
+        XCTAssertEqual(insights.weekStats.activity.count, 7)
+        XCTAssertEqual(insights.weekStats.reflectionDays, 2)
+        XCTAssertEqual(insights.weekStats.meaningfulEntryCount, 2)
+        XCTAssertEqual(insights.weekStats.completionMix.harvestDays, 0)
+        XCTAssertEqual(insights.weekStats.completionMix.abundanceDays, 1)
+        XCTAssertEqual(insights.weekStats.sectionTotals.gratitudeMentions, 6)
+        XCTAssertEqual(insights.weekStats.sectionTotals.needMentions, 6)
+        XCTAssertEqual(insights.weekStats.sectionTotals.peopleMentions, 6)
     }
 
     func test_generateInsights_withoutEntries_returnsStarterGuidance() async throws {
@@ -361,3 +428,4 @@ final class DeterministicReviewInsightsTests: XCTestCase {
         return calendar.date(from: components)!
     }
 }
+// swiftlint:enable type_body_length

@@ -81,6 +81,38 @@
         }
       }
     },
+    "%1$@ and %2$@ sat side by side in what you wrote—thankfulness and needs together." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ and %2$@ sat side by side in what you wrote—thankfulness and needs together."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这一周里，「%1$@」和「%2$@」常同时出现——感恩与需要并肩在纸上。"
+          }
+        }
+      }
+    },
+    "%1$@ and %2$@ tended to appear together in what you captured." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ and %2$@ tended to appear together in what you captured."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%1$@」和「%2$@」经常成对出现。"
+          }
+        }
+      }
+    },
     "%1$@ kept showing up alongside %2$@ in what you wrote this week." : {
       "localizations" : {
         "en" : {
@@ -145,6 +177,74 @@
         }
       }
     },
+    "%1$lld / %2$lld" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld / %2$lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld / %2$lld"
+          }
+        }
+      }
+    },
+    "%1$lld day reached %2$@ this week." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld day reached %2$@ this week."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这一周有 %1$lld 天达到了「%2$@」。"
+          }
+        }
+      }
+    },
+    "%1$lld days reached %2$@ this week." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld days reached %2$@ this week."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这一周有 %1$lld 天达到了「%2$@」。"
+          }
+        }
+      }
+    },
+    "%1$lld/%2$lld days" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld/%2$lld days"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld/%2$lld 天"
+          }
+        }
+      }
+    },
     "%d of %d" : {
       "localizations" : {
         "en" : {
@@ -157,6 +257,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%2$d 条中的第 %1$d 条"
+          }
+        }
+      }
+    },
+    "%lld fuller days" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld fuller days"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 天写得更完整"
+          }
+        }
+      }
+    },
+    "%lld reflections" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld reflections"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 条记录"
           }
         }
       }
@@ -190,6 +324,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "•"
+          }
+        }
+      }
+    },
+    "1 fuller day" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 fuller day"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 天写得更完整"
+          }
+        }
+      }
+    },
+    "1 reflection" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 reflection"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 条记录"
           }
         }
       }
@@ -228,6 +396,7 @@
       }
     },
     "A thread" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -405,6 +574,57 @@
         }
       }
     },
+    "All fifteen spots were filled on those days." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All fifteen spots were filled on those days."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "那几天里，十五个格子都写满了。"
+          }
+        }
+      }
+    },
+    "All fifteen spots were filled that day." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All fifteen spots were filled that day."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "那一天，十五个格子都写满了。"
+          }
+        }
+      }
+    },
+    "All three sections were growing on those days." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All three sections were growing on those days."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "那几天里，三栏都慢慢写开了。"
+          }
+        }
+      }
+    },
     "Allow notifications in Settings to confirm a reminder time." : {
       "localizations" : {
         "en" : {
@@ -449,6 +669,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "快好了，正在准备你的感恩记……"
+          }
+        }
+      }
+    },
+    "Another %1$lld day reached %2$@." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Another %1$lld day reached %2$@."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "另有 %1$lld 天达到了「%2$@」。"
+          }
+        }
+      }
+    },
+    "Another %1$lld days reached %2$@." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Another %1$lld days reached %2$@."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "另有 %1$lld 天达到了「%2$@」。"
           }
         }
       }
@@ -498,6 +752,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ 和 %2$@ 在这周都出现了不止一次。"
+          }
+        }
+      }
+    },
+    "Came up most" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Came up most"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最常出现"
           }
         }
       }
@@ -649,22 +920,6 @@
         }
       }
     },
-    "Cloud AI sent a response Grace Notes couldn't turn into a weekly digest. Your on-device summary is shown instead." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cloud AI sent a response Grace Notes couldn't turn into a weekly digest. Your on-device summary is shown instead."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "云端 AI 返回的内容没法整理成每周洞察，已改为显示本机摘要。"
-          }
-        }
-      }
-    },
     "Cloud AI isn't available in this build (for example, no API key). This digest stayed on your device." : {
       "localizations" : {
         "en" : {
@@ -697,6 +952,22 @@
         }
       }
     },
+    "Cloud AI sent a response Grace Notes couldn't turn into a weekly digest. Your on-device summary is shown instead." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cloud AI sent a response Grace Notes couldn't turn into a weekly digest. Your on-device summary is shown instead."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "云端 AI 返回的内容没法整理成每周洞察，已改为显示本机摘要。"
+          }
+        }
+      }
+    },
     "Cloud insights need at least three meaningful reflections in this review week. With lighter weeks, Grace Notes keeps this digest on your device." : {
       "localizations" : {
         "en" : {
@@ -709,70 +980,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "云端洞察需要本周至少三条有意义的记录。记录较少时，Grace Notes 会只在本机生成本周摘要。"
-          }
-        }
-      }
-    },
-    "Grace Notes couldn't reach Cloud AI. Check your connection and try again when you're online." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Grace Notes couldn't reach Cloud AI. Check your connection and try again when you're online."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "感恩记暂时连不上云端 AI。请检查网络，联网后再试。"
-          }
-        }
-      }
-    },
-    "Something went wrong with Cloud AI. Grace Notes used your on-device summary instead." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Something went wrong with Cloud AI. Grace Notes used your on-device summary instead."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "云端 AI 出了点问题，已改用本机摘要。"
-          }
-        }
-      }
-    },
-    "The Cloud AI request timed out. Grace Notes used your on-device summary; try again in a moment." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The Cloud AI request timed out. Grace Notes used your on-device summary; try again in a moment."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "云端 AI 请求超时，已为你保留本机摘要。可以稍后再试。"
-          }
-        }
-      }
-    },
-    "To keep this digest close to what you wrote, Grace Notes skipped Cloud AI's draft and showed your on-device summary instead." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "To keep this digest close to what you wrote, Grace Notes skipped Cloud AI's draft and showed your on-device summary instead."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "为了让摘要更贴近你自己写下的内容，感恩记没有采用云端 AI 的草稿，仍显示本机摘要。"
           }
         }
       }
@@ -790,6 +997,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已收起"
+          }
+        }
+      }
+    },
+    "Completion this week" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Completion this week"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本周完成情况"
           }
         }
       }
@@ -873,6 +1097,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无法验证，请稍后再试"
+          }
+        }
+      }
+    },
+    "Counts show how often each theme came up." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Counts show how often each theme came up."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "数字表示这一周里这些内容出现了几次。"
           }
         }
       }
@@ -1603,6 +1844,23 @@
         }
       }
     },
+    "Days with writing" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Days with writing"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "写下内容的天数"
+          }
+        }
+      }
+    },
     "Delete" : {
       "localizations" : {
         "en" : {
@@ -1717,6 +1975,40 @@
         }
       }
     },
+    "Entries this week" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entries this week"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本周记录"
+          }
+        }
+      }
+    },
+    "Even one small start can still shape the week." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Even one small start can still shape the week."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "哪怕只开始一点点，这一周也会不一样。"
+          }
+        }
+      }
+    },
     "Expand to see cloud AI connection details and run a reachability check." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1780,6 +2072,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "导出中…"
+          }
+        }
+      }
+    },
+    "Filled dots mark days with writing." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filled dots mark days with writing."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "填色圆点表示那天有写下内容。"
           }
         }
       }
@@ -1901,6 +2210,22 @@
         }
       }
     },
+    "Grace Notes couldn't reach Cloud AI. Check your connection and try again when you're online." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grace Notes couldn't reach Cloud AI. Check your connection and try again when you're online."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "感恩记暂时连不上云端 AI。请检查网络，联网后再试。"
+          }
+        }
+      }
+    },
     "Grace Notes on this device" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1947,6 +2272,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "感恩的事"
+          }
+        }
+      }
+    },
+    "Gratitudes stood out" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gratitudes stood out"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "感恩的事更突出"
           }
         }
       }
@@ -2011,6 +2353,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "这周你可以怎样和 %@ 有更真切的联系？"
+          }
+        }
+      }
+    },
+    "How could you connect with %1$@ in a way that also tends to %2$@ tomorrow?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How could you connect with %1$@ in a way that also tends to %2$@ tomorrow?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "明天你能否用一个小行动联络「%1$@」，同时也回应「%2$@」？"
           }
         }
       }
@@ -2412,6 +2770,39 @@
         }
       }
     },
+    "Most often: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Most often: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最常出现：%@"
+          }
+        }
+      }
+    },
+    "Most recurring" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Most recurring"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最常出现"
+          }
+        }
+      }
+    },
     "Needs" : {
       "localizations" : {
         "en" : {
@@ -2424,6 +2815,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "需要的事"
+          }
+        }
+      }
+    },
+    "Needs stood out" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Needs stood out"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要的事更突出"
           }
         }
       }
@@ -2526,6 +2934,39 @@
         }
       }
     },
+    "No reflection on %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No reflection on %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 没有记录"
+          }
+        }
+      }
+    },
+    "No writing on %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No writing on %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 没有写下内容。"
+          }
+        }
+      }
+    },
     "Not now" : {
       "localizations" : {
         "en" : {
@@ -2571,6 +3012,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "现在为今天加一条需要的事吧。"
+          }
+        }
+      }
+    },
+    "Observation" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Observation"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "观察"
           }
         }
       }
@@ -2752,6 +3209,39 @@
         }
       }
     },
+    "Past seven days" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Past seven days"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "过去七天"
+          }
+        }
+      }
+    },
+    "Past seven days rhythm" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Past seven days rhythm"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "过去七天节奏"
+          }
+        }
+      }
+    },
     "People in Mind" : {
       "localizations" : {
         "en" : {
@@ -2764,6 +3254,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "牵挂的人"
+          }
+        }
+      }
+    },
+    "People in mind most often included %1$@ (%2$lld mentions)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "People in mind most often included %1$@ (%2$lld mentions)."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "挂念的人里「%1$@」出现最多（%2$lld 次）。"
           }
         }
       }
@@ -2796,6 +3302,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "写下第一件需要的事之后，「牵挂的人」就会打开。"
+          }
+        }
+      }
+    },
+    "People stood out" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "People stood out"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "牵挂的人更突出"
           }
         }
       }
@@ -3185,6 +3708,7 @@
       }
     },
     "Recurring Gratitudes" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3201,6 +3725,7 @@
       }
     },
     "Recurring Needs" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3340,6 +3865,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重命名标签"
+          }
+        }
+      }
+    },
+    "Repeated themes" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repeated themes"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "反复出现的内容"
           }
         }
       }
@@ -3944,6 +4486,22 @@
         }
       }
     },
+    "Something went wrong with Cloud AI. Grace Notes used your on-device summary instead." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Something went wrong with Cloud AI. Grace Notes used your on-device summary instead."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "云端 AI 出了点问题，已改用本机摘要。"
+          }
+        }
+      }
+    },
     "Source" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4255,6 +4813,22 @@
         }
       }
     },
+    "That steady attention to %1$@ was the clearest thread this week." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "That steady attention to %1$@ was the clearest thread this week."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这一周里最清晰的一条线，是你对「%1$@」的持续留意。"
+          }
+        }
+      }
+    },
     "That thread around %@ showed up across more than one day this week." : {
       "localizations" : {
         "en" : {
@@ -4267,6 +4841,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "与 %@ 相关的那条线，这周不止出现在一天里。"
+          }
+        }
+      }
+    },
+    "The Cloud AI request timed out. Grace Notes used your on-device summary; try again in a moment." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Cloud AI request timed out. Grace Notes used your on-device summary; try again in a moment."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "云端 AI 请求超时，已为你保留本机摘要。可以稍后再试。"
           }
         }
       }
@@ -4305,6 +4895,7 @@
       }
     },
     "This week" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4336,6 +4927,22 @@
         }
       }
     },
+    "This week had enough to summarize, but not enough repetition for a clear cloud insight. Grace Notes kept this review on your device." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This week had enough to summarize, but not enough repetition for a clear cloud insight. Grace Notes kept this review on your device."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这周有足够内容可供总结，但还没有形成足够清晰的重复线索，所以感恩记仍使用本机回顾。"
+          }
+        }
+      }
+    },
     "This week your reflection often returned to %@." : {
       "localizations" : {
         "en" : {
@@ -4352,6 +4959,39 @@
         }
       }
     },
+    "This week's theme" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This week's theme"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本周主题"
+          }
+        }
+      }
+    },
+    "This week's themes" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This week's themes"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "过去七天的主题"
+          }
+        }
+      }
+    },
     "Timeline" : {
       "localizations" : {
         "en" : {
@@ -4364,6 +5004,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "时间线"
+          }
+        }
+      }
+    },
+    "To keep this digest close to what you wrote, Grace Notes skipped Cloud AI's draft and showed your on-device summary instead." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To keep this digest close to what you wrote, Grace Notes skipped Cloud AI's draft and showed your on-device summary instead."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "为了让摘要更贴近你自己写下的内容，感恩记没有采用云端 AI 的草稿，仍显示本机摘要。"
           }
         }
       }
@@ -4396,6 +5052,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "今天的记录"
+          }
+        }
+      }
+    },
+    "Toward the end of the week, %1$@ became a clearer thread in your entries." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toward the end of the week, %1$@ became a clearer thread in your entries."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "临近周末，「%1$@」在你记录里更突出。"
           }
         }
       }
@@ -4642,6 +5314,23 @@
         }
       }
     },
+    "Week rhythm" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Week rhythm"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本周节奏"
+          }
+        }
+      }
+    },
     "Welcome to Grace Notes" : {
       "localizations" : {
         "en" : {
@@ -4722,6 +5411,22 @@
         }
       }
     },
+    "What is one small step that could honor %1$@ while still supporting %2$@ tomorrow?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What is one small step that could honor %1$@ while still supporting %2$@ tomorrow?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "明天能否用一小步既顾及「%1$@」，也照顾到「%2$@」？"
+          }
+        }
+      }
+    },
     "What is one small step that could support %@ tomorrow?" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4755,6 +5460,22 @@
         }
       }
     },
+    "What is one small way to support %1$@ tomorrow without dropping %2$@?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What is one small way to support %1$@ tomorrow without dropping %2$@?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "明天你想如何在继续关心「%1$@」的同时，也不落下「%2$@」？"
+          }
+        }
+      }
+    },
     "What is one tiny way to turn %@ into a gratitude this week?" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4768,6 +5489,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "这周有什么小方法，能让 %@ 变成一件值得感恩的事？"
+          }
+        }
+      }
+    },
+    "What would help you carry %1$@ gently into next week?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What would help you carry %1$@ gently into next week?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "怎样能温和地把「%1$@」带到下一周？"
           }
         }
       }
@@ -5163,6 +5900,23 @@
         }
       }
     },
+    "You kept getting all three sections started." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You kept getting all three sections started."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你一直有把三栏都写起来。"
+          }
+        }
+      }
+    },
     "You kept noticing %1$@ on %2$lld day(s) this week." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -5212,6 +5966,22 @@
         }
       }
     },
+    "You noted %1$@ %2$lld times and %3$@ %4$lld times this week." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You noted %1$@ %2$lld times and %3$@ %4$lld times this week."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这周你写到「%1$@」%2$lld 次，也写到「%3$@」%4$lld 次。"
+          }
+        }
+      }
+    },
     "You often named %@ as a need, but it did not appear in your gratitudes yet." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -5225,6 +5995,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你常把 %@ 写在「需要的事」里，但它还没出现在「感恩的事」里。"
+          }
+        }
+      }
+    },
+    "You often returned to %1$@ in gratitudes while naming %2$@ in needs." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You often returned to %1$@ in gratitudes while naming %2$@ in needs."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "感恩里你常回到「%1$@」，需要里也多次写到「%2$@」。"
+          }
+        }
+      }
+    },
+    "You often wrote about %1$@ alongside %2$@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You often wrote about %1$@ alongside %2$@."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这周你常把「%1$@」和「%2$@」写在一起。"
           }
         }
       }
@@ -5258,6 +6060,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "今天的记录里，感恩、需要和牵挂各有一条——这就是「撒种」。"
+          }
+        }
+      }
+    },
+    "You reached %1$@ on %2$@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You reached %1$@ on %2$@."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你在 %2$@ 达到了「%1$@」。"
           }
         }
       }
@@ -5323,6 +6141,72 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "本周你在 %lld 天完成了反思。"
+          }
+        }
+      }
+    },
+    "You took more than one day all the way through notes and reflections." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You took more than one day all the way through notes and reflections."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你不止一天一路写到了阅读笔记和反思。"
+          }
+        }
+      }
+    },
+    "You took one day all the way through notes and reflections." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You took one day all the way through notes and reflections."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你有一天一路写到了阅读笔记和反思。"
+          }
+        }
+      }
+    },
+    "You wrote about %1$@ more in the second half of this week." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You wrote about %1$@ more in the second half of this week."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这周后半段你更常写到「%1$@」。"
+          }
+        }
+      }
+    },
+    "You wrote on %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You wrote on %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 有记录"
           }
         }
       }
@@ -5507,6 +6391,22 @@
         }
       }
     },
+    "Your gratitudes most often returned to %1$@ (%2$lld mentions)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your gratitudes most often returned to %1$@ (%2$lld mentions)."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "感恩里你最常回到「%1$@」（%2$lld 次）。"
+          }
+        }
+      }
+    },
     "Your iCloud sync switch matches how data is stored for this session." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -5520,6 +6420,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "当前的 iCloud 同步设置，与这次使用的存储方式一致。"
+          }
+        }
+      }
+    },
+    "Your needs most often returned to %1$@ (%2$lld mentions)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your needs most often returned to %1$@ (%2$lld mentions)."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要里你最常写到「%1$@」（%2$lld 次）。"
           }
         }
       }
@@ -5587,6 +6503,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已保存的 iCloud 同步偏好，与当前会话的数据存储方式一致。"
+          }
+        }
+      }
+    },
+    "Your week" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your week"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这一周"
           }
         }
       }

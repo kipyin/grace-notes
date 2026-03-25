@@ -456,28 +456,8 @@ private extension WeeklyInsightCandidateBuilder {
     }
 }
 
-struct ThemeSummary {
-    let normalizedLabel: String
-    let displayLabel: String
-    let mentionCount: Int
-    let dayCount: Int
-    let weightedScore: Int
-    let firstSeenOrder: Int
-}
-
 struct InsightCandidate {
     let score: Int
     let insight: ReviewWeeklyInsight
 }
-
-struct CandidateInputs {
-    let entries: [JournalEntry]
-    let currentDayCount: Int
-    let needs: [ThemeSummary]
-    let gratitudes: [ThemeSummary]
-    let people: [ThemeSummary]
-    let currentContinuity: [ThemeSummary]
-    let previousContinuity: [ThemeSummary]
-    let calendar: Calendar
-}
-// swiftlint:enable file_length function_body_length
+// swiftlint:enable function_body_length
