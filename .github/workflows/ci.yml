@@ -17,8 +17,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  CI_SIMULATOR_PRO: platform=iOS Simulator,name=iPhone 17 Pro,OS=26.3
-  CI_SIMULATOR_XR: platform=iOS Simulator,name=iPhone XR,OS=17.5
+  CI_SIMULATOR_PRO: platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2
+  CI_SIMULATOR_XR: platform=iOS Simulator,name=iPhone SE (3rd generation),OS=18.5
 
 jobs:
   lint-build:
@@ -31,10 +31,6 @@ jobs:
       - uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: '26.3'
-
-
-      - name: Install SwiftLint
-        run: brew install swiftlint
 
       - name: Lint
         run: make lint
@@ -53,10 +49,6 @@ jobs:
         with:
           xcode-version: '26.3'
 
-
-      - name: Install SwiftLint
-        run: brew install swiftlint
-
       - name: Full CI (make)
         run: make ci-merge-queue
 
@@ -70,10 +62,6 @@ jobs:
       - uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: '26.3'
-
-
-      - name: Install SwiftLint
-        run: brew install swiftlint
 
       - name: Full CI (make)
         run: make ci-merge-queue
@@ -90,10 +78,6 @@ jobs:
       - uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: '26.3'
-
-
-      - name: Install SwiftLint
-        run: brew install swiftlint
 
       - name: Full CI (make)
         run: make ci-pr-full-ci

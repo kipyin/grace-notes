@@ -2,9 +2,9 @@ PROJECT := GraceNotes/GraceNotes.xcodeproj
 SCHEME := GraceNotes
 DESTINATION ?= platform=iOS Simulator,name=iPhone 17 Pro,OS=latest
 # Default pins for CI. Override if runtimes differ; see `make list-simulator-destinations`.
-CI_SIMULATOR_PRO ?= platform=iOS Simulator,name=iPhone 17 Pro,OS=26.3
-CI_SIMULATOR_XR ?= platform=iOS Simulator,name=iPhone XR,OS=17.5
-TEST_DESTINATION_MATRIX ?= iPhone XR@17.5;iPhone 17 Pro@26.3
+CI_SIMULATOR_PRO ?= platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2
+CI_SIMULATOR_XR ?= platform=iOS Simulator,name=iPhone SE (3rd generation),OS=18.5
+TEST_DESTINATION_MATRIX ?= iPhone SE (3rd generation)@18.5;iPhone 17 Pro@26.2
 ISOLATED_DERIVED_DATA := /tmp/GraceNotes-TestDerivedData
 UNIT_TEST_BUNDLE := GraceNotesTests
 UI_TEST_BUNDLE := GraceNotesUITests
@@ -38,8 +38,8 @@ help:
 	@echo "  make ci-pr-full-ci - Same as ci-merge-queue (PR label full-ci)"
 	@echo ""
 	@echo "Configurable variables:"
-	@echo "  DESTINATION='platform=iOS Simulator,name=iPhone 17 Pro,OS=26.3'"
-	@echo "  TEST_DESTINATION_MATRIX='iPhone XR@17.5;iPhone 17 Pro@26.3'"
+	@echo "  DESTINATION='platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2'"
+	@echo "  TEST_DESTINATION_MATRIX='iPhone SE (3rd generation)@18.5;iPhone 17 Pro@26.2'"
 	@echo ""
 	@echo "Note: GraceNotes (Demo) scheme remains in Xcode for sample-data runs; Makefile does not test it."
 

@@ -87,8 +87,8 @@ Use the root `Makefile` for common local workflows (tests use the **GraceNotes**
 Examples:
 
 ```bash
-make test DESTINATION='platform=iOS Simulator,name=iPhone 17 Pro,OS=26.3'
-make test-matrix TEST_DESTINATION_MATRIX='iPhone XR@17.5;iPhone 17 Pro@26.3'
+make test DESTINATION='platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2'
+make test-matrix TEST_DESTINATION_MATRIX='iPhone SE (3rd generation)@18.5;iPhone 17 Pro@26.2'
 ```
 
 On iOS 17 simulators, `make` applies targeted `-skip-testing` flags for a few hosted SwiftData suites that crash before assertions; see `Makefile` (`LEGACY_RUNTIME_SKIP_FLAGS`).
@@ -109,9 +109,9 @@ Workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml). All simulator 
 
 | When | What runs |
 |------|-----------|
-| **Pull request → `main`** | **Lint & build (iPhone 17 Pro)** — `make lint` then `make ci-build`. **`CI_SIMULATOR_PRO`** is **iPhone 17 Pro @ iOS 26.3**. |
+| **Pull request → `main`** | **Lint & build (iPhone 17 Pro)** — `make lint` then `make ci-build`. **`CI_SIMULATOR_PRO`** is **iPhone 17 Pro @ iOS 26.2** (hosted-runner compromise; SE (3rd generation) smoke remains iOS 18.5). |
 | **Push → `main`** | **Push main — lint, test, UI smoke** — `make ci-merge-queue` (same as merge queue). Use this path when `main` moves outside a normal PR/merge-queue flow (rare). Routine merges via merge queue are validated by **`merge_group`**, not by this job. |
-| **Merge queue** | **Merge queue — lint, test, UI smoke** — `make ci-merge-queue`: `make lint`, `make test` on **iPhone 17 Pro** (`CI_SIMULATOR_PRO`), then `make test-ui-smoke` on **iPhone XR** (`CI_SIMULATOR_XR`), **iOS 26.3** (17 Pro) and **iOS 17.5** (XR). Smoke: `GraceNotesSmokeUITests.testSmokeLaunch`. |
+| **Merge queue** | **Merge queue — lint, test, UI smoke** — `make ci-merge-queue`: `make lint`, `make test` on **iPhone 17 Pro** (`CI_SIMULATOR_PRO`), then `make test-ui-smoke` on **iPhone SE (3rd generation)** (`CI_SIMULATOR_XR`), **iOS 26.2** (17 Pro) and **iOS 18.5** (SE). Smoke: `GraceNotesSmokeUITests.testSmokeLaunch`. |
 | **Pull request + label `full-ci`** | **PR full-ci — lint, test, UI smoke** — `make ci-pr-full-ci` (same as merge queue). Re-runs on new commits while the label is present. |
 
 The **`full-ci`** label must exist in the GitHub repo (Issues → Labels). Adjust **`CI_SIMULATOR_PRO`** / **`CI_SIMULATOR_XR`** in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) and [`Makefile`](Makefile) if Apple or runner images change.
