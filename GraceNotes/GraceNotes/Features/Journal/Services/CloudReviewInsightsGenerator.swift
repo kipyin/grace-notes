@@ -70,7 +70,8 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
             recurringPeople: payload.recurringPeople.map { .init(label: $0.label, count: $0.count) },
             resurfacingMessage: payload.resurfacingMessage,
             continuityPrompt: payload.continuityPrompt,
-            narrativeSummary: payload.narrativeSummary
+            narrativeSummary: payload.narrativeSummary,
+            cloudSkippedReason: nil
         )
     }
 

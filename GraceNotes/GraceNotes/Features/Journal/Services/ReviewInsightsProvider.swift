@@ -1,10 +1,13 @@
 import Foundation
+import OSLog
 
 struct ReviewInsightsProvider: Sendable {
     static let aiFeaturesEnabledKey = SummarizerProvider.useCloudUserDefaultsKey
     /// Legacy key removed by `migrateLegacyAIFeaturesToggleIfNeeded`;
     /// still consulted for install-continuity heuristics.
     static let legacyAIFeaturesUserDefaultsKey = "useAIReviewInsights"
+
+    private static let logger = Logger(subsystem: "com.gracenotes.GraceNotes", category: "ReviewInsights")
 
     private let deterministicGenerator: any ReviewInsightsGenerating
     private let cloudGenerator: (any ReviewInsightsGenerating)?
@@ -50,27 +53,69 @@ struct ReviewInsightsProvider: Sendable {
             calendar: calendar
         )
 
-        if useAI, cloudAllowed, let cloudGenerator,
-           let cloudInsights = try? await cloudGenerator.generateInsights(
-            from: entries,
-            referenceDate: referenceDate,
-            calendar: calendar
-           ) {
-            return cloudInsights
+        if useAI, cloudAllowed, let cloudGenerator {
+            do {
+                return try await cloudGenerator.generateInsights(
+                    from: entries,
+                    referenceDate: referenceDate,
+                    calendar: calendar
+                )
+            } catch {
+                Self.logger.debug("Cloud review insights failed: \(String(describing: error), privacy: .private)")
+                return await deterministicOrSparseInsights(
+                    from: entries,
+                    referenceDate: referenceDate,
+                    calendar: calendar,
+                    cloudSkippedReason: ReviewCloudInsightSkipReason.fromCloudFailure(error)
+                )
+            }
         }
 
+        let cloudSkippedReason: ReviewCloudInsightSkipReason? = {
+            guard useAI else { return nil }
+            if !cloudAllowed {
+                return .insufficientEvidenceThisWeek
+            }
+            if cloudGenerator == nil {
+                return .cloudMisconfigured
+            }
+            return nil
+        }()
+
+        return await deterministicOrSparseInsights(
+            from: entries,
+            referenceDate: referenceDate,
+            calendar: calendar,
+            cloudSkippedReason: cloudSkippedReason
+        )
+    }
+
+    private func deterministicOrSparseInsights(
+        from entries: [JournalEntry],
+        referenceDate: Date,
+        calendar: Calendar,
+        cloudSkippedReason: ReviewCloudInsightSkipReason?
+    ) async -> ReviewInsights {
         if let deterministicInsights = try? await deterministicGenerator.generateInsights(
             from: entries,
             referenceDate: referenceDate,
             calendar: calendar
         ) {
-            return deterministicInsights
+            return deterministicInsights.withCloudSkippedReason(cloudSkippedReason)
         }
 
-        return sparseFallbackInsights(referenceDate: referenceDate, calendar: calendar)
+        return sparseFallbackInsights(
+            referenceDate: referenceDate,
+            calendar: calendar,
+            cloudSkippedReason: cloudSkippedReason
+        )
     }
 
-    private func sparseFallbackInsights(referenceDate: Date, calendar: Calendar) -> ReviewInsights {
+    private func sparseFallbackInsights(
+        referenceDate: Date,
+        calendar: Calendar,
+        cloudSkippedReason: ReviewCloudInsightSkipReason?
+    ) -> ReviewInsights {
         let weekRange = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
         let fallbackInsight = ReviewWeeklyInsight(
             pattern: .sparseFallback,
@@ -97,7 +142,8 @@ struct ReviewInsightsProvider: Sendable {
             continuityPrompt: fallbackInsight.action ?? String(
                 localized: "What feels most important to carry into next week?"
             ),
-            narrativeSummary: nil
+            narrativeSummary: nil,
+            cloudSkippedReason: cloudSkippedReason
         )
     }
 

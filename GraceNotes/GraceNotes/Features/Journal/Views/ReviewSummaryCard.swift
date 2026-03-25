@@ -12,10 +12,13 @@ struct ReviewSummaryCard: View {
     /// many journal entries. UI-only; not cloud eligibility.
     private static let minWeekEntriesToOmitContinueNudge = 4
 
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    @State private var showCloudSkipExplanation = false
+    @State private var cloudSkipExplanationMessage = ""
+
     let insights: ReviewInsights?
+    let aiFeaturesEnabled: Bool
     let isLoading: Bool
     let weekJournalEntryCount: Int
     let onContinueToToday: () -> Void
@@ -39,6 +42,14 @@ struct ReviewSummaryCard: View {
         .fixedSize(horizontal: false, vertical: true)
         .padding(.horizontal, 16)
         .padding(.vertical, 4)
+        .alert(
+            String(localized: "On your device this week"),
+            isPresented: $showCloudSkipExplanation
+        ) {
+            Button(String(localized: "OK"), role: .cancel) {}
+        } message: {
+            Text(cloudSkipExplanationMessage)
+        }
     }
 
     @ViewBuilder
@@ -55,7 +66,7 @@ struct ReviewSummaryCard: View {
     private func insightsContent(for insights: ReviewInsights) -> some View {
         let bodies = dedupedPanelBodies(for: insights)
         return VStack(alignment: .leading, spacing: 0) {
-            sourcePillsRow(for: insights.source)
+            sourceBadgeRow(for: insights)
                 .padding(.bottom, 8)
 
             VStack(alignment: .leading, spacing: 10) {
@@ -126,67 +137,60 @@ struct ReviewSummaryCard: View {
             .fixedSize(horizontal: false, vertical: true)
     }
 
-    @ViewBuilder
-    private func sourcePillsRow(for source: ReviewInsightSource) -> some View {
-        if dynamicTypeSize.isAccessibilitySize {
-            VStack(alignment: .leading, spacing: 8) {
-                sourcePill(text: String(localized: "On-device"), isSelected: source == .deterministic)
-                sourcePill(text: String(localized: "AI"), isSelected: source == .cloudAI)
-            }
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(sourceAccessibilityLabel(for: source))
-        } else {
-            ViewThatFits(in: .horizontal) {
-                sourcePillsHStack(for: source)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                VStack(alignment: .leading, spacing: 8) {
-                    sourcePill(text: String(localized: "On-device"), isSelected: source == .deterministic)
-                    sourcePill(text: String(localized: "AI"), isSelected: source == .cloudAI)
+    private func sourceBadgeRow(for insights: ReviewInsights) -> some View {
+        let badgeLabel = sourceBadgeLabel(for: insights.source)
+        let showCloudSkipInfo = aiFeaturesEnabled
+            && insights.source == .deterministic
+            && insights.cloudSkippedReason != nil
+
+        return HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(badgeLabel)
+                .font(AppTheme.warmPaperMeta.weight(.semibold))
+                .foregroundStyle(AppTheme.reviewTextPrimary)
+                .multilineTextAlignment(.leading)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(AppTheme.reviewAccent.opacity(0.2))
                 }
+                .overlay {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .stroke(AppTheme.border.opacity(0.45), lineWidth: 1)
+                }
+
+            if showCloudSkipInfo {
+                Button {
+                    if let reason = insights.cloudSkippedReason {
+                        cloudSkipExplanationMessage = reason.localizedExplanation
+                        showCloudSkipExplanation = true
+                    }
+                } label: {
+                    Image(systemName: "info.circle")
+                        .font(AppTheme.warmPaperMeta.weight(.semibold))
+                        .foregroundStyle(AppTheme.reviewAccent)
+                        .imageScale(.small)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(String(localized: "Why on-device insights this week"))
+                .accessibilityHint(String(localized: "Shows why Cloud AI wasn't used for this weekly digest."))
+                .accessibilityIdentifier("ReviewInsightCloudSkipInfoButton")
             }
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(sourceAccessibilityLabel(for: source))
+
+            Spacer(minLength: 0)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .contain)
     }
 
-    private func sourcePillsHStack(for source: ReviewInsightSource) -> some View {
-        HStack(spacing: 8) {
-            sourcePill(text: String(localized: "On-device"), isSelected: source == .deterministic)
-            sourcePill(text: String(localized: "AI"), isSelected: source == .cloudAI)
-        }
-    }
-
-    private func sourcePill(text: String, isSelected: Bool) -> some View {
-        Text(text)
-            .font(AppTheme.warmPaperMeta.weight(.semibold))
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .foregroundStyle(isSelected ? AppTheme.reviewOnAccent : AppTheme.reviewTextMuted)
-            .background {
-                Capsule(style: .continuous)
-                    .fill(isSelected ? AppTheme.reviewAccent.opacity(0.32) : Color.clear)
-            }
-            .overlay {
-                Capsule(style: .continuous)
-                    .stroke(AppTheme.border.opacity(isSelected ? 0.35 : 0.5), lineWidth: 1)
-            }
-            .accessibilityHidden(true)
-    }
-
-    private func sourceAccessibilityLabel(for source: ReviewInsightSource) -> String {
-        String(
-            format: String(localized: "%1$@, %2$@"),
-            String(localized: "Source"),
-            insightSourceText(source)
-        )
-    }
-
-    private func insightSourceText(_ source: ReviewInsightSource) -> String {
+    private func sourceBadgeLabel(for source: ReviewInsightSource) -> String {
         switch source {
-        case .cloudAI:
-            return String(localized: "AI")
         case .deterministic:
-            return String(localized: "On-device")
+            String(localized: "Source: On your device")
+        case .cloudAI:
+            String(localized: "Source: Cloud AI")
         }
     }
 
@@ -380,13 +384,9 @@ private struct InsightsLoadingSkeleton: View {
     }
 
     private var sourceSkeletonRow: some View {
-        HStack(spacing: 8) {
-            InsightsPlaceholderBar(widthFraction: 1, height: 13)
-                .frame(width: 76, alignment: .leading)
-            InsightsPlaceholderBar(widthFraction: 1, height: 13)
-                .frame(width: 56, alignment: .leading)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        InsightsPlaceholderBar(widthFraction: 1, height: 13)
+            .frame(width: 200, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func skeletonInsetPanel(

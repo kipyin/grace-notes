@@ -29,7 +29,8 @@ struct DeterministicReviewInsightsGenerator: ReviewInsightsGenerating {
             recurringPeople: analysis.recurringPeople,
             resurfacingMessage: analysis.resurfacingMessage,
             continuityPrompt: analysis.continuityPrompt,
-            narrativeSummary: analysis.narrativeSummary
+            narrativeSummary: analysis.narrativeSummary,
+            cloudSkippedReason: nil
         )
     }
 

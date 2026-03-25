@@ -84,7 +84,8 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
             recurringPeople: insights.recurringPeople,
             resurfacingMessage: insights.resurfacingMessage,
             continuityPrompt: insights.continuityPrompt,
-            narrativeSummary: insights.narrativeSummary
+            narrativeSummary: insights.narrativeSummary,
+            cloudSkippedReason: insights.cloudSkippedReason
         )
         XCTAssertFalse(ReviewInsightsRefreshPolicy.isSparseProviderFallback(insights))
     }
@@ -145,7 +146,8 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
             recurringPeople: [],
             resurfacingMessage: fallbackInsight.observation,
             continuityPrompt: fallbackInsight.action ?? "",
-            narrativeSummary: nil
+            narrativeSummary: nil,
+            cloudSkippedReason: nil
         )
     }
 
@@ -170,7 +172,8 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
             recurringPeople: [],
             resurfacingMessage: "Resurfacing",
             continuityPrompt: "Continuity",
-            narrativeSummary: nil
+            narrativeSummary: nil,
+            cloudSkippedReason: nil
         )
     }
 }

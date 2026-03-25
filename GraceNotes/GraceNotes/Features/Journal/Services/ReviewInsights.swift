@@ -5,6 +5,76 @@ enum ReviewInsightSource: String, Sendable, Codable {
     case cloudAI
 }
 
+/// Set when the user enabled Cloud AI but this digest still used the on-device path (see issue #83).
+enum ReviewCloudInsightSkipReason: String, Equatable, Sendable, Codable {
+    /// Fewer than the minimum meaningful reflections for cloud generation this review week.
+    case insufficientEvidenceThisWeek
+    /// No cloud generator (for example, missing API key in this build).
+    case cloudMisconfigured
+    /// Device offline, DNS failure, or connection lost before a response.
+    case cloudNetworkUnavailable
+    /// Request timed out (client or HTTP 408).
+    case cloudRequestTimedOut
+    /// HTTP 401 / 403 / 429 or equivalent access or rate limiting.
+    case cloudServiceAuthOrQuota
+    /// HTTP 5xx or service temporarily unavailable.
+    case cloudServiceTemporarilyUnavailable
+    /// Unreadable HTTP response, empty model content, or JSON that could not be parsed.
+    case cloudResponseNotUsable
+    /// Model output failed the grounded-quality gate after sanitization.
+    case cloudInsightQualityCheckFailed
+    /// Unknown error or legacy cached value.
+    case cloudGenerationFailed
+}
+
+extension ReviewCloudInsightSkipReason {
+    // Long user-facing sentences; keys match `Localizable.xcstrings`.
+    // swiftlint:disable line_length
+    /// Short explanation for the review-source info affordance.
+    var localizedExplanation: String {
+        switch self {
+        case .insufficientEvidenceThisWeek:
+            String(
+                localized: "Cloud insights need at least three meaningful reflections in this review week. With lighter weeks, Grace Notes keeps this digest on your device."
+            )
+        case .cloudMisconfigured:
+            String(
+                localized: "Cloud AI isn't available in this build (for example, no API key). This digest stayed on your device."
+            )
+        case .cloudNetworkUnavailable:
+            String(
+                localized: "Grace Notes couldn't reach Cloud AI. Check your connection and try again when you're online."
+            )
+        case .cloudRequestTimedOut:
+            String(
+                localized: "The Cloud AI request timed out. Grace Notes used your on-device summary; try again in a moment."
+            )
+        case .cloudServiceAuthOrQuota:
+            String(
+                localized: "Cloud AI couldn't complete this request (access or rate limiting). Check your Cloud AI setup in Settings, or try again later."
+            )
+        case .cloudServiceTemporarilyUnavailable:
+            String(
+                localized: "Cloud AI is temporarily unavailable. Grace Notes used your on-device summary for now; try again later."
+            )
+        case .cloudResponseNotUsable:
+            String(
+                localized: "Cloud AI sent a response Grace Notes couldn't turn into a weekly digest. Your on-device summary is shown instead."
+            )
+        case .cloudInsightQualityCheckFailed:
+            String(
+                localized: "To keep this digest close to what you wrote, Grace Notes skipped Cloud AI's draft and showed your on-device summary instead."
+            )
+        case .cloudGenerationFailed:
+            String(
+                localized: "Something went wrong with Cloud AI. Grace Notes used your on-device summary instead."
+            )
+        }
+    }
+
+    // swiftlint:enable line_length
+}
+
 enum ReviewWeeklyInsightPattern: String, Sendable, Codable {
     case recurringPeople
     case recurringTheme
@@ -42,6 +112,27 @@ struct ReviewInsights: Equatable, Sendable, Codable {
     let resurfacingMessage: String
     let continuityPrompt: String
     let narrativeSummary: String?
+    /// Present when Cloud AI was enabled at generation time but the digest used the on-device path.
+    let cloudSkippedReason: ReviewCloudInsightSkipReason?
+}
+
+extension ReviewInsights {
+    func withCloudSkippedReason(_ reason: ReviewCloudInsightSkipReason?) -> ReviewInsights {
+        ReviewInsights(
+            source: source,
+            generatedAt: generatedAt,
+            weekStart: weekStart,
+            weekEnd: weekEnd,
+            weeklyInsights: weeklyInsights,
+            recurringGratitudes: recurringGratitudes,
+            recurringNeeds: recurringNeeds,
+            recurringPeople: recurringPeople,
+            resurfacingMessage: resurfacingMessage,
+            continuityPrompt: continuityPrompt,
+            narrativeSummary: narrativeSummary,
+            cloudSkippedReason: reason
+        )
+    }
 }
 
 protocol ReviewInsightsGenerating: Sendable {

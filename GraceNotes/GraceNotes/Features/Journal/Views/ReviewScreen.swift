@@ -160,6 +160,7 @@ struct ReviewScreen: View {
         Section {
             ReviewSummaryCard(
                 insights: reviewInsights,
+                aiFeaturesEnabled: aiFeaturesEnabled,
                 isLoading: isLoadingInsights,
                 weekJournalEntryCount: weeklyEntriesForRefresh.count,
                 onContinueToToday: { appNavigation.selectedTab = .today }

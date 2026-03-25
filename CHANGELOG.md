@@ -16,6 +16,8 @@ Work tracked toward milestone **0.5.2** (Settings cohesion and insight follow-th
 - Contributor workflow: removed `GraceNotes/docs/agent-log/`, `Scripts/validate-agent-log.sh`, and `make verify-agent-log*`; use GitHub issues/PRs and `AGENTS.md` for coordination.
 
 ### Changed
+- Review > Insights: single read-only **Source** badge (replacing twin pills that read like a control); when Cloud AI is on but the digest is still on-device, an info button explains why (weekly evidence threshold, missing cloud setup, or a failed cloud attempt) (#83).
+- Review > Insights: on-device cloud skip explanations are **more specific** (connection, timeout, service or access limits, unreadable response, quality gate, or generic fallback), mapped from `CloudReviewInsightsError`, HTTP status, and `URLError`, with matching **en** / **zh-Hans** catalog strings.
 - Settings: section headers use authored title case instead of all-caps list header styling (#84).
 - Review > Insights: thin-week **Write today's reflection** control switches to **Today**; flatter insights column (inset panels only, no outer summary shell); **This week** title row shows the week date range; read-only **On your device** / **AI** source pills; unified semibold panel titles; system **Insights** / **Timeline** segmented control (Liquid Glass on iOS 26+) with `ReviewModePicker` id preserved (#85).
 - Review insights engine: weekly **reflection day count** and **narrative summary** now treat non-empty reading notes or reflections as signal (even when the entry is still at **Soil** chip-wise), so sparse-week and narrative behavior match long-form journaling (#85).
