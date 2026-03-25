@@ -3,6 +3,9 @@ import SwiftUI
 import SwiftData
 import UIKit
 
+// This screen still hosts multiple interaction surfaces while the UI refresh is in progress.
+// swiftlint:disable file_length
+
 private enum JournalScreenLayout {
     static let journalScrollCoordinateSpaceName = "journalMainScroll"
     static let unlockToastScrollDismissThreshold: CGFloat = 20

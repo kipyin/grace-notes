@@ -25,13 +25,19 @@ This project **requires macOS + Xcode 15+** to build, run, and test. The Cloud A
 
 ### Build and test commands (macOS only)
 
+Prefer **`make`** from the repo root so destinations and flags stay aligned with `Makefile` (`make ci`, `make test`, `make test-matrix`). Destinations are validated/resolved by `Scripts/simulator_destination.py` (Python 3).
+
 ```bash
+make ci
+# or, ad hoc:
 xcodebuild \
   -project GraceNotes/GraceNotes.xcodeproj \
   -scheme GraceNotes \
-  -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
+  -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
   test
 ```
+
+Automated Makefile targets test the **GraceNotes** scheme only. The **GraceNotes (Demo)** scheme remains in Xcode for local runs with demo seed data; it is not part of `make test` / `make ci`.
 
 ### Lint command
 
@@ -39,7 +45,7 @@ xcodebuild \
 swiftlint lint
 ```
 
-Runs from the repo root; lints all `.swift` files recursively. As of 2026-03-24, reports 16 violations (warnings, 0 serious) across 141 files. The `statement_position` rule is skipped because it requires SourceKit (unavailable in the static binary). Exit code 2 is expected when there are error-level violations; this does **not** mean the tool failed.
+Runs from the repo root; lints all `.swift` files recursively per `.swiftlint.yml`. The `statement_position` rule is skipped because it requires SourceKit (unavailable in the static binary). Exit code 2 is expected when there are error-level violations; this does **not** mean the tool failed.
 
 On macOS, install SwiftLint via Homebrew if needed:
 

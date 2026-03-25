@@ -126,7 +126,9 @@ final class JournalUITests: XCTestCase {
 
     @MainActor
     func test_historyScreen_navigatesToPastEntry() throws {
-        throw XCTSkip("Temporarily skipped: timeline list rows are not reliably exposed to XCUITest in current simulator runtime.")
+        throw XCTSkip(
+            "Temporarily skipped: timeline list rows are not reliably exposed to XCUITest in current simulator runtime."
+        )
         let app = launchApp()
 
         // Add an entry on Today
@@ -154,7 +156,9 @@ final class JournalUITests: XCTestCase {
 
     @MainActor
     func test_pastEntryScreen_shareButtonIsVisibleAfterNavigatingFromHistory() throws {
-        throw XCTSkip("Temporarily skipped: timeline list rows are not reliably exposed to XCUITest in current simulator runtime.")
+        throw XCTSkip(
+            "Temporarily skipped: timeline list rows are not reliably exposed to XCUITest in current simulator runtime."
+        )
         let app = launchApp()
 
         addGratitude("Share test entry", in: app)

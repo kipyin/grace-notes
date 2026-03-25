@@ -2,6 +2,8 @@ import XCTest
 import SwiftData
 @testable import GraceNotes
 
+// Keeps mutation-path assertions in one place until test extraction is completed.
+// swiftlint:disable type_body_length
 @MainActor
 final class JournalViewModelMutationTests: XCTestCase {
     private var calendar: Calendar!
@@ -349,3 +351,4 @@ final class JournalViewModelMutationTests: XCTestCase {
         throw XCTSkip("Skipping due to known hosted SwiftData malloc crash on current iOS simulator runtime.")
     }
 }
+// swiftlint:enable type_body_length

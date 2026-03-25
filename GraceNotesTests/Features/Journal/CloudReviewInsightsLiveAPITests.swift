@@ -3,11 +3,11 @@ import XCTest
 
 /// End-to-end check against the configured OpenAI-compatible endpoint (real network).
 ///
-/// **Skipped** when no usable key is available, or on CI (unless `GRACENOTES_LIVE_CLOUD_API_KEY` is set there).
+/// **Skipped by default** unless `GRACENOTES_RUN_LIVE_CLOUD_INSIGHTS=1` is set.
 ///
-/// **Local + usable app key** (build-injected `CloudSummarizationAPIKey` via xcconfig): the test runs automatically.
-/// Simulator tests do not inherit shell environment variables from `xcodebuild`, so the app bundle plist is the
-/// reliable path from Xcode.
+/// **When enabled**: provide `GRACENOTES_LIVE_CLOUD_API_KEY` or a build-injected usable app key
+/// (`CloudSummarizationAPIKey` via xcconfig). Simulator tests do not inherit shell environment variables from
+/// `xcodebuild`, so the app bundle plist is still the reliable path from Xcode.
 ///
 /// **Opt-out** (local key present but you want offline tests): set `GRACENOTES_SKIP_LIVE_CLOUD_INSIGHTS=1` on the test
 /// scheme.
@@ -35,29 +35,26 @@ final class CloudReviewInsightsLiveAPITests: XCTestCase {
 
     private static func skipInstructions() -> String {
         """
-        Live cloud insights test skipped. Configure GRACE_NOTES_CLOUD_API_KEY \
-        (DeveloperSettings.local.xcconfig) or pass GRACENOTES_LIVE_CLOUD_API_KEY into the test process. \
-        On CI this test stays offline unless that env var is set.
+        Live cloud insights test skipped. Set GRACENOTES_RUN_LIVE_CLOUD_INSIGHTS=1 to enable it, then configure \
+        GRACE_NOTES_CLOUD_API_KEY (DeveloperSettings.local.xcconfig) or pass GRACENOTES_LIVE_CLOUD_API_KEY into the \
+        test process.
         """
     }
 
-    private static var isRunningOnCI: Bool {
-        let env = ProcessInfo.processInfo.environment
-        return env["CI"] == "true"
-            || env["GITHUB_ACTIONS"] == "true"
-            || env["BITRISE_IO"] == "true"
+    private static var shouldRunLiveCloudInsights: Bool {
+        ProcessInfo.processInfo.environment["GRACENOTES_RUN_LIVE_CLOUD_INSIGHTS"] == "1"
     }
 
     private static func resolveLiveAPIKey() -> String? {
+        guard shouldRunLiveCloudInsights else {
+            return nil
+        }
         if let env = ProcessInfo.processInfo.environment["GRACENOTES_LIVE_CLOUD_API_KEY"]?
             .trimmingCharacters(in: .whitespacesAndNewlines),
             ApiSecrets.isUsableCloudApiKey(env) {
             return env
         }
         if ProcessInfo.processInfo.environment["GRACENOTES_SKIP_LIVE_CLOUD_INSIGHTS"] == "1" {
-            return nil
-        }
-        if isRunningOnCI {
             return nil
         }
         if ApiSecrets.isCloudApiKeyConfigured {
