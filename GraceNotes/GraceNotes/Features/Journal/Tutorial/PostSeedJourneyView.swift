@@ -4,7 +4,7 @@ import SwiftUI
 /// Styled like app onboarding; **Done** (last page) or **Skip** (earlier pages) ends the flow and the guided tutorial.
 struct PostSeedJourneyView: View {
     let onFinish: () -> Void
-    /// When true, hides the Seed congratulations page (0.5.1+ upgraders already at or above Seed).
+    /// When true, hides the Seed congratulations page (0.5.0 build 7+ upgraders already at or above Seed).
     let skipsCongratulationsPage: Bool
 
     @Environment(\.openURL) var openURL

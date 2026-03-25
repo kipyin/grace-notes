@@ -132,10 +132,11 @@ This roadmap turns the strategic priority stack into a release sequence grounded
 
 **Versioning note:** If marketing needs the `0.4.0` label for insight work instead, ship sync reliability as a patch (e.g. `0.3.6`) first, then proceed with insight as `0.4.0`; document that swap in this file when chosen.
 
-## 0.5.0 — Released (2026-03-21)
+## 0.5.0 — Released (2026-03-21; build 7 / tag 2026-03-24)
 
 **Release status**
-- Shipped as **`0.5.0`**. See `CHANGELOG.md` for final packaged scope.
+- Insight and onboarding foundation shipped as **`0.5.0`** (2026-03-21). Upgrade orientation, packaging, and localization that were tagged as interim **`0.5.1`** / build **3** are consolidated as **`0.5.0`**, bundle **`7`**, git tag **`v0.5.0+7`** — see `CHANGELOG.md`.
+- Launch tracking uses **`lastLaunchedMarketingVersion`** and **`lastLaunchedBundleVersion`** so orientation still runs for users on older **0.5.0** builds.
 - Original integration used `release/0.5.0` (local branch may have been deleted).
 
 **Goal:** Make review feel specific, trustworthy, and grounded in the user’s own entries, while giving new and returning users calm first-week guidance that does not dilute the core ritual.
@@ -168,23 +169,7 @@ This roadmap turns the strategic priority stack into a release sequence grounded
 - Completion feedback stays calm and legible inside the current ritual.
 - First-week and return flows feel supportive rather than demanding; users understand how to progress without extra pressure.
 
-## 0.5.1 — Upgrade orientation (installed base)
-
-**Release status**
-- **Released (2026-03-24)** — marketing version **`0.5.1`**, bundle **`3`**; see `CHANGELOG.md` and git tag **`v0.5.1`**.
-- Branch/tag playbook: `GraceNotes/docs/agent-log/initiatives/015-release-0-5-1-patch/release.md`.
-
-**Goal:** Users upgrading from `0.5.0` (or any build below `0.5.1`) into `0.5.1` get a **one-time** first-week orientation on the first launch of that version; later launches and later versions do not repeat it unless product adds a new rule.
-
-**Scope in**
-- Version-persisted launch tracking (`lastLaunchedMarketingVersion`) and a pending upgrade-orientation flag
-- **Below Seed** on Today: full behavior-first guided journal, then the existing post-Seed journey (including congratulations)
-- **At or above Seed** on Today: skip chip coaching; post-Seed journey starts on the path/insights pages (no Seed congratulations); finish/skip clears the pending flag
-- No automatic changes to reminders, AI, or iCloud preferences during orientation; completing the journey no longer auto-dismisses Today suggestion banners
-
-**Acceptance intent**
-- Fresh install on `0.5.1` is unchanged relative to `0.5.0` onboarding behavior except as defined by the same first-week flows
-- Upgrade cohort sees orientation exactly once; second launch on `0.5.1` does not replay it
+**Upgrade orientation (installed base)** — folded into **`0.5.0` build `7`**: users crossing onto marketing **`0.5.0`** with bundle **`≥ 7`** from an older marketing version or an older **0.5.0** build get the **one-time** first-week orientation; second cold launch does not replay it. **Below Seed** keeps full guided chips + post-Seed journey with congratulations; **at or above Seed** skips chip coaching and uses the settings-oriented post-Seed path without Seed congratulations. Historical playbook: `GraceNotes/docs/agent-log/initiatives/015-release-0-5-1-patch/release.md`.
 
 ## 0.6.0 — Trust and ownership
 

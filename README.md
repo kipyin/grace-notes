@@ -6,9 +6,9 @@ A journaling iOS app for daily gratitude, reflection, and people in mind.
 
 Grace Notes (`感恩记`) guides you through a simple daily rhythm: 5 gratitudes, 5 needs, 5 people in mind, reading notes, and space for what you're thinking and learning. The app offers a quiet, low-friction place for gratitude and reflection, with a gentle framing that feels welcoming rather than pushy.
 
-## What's new in 0.5.1 (2026-03-24)
+## What's new in 0.5.0 (2026-03-24)
 
-- **Packaging** — Patch bump on the 0.5.x line: marketing version **0.5.1**, build **3**, Debug builds emit **dSYM** for richer crash logs, and the shared **GraceNotes** scheme’s Run action uses the **Release** configuration (verify this matches your day-to-day workflow in Xcode).
+- **Packaging** — Ships as marketing **0.5.0**, build **7** (git tag **v0.5.0+7**). Debug builds emit **dSYM** for richer crash logs, and the shared **GraceNotes** scheme’s Run action uses the **Release** configuration (verify this matches your day-to-day workflow in Xcode).
 - **Onboarding** — Milestone cards that jump to Settings share one eligibility rule with the UI and re-check it when you tap; onboarding/iCloud continuity keys use shared constants (see CHANGELOG **Developer** for detail). Post-Seed orientation sample Review preview matches real insights layout; welcome copy is slightly tighter.
 - **Localization** — String Catalog **zh-Hans** polish (including onboarding and Abundance-related copy) and aligned **Save to Photos** permission wording for **感恩记**.
 - **Cloud chips (#39)** — Chip cloud summarization picks instruction language the same way as Review (`AppInstructionLocale`), tightens low-signal and ungrounded-output handling, and adds focused unit tests (see CHANGELOG).

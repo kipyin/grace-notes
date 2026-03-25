@@ -8,7 +8,7 @@ enum JournalOnboardingSuggestion: CaseIterable {
 
 enum JournalOnboardingStorageKeys {
     static let completedGuidedJournal = "journalOnboarding.completedGuidedJournal"
-    /// True until the user finishes or skips the one-time upgrade orientation (0.5.1+ cohort).
+    /// True until the user finishes or skips the one-time upgrade orientation (0.5.0 build 7+ cohort).
     static let pending051UpgradeOrientation = "journalOnboarding.pending051UpgradeOrientation"
     /// Upgrade cohort: defer writing `completedGuidedJournal` until Today’s completion level is known.
     static let pending051GuidedJournalBranchResolution = "journalOnboarding.pending051GuidedJournalBranchResolution"
@@ -73,7 +73,7 @@ final class JournalOnboardingProgress {
         return migratedValue
     }
 
-    /// After Today’s entry loads, finalize the 0.5.1 upgrade cohort branch for `completedGuidedJournal`.
+    /// After Today’s entry loads, finalize the 0.5.0 build 7 upgrade cohort branch for `completedGuidedJournal`.
     /// At or above Seed on first load → skip chip coaching (`true`). Below Seed → keep full guided path (`false`).
     static func resolvePending051GuidedJournalBranch(
         todayCompletionLevel: JournalCompletionLevel,

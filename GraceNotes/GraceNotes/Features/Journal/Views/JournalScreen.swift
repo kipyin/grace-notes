@@ -531,7 +531,7 @@ private extension JournalScreen {
         hasCompletedGuidedJournal = true
     }
 
-    /// One-time post-Seed journey: new users at Seed, or 0.5.1 upgraders from Seed upward.
+    /// One-time post-Seed journey: new users at Seed, or 0.5.0 build 7 upgraders from Seed upward.
     private func evaluatePostSeedJourneyIfNeeded(for level: JournalCompletionLevel) {
         guard !ProcessInfo.graceNotesIsRunningUITests else { return }
         guard entryDate == nil else { return }

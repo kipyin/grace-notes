@@ -18,28 +18,62 @@ final class Orientation051LaunchTests: XCTestCase {
 
     func test_applyLaunch_firstInstall_doesNotFlagUpgradeOrientation() {
         let defaults = UserDefaults(suiteName: suiteName!)!
-        AppLaunchVersionTracker.applyLaunch(defaults: defaults, currentMarketingVersionOverride: "0.5.1")
-        XCTAssertFalse(defaults.bool(forKey: JournalOnboardingStorageKeys.pending051UpgradeOrientation))
-        XCTAssertEqual(
-            defaults.string(forKey: GraceNotesLaunchStorageKeys.lastLaunchedMarketingVersion),
-            "0.5.1"
+        AppLaunchVersionTracker.applyLaunch(
+            defaults: defaults,
+            currentMarketingVersionOverride: "0.5.0",
+            currentBundleVersionOverride: 7
         )
-    }
-
-    func test_applyLaunch_upgradeFrom050_setsPendingAndClearsGuidedKey() {
-        assertUpgradeFromOlderMarketingVersionSetsPending(previousMarketing: "0.5.0")
+        XCTAssertFalse(defaults.bool(forKey: JournalOnboardingStorageKeys.pending051UpgradeOrientation))
+        XCTAssertEqual(defaults.string(forKey: GraceNotesLaunchStorageKeys.lastLaunchedMarketingVersion), "0.5.0")
+        XCTAssertEqual(defaults.integer(forKey: GraceNotesLaunchStorageKeys.lastLaunchedBundleVersion), 7)
     }
 
     func test_applyLaunch_upgradeFrom040_setsPendingAndClearsGuidedKey() {
-        assertUpgradeFromOlderMarketingVersionSetsPending(previousMarketing: "0.4.0")
+        assertUpgradeSetsPending(previousMarketing: "0.4.0", previousBundle: nil)
     }
 
-    func test_applyLaunch_secondLaunch051_doesNotReflagPending() {
+    func test_applyLaunch_upgradeFrom050WithNoStoredBundle_setsPending() {
         let defaults = UserDefaults(suiteName: suiteName!)!
-        defaults.set("0.5.1", forKey: GraceNotesLaunchStorageKeys.lastLaunchedMarketingVersion)
+        defaults.set("0.5.0", forKey: GraceNotesLaunchStorageKeys.lastLaunchedMarketingVersion)
+        defaults.set(true, forKey: JournalOnboardingStorageKeys.completedGuidedJournal)
+
+        AppLaunchVersionTracker.applyLaunch(
+            defaults: defaults,
+            currentMarketingVersionOverride: "0.5.0",
+            currentBundleVersionOverride: 7
+        )
+
+        XCTAssertTrue(defaults.bool(forKey: JournalOnboardingStorageKeys.pending051UpgradeOrientation))
+        XCTAssertNil(defaults.object(forKey: JournalOnboardingStorageKeys.completedGuidedJournal))
+    }
+
+    func test_applyLaunch_upgradeFrom050Build3ToBuild7_setsPending() {
+        let defaults = UserDefaults(suiteName: suiteName!)!
+        defaults.set("0.5.0", forKey: GraceNotesLaunchStorageKeys.lastLaunchedMarketingVersion)
+        defaults.set(3, forKey: GraceNotesLaunchStorageKeys.lastLaunchedBundleVersion)
+        defaults.set(true, forKey: JournalOnboardingStorageKeys.completedGuidedJournal)
+
+        AppLaunchVersionTracker.applyLaunch(
+            defaults: defaults,
+            currentMarketingVersionOverride: "0.5.0",
+            currentBundleVersionOverride: 7
+        )
+
+        XCTAssertTrue(defaults.bool(forKey: JournalOnboardingStorageKeys.pending051UpgradeOrientation))
+        XCTAssertNil(defaults.object(forKey: JournalOnboardingStorageKeys.completedGuidedJournal))
+    }
+
+    func test_applyLaunch_secondLaunchAt050Build7_doesNotReflagPending() {
+        let defaults = UserDefaults(suiteName: suiteName!)!
+        defaults.set("0.5.0", forKey: GraceNotesLaunchStorageKeys.lastLaunchedMarketingVersion)
+        defaults.set(7, forKey: GraceNotesLaunchStorageKeys.lastLaunchedBundleVersion)
         defaults.set(false, forKey: JournalOnboardingStorageKeys.pending051UpgradeOrientation)
 
-        AppLaunchVersionTracker.applyLaunch(defaults: defaults, currentMarketingVersionOverride: "0.5.1")
+        AppLaunchVersionTracker.applyLaunch(
+            defaults: defaults,
+            currentMarketingVersionOverride: "0.5.0",
+            currentBundleVersionOverride: 7
+        )
 
         XCTAssertFalse(defaults.bool(forKey: JournalOnboardingStorageKeys.pending051UpgradeOrientation))
     }
@@ -77,19 +111,24 @@ final class Orientation051LaunchTests: XCTestCase {
         assertResolveBranchAtOrAboveSeedSetsGuidedComplete(level: .ripening)
     }
 
-    private func assertUpgradeFromOlderMarketingVersionSetsPending(previousMarketing: String) {
+    private func assertUpgradeSetsPending(previousMarketing: String, previousBundle: Int?) {
         let defaults = UserDefaults(suiteName: suiteName!)!
         defaults.set(previousMarketing, forKey: GraceNotesLaunchStorageKeys.lastLaunchedMarketingVersion)
+        if let previousBundle {
+            defaults.set(previousBundle, forKey: GraceNotesLaunchStorageKeys.lastLaunchedBundleVersion)
+        }
         defaults.set(true, forKey: JournalOnboardingStorageKeys.completedGuidedJournal)
 
-        AppLaunchVersionTracker.applyLaunch(defaults: defaults, currentMarketingVersionOverride: "0.5.1")
+        AppLaunchVersionTracker.applyLaunch(
+            defaults: defaults,
+            currentMarketingVersionOverride: "0.5.0",
+            currentBundleVersionOverride: 7
+        )
 
         XCTAssertTrue(defaults.bool(forKey: JournalOnboardingStorageKeys.pending051UpgradeOrientation))
         XCTAssertNil(defaults.object(forKey: JournalOnboardingStorageKeys.completedGuidedJournal))
-        XCTAssertEqual(
-            defaults.string(forKey: GraceNotesLaunchStorageKeys.lastLaunchedMarketingVersion),
-            "0.5.1"
-        )
+        XCTAssertEqual(defaults.string(forKey: GraceNotesLaunchStorageKeys.lastLaunchedMarketingVersion), "0.5.0")
+        XCTAssertEqual(defaults.integer(forKey: GraceNotesLaunchStorageKeys.lastLaunchedBundleVersion), 7)
     }
 
     private func assertResolveBranchAtOrAboveSeedSetsGuidedComplete(level: JournalCompletionLevel) {
