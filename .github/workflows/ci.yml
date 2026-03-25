@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+  merge_group:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PROJECT: GraceNotes/GraceNotes.xcodeproj
+  SCHEME: GraceNotes
+  XCODE_TEST_FLAGS: -parallel-testing-enabled NO
+
+jobs:
+  build:
+    name: Build (${{ matrix.simulator }})
+    if: github.event_name == 'push'
+    runs-on: macos-15
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        simulator:
+          - iPhone 17
+          - iPhone 17 Pro
+          - iPhone XR
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Build
+        run: >
+          xcodebuild -project "$PROJECT" -scheme "$SCHEME"
+          -destination "platform=iOS Simulator,name=${{ matrix.simulator }},OS=latest"
+          build
+
+  merge-queue-tests:
+    name: Merge queue — tests (iPhone 17 Pro)
+    if: github.event_name == 'merge_group'
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Install SwiftLint
+        run: brew install swiftlint
+
+      - name: Lint
+        run: make lint
+
+      - name: Test
+        run: >
+          make test
+          DESTINATION='platform=iOS Simulator,name=iPhone 17 Pro,OS=latest'
+
+  merge-queue-ui-smoke:
+    name: Merge queue — UI smoke (iPhone XR)
+    if: github.event_name == 'merge_group'
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: UI smoke test
+        run: >
+          xcodebuild -project "$PROJECT" -scheme "$SCHEME"
+          -destination 'platform=iOS Simulator,name=iPhone XR,OS=latest'
+          $XCODE_TEST_FLAGS
+          -only-testing:GraceNotesUITests/GraceNotesSmokeUITests/testSmokeLaunch
+          test
+
+  pr-full-ci:
+    name: PR full-ci — tests (iPhone 17 Pro)
+    if: >
+      github.event_name == 'pull_request' &&
+      contains(join(github.event.pull_request.labels.*.name, ','), 'full-ci')
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Install SwiftLint
+        run: brew install swiftlint
+
+      - name: Lint
+        run: make lint
+
+      - name: Test
+        run: >
+          make test
+          DESTINATION='platform=iOS Simulator,name=iPhone 17 Pro,OS=latest'

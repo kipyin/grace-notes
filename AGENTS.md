@@ -25,11 +25,13 @@ This project **requires macOS + Xcode 15+** to build, run, and test. The Cloud A
 
 ### Build and test commands (macOS only)
 
+Local defaults use the root [`Makefile`](Makefile) destination (**iPhone 17**). CI uses additional simulators and **iPhone 17 Pro** for full tests; see **CI (GitHub Actions)** in [`README.md`](README.md).
+
 ```bash
 xcodebuild \
   -project GraceNotes/GraceNotes.xcodeproj \
   -scheme GraceNotes \
-  -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
+  -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
   test
 ```
 

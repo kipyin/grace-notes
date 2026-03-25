@@ -89,6 +89,18 @@ brew install swiftlint
 
 Note: `make test-demo` and `make test-all` intentionally reset simulators to reduce flaky preflight failures. This wipes simulator state for deterministic test runs.
 
+## CI (GitHub Actions)
+
+Workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (job names below are the **check names** to mark required in branch protection / merge queue).
+
+| When | What runs |
+|------|-----------|
+| **Push** | **Build** only, one simulator at a time (`strategy.max-parallel: 1`): **iPhone 17**, **iPhone 17 Pro**, **iPhone XR** (`xcodebuild build`, `OS=latest`). |
+| **Merge queue** | **Merge queue — tests (iPhone 17 Pro):** `make lint` and `make test` with destination **iPhone 17 Pro**. **Merge queue — UI smoke (iPhone XR):** single UI test `GraceNotesSmokeUITests.testSmokeLaunch` (`GraceNotesUITests` target). |
+| **Pull request** (optional) | If the PR has the **`full-ci`** label: **PR full-ci — tests (iPhone 17 Pro)** — same lint + test as the merge-queue test job. Re-runs on new commits while the label stays on the PR. |
+
+The **`full-ci`** label must exist in the GitHub repo (create it under Issues → Labels if needed). Xcode on runners is **latest-stable** via `maxim-lobanov/setup-xcode`.
+
 ## Tech Stack
 
 - Swift and SwiftUI
