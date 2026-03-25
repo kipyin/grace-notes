@@ -2,7 +2,7 @@ import XCTest
 @testable import GraceNotes
 
 final class ReviewInsightsProviderTests: XCTestCase {
-    private static let legacyAIReviewInsightsKey = "useAIReviewInsights"
+    static let legacyAIReviewInsightsKey = "useAIReviewInsights"
     private static let testSuiteName = "ReviewInsightsProviderTests"
     var calendar: Calendar!
     var testDefaults: UserDefaults!
