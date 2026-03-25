@@ -170,6 +170,8 @@ struct ReviewSummaryCard: View {
                         .font(AppTheme.warmPaperMeta.weight(.semibold))
                         .foregroundStyle(AppTheme.reviewAccent)
                         .imageScale(.small)
+                        .padding(10)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(String(localized: "Why on-device insights this week"))
