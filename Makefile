@@ -1,17 +1,21 @@
 PROJECT := GraceNotes/GraceNotes.xcodeproj
 SCHEME := GraceNotes
 DESTINATION ?= platform=iOS Simulator,name=iPhone 17 Pro,OS=latest
-TEST_DESTINATION_MATRIX ?= iPhone XR@17.5;iPhone 17 Pro@26.3
+# Default pins for CI. Override if runtimes differ; see `make list-simulator-destinations`.
+CI_SIMULATOR_PRO ?= platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2
+CI_SIMULATOR_XR ?= platform=iOS Simulator,name=iPhone SE (3rd generation),OS=18.5
+TEST_DESTINATION_MATRIX ?= iPhone SE (3rd generation)@18.5;iPhone 17 Pro@26.2
 ISOLATED_DERIVED_DATA := /tmp/GraceNotes-TestDerivedData
 UNIT_TEST_BUNDLE := GraceNotesTests
 UI_TEST_BUNDLE := GraceNotesUITests
+SMOKE_UI_TEST := GraceNotesUITests/GraceNotesSmokeUITests/testSmokeLaunch
 XCODE_TEST_FLAGS := -parallel-testing-enabled NO
 PYTHON ?= python3
 SIMULATOR_HELPER := Scripts/simulator_destination.py
 # iOS 17 hosted runtime can crash in these suites before assertions run.
 LEGACY_RUNTIME_SKIP_FLAGS := -skip-testing:GraceNotesTests/CloudReviewInsightsGeneratorTests -skip-testing:GraceNotesTests/DeterministicReviewInsightsTests -skip-testing:GraceNotesTests/HistoryEntryGroupingTests
 
-.PHONY: help lint lint-preflight build test test-unit test-ui test-isolated test-all test-matrix ci ci-matrix reset-simulators list-simulator-destinations validate-destination validate-test-matrix
+.PHONY: help lint lint-preflight build test test-unit test-ui test-ui-smoke test-isolated test-all test-matrix ci ci-matrix ci-build ci-merge-queue ci-pr-full-ci reset-simulators list-simulator-destinations validate-destination validate-test-matrix
 
 help:
 	@echo "Available targets:"
@@ -29,10 +33,13 @@ help:
 	@echo "  make reset-simulators - Shutdown and erase all simulators"
 	@echo "  make ci     - Run lint and test-all"
 	@echo "  make ci-matrix - Run lint and test-matrix"
+	@echo "  make ci-build - Build for CI_SIMULATOR_PRO (used by GitHub Actions)"
+	@echo "  make ci-merge-queue - Lint, test on CI_SIMULATOR_PRO, UI smoke on CI_SIMULATOR_XR"
+	@echo "  make ci-pr-full-ci - Same as ci-merge-queue (PR label full-ci)"
 	@echo ""
 	@echo "Configurable variables:"
-	@echo "  DESTINATION='platform=iOS Simulator,name=iPhone 17 Pro,OS=26.3'"
-	@echo "  TEST_DESTINATION_MATRIX='iPhone XR@17.5;iPhone 17 Pro@26.3'"
+	@echo "  DESTINATION='platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2'"
+	@echo "  TEST_DESTINATION_MATRIX='iPhone SE (3rd generation)@18.5;iPhone 17 Pro@26.2'"
 	@echo ""
 	@echo "Note: GraceNotes (Demo) scheme remains in Xcode for sample-data runs; Makefile does not test it."
 
@@ -90,6 +97,15 @@ test-ui:
 	echo "Using destination: $$resolved_destination"; \
 	xcodebuild -project "$(PROJECT)" -scheme "$(SCHEME)" -destination "$$resolved_destination" $(XCODE_TEST_FLAGS) -only-testing:"$(UI_TEST_BUNDLE)" test
 
+test-ui-smoke:
+	@resolved_destination="$$($(PYTHON) "$(SIMULATOR_HELPER)" resolve "$(DESTINATION)")" || exit $$?; \
+	simulator_name="$$($(PYTHON) "$(SIMULATOR_HELPER)" name "$$resolved_destination")" || exit $$?; \
+	echo "Using destination: $$resolved_destination"; \
+	$(MAKE) reset-simulators; \
+	xcrun simctl boot "$$simulator_name" >/dev/null 2>&1 || true; \
+	xcrun simctl bootstatus "$$simulator_name" -b >/dev/null 2>&1 || true; \
+	xcodebuild -project "$(PROJECT)" -scheme "$(SCHEME)" -destination "$$resolved_destination" $(XCODE_TEST_FLAGS) -only-testing:"$(SMOKE_UI_TEST)" test
+
 test-isolated:
 	@resolved_destination="$$($(PYTHON) "$(SIMULATOR_HELPER)" resolve "$(DESTINATION)")" || exit $$?; \
 	runtime_version="$${resolved_destination##*OS=}"; \
@@ -134,3 +150,13 @@ ci:
 ci-matrix:
 	$(MAKE) lint
 	$(MAKE) test-matrix
+
+ci-build:
+	$(MAKE) build DESTINATION="$(CI_SIMULATOR_PRO)"
+
+ci-merge-queue:
+	$(MAKE) lint
+	$(MAKE) test DESTINATION="$(CI_SIMULATOR_PRO)"
+	$(MAKE) test-ui-smoke DESTINATION="$(CI_SIMULATOR_XR)"
+
+ci-pr-full-ci: ci-merge-queue

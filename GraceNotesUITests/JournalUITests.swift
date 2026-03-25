@@ -8,26 +8,10 @@ final class JournalUITests: XCTestCase {
         Thread.sleep(forTimeInterval: 1.0)
     }
 
-    /// Apply before every `launch()`; a bare `launch()` after `terminate()` can drop arguments on some OS versions.
-    private func configureUITestLaunch(
-        _ app: XCUIApplication,
-        resetUITestStore: Bool = true
-    ) {
-        var args = [
-            "-ui-testing",
-            "-AppleLanguages", "(en)",
-            "-AppleLocale", "en_US"
-        ]
-        if resetUITestStore {
-            args.append("-grace-notes-reset-uitest-store")
-        }
-        app.launchArguments = args
-    }
-
     @MainActor
     private func launchApp(resetUITestStore: Bool = true) -> XCUIApplication {
         let app = XCUIApplication()
-        configureUITestLaunch(app, resetUITestStore: resetUITestStore)
+        app.configureGraceNotesUITestLaunch(resetUITestStore: resetUITestStore)
         app.launch()
         XCTAssertTrue(
             app.staticTexts["Gratitudes"].waitForExistence(timeout: 5),
@@ -111,7 +95,7 @@ final class JournalUITests: XCTestCase {
         )
 
         app.terminate()
-        configureUITestLaunch(app, resetUITestStore: false)
+        app.configureGraceNotesUITestLaunch(resetUITestStore: false)
         app.launch()
         XCTAssertTrue(
             app.staticTexts["Gratitudes"].waitForExistence(timeout: 10),

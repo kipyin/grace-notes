@@ -60,7 +60,7 @@ See `GraceNotes/docs/07-release-roadmap.md`.
 
 ## Requirements
 
-- Xcode 26 or later (default `make` destinations and the test matrix assume **iPhone 17**-family simulators and **iOS 26** runtimes; use an older Xcode only if you override `DESTINATION` and `TEST_DESTINATION_MATRIX` to match what that Xcode installs)
+- Xcode 26 or later (default `make` destinations use iPhone 17 Pro @ iOS 26.3 and iPhone XR @ iOS 17.5; use an older Xcode only if you override `DESTINATION` and `TEST_DESTINATION_MATRIX` to match what that Xcode installs)
 - iOS 17+ (app deployment target; see the Xcode project)
 
 ## Getting Started
@@ -78,7 +78,7 @@ Use the root `Makefile` for common local workflows (tests use the **GraceNotes**
 - `make build` – Build the app (requires macOS + Xcode).
 - `make test` – Run unit + UI tests for **GraceNotes** on `DESTINATION` (resolved via `Scripts/simulator_destination.py`).
 - `make test-all` – Reset simulators, then `make test` (reduces flaky simulator state).
-- `make test-matrix` – Run **GraceNotes** tests across `TEST_DESTINATION_MATRIX` (default: iPhone XR @ iOS 17.5 and iPhone 17 Pro @ iOS 26.x).
+- `make test-matrix` – Run **GraceNotes** tests across `TEST_DESTINATION_MATRIX` (default: iPhone XR @ iOS 17.5 and iPhone 17 Pro @ iOS 26.3).
 - `make validate-destination` / `make validate-test-matrix` – Check that simulator names and OS versions exist before running tests.
 - `make list-simulator-destinations` – List installed `platform=iOS Simulator,...` strings.
 - `make ci` – Lint + `test-all`.
@@ -87,8 +87,8 @@ Use the root `Makefile` for common local workflows (tests use the **GraceNotes**
 Examples:
 
 ```bash
-make test DESTINATION='platform=iOS Simulator,name=iPhone 17 Pro,OS=26.3'
-make test-matrix TEST_DESTINATION_MATRIX='iPhone XR@17.5;iPhone 17 Pro@26.3'
+make test DESTINATION='platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2'
+make test-matrix TEST_DESTINATION_MATRIX='iPhone SE (3rd generation)@18.5;iPhone 17 Pro@26.2'
 ```
 
 On iOS 17 simulators, `make` applies targeted `-skip-testing` flags for a few hosted SwiftData suites that crash before assertions; see `Makefile` (`LEGACY_RUNTIME_SKIP_FLAGS`).
@@ -100,6 +100,23 @@ brew install swiftlint
 ```
 
 Note: `make test-all` resets simulators (wipes simulator state) to reduce flaky preflight failures.
+
+## CI (GitHub Actions)
+
+Workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml). All simulator work goes through **`make`** (`ci-build`, `ci-merge-queue`, `ci-pr-full-ci` in the [`Makefile`](Makefile)) so destinations match `Scripts/simulator_destination.py` resolution.
+
+**Why not both `push` and `pull_request` on every branch?** A push to a PR branch used to trigger *two* workflow runs (push + pull_request), which was noisy. The workflow now uses **`pull_request` only for PRs targeting `main`**, and **`push` only for the `main` branch** (post-merge build). Feature branches without a PR do not run CI until you open one.
+
+| When | What runs |
+|------|-----------|
+| **Pull request → `main`** | **Lint & build (iPhone 17 Pro)** — `make lint` then `make ci-build`. **`CI_SIMULATOR_PRO`** is **iPhone 17 Pro @ iOS 26.2** (hosted-runner compromise; SE (3rd generation) smoke remains iOS 18.5). |
+| **Push → `main`** | **Push main — lint, test, UI smoke** — `make ci-merge-queue` (same as merge queue). Use this path when `main` moves outside a normal PR/merge-queue flow (rare). Routine merges via merge queue are validated by **`merge_group`**, not by this job. |
+| **Merge queue** | **Merge queue — lint, test, UI smoke** — `make ci-merge-queue`: `make lint`, `make test` on **iPhone 17 Pro** (`CI_SIMULATOR_PRO`), then `make test-ui-smoke` on **iPhone SE (3rd generation)** (`CI_SIMULATOR_XR`), **iOS 26.2** (17 Pro) and **iOS 18.5** (SE). Smoke: `GraceNotesSmokeUITests.testSmokeLaunch`. |
+| **Pull request + label `full-ci`** | **PR full-ci — lint, test, UI smoke** — `make ci-pr-full-ci` (same as merge queue). Re-runs on new commits while the label is present. |
+
+The **`full-ci`** label must exist in the GitHub repo (Issues → Labels). Adjust **`CI_SIMULATOR_PRO`** / **`CI_SIMULATOR_XR`** in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) and [`Makefile`](Makefile) if Apple or runner images change.
+
+**Branch protection and merge queue:** Required status checks should match how you gate merges. Jobs that run on **`merge_group`** (for example **Merge queue — lint, test, UI smoke**) validate the merge-queue preview commit. **Lint & build (iPhone 17 Pro)** runs on the pull-request SHA only; keep it as a fast PR signal, but do not rely on it alone as the merge-queue gate.
 
 ## Tech Stack
 
