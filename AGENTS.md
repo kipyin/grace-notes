@@ -27,7 +27,7 @@ This project **requires macOS + Xcode 26+** to build, run, and test with the **d
 
 Prefer **`make`** from the repo root so destinations and flags stay aligned with `Makefile` (`make ci`, `make test`, `make test-matrix`). Destinations are validated/resolved by `Scripts/simulator_destination.py` (Python 3). For copy-paste `platform=…` strings, run `make list-simulator-destinations`.
 
-CI uses **GitHub Actions** with **`make lint`** + **`make ci-build`** on PRs and **`main`** pushes, plus **`make ci-merge-queue`** and **`make ci-pr-full-ci`** for merge queue / **`full-ci`** (pinned simulators via `CI_SIMULATOR_PRO` / `CI_SIMULATOR_XR`). See **CI (GitHub Actions)** in [`README.md`](README.md).
+CI uses **GitHub Actions** with **`make lint`** + **`make ci-build`** on PRs to **`main`**, **`make ci-merge-queue`** on **`merge_group`**, **`full-ci`** PRs (**`make ci-pr-full-ci`**), and **`make ci-merge-queue`** again on direct **`push`** to **`main`** (rare). See **CI (GitHub Actions)** in [`README.md`](README.md).
 
 ```bash
 make ci

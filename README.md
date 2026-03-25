@@ -110,7 +110,7 @@ Workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml). All simulator 
 | When | What runs |
 |------|-----------|
 | **Pull request → `main`** | **Lint & build (iPhone 17 Pro)** — `make lint` then `make ci-build` (pinned **iOS 26.3** on **iPhone 17 Pro** via `CI_SIMULATOR_PRO` in the workflow). |
-| **Push → `main`** | Same **Lint & build** job after merges. |
+| **Push → `main`** | **Push main — lint, test, UI smoke** — `make ci-merge-queue` (same as merge queue). Use this path when `main` moves outside a normal PR/merge-queue flow (rare). Routine merges via merge queue are validated by **`merge_group`**, not by this job. |
 | **Merge queue** | **Merge queue — lint, test, UI smoke** — `make ci-merge-queue`: `make lint`, `make test` on **iPhone 17 Pro** (`CI_SIMULATOR_PRO`), then `make test-ui-smoke` on **iPhone XR** (`CI_SIMULATOR_XR`, **iOS 17.5**). Smoke: `GraceNotesSmokeUITests.testSmokeLaunch`. |
 | **Pull request + label `full-ci`** | **PR full-ci — lint, test, UI smoke** — `make ci-pr-full-ci` (same steps as merge queue, including **XR** smoke). Re-runs on new commits while the label is present. |
 
