@@ -21,6 +21,7 @@ struct SettingsScreen: View {
     @State private var settingsHighlightDismissTask: Task<Void, Never>?
     @State private var showAppTourFromSettings = false
     @AppStorage(JournalOnboardingStorageKeys.hasSeenPostSeedJourney) private var hasSeenPostSeedJourney = false
+    @AppStorage(JournalOnboardingStorageKeys.completedGuidedJournal) private var hasCompletedGuidedJournal = false
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -159,7 +160,7 @@ struct SettingsScreen: View {
                         hasSeenPostSeedJourney = true
                         showAppTourFromSettings = false
                     },
-                    skipsCongratulationsPage: false
+                    skipsCongratulationsPage: hasCompletedGuidedJournal
                 )
             }
             .onChange(of: showAppTourFromSettings) { _, isPresented in

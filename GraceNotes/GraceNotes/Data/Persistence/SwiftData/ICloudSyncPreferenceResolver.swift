@@ -11,6 +11,7 @@ enum ICloudSyncPreferenceResolver {
     private static let onboardingKeys = [
         GraceNotesLaunchStorageKeys.lastLaunchedMarketingVersion,
         JournalOnboardingStorageKeys.completedGuidedJournal,
+        JournalOnboardingStorageKeys.legacy051GuidedBranchResolution,
         JournalOnboardingStorageKeys.hasSeenPostSeedJourney,
         JournalOnboardingStorageKeys.dismissedRemindersSuggestion,
         JournalOnboardingStorageKeys.dismissedAISuggestion,

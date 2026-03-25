@@ -29,6 +29,17 @@ final class PostSeedJourneyTriggerTests: XCTestCase {
         XCTAssertNil(outcome)
     }
 
+    /// Version-free C: at or above Seed with journey not yet seen presents regardless of “upgrade cohort.”
+    func test_evaluate_atHarvest_notSeenPostSeed_showsJourney_documentsVersionFreeContract() {
+        let outcome = PostSeedJourneyTrigger.evaluate(
+            hasSeenPostSeedJourney: false,
+            hasCompletedGuidedJournal: false,
+            todayCompletionLevel: .harvest
+        )
+        XCTAssertNotNil(outcome)
+        XCTAssertEqual(outcome?.skipsCongratulationsPage, false)
+    }
+
     func test_evaluate_atOrAboveSeed_guidedIncomplete_showsWithCongratulations() {
         for level in [JournalCompletionLevel.seed, .ripening, .harvest, .abundance] {
             let outcome = PostSeedJourneyTrigger.evaluate(

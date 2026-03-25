@@ -6,7 +6,9 @@ final class Orientation051LaunchTests: XCTestCase {
     private var suiteName: String!
 
     private let legacyPendingUpgrade = "journalOnboarding.pending051UpgradeOrientation"
-    private let legacyPendingBranch = "journalOnboarding.pending051GuidedJournalBranchResolution"
+    private var legacyPendingBranch: String {
+        JournalOnboardingStorageKeys.legacy051GuidedBranchResolution
+    }
 
     override func setUp() {
         super.setUp()
@@ -50,24 +52,72 @@ final class Orientation051LaunchTests: XCTestCase {
         XCTAssertEqual(defaults.integer(forKey: GraceNotesLaunchStorageKeys.lastLaunchedBundleVersion), 8)
     }
 
-    func test_migrateLegacyPostSeedOrientationFlags_removesPending051Keys() {
+    func test_migrateLegacy_whenUpgradePending_normalizesGuidedAndBranch_thenRemovesUpgradeOnly() {
         let defaults = UserDefaults(suiteName: suiteName!)!
         defaults.set(true, forKey: legacyPendingUpgrade)
-        defaults.set(true, forKey: legacyPendingBranch)
 
         JournalOnboardingProgress.migrateLegacyPostSeedOrientationFlagsIfNeeded(using: defaults)
 
         XCTAssertNil(defaults.object(forKey: legacyPendingUpgrade))
-        XCTAssertNil(defaults.object(forKey: legacyPendingBranch))
+        XCTAssertTrue(defaults.bool(forKey: legacyPendingBranch))
+        XCTAssertFalse(defaults.bool(forKey: JournalOnboardingStorageKeys.completedGuidedJournal))
     }
 
-    func test_resolvedHasCompletedGuidedJournal_ignoresLegacyPending051AfterMigration() {
+    func test_migrateLegacy_preservesBranchFlagUntilResolveRuns() {
+        let defaults = UserDefaults(suiteName: suiteName!)!
+        defaults.set(true, forKey: legacyPendingBranch)
+        defaults.set(false, forKey: JournalOnboardingStorageKeys.completedGuidedJournal)
+
+        JournalOnboardingProgress.migrateLegacyPostSeedOrientationFlagsIfNeeded(using: defaults)
+
+        XCTAssertTrue(defaults.bool(forKey: legacyPendingBranch))
+        XCTAssertFalse(defaults.bool(forKey: JournalOnboardingStorageKeys.completedGuidedJournal))
+    }
+
+    func test_resolveBranch_atSoil_clearsFlagWithoutForcingGuidedComplete() {
+        let defaults = UserDefaults(suiteName: suiteName!)!
+        defaults.set(true, forKey: legacyPendingBranch)
+        defaults.set(false, forKey: JournalOnboardingStorageKeys.completedGuidedJournal)
+
+        JournalOnboardingProgress.resolvePending051GuidedJournalBranch(
+            todayCompletionLevel: .soil,
+            using: defaults
+        )
+
+        XCTAssertNil(defaults.object(forKey: legacyPendingBranch))
+        XCTAssertFalse(defaults.bool(forKey: JournalOnboardingStorageKeys.completedGuidedJournal))
+    }
+
+    func test_resolveBranch_atSeed_setsGuidedComplete() {
+        assertResolveBranchAtOrAboveSeedSetsGuidedComplete(level: .seed)
+    }
+
+    func test_resolveBranch_atRipening_setsGuidedComplete() {
+        assertResolveBranchAtOrAboveSeedSetsGuidedComplete(level: .ripening)
+    }
+
+    func test_resolvedHasCompletedGuidedJournal_afterMigrateFromUpgrade_returnsFalse() {
         let defaults = UserDefaults(suiteName: suiteName!)!
         defaults.set(true, forKey: legacyPendingUpgrade)
 
         JournalOnboardingProgress.migrateLegacyPostSeedOrientationFlagsIfNeeded(using: defaults)
-        _ = JournalOnboardingProgress.resolvedHasCompletedGuidedJournal(using: defaults)
+        let resolved = JournalOnboardingProgress.resolvedHasCompletedGuidedJournal(using: defaults)
 
+        XCTAssertFalse(resolved)
         XCTAssertNil(defaults.object(forKey: legacyPendingUpgrade))
+        XCTAssertTrue(defaults.bool(forKey: legacyPendingBranch))
+    }
+
+    private func assertResolveBranchAtOrAboveSeedSetsGuidedComplete(level: JournalCompletionLevel) {
+        let defaults = UserDefaults(suiteName: suiteName!)!
+        defaults.set(true, forKey: legacyPendingBranch)
+
+        JournalOnboardingProgress.resolvePending051GuidedJournalBranch(
+            todayCompletionLevel: level,
+            using: defaults
+        )
+
+        XCTAssertNil(defaults.object(forKey: legacyPendingBranch))
+        XCTAssertTrue(defaults.bool(forKey: JournalOnboardingStorageKeys.completedGuidedJournal))
     }
 }

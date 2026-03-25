@@ -426,6 +426,18 @@ struct JournalScreen: View {
                 viewModel.loadEntry(for: date, using: modelContext)
             } else {
                 viewModel.loadTodayIfNeeded(using: modelContext)
+                let hadPending051GuidedBranch = UserDefaults.standard.bool(
+                    forKey: JournalOnboardingStorageKeys.legacy051GuidedBranchResolution
+                )
+                JournalOnboardingProgress.resolvePending051GuidedJournalBranch(
+                    todayCompletionLevel: viewModel.completionLevel,
+                    using: .standard
+                )
+                if hadPending051GuidedBranch {
+                    hasCompletedGuidedJournal = UserDefaults.standard.bool(
+                        forKey: JournalOnboardingStorageKeys.completedGuidedJournal
+                    )
+                }
             }
             previousCompletionLevel = viewModel.completionLevel
             hasInitializedCompletionTracking = true
