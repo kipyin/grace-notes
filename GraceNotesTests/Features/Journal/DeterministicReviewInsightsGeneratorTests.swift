@@ -1,7 +1,6 @@
 import XCTest
 @testable import GraceNotes
 
-// swiftlint:disable type_body_length
 final class DeterministicReviewInsightsTests: XCTestCase {
     private var calendar: Calendar!
     private var generator: DeterministicReviewInsightsGenerator!
@@ -188,206 +187,7 @@ final class DeterministicReviewInsightsTests: XCTestCase {
         )
     }
 
-    func test_weeklyInsightCandidateBuilder_narrativeSummary_usesSecondObservationWhenDistinct() {
-        let builder = WeeklyInsightCandidateBuilder(textNormalizer: WeeklyInsightTextNormalizer())
-        let first = ReviewWeeklyInsight(
-            pattern: .recurringTheme,
-            observation: "Alpha observation line.",
-            action: "Q1?",
-            primaryTheme: "Alpha",
-            mentionCount: 2,
-            dayCount: 2
-        )
-        let second = ReviewWeeklyInsight(
-            pattern: .continuityShift,
-            observation: "Beta observation line.",
-            action: "Q2?",
-            primaryTheme: "Beta",
-            mentionCount: 2,
-            dayCount: 2
-        )
-        XCTAssertEqual(builder.narrativeSummary(from: [first, second]), "Beta observation line.")
-    }
-
-    func test_weeklyInsightCandidateBuilder_narrativeSummary_whenObservationsDuplicate_usesBothThemesLine() {
-        let builder = WeeklyInsightCandidateBuilder(textNormalizer: WeeklyInsightTextNormalizer())
-        let shared = "Same observation text."
-        let first = ReviewWeeklyInsight(
-            pattern: .recurringTheme,
-            observation: shared,
-            action: "Q1?",
-            primaryTheme: "Rest",
-            mentionCount: 2,
-            dayCount: 2
-        )
-        let second = ReviewWeeklyInsight(
-            pattern: .recurringPeople,
-            observation: shared,
-            action: "Q2?",
-            primaryTheme: "Mia",
-            mentionCount: 2,
-            dayCount: 2
-        )
-        let summary = builder.narrativeSummary(from: [first, second])
-        XCTAssertTrue(summary?.contains("Rest") == true)
-        XCTAssertTrue(summary?.contains("Mia") == true)
-    }
-
-    func test_weeklyInsightCandidateBuilder_narrativeSummary_sparseFallbackZeroDay_returnsNil() {
-        let builder = WeeklyInsightCandidateBuilder(textNormalizer: WeeklyInsightTextNormalizer())
-        let starter = String(localized: "Start with one reflection today to build your weekly review.")
-        let insight = ReviewWeeklyInsight(
-            pattern: .sparseFallback,
-            observation: starter,
-            action: builder.defaultContinuityPrompt,
-            primaryTheme: nil,
-            mentionCount: nil,
-            dayCount: 0
-        )
-        XCTAssertNil(builder.narrativeSummary(from: [insight]))
-    }
-
-    func test_weeklyInsightCandidateBuilder_narrativeSummary_sparseFallbackNonZeroDay_returnsTrimmed() {
-        let builder = WeeklyInsightCandidateBuilder(textNormalizer: WeeklyInsightTextNormalizer())
-        let observation = "  Sparse week summary line.  "
-        let easyStart = String(localized: "What would make tomorrow's check-in easy to start?")
-        let insight = ReviewWeeklyInsight(
-            pattern: .sparseFallback,
-            observation: observation,
-            action: easyStart,
-            primaryTheme: nil,
-            mentionCount: nil,
-            dayCount: 1
-        )
-        let summary = builder.narrativeSummary(from: [insight])
-        let trimmed = observation.trimmingCharacters(in: .whitespacesAndNewlines)
-        XCTAssertEqual(summary, trimmed)
-    }
-
-    func test_generateInsights_limitsInsightCountToTwo() async throws {
-        let reference = date(year: 2026, month: 3, day: 18)
-        let previousWeekEntries = [
-            makeEntry(on: date(year: 2026, month: 3, day: 9), needs: ["Rest"]),
-            makeEntry(on: date(year: 2026, month: 3, day: 10), needs: ["Rest"]),
-            makeEntry(on: date(year: 2026, month: 3, day: 11), needs: ["Rest"])
-        ]
-        let currentWeekEntries = [
-            makeEntry(
-                on: date(year: 2026, month: 3, day: 16),
-                gratitudes: ["Family"],
-                needs: ["Focus"],
-                people: ["Mia"]
-            ),
-            makeEntry(
-                on: date(year: 2026, month: 3, day: 17),
-                gratitudes: ["Family"],
-                needs: ["Focus"],
-                people: ["Mia"]
-            ),
-            makeEntry(
-                on: date(year: 2026, month: 3, day: 18),
-                gratitudes: ["Family"],
-                needs: ["Focus"],
-                people: ["Mia"]
-            )
-        ]
-
-        let insights = try await generator.generateInsights(
-            from: previousWeekEntries + currentWeekEntries,
-            referenceDate: reference,
-            calendar: calendar
-        )
-
-        XCTAssertLessThanOrEqual(insights.weeklyInsights.count, 2)
-        XCTAssertEqual(insights.presentationMode, .insight)
-        XCTAssertEqual(insights.weekStats.reflectionDays, 3)
-    }
-
-    func test_generateInsights_includesWeekStatsActivityAndCompletionMix() async throws {
-        let reference = date(year: 2026, month: 3, day: 18)
-        let entries = [
-            makeFullEntry(on: date(year: 2026, month: 3, day: 17)),
-            makeEntry(on: date(year: 2026, month: 3, day: 18), gratitudes: ["Family"], needs: ["Rest"], people: ["Mia"])
-        ]
-
-        let insights = try await generator.generateInsights(
-            from: entries,
-            referenceDate: reference,
-            calendar: calendar
-        )
-
-        XCTAssertEqual(insights.weekStats.activity.count, 7)
-        XCTAssertEqual(insights.weekStats.reflectionDays, 2)
-        XCTAssertEqual(insights.weekStats.meaningfulEntryCount, 2)
-        XCTAssertEqual(insights.weekStats.completionMix.harvestDays, 0)
-        XCTAssertEqual(insights.weekStats.completionMix.abundanceDays, 1)
-        XCTAssertEqual(insights.weekStats.sectionTotals.gratitudeMentions, 6)
-        XCTAssertEqual(insights.weekStats.sectionTotals.needMentions, 6)
-        XCTAssertEqual(insights.weekStats.sectionTotals.peopleMentions, 6)
-    }
-
-    func test_generateInsights_withoutEntries_returnsStarterGuidance() async throws {
-        let reference = date(year: 2026, month: 3, day: 18)
-
-        let insights = try await generator.generateInsights(
-            from: [],
-            referenceDate: reference,
-            calendar: calendar
-        )
-
-        XCTAssertEqual(
-            insights.resurfacingMessage,
-            "Start with one reflection today to build your weekly review."
-        )
-        XCTAssertEqual(insights.weeklyInsights.first?.pattern, .sparseFallback)
-        XCTAssertNil(insights.narrativeSummary)
-    }
-
-    func test_generateInsights_preservesOriginalMixedLanguageLabelWhileGroupingCaseInsensitively() async throws {
-        let reference = date(year: 2026, month: 3, day: 18)
-        let first = makeEntry(
-            on: date(year: 2026, month: 3, day: 17),
-            gratitudes: ["morning coffee 讓我安定"]
-        )
-        let second = makeEntry(
-            on: date(year: 2026, month: 3, day: 18),
-            gratitudes: ["Morning Coffee 讓我安定"]
-        )
-
-        let insights = try await generator.generateInsights(
-            from: [first, second],
-            referenceDate: reference,
-            calendar: calendar
-        )
-
-        XCTAssertEqual(insights.recurringGratitudes.first?.label, "morning coffee 讓我安定")
-        XCTAssertEqual(insights.recurringGratitudes.first?.count, 2)
-    }
-
-    func test_generateInsights_usesReadingNotesAndReflectionsAsExtraSignal() async throws {
-        let reference = date(year: 2026, month: 3, day: 18)
-        let first = makeEntry(
-            on: date(year: 2026, month: 3, day: 17),
-            readingNotes: "I kept thinking about boundaries and rest",
-            reflections: "Boundaries helped me protect focus."
-        )
-        let second = makeEntry(
-            on: date(year: 2026, month: 3, day: 18),
-            readingNotes: "Rest and boundaries came up again",
-            reflections: "I need better boundaries tomorrow."
-        )
-
-        let insights = try await generator.generateInsights(
-            from: [first, second],
-            referenceDate: reference,
-            calendar: calendar
-        )
-
-        XCTAssertFalse(insights.weeklyInsights.isEmpty)
-        XCTAssertTrue(insights.narrativeSummary?.isEmpty == false)
-    }
-
-    private func makeEntry(
+    func makeEntry(
         on date: Date,
         gratitudes: [String] = [],
         needs: [String] = [],
@@ -405,7 +205,7 @@ final class DeterministicReviewInsightsTests: XCTestCase {
         )
     }
 
-    private func makeFullEntry(on date: Date) -> JournalEntry {
+    func makeFullEntry(on date: Date) -> JournalEntry {
         let gratitudes = (1...5).map { JournalItem(fullText: "Gratitude \($0)", chipLabel: "Gratitude \($0)") }
         let needs = (1...5).map { JournalItem(fullText: "Need \($0)", chipLabel: "Need \($0)") }
         let people = (1...5).map { JournalItem(fullText: "Person \($0)", chipLabel: "Person \($0)") }
@@ -419,7 +219,7 @@ final class DeterministicReviewInsightsTests: XCTestCase {
         )
     }
 
-    private func date(year: Int, month: Int, day: Int) -> Date {
+    func date(year: Int, month: Int, day: Int) -> Date {
         var components = DateComponents()
         components.year = year
         components.month = month
@@ -428,4 +228,3 @@ final class DeterministicReviewInsightsTests: XCTestCase {
         return calendar.date(from: components)!
     }
 }
-// swiftlint:enable type_body_length
