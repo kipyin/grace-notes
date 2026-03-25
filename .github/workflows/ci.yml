@@ -1,24 +1,30 @@
 name: CI
 
+# Triggers (avoid duplicate runs):
+# - pull_request → PRs targeting main (build always; full suite when label `full-ci`).
+# - push → only default branch after merge (build sanity on main).
+# - merge_group → merge queue commits (lint + tests + XR smoke via Makefile).
 on:
-  push:
-  merge_group:
   pull_request:
+    branches: [main]
     types: [opened, synchronize, reopened, labeled, unlabeled]
+  merge_group:
+  push:
+    branches: [main]
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  PROJECT: GraceNotes/GraceNotes.xcodeproj
-  SCHEME: GraceNotes
-  XCODE_TEST_FLAGS: -parallel-testing-enabled NO
+  # Pinned OS versions (XR + `OS=latest` is unreliable on hosted runners). Override if simctl list changes.
+  CI_SIMULATOR_PRO: platform=iOS Simulator,name=iPhone 17 Pro,OS=26.3
+  CI_SIMULATOR_XR: platform=iOS Simulator,name=iPhone XR,OS=17.5
 
 jobs:
   build:
     name: Build (iPhone 17 Pro)
-    if: github.event_name == 'push'
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
@@ -28,13 +34,10 @@ jobs:
           xcode-version: latest-stable
 
       - name: Build
-        run: >
-          xcodebuild -project "$PROJECT" -scheme "$SCHEME"
-          -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=latest'
-          build
+        run: make ci-build
 
-  merge-queue-tests:
-    name: Merge queue — tests (iPhone 17 Pro)
+  merge-queue:
+    name: Merge queue — lint, test, UI smoke
     if: github.event_name == 'merge_group'
     runs-on: macos-15
     steps:
@@ -47,35 +50,11 @@ jobs:
       - name: Install SwiftLint
         run: brew install swiftlint
 
-      - name: Lint
-        run: make lint
-
-      - name: Test
-        run: >
-          make test
-          DESTINATION='platform=iOS Simulator,name=iPhone 17 Pro,OS=latest'
-
-  merge-queue-ui-smoke:
-    name: Merge queue — UI smoke (iPhone XR)
-    if: github.event_name == 'merge_group'
-    runs-on: macos-15
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: latest-stable
-
-      - name: UI smoke test
-        run: >
-          xcodebuild -project "$PROJECT" -scheme "$SCHEME"
-          -destination 'platform=iOS Simulator,name=iPhone XR,OS=latest'
-          $XCODE_TEST_FLAGS
-          -only-testing:GraceNotesUITests/GraceNotesSmokeUITests/testSmokeLaunch
-          test
+      - name: Full CI (make)
+        run: make ci-merge-queue
 
   pr-full-ci:
-    name: PR full-ci — tests (iPhone 17 Pro)
+    name: PR full-ci — lint, test, UI smoke
     if: >
       github.event_name == 'pull_request' &&
       contains(join(github.event.pull_request.labels.*.name, ','), 'full-ci')
@@ -90,10 +69,5 @@ jobs:
       - name: Install SwiftLint
         run: brew install swiftlint
 
-      - name: Lint
-        run: make lint
-
-      - name: Test
-        run: >
-          make test
-          DESTINATION='platform=iOS Simulator,name=iPhone 17 Pro,OS=latest'
+      - name: Full CI (make)
+        run: make ci-pr-full-ci

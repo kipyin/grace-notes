@@ -103,15 +103,18 @@ Note: `make test-all` resets simulators (wipes simulator state) to reduce flaky 
 
 ## CI (GitHub Actions)
 
-Workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (job names below are the **check names** to mark required in branch protection / merge queue).
+Workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml). All simulator work goes through **`make`** (`ci-build`, `ci-merge-queue`, `ci-pr-full-ci` in the [`Makefile`](Makefile)) so destinations match `Scripts/simulator_destination.py` resolution.
+
+**Why not both `push` and `pull_request` on every branch?** A push to a PR branch used to trigger *two* workflow runs (push + pull_request), which was noisy. The workflow now uses **`pull_request` only for PRs targeting `main`**, and **`push` only for the `main` branch** (post-merge build). Feature branches without a PR do not run CI until you open one.
 
 | When | What runs |
 |------|-----------|
-| **Push** | **Build (iPhone 17 Pro)** — `xcodebuild build` only (`OS=latest`). **iPhone XR** is covered by merge-queue UI smoke, not push. |
-| **Merge queue** | **Merge queue — tests (iPhone 17 Pro):** `make lint` and `make test` with destination **iPhone 17 Pro**. **Merge queue — UI smoke (iPhone XR):** single UI test `GraceNotesSmokeUITests.testSmokeLaunch` (`GraceNotesUITests` target). |
-| **Pull request** (optional) | If the PR has the **`full-ci`** label: **PR full-ci — tests (iPhone 17 Pro)** — same lint + test as the merge-queue test job. Re-runs on new commits while the label stays on the PR. |
+| **Pull request → `main`** | **Build (iPhone 17 Pro)** — `make ci-build` (pinned **iOS 26.3** on **iPhone 17 Pro** via `CI_SIMULATOR_PRO` in the workflow). |
+| **Push → `main`** | Same **Build** job after merges. |
+| **Merge queue** | **Merge queue — lint, test, UI smoke** — `make ci-merge-queue`: `make lint`, `make test` on **iPhone 17 Pro** (`CI_SIMULATOR_PRO`), then `make test-ui-smoke` on **iPhone XR** (`CI_SIMULATOR_XR`, **iOS 17.5**). Smoke: `GraceNotesSmokeUITests.testSmokeLaunch`. |
+| **Pull request + label `full-ci`** | **PR full-ci — lint, test, UI smoke** — `make ci-pr-full-ci` (same steps as merge queue, including **XR** smoke). Re-runs on new commits while the label is present. |
 
-The **`full-ci`** label must exist in the GitHub repo (create it under Issues → Labels if needed). Xcode on runners is **latest-stable** via `maxim-lobanov/setup-xcode`.
+The **`full-ci`** label must exist in the GitHub repo (Issues → Labels). Xcode on runners is **latest-stable** via `maxim-lobanov/setup-xcode`. If hosted runners drop a pinned runtime, update **`CI_SIMULATOR_PRO`** / **`CI_SIMULATOR_XR`** in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) and the **`CI_SIMULATOR_*`** defaults in the [`Makefile`](Makefile).
 
 ## Tech Stack
 
