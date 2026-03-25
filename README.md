@@ -116,6 +116,8 @@ Workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml). All simulator 
 
 The **`full-ci`** label must exist in the GitHub repo (Issues → Labels). Adjust **`CI_SIMULATOR_PRO`** / **`CI_SIMULATOR_XR`** in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) and [`Makefile`](Makefile) if Apple or runner images change.
 
+**Branch protection and merge queue:** Required status checks should match how you gate merges. Jobs that run on **`merge_group`** (for example **Merge queue — lint, test, UI smoke**) validate the merge-queue preview commit. **Lint & build (iPhone 17 Pro)** runs on the pull-request SHA only; keep it as a fast PR signal, but do not rely on it alone as the merge-queue gate.
+
 ## Tech Stack
 
 - Swift and SwiftUI

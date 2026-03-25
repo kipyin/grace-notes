@@ -91,7 +91,7 @@ jobs:
     name: PR full-ci — lint, test, UI smoke
     if: >
       github.event_name == 'pull_request' &&
-      contains(join(github.event.pull_request.labels.*.name, ','), 'full-ci')
+      contains(github.event.pull_request.labels.*.name, 'full-ci')
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4

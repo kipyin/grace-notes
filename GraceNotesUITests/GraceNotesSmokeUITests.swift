@@ -10,12 +10,7 @@ final class GraceNotesSmokeUITests: XCTestCase {
     @MainActor
     func testSmokeLaunch() throws {
         let app = XCUIApplication()
-        app.launchArguments = [
-            "-ui-testing",
-            "-AppleLanguages", "(en)",
-            "-AppleLocale", "en_US",
-            "-grace-notes-reset-uitest-store"
-        ]
+        app.configureGraceNotesUITestLaunch()
         app.launch()
 
         XCTAssertTrue(
