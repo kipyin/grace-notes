@@ -1,11 +1,11 @@
 import Foundation
 
-enum ReviewInsightSource: String, Sendable {
+enum ReviewInsightSource: String, Sendable, Codable {
     case deterministic
     case cloudAI
 }
 
-enum ReviewWeeklyInsightPattern: String, Sendable {
+enum ReviewWeeklyInsightPattern: String, Sendable, Codable {
     case recurringPeople
     case recurringTheme
     case needsGratitudeGap
@@ -14,7 +14,7 @@ enum ReviewWeeklyInsightPattern: String, Sendable {
     case sparseFallback
 }
 
-struct ReviewWeeklyInsight: Equatable, Hashable, Sendable {
+struct ReviewWeeklyInsight: Equatable, Hashable, Sendable, Codable {
     let pattern: ReviewWeeklyInsightPattern
     let observation: String
     let action: String?
@@ -23,12 +23,12 @@ struct ReviewWeeklyInsight: Equatable, Hashable, Sendable {
     let dayCount: Int?
 }
 
-struct ReviewInsightTheme: Equatable, Hashable, Sendable {
+struct ReviewInsightTheme: Equatable, Hashable, Sendable, Codable {
     let label: String
     let count: Int
 }
 
-struct ReviewInsights: Equatable, Sendable {
+struct ReviewInsights: Equatable, Sendable, Codable {
     let source: ReviewInsightSource
     let generatedAt: Date
     /// Start of the review period (`ReviewInsightsPeriod`), inclusive (start of local day).

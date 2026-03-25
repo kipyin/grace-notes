@@ -32,9 +32,11 @@ struct ReviewScreen: View {
     @State private var timelineGroups: [(key: Date, entries: [JournalEntry])] = []
     @AppStorage(ReviewInsightsProvider.aiFeaturesEnabledKey) private var aiFeaturesEnabled = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @EnvironmentObject private var appNavigation: AppNavigationModel
 
     private let calendar = Calendar.current
     private let reviewInsightsProvider = ReviewInsightsProvider.shared
+    private let reviewInsightsCache = ReviewInsightsCache.shared
     /// When true, keep Review list chrome (mode picker + identifiers) even with zero entries so UI tests can navigate.
     private let isUiTestingExperience: Bool
 
@@ -84,11 +86,13 @@ struct ReviewScreen: View {
         }
         .task(id: currentInsightsRefreshKey) {
             guard selectedMode == .insights else { return }
+            await hydrateReviewInsightsFromCacheIfNeeded()
             await refreshReviewInsights()
         }
         .onChange(of: selectedMode) { _, newMode in
             guard newMode == .insights else { return }
             Task {
+                await hydrateReviewInsightsFromCacheIfNeeded()
                 await refreshReviewInsights()
             }
         }
@@ -138,37 +142,30 @@ struct ReviewScreen: View {
 
     private var reviewModeSection: some View {
         Section {
-            ReviewModeSegmentedControl(selectedMode: $selectedMode)
-                .listRowBackground(AppTheme.reviewBackground)
-        }
-    }
-
-    /// System segmented `Picker` so iOS 26+ picks up the platform Liquid Glass styling without custom chrome.
-    private struct ReviewModeSegmentedControl: View {
-        @Binding var selectedMode: ReviewMode
-
-        var body: some View {
-            Picker(selection: $selectedMode) {
+            Picker(String(localized: "Review mode"), selection: $selectedMode) {
                 ForEach(ReviewMode.allCases) { mode in
-                    Text(mode.localizedTitle)
-                        .tag(mode)
+                    Text(mode.localizedTitle).tag(mode)
                 }
-            } label: {
-                Text(String(localized: "Review mode"))
             }
             .pickerStyle(.segmented)
             .labelsHidden()
             .tint(AppTheme.reviewAccent)
-            .accessibilityHint(String(localized: "Choose insights or timeline"))
+            .accessibilityHint(String(localized: "Switch between Insights and Timeline."))
             .accessibilityIdentifier("ReviewModePicker")
+            .listRowBackground(AppTheme.reviewBackground)
         }
     }
 
     private var insightsSection: some View {
         Section {
-            ReviewSummaryCard(insights: reviewInsights, isLoading: isLoadingInsights)
-                .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
-                .listRowBackground(AppTheme.reviewBackground)
+            ReviewSummaryCard(
+                insights: reviewInsights,
+                isLoading: isLoadingInsights,
+                weekJournalEntryCount: weeklyEntriesForRefresh.count,
+                onContinueToToday: { appNavigation.selectedTab = .today }
+            )
+            .listRowInsets(EdgeInsets(top: 2, leading: 0, bottom: 6, trailing: 0))
+            .listRowBackground(AppTheme.reviewBackground)
         }
     }
 
@@ -250,10 +247,21 @@ struct ReviewScreen: View {
         )
 
         reviewInsights = outcome.insights
+        await reviewInsightsCache.storeIfEligible(outcome.insights, calendar: calendar)
         if outcome.shouldUpdateCachedRefreshKey {
             lastInsightsRefreshKey = shouldCacheRefreshKey(for: generatedInsights) ? refreshKey : nil
         }
         isLoadingInsights = false
+    }
+
+    private func hydrateReviewInsightsFromCacheIfNeeded() async {
+        guard selectedMode == .insights else { return }
+        guard !entries.isEmpty else { return }
+        guard reviewInsights == nil else { return }
+        reviewInsights = await reviewInsightsCache.insights(
+            forWeekStart: currentReviewPeriod.lowerBound,
+            calendar: calendar
+        )
     }
 
     private func reviewInsightsRefreshOutcome(

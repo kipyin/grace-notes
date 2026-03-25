@@ -216,13 +216,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A thread"
+            "value" : "A pattern"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "发现"
+            "value" : "规律"
           }
         }
       }
@@ -568,18 +568,18 @@
         }
       }
     },
-    "Choose insights or timeline" : {
+    "Switch between Insights and Timeline." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choose insights or timeline"
+            "value" : "Switch between Insights and Timeline."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选择洞察或时间线"
+            "value" : "在「洞察」与「时间线」之间切换。"
           }
         }
       }
@@ -2106,6 +2106,38 @@
         }
       }
     },
+    "Loading weekly insights." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading weekly insights."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在加载本周洞察。"
+          }
+        }
+      }
+    },
+    "Updated insights appear when ready." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updated insights appear when ready."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新完成后会显示最新洞察。"
+          }
+        }
+      }
+    },
     "Is this shift toward %@ something you want to keep building?" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2435,13 +2467,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "On-device"
+            "value" : "On your device"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地"
+            "value" : "仅在你的设备上"
           }
         }
       }
@@ -3723,13 +3755,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Source"
+            "value" : "Insight source"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "来源"
+            "value" : "洞察来源"
           }
         }
       }
@@ -4721,6 +4753,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "这周和 %@ 简短联系一下，会不会对你有帮助？"
+          }
+        }
+      }
+    },
+    "Write today's reflection" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Write today's reflection"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "写写今天的感受"
           }
         }
       }
