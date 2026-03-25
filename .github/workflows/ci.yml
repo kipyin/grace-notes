@@ -18,7 +18,7 @@ concurrency:
 
 env:
   CI_SIMULATOR_PRO: platform=iOS Simulator,name=iPhone 17 Pro,OS=26.3
-  CI_SIMULATOR_XR: platform=iOS Simulator,name=iPhone XR,OS=26.3
+  CI_SIMULATOR_XR: platform=iOS Simulator,name=iPhone XR,OS=17.5
 
 jobs:
   lint-build:
@@ -32,7 +32,6 @@ jobs:
         with:
           xcode-version: '26.3'
 
-      - uses: ./.github/actions/prepare-ios-simulators
 
       - name: Install SwiftLint
         run: brew install swiftlint
@@ -54,7 +53,6 @@ jobs:
         with:
           xcode-version: '26.3'
 
-      - uses: ./.github/actions/prepare-ios-simulators
 
       - name: Install SwiftLint
         run: brew install swiftlint
@@ -73,7 +71,6 @@ jobs:
         with:
           xcode-version: '26.3'
 
-      - uses: ./.github/actions/prepare-ios-simulators
 
       - name: Install SwiftLint
         run: brew install swiftlint
@@ -94,7 +91,6 @@ jobs:
         with:
           xcode-version: '26.3'
 
-      - uses: ./.github/actions/prepare-ios-simulators
 
       - name: Install SwiftLint
         run: brew install swiftlint

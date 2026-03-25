@@ -60,7 +60,7 @@ See `GraceNotes/docs/07-release-roadmap.md`.
 
 ## Requirements
 
-- Xcode 26 or later (default `make` destinations and the test matrix assume **iPhone 17**-family simulators and **iOS 26** runtimes; use an older Xcode only if you override `DESTINATION` and `TEST_DESTINATION_MATRIX` to match what that Xcode installs)
+- Xcode 26 or later (default `make` destinations use iPhone 17 Pro @ iOS 26.3 and iPhone XR @ iOS 17.5; use an older Xcode only if you override `DESTINATION` and `TEST_DESTINATION_MATRIX` to match what that Xcode installs)
 - iOS 17+ (app deployment target; see the Xcode project)
 
 ## Getting Started
@@ -78,7 +78,7 @@ Use the root `Makefile` for common local workflows (tests use the **GraceNotes**
 - `make build` – Build the app (requires macOS + Xcode).
 - `make test` – Run unit + UI tests for **GraceNotes** on `DESTINATION` (resolved via `Scripts/simulator_destination.py`).
 - `make test-all` – Reset simulators, then `make test` (reduces flaky simulator state).
-- `make test-matrix` – Run **GraceNotes** tests across `TEST_DESTINATION_MATRIX` (default: iPhone XR and iPhone 17 Pro @ iOS 26.3).
+- `make test-matrix` – Run **GraceNotes** tests across `TEST_DESTINATION_MATRIX` (default: iPhone XR @ iOS 17.5 and iPhone 17 Pro @ iOS 26.3).
 - `make validate-destination` / `make validate-test-matrix` – Check that simulator names and OS versions exist before running tests.
 - `make list-simulator-destinations` – List installed `platform=iOS Simulator,...` strings.
 - `make ci` – Lint + `test-all`.
@@ -88,7 +88,7 @@ Examples:
 
 ```bash
 make test DESTINATION='platform=iOS Simulator,name=iPhone 17 Pro,OS=26.3'
-make test-matrix TEST_DESTINATION_MATRIX='iPhone XR@26.3;iPhone 17 Pro@26.3'
+make test-matrix TEST_DESTINATION_MATRIX='iPhone XR@17.5;iPhone 17 Pro@26.3'
 ```
 
 On iOS 17 simulators, `make` applies targeted `-skip-testing` flags for a few hosted SwiftData suites that crash before assertions; see `Makefile` (`LEGACY_RUNTIME_SKIP_FLAGS`).
@@ -111,10 +111,8 @@ Workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml). All simulator 
 |------|-----------|
 | **Pull request → `main`** | **Lint & build (iPhone 17 Pro)** — `make lint` then `make ci-build`. **`CI_SIMULATOR_PRO`** is **iPhone 17 Pro @ iOS 26.3**. |
 | **Push → `main`** | **Push main — lint, test, UI smoke** — `make ci-merge-queue` (same as merge queue). Use this path when `main` moves outside a normal PR/merge-queue flow (rare). Routine merges via merge queue are validated by **`merge_group`**, not by this job. |
-| **Merge queue** | **Merge queue — lint, test, UI smoke** — `make ci-merge-queue`: `make lint`, `make test` on **iPhone 17 Pro** (`CI_SIMULATOR_PRO`), then `make test-ui-smoke` on **iPhone XR** (`CI_SIMULATOR_XR`), both **iOS 26.3**. Smoke: `GraceNotesSmokeUITests.testSmokeLaunch`. |
+| **Merge queue** | **Merge queue — lint, test, UI smoke** — `make ci-merge-queue`: `make lint`, `make test` on **iPhone 17 Pro** (`CI_SIMULATOR_PRO`), then `make test-ui-smoke` on **iPhone XR** (`CI_SIMULATOR_XR`), **iOS 26.3** (17 Pro) and **iOS 17.5** (XR). Smoke: `GraceNotesSmokeUITests.testSmokeLaunch`. |
 | **Pull request + label `full-ci`** | **PR full-ci — lint, test, UI smoke** — `make ci-pr-full-ci` (same as merge queue). Re-runs on new commits while the label is present. |
-
-Hosted images may not include every **26.3** runtime or **iPhone XR** pairing until the iOS Simulator platform is installed. The workflow runs [`.github/actions/prepare-ios-simulators`](.github/actions/prepare-ios-simulators) (**`xcodebuild -downloadPlatform iOS`**) after selecting **Xcode 26.3** so destinations resolve.
 
 The **`full-ci`** label must exist in the GitHub repo (Issues → Labels). Adjust **`CI_SIMULATOR_PRO`** / **`CI_SIMULATOR_XR`** in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) and [`Makefile`](Makefile) if Apple or runner images change.
 

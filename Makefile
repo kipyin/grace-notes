@@ -3,8 +3,8 @@ SCHEME := GraceNotes
 DESTINATION ?= platform=iOS Simulator,name=iPhone 17 Pro,OS=latest
 # Default pins for CI. Override if runtimes differ; see `make list-simulator-destinations`.
 CI_SIMULATOR_PRO ?= platform=iOS Simulator,name=iPhone 17 Pro,OS=26.3
-CI_SIMULATOR_XR ?= platform=iOS Simulator,name=iPhone XR,OS=26.3
-TEST_DESTINATION_MATRIX ?= iPhone XR@26.3;iPhone 17 Pro@26.3
+CI_SIMULATOR_XR ?= platform=iOS Simulator,name=iPhone XR,OS=17.5
+TEST_DESTINATION_MATRIX ?= iPhone XR@17.5;iPhone 17 Pro@26.3
 ISOLATED_DERIVED_DATA := /tmp/GraceNotes-TestDerivedData
 UNIT_TEST_BUNDLE := GraceNotesTests
 UI_TEST_BUNDLE := GraceNotesUITests
@@ -39,7 +39,7 @@ help:
 	@echo ""
 	@echo "Configurable variables:"
 	@echo "  DESTINATION='platform=iOS Simulator,name=iPhone 17 Pro,OS=26.3'"
-	@echo "  TEST_DESTINATION_MATRIX='iPhone XR@26.3;iPhone 17 Pro@26.3'"
+	@echo "  TEST_DESTINATION_MATRIX='iPhone XR@17.5;iPhone 17 Pro@26.3'"
 	@echo ""
 	@echo "Note: GraceNotes (Demo) scheme remains in Xcode for sample-data runs; Makefile does not test it."
 
