@@ -89,4 +89,24 @@ final class CloudReviewInsightsSanitizerTests: XCTestCase {
         XCTAssertEqual(sanitized.narrativeSummary, narrative)
         XCTAssertNoThrow(try sanitizer.validateGroundedQuality(sanitized))
     }
+
+    func test_sanitizeStructuredPayload_repairsInterpretiveNarrativeWithoutResurfacingRewrite() {
+        let sanitizer = CloudReviewInsightsSanitizer()
+        let observation = "You noted ThemeA 4 times and ThemeB 3 times this week."
+        let raw = CloudReviewInsightsPayload(
+            narrativeSummary: "This shows that you value ThemeA and ThemeB deeply.",
+            resurfacingMessage: observation,
+            continuityPrompt: "What is one small way to support ThemeA tomorrow without dropping ThemeB?",
+            recurringGratitudes: [CloudReviewTheme(label: "ThemeA", count: 4)],
+            recurringNeeds: [CloudReviewTheme(label: "ThemeB", count: 3)],
+            recurringPeople: []
+        )
+
+        let sanitized = sanitizer.sanitizeStructuredPayload(raw)
+
+        XCTAssertEqual(sanitized.resurfacingMessage, observation)
+        XCTAssertFalse(sanitized.narrativeSummary.lowercased().contains("shows that you"))
+        XCTAssertTrue(sanitized.narrativeSummary.contains("ThemeA"))
+        XCTAssertNoThrow(try sanitizer.validateGroundedQuality(sanitized))
+    }
 }

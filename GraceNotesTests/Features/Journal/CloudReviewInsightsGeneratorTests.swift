@@ -29,14 +29,7 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
             urlSession: urlSession,
             promptLanguage: .english
         )
-        let innerPayload: [String: Any] = [
-            "narrativeSummary": "You kept a calm rhythm this week.",
-            "resurfacingMessage": "You mentioned rest 3 times this week.",
-            "continuityPrompt": "What can protect your rest tomorrow?",
-            "recurringGratitudes": [["label": "Family", "count": 2]],
-            "recurringNeeds": [["label": "Rest", "count": 3]],
-            "recurringPeople": [["label": "Alex", "count": 2]]
-        ]
+        let innerPayload = Self.sampleTypedCooccurrencePayload()
 
         setMockResponse(withInnerPayload: innerPayload)
 
@@ -50,9 +43,13 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
         XCTAssertEqual(insights.recurringNeeds.first?.label, "Rest")
         XCTAssertEqual(insights.recurringNeeds.first?.count, 3)
         XCTAssertTrue(insights.narrativeSummary?.contains("Rest") == true)
+        XCTAssertTrue(insights.narrativeSummary?.contains("Family") == true)
+        XCTAssertTrue(insights.resurfacingMessage.contains("Rest"))
+        XCTAssertTrue(insights.resurfacingMessage.contains("Family"))
+        XCTAssertTrue(insights.continuityPrompt.contains("Rest") || insights.continuityPrompt.contains("Family"))
         XCTAssertEqual(insights.weeklyInsights.count, 1)
-        XCTAssertEqual(insights.weeklyInsights.first?.observation, "You mentioned rest 3 times this week.")
-        XCTAssertEqual(insights.weeklyInsights.first?.action, "What can protect your rest tomorrow?")
+        XCTAssertEqual(insights.weeklyInsights.first?.observation, insights.resurfacingMessage)
+        XCTAssertEqual(insights.weeklyInsights.first?.action, insights.continuityPrompt)
     }
 
     func test_generateInsights_invalidPayload_throws() async {
@@ -88,8 +85,10 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
                 calendar: calendar
             )
             XCTFail("Expected invalid payload error")
-        } catch let error as NSError {
-            XCTAssertFalse(error.localizedDescription.isEmpty)
+        } catch let error as CloudReviewInsightsError {
+            XCTAssertEqual(error, .invalidPayload)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
         }
     }
 
@@ -156,30 +155,32 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
                 calendar: calendar
             )
             XCTFail("Expected HTTP error")
-        } catch let error as NSError {
-            XCTAssertFalse(error.localizedDescription.isEmpty)
+        } catch let error as CloudReviewInsightsError {
+            XCTAssertEqual(error, .httpError(statusCode: 500))
+        } catch {
+            XCTFail("Unexpected error: \(error)")
         }
     }
 
-    func test_generateInsights_clampsMessagesAndThemeLists() async throws {
+    func test_generateInsights_clampsMessagesAndUsesDeviceRecurringThemes() async throws {
         let generator = CloudReviewInsightsGenerator(
             apiKey: "test-key",
             urlSession: urlSession,
             promptLanguage: .english
         )
         let longTail = String(repeating: "a", count: 220)
-        // Leading theme tokens keep post-clamp copy grounded for validateGroundedQuality.
-        let longMessage = "Rest and Family " + longTail
+        let longRest = "Rest" + longTail
+        let longFamily = "Family" + longTail
         let manyThemes: [[String: Any]] = [
-            ["label": "Rest", "count": 3],
-            ["label": "Family", "count": 2],
+            ["label": longRest, "count": 3],
+            ["label": longFamily, "count": 2],
             ["label": "Alex", "count": 2],
             ["label": "ShouldDrop", "count": 1]
         ]
         let innerPayload: [String: Any] = [
-            "narrativeSummary": longMessage,
-            "resurfacingMessage": longMessage,
-            "continuityPrompt": "What one step would protect Rest tomorrow? " + longTail,
+            "insightType": "cooccurrence",
+            "primaryTheme": ["label": "Family", "category": "gratitudes"],
+            "secondaryTheme": ["label": "Rest", "category": "needs"],
             "recurringGratitudes": manyThemes,
             "recurringNeeds": manyThemes,
             "recurringPeople": manyThemes
@@ -193,9 +194,9 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
             calendar: calendar
         )
 
-        XCTAssertEqual(insights.recurringGratitudes.count, 3)
-        XCTAssertEqual(insights.recurringNeeds.count, 3)
-        XCTAssertEqual(insights.recurringPeople.count, 3)
+        XCTAssertEqual(insights.recurringGratitudes, [ReviewInsightTheme(label: "Family", count: 3)])
+        XCTAssertEqual(insights.recurringNeeds, [ReviewInsightTheme(label: "Rest", count: 3)])
+        XCTAssertEqual(insights.recurringPeople, [ReviewInsightTheme(label: "Alex", count: 3)])
         XCTAssertLessThanOrEqual(insights.narrativeSummary?.count ?? 0, 160)
         XCTAssertLessThanOrEqual(insights.resurfacingMessage.count, 160)
         XCTAssertLessThanOrEqual(insights.continuityPrompt.count, 160)
@@ -208,9 +209,9 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
             promptLanguage: .english
         )
         let innerPayload: [String: Any] = [
-            "narrative_summary": "This week you reflected on Rest and Family.",
-            "resurfacing_message": "You mentioned Rest 3 times this week.",
-            "continuity_prompt": "What can protect your Rest tomorrow?",
+            "insight_type": "cooccurrence",
+            "primary_theme": ["label": "Family", "category": "gratitudes"],
+            "secondary_theme": ["label": "Rest", "category": "needs"],
             "recurring_gratitudes": [["label": "Family", "count": NSNumber(value: 2.0)]],
             "recurring_needs": [["label": "Rest", "count": NSNumber(value: 3.4)]],
             "recurring_people": [["label": "Alex", "count": NSNumber(value: 2.0)]]
@@ -233,14 +234,7 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
             urlSession: urlSession,
             promptLanguage: .english
         )
-        let innerPayload: [String: Any] = [
-            "narrativeSummary": "This week you reflected on Rest and Family.",
-            "resurfacingMessage": "You mentioned Rest 2 times this week.",
-            "continuityPrompt": "What can protect your Rest tomorrow?",
-            "recurringGratitudes": [["label": "Family", "count": 2]],
-            "recurringNeeds": [["label": "Rest", "count": 2]],
-            "recurringPeople": []
-        ]
+        let innerPayload = Self.sampleTypedCooccurrencePayload()
 
         let contentData = try JSONSerialization.data(withJSONObject: innerPayload)
         let content = String(data: contentData, encoding: .utf8) ?? "{}"
@@ -254,82 +248,113 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
 
         XCTAssertEqual(insights.recurringNeeds.first?.label, "Rest")
         XCTAssertTrue(insights.continuityPrompt.contains("Rest"))
-        XCTAssertEqual(insights.weeklyInsights.first?.observation, "You mentioned Rest 2 times this week.")
-        XCTAssertEqual(insights.weeklyInsights.first?.action, "What can protect your Rest tomorrow?")
+        XCTAssertEqual(insights.weeklyInsights.first?.observation, insights.resurfacingMessage)
+        XCTAssertEqual(insights.weeklyInsights.first?.action, insights.continuityPrompt)
     }
 
-    func test_generateInsights_genericContinuityPrompt_isReplacedWithThemePrompt() async throws {
+    func test_generateInsights_invalidContrastCategories_throwsQualityGate() async {
         let generator = CloudReviewInsightsGenerator(
             apiKey: "test-key",
             urlSession: urlSession,
             promptLanguage: .english
         )
         let innerPayload: [String: Any] = [
-            "narrativeSummary": "You kept a calm rhythm this week.",
-            "resurfacingMessage": "You mentioned Rest 3 times this week.",
-            "continuityPrompt": "Take it one day at a time.",
-            "recurringGratitudes": [["label": "Family", "count": 2]],
-            "recurringNeeds": [["label": "Rest", "count": 3]],
-            "recurringPeople": []
-        ]
-
-        setMockResponse(withInnerPayload: innerPayload)
-
-        let insights = try await generator.generateInsights(
-            from: threeMeaningfulEntriesInWeekAroundReference(),
-            referenceDate: date(year: 2026, month: 3, day: 18),
-            calendar: calendar
-        )
-
-        XCTAssertTrue(insights.continuityPrompt.contains("Rest"))
-        XCTAssertFalse(insights.continuityPrompt.contains("one day at a time"))
-    }
-
-    func test_generateInsights_duplicateNarrativeAndResurfacing_isRepairedToDistinctThinkingLine() async throws {
-        let generator = CloudReviewInsightsGenerator(
-            apiKey: "test-key",
-            urlSession: urlSession,
-            promptLanguage: .english
-        )
-        let duplicateLine = "You mentioned Rest 3 times this week."
-        let innerPayload: [String: Any] = [
-            "narrativeSummary": duplicateLine,
-            "resurfacingMessage": duplicateLine,
-            "continuityPrompt": "What can protect your Rest tomorrow?",
+            "insightType": "contrast",
+            "primaryTheme": ["label": "Family", "category": "gratitudes"],
+            "secondaryTheme": ["label": "Alex", "category": "people"],
             "recurringGratitudes": [["label": "Family", "count": 2]],
             "recurringNeeds": [["label": "Rest", "count": 3]],
             "recurringPeople": [["label": "Alex", "count": 2]]
         ]
-
         setMockResponse(withInnerPayload: innerPayload)
 
-        let insights = try await generator.generateInsights(
-            from: threeMeaningfulEntriesInWeekAroundReference(),
-            referenceDate: date(year: 2026, month: 3, day: 18),
-            calendar: calendar
-        )
-
-        XCTAssertNotEqual(insights.narrativeSummary, duplicateLine)
-        XCTAssertTrue(insights.narrativeSummary?.contains("Rest") == true)
-        let narrative = insights.narrativeSummary ?? ""
-        XCTAssertTrue(narrative.contains("Family") || narrative.contains("Alex"))
+        do {
+            _ = try await generator.generateInsights(
+                from: threeMeaningfulEntriesInWeekAroundReference(),
+                referenceDate: date(year: 2026, month: 3, day: 18),
+                calendar: calendar
+            )
+            XCTFail("Expected quality gate failure")
+        } catch let error as CloudReviewInsightsError {
+            XCTAssertEqual(error, .failedQualityGate)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
     }
 
-    func test_generateInsights_themeLessNarrative_isReplacedWithThemeGroundedNarrative() async throws {
+    func test_generateInsights_missingPrimaryLabelInRecurringList_throwsQualityGate() async {
         let generator = CloudReviewInsightsGenerator(
             apiKey: "test-key",
             urlSession: urlSession,
             promptLanguage: .english
         )
         let innerPayload: [String: Any] = [
-            "narrativeSummary": "You kept a calm rhythm this week.",
-            "resurfacingMessage": "You mentioned Rest 3 times this week.",
-            "continuityPrompt": "What can protect your Rest tomorrow?",
+            "insightType": "cooccurrence",
+            "primaryTheme": ["label": "Missing", "category": "gratitudes"],
+            "secondaryTheme": ["label": "Rest", "category": "needs"],
+            "recurringGratitudes": [],
+            "recurringNeeds": [["label": "Rest", "count": 3]],
+            "recurringPeople": [["label": "Alex", "count": 2]]
+        ]
+        setMockResponse(withInnerPayload: innerPayload)
+
+        do {
+            _ = try await generator.generateInsights(
+                from: threeMeaningfulEntriesInWeekAroundReference(),
+                referenceDate: date(year: 2026, month: 3, day: 18),
+                calendar: calendar
+            )
+            XCTFail("Expected quality gate failure")
+        } catch let error as CloudReviewInsightsError {
+            XCTAssertEqual(error, .failedQualityGate)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+
+    func test_generateInsights_temporalShiftWithWeakEvidenceDays_throwsQualityGate() async {
+        let generator = CloudReviewInsightsGenerator(
+            apiKey: "test-key",
+            urlSession: urlSession,
+            promptLanguage: .english
+        )
+        let innerPayload: [String: Any] = [
+            "insightType": "temporalShift",
+            "primaryTheme": ["label": "Rest", "category": "needs"],
+            "evidenceDays": 1,
             "recurringGratitudes": [["label": "Family", "count": 2]],
             "recurringNeeds": [["label": "Rest", "count": 3]],
-            "recurringPeople": []
+            "recurringPeople": [["label": "Alex", "count": 2]]
         ]
+        setMockResponse(withInnerPayload: innerPayload)
 
+        do {
+            _ = try await generator.generateInsights(
+                from: threeMeaningfulEntriesInWeekAroundReference(),
+                referenceDate: date(year: 2026, month: 3, day: 18),
+                calendar: calendar
+            )
+            XCTFail("Expected quality gate failure")
+        } catch let error as CloudReviewInsightsError {
+            XCTAssertEqual(error, .failedQualityGate)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+
+    func test_generateInsights_dominantCategory_rendersGroundedChain() async throws {
+        let generator = CloudReviewInsightsGenerator(
+            apiKey: "test-key",
+            urlSession: urlSession,
+            promptLanguage: .english
+        )
+        let innerPayload: [String: Any] = [
+            "insightType": "dominantCategory",
+            "primaryTheme": ["label": "Rest", "category": "needs"],
+            "recurringGratitudes": [["label": "Family", "count": 2]],
+            "recurringNeeds": [["label": "Rest", "count": 3]],
+            "recurringPeople": [["label": "Alex", "count": 2]]
+        ]
         setMockResponse(withInnerPayload: innerPayload)
 
         let insights = try await generator.generateInsights(
@@ -338,7 +363,30 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
             calendar: calendar
         )
 
+        XCTAssertTrue(insights.resurfacingMessage.contains("Rest"))
         XCTAssertTrue(insights.narrativeSummary?.contains("Rest") == true)
+        XCTAssertTrue(insights.continuityPrompt.contains("Rest"))
+    }
+
+    func test_generateInsights_cooccurrence_narrativeIsDistinctFromObservation() async throws {
+        let generator = CloudReviewInsightsGenerator(
+            apiKey: "test-key",
+            urlSession: urlSession,
+            promptLanguage: .english
+        )
+        setMockResponse(withInnerPayload: Self.sampleTypedCooccurrencePayload())
+
+        let insights = try await generator.generateInsights(
+            from: threeMeaningfulEntriesInWeekAroundReference(),
+            referenceDate: date(year: 2026, month: 3, day: 18),
+            calendar: calendar
+        )
+
+        let observation = insights.resurfacingMessage
+        let narrative = insights.narrativeSummary ?? ""
+        XCTAssertFalse(narrative.isEmpty)
+        XCTAssertNotEqual(normalizedInsightLine(narrative), normalizedInsightLine(observation))
+        XCTAssertTrue(narrative.lowercased().contains("alongside"))
     }
 
     func test_generateInsights_requestPrompt_includesInsightQualityRules() async throws {
@@ -368,11 +416,10 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
             return XCTFail("Expected prompt content in request")
         }
 
-        XCTAssertTrue(prompt.contains("Compose mentally in this order"))
-        XCTAssertTrue(prompt.contains("Hard bans"))
-        XCTAssertTrue(prompt.contains("Bad example"))
-        XCTAssertTrue(prompt.contains("resurfacingMessage"))
-        XCTAssertTrue(prompt.contains("narrativeSummary"))
+        XCTAssertTrue(prompt.contains("insightType"))
+        XCTAssertTrue(prompt.contains("cooccurrence"))
+        XCTAssertTrue(prompt.contains("Do not output narrativeSummary"))
+        XCTAssertTrue(prompt.contains("personThemePairing"))
     }
 
     func test_generateInsights_requestPrompt_usesSimplifiedChineseWhenPromptLanguageZhHans() async throws {
@@ -404,8 +451,8 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
 
         XCTAssertTrue(prompt.contains("下方是最近七天的记录"))
         XCTAssertTrue(prompt.contains("只输出合法 JSON"))
-        XCTAssertTrue(prompt.contains("心里按此顺序写"))
-        XCTAssertTrue(prompt.contains("硬性禁止"))
+        XCTAssertTrue(prompt.contains("insightType"))
+        XCTAssertTrue(prompt.contains("不要"))
     }
 
     func test_generateInsights_withoutMeaningfulCurrentWeekEntries_throwsBeforeAPICall() async {
@@ -477,39 +524,54 @@ final class CloudReviewInsightsGeneratorTests: XCTestCase {
         }
     }
 
-    func test_generateInsights_emptyRecurringListsAfterSanitize_failsQualityGate() async {
+    func test_generateInsights_ignoresCloudRecurringListsWhenDeviceThemesExist() async throws {
         let generator = CloudReviewInsightsGenerator(
             apiKey: "test-key",
             urlSession: urlSession,
             promptLanguage: .english
         )
         let innerPayload: [String: Any] = [
-            "narrativeSummary": "You kept a calm rhythm this week.",
-            "resurfacingMessage": "You mentioned rest 3 times this week.",
-            "continuityPrompt": "What can protect your rest tomorrow?",
+            "insightType": "dominantCategory",
+            "primaryTheme": ["label": "Rest", "category": "needs"],
             "recurringGratitudes": [],
             "recurringNeeds": [],
             "recurringPeople": []
         ]
         setMockResponse(withInnerPayload: innerPayload)
 
-        do {
-            _ = try await generator.generateInsights(
-                from: threeMeaningfulEntriesInWeekAroundReference(),
-                referenceDate: date(year: 2026, month: 3, day: 18),
-                calendar: calendar
-            )
-            XCTFail("Expected quality gate failure")
-        } catch let error as CloudReviewInsightsError {
-            XCTAssertEqual(error, CloudReviewInsightsError.failedQualityGate)
-        } catch {
-            XCTFail("Unexpected error: \(error)")
-        }
+        let insights = try await generator.generateInsights(
+            from: threeMeaningfulEntriesInWeekAroundReference(),
+            referenceDate: date(year: 2026, month: 3, day: 18),
+            calendar: calendar
+        )
+
+        XCTAssertEqual(insights.recurringGratitudes, [ReviewInsightTheme(label: "Family", count: 3)])
+        XCTAssertEqual(insights.recurringNeeds, [ReviewInsightTheme(label: "Rest", count: 3)])
+        XCTAssertEqual(insights.recurringPeople, [ReviewInsightTheme(label: "Alex", count: 3)])
+        XCTAssertTrue(insights.resurfacingMessage.contains("Rest"))
     }
 
 }
 
 private extension CloudReviewInsightsGeneratorTests {
+    static func sampleTypedCooccurrencePayload() -> [String: Any] {
+        [
+            "insightType": "cooccurrence",
+            "primaryTheme": ["label": "Family", "category": "gratitudes"],
+            "secondaryTheme": ["label": "Rest", "category": "needs"],
+            "recurringGratitudes": [["label": "Family", "count": 2]],
+            "recurringNeeds": [["label": "Rest", "count": 3]],
+            "recurringPeople": [["label": "Alex", "count": 2]]
+        ]
+    }
+
+    func normalizedInsightLine(_ value: String) -> String {
+        value
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .folding(options: .diacriticInsensitive, locale: Locale.current)
+            .lowercased()
+    }
+
     /// Three seed+ journal rows in the seven-day review period ending 2026-03-18 (Mar 12–18).
     func threeMeaningfulEntriesInWeekAroundReference() -> [JournalEntry] {
         [
@@ -604,9 +666,8 @@ private extension CloudReviewInsightsGeneratorTests {
         let requestCaptured = expectation(description: "Cloud request body captured")
         let content = """
         {
-          "narrativeSummary": "You reflected on Rest.",
-          "resurfacingMessage": "You mentioned Rest 2 times this week.",
-          "continuityPrompt": "What can protect your Rest tomorrow?",
+          "insightType": "dominantCategory",
+          "primaryTheme": {"label":"Rest","category":"needs"},
           "recurringGratitudes": [],
           "recurringNeeds": [{"label":"Rest","count":2}],
           "recurringPeople": []

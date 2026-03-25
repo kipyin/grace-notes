@@ -1,7 +1,13 @@
 import Foundation
 
 // Coherence repair helpers add length; keep logic in one type.
-// swiftlint:disable type_body_length function_body_length
+// swiftlint:disable file_length type_body_length function_body_length
+struct CloudSanitizedRecurringThemeLists: Sendable {
+    let gratitudes: [CloudReviewTheme]
+    let needs: [CloudReviewTheme]
+    let people: [CloudReviewTheme]
+}
+
 struct CloudReviewInsightsSanitizer {
     private let maxThemesPerList = 3
     private let maxMessageLength = 160
@@ -101,6 +107,59 @@ struct CloudReviewInsightsSanitizer {
             recurringGratitudes: recurringGratitudes,
             recurringNeeds: recurringNeeds,
             recurringPeople: recurringPeople
+        )
+    }
+
+    /// Sanitizes recurring theme lists and applies a light pass on locally rendered Review copy (length clamp,
+    /// interpretive narrative repair, weak-chain continuity repair). Does not replace Observation with synthesized
+    /// frequency lines the way ``sanitizePayload`` does for legacy one-shot model prose.
+    func sanitizeStructuredPayload(_ payload: CloudReviewInsightsPayload) -> CloudReviewInsightsPayload {
+        let fallbackNarrative = String(localized: "You kept a steady reflection rhythm this week.")
+        let fallbackResurfacing = String(
+            localized: "You are building momentum by returning to reflection this week."
+        )
+        let fallbackContinuity = String(localized: "What is one next step you can take tomorrow?")
+        let recurringGratitudes = sanitizeThemes(payload.recurringGratitudes)
+        let recurringNeeds = sanitizeThemes(payload.recurringNeeds)
+        let recurringPeople = sanitizeThemes(payload.recurringPeople)
+        let allThemes = recurringNeeds + recurringPeople + recurringGratitudes
+
+        var narrativeSummary = sanitizeMessage(payload.narrativeSummary, fallback: fallbackNarrative)
+        if seemsInterpretiveFiller(narrativeSummary) {
+            narrativeSummary = synthesizedJuxtapositionNarrative(allThemes: allThemes, fallback: fallbackNarrative)
+        }
+
+        let resurfacingMessage = sanitizeMessage(payload.resurfacingMessage, fallback: fallbackResurfacing)
+        var continuityPrompt = sanitizeMessage(payload.continuityPrompt, fallback: fallbackContinuity)
+        continuityPrompt = repairContinuityWhenChainWeak(
+            continuity: continuityPrompt,
+            narrative: narrativeSummary,
+            resurfacing: resurfacingMessage,
+            recurringGratitudes: recurringGratitudes,
+            recurringNeeds: recurringNeeds,
+            recurringPeople: recurringPeople,
+            fallback: fallbackContinuity
+        )
+
+        return CloudReviewInsightsPayload(
+            narrativeSummary: narrativeSummary,
+            resurfacingMessage: resurfacingMessage,
+            continuityPrompt: continuityPrompt,
+            recurringGratitudes: recurringGratitudes,
+            recurringNeeds: recurringNeeds,
+            recurringPeople: recurringPeople
+        )
+    }
+
+    func sanitizedRecurringLists(
+        gratitudes: [CloudReviewTheme],
+        needs: [CloudReviewTheme],
+        people: [CloudReviewTheme]
+    ) -> CloudSanitizedRecurringThemeLists {
+        CloudSanitizedRecurringThemeLists(
+            gratitudes: sanitizeThemes(gratitudes),
+            needs: sanitizeThemes(needs),
+            people: sanitizeThemes(people)
         )
     }
 
@@ -587,4 +646,4 @@ struct CloudReviewInsightsSanitizer {
             .lowercased()
     }
 }
-// swiftlint:enable type_body_length function_body_length
+// swiftlint:enable file_length type_body_length function_body_length
