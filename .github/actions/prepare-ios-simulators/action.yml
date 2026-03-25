@@ -1,0 +1,18 @@
+name: Prepare iOS Simulators
+description: >
+  Download the iOS Simulator platform for the active Xcode so pinned destinations
+  (e.g. iPhone 17 Pro @ 26.3, iPhone XR @ 26.3) resolve on GitHub-hosted macOS images,
+  which do not always preinstall every runtime or legacy device pairing.
+
+runs:
+  using: composite
+  steps:
+    - name: Download iOS Simulator platform
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "Active developer dir: ${DEVELOPER_DIR:-$(xcode-select -p)}"
+        # Warm simctl (avoids some flaky first-invocation issues on hosted runners).
+        xcrun simctl list runtimes >/dev/null || true
+        echo "Downloading iOS Simulator platform (can take several minutes)..."
+        xcodebuild -downloadPlatform iOS

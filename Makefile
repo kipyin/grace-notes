@@ -2,12 +2,9 @@ PROJECT := GraceNotes/GraceNotes.xcodeproj
 SCHEME := GraceNotes
 DESTINATION ?= platform=iOS Simulator,name=iPhone 17 Pro,OS=latest
 # Default pins for CI. Override if runtimes differ; see `make list-simulator-destinations`.
-# GitHub-hosted macOS images ship iOS 26.0–26.2 simulators (not "26.3" as a runtime label); use 26.2 with Xcode 26.x.
-CI_SIMULATOR_PRO ?= platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2
-CI_SIMULATOR_XR ?= platform=iOS Simulator,name=iPhone XR,OS=17.5
-# UI smoke device (XR locally; iPhone SE on GHA — XR is not in the default runner image device list).
-CI_SIMULATOR_SMOKE ?= platform=iOS Simulator,name=iPhone XR,OS=17.5
-TEST_DESTINATION_MATRIX ?= iPhone XR@17.5;iPhone 17 Pro@26.2
+CI_SIMULATOR_PRO ?= platform=iOS Simulator,name=iPhone 17 Pro,OS=26.3
+CI_SIMULATOR_XR ?= platform=iOS Simulator,name=iPhone XR,OS=26.3
+TEST_DESTINATION_MATRIX ?= iPhone XR@26.3;iPhone 17 Pro@26.3
 ISOLATED_DERIVED_DATA := /tmp/GraceNotes-TestDerivedData
 UNIT_TEST_BUNDLE := GraceNotesTests
 UI_TEST_BUNDLE := GraceNotesUITests
@@ -37,12 +34,12 @@ help:
 	@echo "  make ci     - Run lint and test-all"
 	@echo "  make ci-matrix - Run lint and test-matrix"
 	@echo "  make ci-build - Build for CI_SIMULATOR_PRO (used by GitHub Actions)"
-	@echo "  make ci-merge-queue - Lint, test on CI_SIMULATOR_PRO, UI smoke on CI_SIMULATOR_SMOKE"
+	@echo "  make ci-merge-queue - Lint, test on CI_SIMULATOR_PRO, UI smoke on CI_SIMULATOR_XR"
 	@echo "  make ci-pr-full-ci - Same as ci-merge-queue (PR label full-ci)"
 	@echo ""
 	@echo "Configurable variables:"
-	@echo "  DESTINATION='platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2'"
-	@echo "  TEST_DESTINATION_MATRIX='iPhone XR@17.5;iPhone 17 Pro@26.2'"
+	@echo "  DESTINATION='platform=iOS Simulator,name=iPhone 17 Pro,OS=26.3'"
+	@echo "  TEST_DESTINATION_MATRIX='iPhone XR@26.3;iPhone 17 Pro@26.3'"
 	@echo ""
 	@echo "Note: GraceNotes (Demo) scheme remains in Xcode for sample-data runs; Makefile does not test it."
 
@@ -156,6 +153,6 @@ ci-build:
 ci-merge-queue:
 	$(MAKE) lint
 	$(MAKE) test DESTINATION="$(CI_SIMULATOR_PRO)"
-	$(MAKE) test-ui-smoke DESTINATION="$(CI_SIMULATOR_SMOKE)"
+	$(MAKE) test-ui-smoke DESTINATION="$(CI_SIMULATOR_XR)"
 
 ci-pr-full-ci: ci-merge-queue

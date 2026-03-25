@@ -17,10 +17,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Match Xcode 26.x + simulators on GitHub macos-15 images (see actions/runner-images macOS-15 readme).
-  # Simulator runtimes are 26.0 / 26.1 / 26.2 — not an OS=26.3 label. iPhone XR is not preinstalled; use SE for smoke.
-  CI_SIMULATOR_PRO: platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2
-  CI_SIMULATOR_SMOKE: platform=iOS Simulator,name=iPhone SE (3rd generation),OS=26.2
+  CI_SIMULATOR_PRO: platform=iOS Simulator,name=iPhone 17 Pro,OS=26.3
+  CI_SIMULATOR_XR: platform=iOS Simulator,name=iPhone XR,OS=26.3
 
 jobs:
   lint-build:
@@ -33,6 +31,8 @@ jobs:
       - uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: '26.3'
+
+      - uses: ./.github/actions/prepare-ios-simulators
 
       - name: Install SwiftLint
         run: brew install swiftlint
@@ -54,6 +54,8 @@ jobs:
         with:
           xcode-version: '26.3'
 
+      - uses: ./.github/actions/prepare-ios-simulators
+
       - name: Install SwiftLint
         run: brew install swiftlint
 
@@ -70,6 +72,8 @@ jobs:
       - uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: '26.3'
+
+      - uses: ./.github/actions/prepare-ios-simulators
 
       - name: Install SwiftLint
         run: brew install swiftlint
@@ -89,6 +93,8 @@ jobs:
       - uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: '26.3'
+
+      - uses: ./.github/actions/prepare-ios-simulators
 
       - name: Install SwiftLint
         run: brew install swiftlint
