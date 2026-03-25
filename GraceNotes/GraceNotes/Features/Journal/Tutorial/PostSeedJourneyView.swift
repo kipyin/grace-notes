@@ -26,7 +26,7 @@ struct PostSeedJourneyView: View {
     @State var isReminderPickerExpanded = false
     @State var congratsAnimatedIn = false
 
-    let lastPageIndex = 5
+    var lastPageIndex: Int { AppFeatureFlags.cloudAIUserFacingEnabled ? 5 : 4 }
 
     var firstPageIndex: Int { skipsCongratulationsPage ? 1 : 0 }
 
@@ -48,8 +48,10 @@ struct PostSeedJourneyView: View {
                 pathPage.tag(1)
                 insightsPage.tag(2)
                 remindersPage.tag(3)
-                aiPage.tag(4)
-                iCloudPage.tag(5)
+                if AppFeatureFlags.cloudAIUserFacingEnabled {
+                    aiPage.tag(4)
+                }
+                iCloudPage.tag(AppFeatureFlags.cloudAIUserFacingEnabled ? 5 : 4)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
 
@@ -67,12 +69,16 @@ struct PostSeedJourneyView: View {
             await reminderState.refreshStatus()
             syncReminderControlState(with: reminderState.liveStatus)
             iCloudAccountState.refresh()
-            clampCloudAIFeaturesIfApiKeyMissing()
-            syncAICloudStatusModel()
-            aiCloudStatus.scheduleThrottledAutoCheckIfNeeded()
+            if AppFeatureFlags.cloudAIUserFacingEnabled {
+                clampCloudAIFeaturesIfApiKeyMissing()
+                syncAICloudStatusModel()
+                aiCloudStatus.scheduleThrottledAutoCheckIfNeeded()
+            }
         }
         .onDisappear {
-            aiCloudStatus.onSettingsDisappear()
+            if AppFeatureFlags.cloudAIUserFacingEnabled {
+                aiCloudStatus.onSettingsDisappear()
+            }
         }
         .onChange(of: scenePhase) { _, newValue in
             guard newValue == .active else { return }
@@ -80,8 +86,10 @@ struct PostSeedJourneyView: View {
                 await reminderState.refreshStatus()
             }
             iCloudAccountState.refresh()
-            aiCloudStatus.sceneDidBecomeActive()
-            syncAICloudStatusModel()
+            if AppFeatureFlags.cloudAIUserFacingEnabled {
+                aiCloudStatus.sceneDidBecomeActive()
+                syncAICloudStatusModel()
+            }
         }
         .onChange(of: reminderState.liveStatus) { _, newValue in
             syncReminderControlState(with: newValue)
@@ -90,6 +98,7 @@ struct PostSeedJourneyView: View {
             reminderState.handleSelectedTimeChanged()
         }
         .onChange(of: useCloudSummarization) { _, _ in
+            guard AppFeatureFlags.cloudAIUserFacingEnabled else { return }
             syncAICloudStatusModel()
         }
         .alert(
