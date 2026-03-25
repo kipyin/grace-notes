@@ -3,48 +3,48 @@ import XCTest
 
 final class PersistenceRuntimeSnapshotTests: XCTestCase {
     func test_forInMemory_neverCloudOrFallback() {
-        let on = PersistenceRuntimeSnapshot.forInMemory(userRequestedCloudSync: true)
-        XCTAssertTrue(on.userRequestedCloudSync)
-        XCTAssertFalse(on.storeUsesCloudKit)
-        XCTAssertFalse(on.startupUsedCloudKitFallback)
+        let enabledSnapshot = PersistenceRuntimeSnapshot.forInMemory(userRequestedCloudSync: true)
+        XCTAssertTrue(enabledSnapshot.userRequestedCloudSync)
+        XCTAssertFalse(enabledSnapshot.storeUsesCloudKit)
+        XCTAssertFalse(enabledSnapshot.startupUsedCloudKitFallback)
 
-        let off = PersistenceRuntimeSnapshot.forInMemory(userRequestedCloudSync: false)
-        XCTAssertFalse(off.userRequestedCloudSync)
-        XCTAssertFalse(off.storeUsesCloudKit)
-        XCTAssertFalse(off.startupUsedCloudKitFallback)
+        let disabledSnapshot = PersistenceRuntimeSnapshot.forInMemory(userRequestedCloudSync: false)
+        XCTAssertFalse(disabledSnapshot.userRequestedCloudSync)
+        XCTAssertFalse(disabledSnapshot.storeUsesCloudKit)
+        XCTAssertFalse(disabledSnapshot.startupUsedCloudKitFallback)
     }
 
     func test_forDiskLaunch_cloudSuccess() {
-        let s = PersistenceRuntimeSnapshot.forDiskLaunch(
+        let snapshot = PersistenceRuntimeSnapshot.forDiskLaunch(
             userRequestedCloudSync: true,
             storeUsesCloudKit: true,
             startupUsedCloudKitFallback: false
         )
-        XCTAssertTrue(s.userRequestedCloudSync)
-        XCTAssertTrue(s.storeUsesCloudKit)
-        XCTAssertFalse(s.startupUsedCloudKitFallback)
+        XCTAssertTrue(snapshot.userRequestedCloudSync)
+        XCTAssertTrue(snapshot.storeUsesCloudKit)
+        XCTAssertFalse(snapshot.startupUsedCloudKitFallback)
     }
 
     func test_forDiskLaunch_localByChoice() {
-        let s = PersistenceRuntimeSnapshot.forDiskLaunch(
+        let snapshot = PersistenceRuntimeSnapshot.forDiskLaunch(
             userRequestedCloudSync: false,
             storeUsesCloudKit: false,
             startupUsedCloudKitFallback: false
         )
-        XCTAssertFalse(s.userRequestedCloudSync)
-        XCTAssertFalse(s.storeUsesCloudKit)
-        XCTAssertFalse(s.startupUsedCloudKitFallback)
+        XCTAssertFalse(snapshot.userRequestedCloudSync)
+        XCTAssertFalse(snapshot.storeUsesCloudKit)
+        XCTAssertFalse(snapshot.startupUsedCloudKitFallback)
     }
 
     func test_forDiskLaunch_silentFallback() {
-        let s = PersistenceRuntimeSnapshot.forDiskLaunch(
+        let snapshot = PersistenceRuntimeSnapshot.forDiskLaunch(
             userRequestedCloudSync: true,
             storeUsesCloudKit: false,
             startupUsedCloudKitFallback: true
         )
-        XCTAssertTrue(s.userRequestedCloudSync)
-        XCTAssertFalse(s.storeUsesCloudKit)
-        XCTAssertTrue(s.startupUsedCloudKitFallback)
+        XCTAssertTrue(snapshot.userRequestedCloudSync)
+        XCTAssertFalse(snapshot.storeUsesCloudKit)
+        XCTAssertTrue(snapshot.startupUsedCloudKitFallback)
     }
 
     func test_makeInMemoryForTesting_matchesFactory() throws {

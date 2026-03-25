@@ -224,24 +224,24 @@ private struct PostSeedJourneyPathStepRow: View {
     /// Spine runs **between** dot centers: no stub above the first dot, full run through the last dot.
     private var spineBetweenDotCenters: some View {
         GeometryReader { geo in
-            let w = geo.size.width
-            let h = geo.size.height
+            let width = geo.size.width
+            let height = geo.size.height
             let centerY = dotCenterY
-            let incomingHeight = max(0, min(centerY, h))
-            let outgoingHeight = max(0, h - centerY)
+            let incomingHeight = max(0, min(centerY, height))
+            let outgoingHeight = max(0, height - centerY)
 
             ZStack(alignment: .top) {
                 if index > 0 && incomingHeight > 0 {
                     Rectangle()
                         .fill(pathSpineStroke)
                         .frame(width: 1, height: incomingHeight)
-                        .position(x: w / 2, y: incomingHeight / 2)
+                        .position(x: width / 2, y: incomingHeight / 2)
                 }
                 if !isLastStep && outgoingHeight > 0 {
                     Rectangle()
                         .fill(pathSpineStroke)
                         .frame(width: 1, height: outgoingHeight)
-                        .position(x: w / 2, y: centerY + outgoingHeight / 2)
+                        .position(x: width / 2, y: centerY + outgoingHeight / 2)
                 }
             }
         }

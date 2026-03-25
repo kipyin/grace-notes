@@ -60,8 +60,8 @@ See `GraceNotes/docs/07-release-roadmap.md`.
 
 ## Requirements
 
-- Xcode 15 or later
-- iOS 17+
+- Xcode 26 or later (default `make` destinations and the test matrix assume **iPhone 17**-family simulators and **iOS 26** runtimes; use an older Xcode only if you override `DESTINATION` and `TEST_DESTINATION_MATRIX` to match what that Xcode installs)
+- iOS 17+ (app deployment target; see the Xcode project)
 
 ## Getting Started
 
@@ -72,14 +72,26 @@ See `GraceNotes/docs/07-release-roadmap.md`.
 
 ## Automation
 
-Use the root `Makefile` for common local workflows:
+Use the root `Makefile` for common local workflows (tests use the **GraceNotes** scheme only; the **GraceNotes (Demo)** scheme stays in Xcode for ⌘R with sample data):
 
 - `make lint` – Run SwiftLint checks (requires `swiftlint` on your PATH).
 - `make build` – Build the app (requires macOS + Xcode).
-- `make test` – Run tests for the default scheme (requires macOS + Xcode + iOS Simulator).
-- `make test-demo` – Reset/warm simulators, then run tests for the demo scheme.
-- `make test-all` – Reset simulators between default and demo test runs.
-- `make ci` – Run lint and tests for both schemes.
+- `make test` – Run unit + UI tests for **GraceNotes** on `DESTINATION` (resolved via `Scripts/simulator_destination.py`).
+- `make test-all` – Reset simulators, then `make test` (reduces flaky simulator state).
+- `make test-matrix` – Run **GraceNotes** tests across `TEST_DESTINATION_MATRIX` (default: iPhone XR @ iOS 17.5 and iPhone 17 Pro @ iOS 26.x).
+- `make validate-destination` / `make validate-test-matrix` – Check that simulator names and OS versions exist before running tests.
+- `make list-simulator-destinations` – List installed `platform=iOS Simulator,...` strings.
+- `make ci` – Lint + `test-all`.
+- `make ci-matrix` – Lint + `test-matrix`.
+
+Examples:
+
+```bash
+make test DESTINATION='platform=iOS Simulator,name=iPhone 17 Pro,OS=26.3'
+make test-matrix TEST_DESTINATION_MATRIX='iPhone XR@17.5;iPhone 17 Pro@26.3'
+```
+
+On iOS 17 simulators, `make` applies targeted `-skip-testing` flags for a few hosted SwiftData suites that crash before assertions; see `Makefile` (`LEGACY_RUNTIME_SKIP_FLAGS`).
 
 If `make lint` reports that SwiftLint is missing, install it with Homebrew:
 
@@ -87,7 +99,7 @@ If `make lint` reports that SwiftLint is missing, install it with Homebrew:
 brew install swiftlint
 ```
 
-Note: `make test-demo` and `make test-all` intentionally reset simulators to reduce flaky preflight failures. This wipes simulator state for deterministic test runs.
+Note: `make test-all` resets simulators (wipes simulator state) to reduce flaky preflight failures.
 
 ## CI (GitHub Actions)
 

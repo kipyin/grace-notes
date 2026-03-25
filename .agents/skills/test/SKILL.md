@@ -29,13 +29,14 @@ Run tests via **`make`** from the **repository root** unless a narrow `xcodebuil
 
 | Target | Use when |
 |--------|-----------|
-| `make test` | Default **GraceNotes** scheme — full suite (unit + UI). |
+| `make test` | **GraceNotes** scheme — full suite (unit + UI). |
 | `make test-unit` | Only **`GraceNotesTests`** need to run. |
 | `make test-ui` | Only **`GraceNotesUITests`** need to run. |
 | `make test-isolated` | Suspected DerivedData / Xcode contention or hard-to-reproduce flakes. |
-| `make test-demo` | **GraceNotes (Demo)** scheme after reset + simulator warm-up. |
-| `make test-all` | Default scheme, then reset simulators, then demo scheme (see `Makefile`). |
+| `make test-all` | Reset simulators, then **GraceNotes** tests (see `Makefile`). |
+| `make test-matrix` | **GraceNotes** tests across `TEST_DESTINATION_MATRIX`. |
 | `make ci` | Lint + `test-all` — broadest local gate before merge. |
+| `make ci-matrix` | Lint + `test-matrix`. |
 
 Requires **macOS + Xcode + iOS Simulator** (see repo `AGENTS.md`). On Linux, state on the **PR** what must be run on a Mac and which `make` target to use.
 

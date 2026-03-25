@@ -3,6 +3,9 @@ import QuartzCore
 import UniformTypeIdentifiers
 import UIKit
 
+// This shared section view centralizes editing, drag/drop, and accessories pending extraction work.
+// swiftlint:disable file_length
+
 private struct HorizontalScrollMetrics: Equatable {
     var viewportWidth: CGFloat = 0
     var contentWidth: CGFloat = 0

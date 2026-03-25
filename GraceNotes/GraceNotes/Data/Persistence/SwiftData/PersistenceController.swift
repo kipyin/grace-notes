@@ -191,7 +191,7 @@ final class PersistenceController {
         let context = ModelContext(container)
         var descriptor = FetchDescriptor<JournalEntry>()
         descriptor.fetchLimit = 1
-        if let _ = try context.fetch(descriptor).first {
+        if try context.fetch(descriptor).first != nil {
             return
         }
 
