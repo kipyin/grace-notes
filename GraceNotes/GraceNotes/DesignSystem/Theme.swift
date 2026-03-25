@@ -58,6 +58,8 @@ enum AppTheme {
     static let reviewQuickStartBackground = Color.adaptive(lightHex: 0xF5EDE4, darkHex: 0x2A241F)
     static let reviewQuickStartBorder = Color.adaptive(lightHex: 0xD9C7B5, darkHex: 0x8D7A69)
     static let reviewQuickStartText = Color.adaptive(lightHex: 0x6A5646, darkHex: 0xCDB9A6)
+    static let reviewRhythmActive = Color.adaptive(lightHex: 0xAA8E79, darkHex: 0xB69E8E)
+    static let reviewRhythmInactive = Color.adaptive(lightHex: 0xE7DED6, darkHex: 0x413731)
 
     // MARK: - Journal Semantic Colors
 

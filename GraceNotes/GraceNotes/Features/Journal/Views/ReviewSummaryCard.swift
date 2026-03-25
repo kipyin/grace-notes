@@ -6,7 +6,7 @@ private struct ReviewInsightPanelBodies {
     let action: String
 }
 
-// swiftlint:disable type_body_length
+// swiftlint:disable type_body_length file_length
 struct ReviewSummaryCard: View {
     /// Hide the “Write today’s reflection” nudge under loaded insights when the review week has at least this
     /// many journal entries. UI-only; not cloud eligibility.
@@ -65,14 +65,21 @@ struct ReviewSummaryCard: View {
 
     private func insightsContent(for insights: ReviewInsights) -> some View {
         let bodies = dedupedPanelBodies(for: insights)
+        let recurringGroups = recurringThemeGroups(for: insights)
         return VStack(alignment: .leading, spacing: 0) {
-            sourceBadgeRow(for: insights)
-                .padding(.bottom, 8)
-
+            if AppFeatureFlags.cloudAIUserFacingEnabled {
+                sourceBadgeRow(for: insights)
+                    .padding(.bottom, 8)
+            }
             VStack(alignment: .leading, spacing: 10) {
-                observationPanel(for: insights, body: bodies.observation)
-                thinkingPanel(body: bodies.thread)
-                actionPanel(body: bodies.action)
+                weekRhythmPanel(for: insights)
+                if !recurringGroups.isEmpty {
+                    recurringThemesPanel(groups: recurringGroups)
+                }
+                observationPanel(body: bodies.observation)
+                if insights.presentationMode == .insight {
+                    actionPanel(body: bodies.action)
+                }
                 if weekJournalEntryCount < Self.minWeekEntriesToOmitContinueNudge {
                     continueJournalCallToAction()
                 }
@@ -96,29 +103,17 @@ struct ReviewSummaryCard: View {
         .accessibilityIdentifier("ReviewInsightsContinueJournalCTA")
     }
 
-    private func observationPanel(for insights: ReviewInsights, body: String) -> some View {
+    private func observationPanel(body: String) -> some View {
         ReviewInsightInsetPanel(
-            title: String(localized: "This week"),
-            panelChrome: .lead,
-            titleTrailingText: weekRangeText(insights)
+            title: String(localized: "Observation"),
+            panelChrome: .lead
         ) {
-            VStack(alignment: .leading, spacing: 12) {
-                panelParagraph(body, lineSpacing: 4)
-
-                let recurringGroups = recurringThemeGroups(for: insights)
-                if !recurringGroups.isEmpty {
-                    VStack(alignment: .leading, spacing: 12) {
-                        ForEach(recurringGroups) { group in
-                            ReviewRecurringThemeGroup(title: group.title, items: group.items)
-                        }
-                    }
-                }
-            }
+            panelParagraph(body, lineSpacing: 4)
         }
     }
 
     private func thinkingPanel(body: String) -> some View {
-        ReviewInsightInsetPanel(title: String(localized: "A thread"), panelChrome: .standard) {
+        ReviewInsightInsetPanel(title: String(localized: "This week's theme"), panelChrome: .standard) {
             panelParagraph(body, lineSpacing: 4)
         }
     }
@@ -126,6 +121,33 @@ struct ReviewSummaryCard: View {
     private func actionPanel(body: String) -> some View {
         ReviewInsightInsetPanel(title: String(localized: "A next step"), panelChrome: .standard) {
             panelParagraph(body, lineSpacing: 4)
+        }
+    }
+
+    private func weekRhythmPanel(for insights: ReviewInsights) -> some View {
+        ReviewInsightInsetPanel(
+            title: String(localized: "Past seven days rhythm"),
+            panelChrome: .standard,
+            titleTrailingText: weekRangeText(insights)
+        ) {
+            activityStrip(for: insights.weekStats)
+        }
+    }
+
+    private func recurringThemesPanel(groups: [RecurringThemeGroup]) -> some View {
+        ReviewInsightInsetPanel(
+            title: String(localized: "Most recurring"),
+            panelChrome: .standard
+        ) {
+            VStack(alignment: .leading, spacing: 12) {
+                ForEach(groups) { group in
+                    ReviewRecurringThemeGroup(
+                        title: group.title,
+                        items: group.items,
+                        accent: group.accent
+                    )
+                }
+            }
         }
     }
 
@@ -281,31 +303,134 @@ struct ReviewSummaryCard: View {
 
     private func recurringThemeGroups(for insights: ReviewInsights) -> [RecurringThemeGroup] {
         var groups: [RecurringThemeGroup] = []
-        if !insights.recurringGratitudes.isEmpty {
+        let recurringGratitudes = insights.recurringGratitudes.filter { $0.count > 1 }
+        let recurringNeeds = insights.recurringNeeds.filter { $0.count > 1 }
+        let recurringPeople = insights.recurringPeople.filter { $0.count > 1 }
+        if !recurringGratitudes.isEmpty {
             groups.append(
                 RecurringThemeGroup(
-                    title: String(localized: "Recurring Gratitudes"),
-                    items: insights.recurringGratitudes
+                    title: localizedSectionName(for: .gratitudes),
+                    items: recurringGratitudes,
+                    accent: AppTheme.reviewAccent
                 )
             )
         }
-        if !insights.recurringNeeds.isEmpty {
+        if !recurringNeeds.isEmpty {
             groups.append(
                 RecurringThemeGroup(
-                    title: String(localized: "Recurring Needs"),
-                    items: insights.recurringNeeds
+                    title: localizedSectionName(for: .needs),
+                    items: recurringNeeds,
+                    accent: AppTheme.reviewStandardBorder
                 )
             )
         }
-        if !insights.recurringPeople.isEmpty {
+        if !recurringPeople.isEmpty {
             groups.append(
                 RecurringThemeGroup(
                     title: String(localized: "People in Mind"),
-                    items: insights.recurringPeople
+                    items: recurringPeople,
+                    accent: AppTheme.reviewCompleteBorder
                 )
             )
         }
         return groups
+    }
+
+    private func localizedSectionName(for section: ReviewStatsSectionKind) -> String {
+        switch section {
+        case .gratitudes:
+            String(localized: "Gratitudes")
+        case .needs:
+            String(localized: "Needs")
+        case .people:
+            String(localized: "People in Mind")
+        }
+    }
+
+    private func activityStrip(for stats: ReviewWeekStats) -> some View {
+        HStack(spacing: 8) {
+            ForEach(stats.activity, id: \.date) { day in
+                VStack(spacing: 6) {
+                    Text(day.date.formatted(.dateTime.weekday(.narrow)))
+                        .font(AppTheme.warmPaperMeta)
+                        .foregroundStyle(AppTheme.reviewTextMuted)
+                    Image(systemName: activityIconName(for: day))
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(activityIconTint(for: day))
+                        .frame(width: 16, height: 16)
+                }
+                .frame(maxWidth: .infinity)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(activityAccessibilityLabel(for: day))
+            }
+        }
+    }
+
+    private func localizedCompletionStageName(for level: JournalCompletionLevel) -> String {
+        switch level {
+        case .soil:
+            String(localized: "Soil")
+        case .seed:
+            String(localized: "Seed")
+        case .ripening:
+            String(localized: "Ripening")
+        case .harvest:
+            String(localized: "Harvest")
+        case .abundance:
+            String(localized: "Abundance")
+        }
+    }
+
+    private func activityIconName(for day: ReviewDayActivity) -> String {
+        guard let level = day.strongestCompletionLevel else {
+            return "circle"
+        }
+        return level.completionStatusSystemImage(isEmphasized: level == .harvest || level == .abundance)
+    }
+
+    private func activityIconTint(for day: ReviewDayActivity) -> Color {
+        guard let level = day.strongestCompletionLevel else {
+            return AppTheme.reviewTextMuted.opacity(0.35)
+        }
+        switch level {
+        case .soil:
+            return AppTheme.reviewTextMuted
+        case .seed:
+            return AppTheme.reviewQuickStartText
+        case .ripening:
+            return AppTheme.reviewStandardText
+        case .harvest:
+            return AppTheme.reviewAccent
+        case .abundance:
+            return AppTheme.reviewCompleteText
+        }
+    }
+
+    private func activityAccessibilityLabel(for day: ReviewDayActivity) -> String {
+        let dateText = day.date.formatted(date: .abbreviated, time: .omitted)
+        if let level = day.strongestCompletionLevel {
+            if level == .soil {
+                return String(
+                    format: String(localized: "You wrote on %@"),
+                    dateText
+                )
+            }
+            return String(
+                format: String(localized: "You reached %1$@ on %2$@."),
+                localizedCompletionStageName(for: level),
+                dateText
+            )
+        }
+        if day.hasMeaningfulContent {
+            return String(
+                format: String(localized: "You wrote on %@"),
+                dateText
+            )
+        }
+        return String(
+            format: String(localized: "No writing on %@"),
+            dateText
+        )
     }
 
     private func firstNonEmptyWeeklyObservation(for insights: ReviewInsights) -> String? {
@@ -341,6 +466,7 @@ struct ReviewSummaryCard: View {
     private struct RecurringThemeGroup: Identifiable {
         let title: String
         let items: [ReviewInsightTheme]
+        let accent: Color
 
         var id: String { title }
     }
@@ -358,18 +484,25 @@ private struct InsightsLoadingSkeleton: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            sourceSkeletonRow
-                .padding(.bottom, 8)
+            if AppFeatureFlags.cloudAIUserFacingEnabled {
+                sourceSkeletonRow
+                    .padding(.bottom, 8)
+            }
             VStack(alignment: .leading, spacing: 10) {
                 skeletonInsetPanel(
-                    title: String(localized: "This week"),
-                    panelChrome: .lead,
-                    lineSpecs: [(1.0, 12), (1.0, 12), (0.72, 12)]
+                    title: String(localized: "Past seven days rhythm"),
+                    panelChrome: .standard,
+                    lineSpecs: [(1.0, 10), (0.64, 10)]
                 )
                 skeletonInsetPanel(
-                    title: String(localized: "A thread"),
+                    title: String(localized: "Most recurring"),
                     panelChrome: .standard,
-                    lineSpecs: [(1.0, 11), (0.84, 11)]
+                    lineSpecs: [(1.0, 11), (0.78, 11), (0.66, 11)]
+                )
+                skeletonInsetPanel(
+                    title: String(localized: "Observation"),
+                    panelChrome: .lead,
+                    lineSpecs: [(1.0, 12), (1.0, 12), (0.72, 12)]
                 )
                 skeletonInsetPanel(
                     title: String(localized: "A next step"),
@@ -536,28 +669,55 @@ private struct ReviewInsightInsetPanel<Content: View>: View {
 private struct ReviewRecurringThemeGroup: View {
     let title: String
     let items: [ReviewInsightTheme]
+    let accent: Color
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(title)
-                .font(AppTheme.warmPaperMeta.weight(.semibold))
-                .foregroundStyle(AppTheme.reviewTextPrimary)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(accent)
+                    .frame(width: 6, height: 6)
+                Text(title)
+                    .font(AppTheme.warmPaperMeta.weight(.semibold))
+                    .foregroundStyle(AppTheme.reviewTextPrimary)
+            }
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 8) {
                 ForEach(items, id: \.self) { item in
-                    Text(
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Text(item.label)
+                            .font(AppTheme.warmPaperMeta)
+                            .foregroundStyle(AppTheme.reviewTextMuted)
+                            .lineSpacing(2)
+                        Spacer(minLength: 8)
+                        ReviewCountBadge(value: item.count.formatted(), accent: accent)
+                    }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(
                         String(
                             format: String(localized: "%1$@ (%2$lld)"),
                             item.label,
-                            item.count
+                            Int64(item.count)
                         )
                     )
-                    .font(AppTheme.warmPaperMeta)
-                    .foregroundStyle(AppTheme.reviewTextMuted)
-                    .lineSpacing(2)
                 }
-                .padding(.leading, 4)
             }
         }
     }
 }
+
+private struct ReviewCountBadge: View {
+    let value: String
+    let accent: Color
+
+    var body: some View {
+        Text(value)
+            .font(AppTheme.warmPaperMetaEmphasis.weight(.semibold))
+            .foregroundStyle(AppTheme.reviewTextPrimary)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(accent.opacity(0.16))
+            .clipShape(Capsule())
+    }
+}
+// swiftlint:enable file_length
