@@ -290,7 +290,7 @@ final class ChipReorderDropDelegateTests: XCTestCase {
         var hoverTargetItemID: UUID?
         var moveCount = 0
 
-        let delegate = ChipReorderDropDelegate(
+        let delegate = SequentialSectionChipRow.ChipReorderDropDelegate(
             targetIndex: 1,
             items: items,
             draggingItemID: Binding(get: { draggingItemID }, set: { draggingItemID = $0 }),
@@ -312,7 +312,7 @@ final class ChipReorderDropDelegateTests: XCTestCase {
         var hoverTargetItemID: UUID?
         var moveCount = 0
 
-        let delegate = ChipReorderDropDelegate(
+        let delegate = SequentialSectionChipRow.ChipReorderDropDelegate(
             targetIndex: 1,
             items: items,
             draggingItemID: Binding(get: { draggingItemID }, set: { draggingItemID = $0 }),
@@ -334,7 +334,7 @@ final class ChipReorderDropDelegateTests: XCTestCase {
         var hoverTargetItemID: UUID?
         var moveCount = 0
 
-        let delegate = ChipReorderDropDelegate(
+        let delegate = SequentialSectionChipRow.ChipReorderDropDelegate(
             targetIndex: 1,
             items: items,
             draggingItemID: Binding(get: { draggingItemID }, set: { draggingItemID = $0 }),
@@ -356,7 +356,7 @@ final class ChipReorderDropDelegateTests: XCTestCase {
         var hoverTargetItemID: UUID? = second.id
         var moveCount = 0
 
-        let delegate = ChipReorderDropDelegate(
+        let delegate = SequentialSectionChipRow.ChipReorderDropDelegate(
             targetIndex: 0,
             items: items,
             draggingItemID: Binding(get: { draggingItemID }, set: { draggingItemID = $0 }),
@@ -376,7 +376,7 @@ final class ChipReorderDropDelegateTests: XCTestCase {
         var draggingItemID: UUID?
         var hoverTargetItemID: UUID?
         var didMove = false
-        let delegate = ChipReorderDropDelegate(
+        let delegate = SequentialSectionChipRow.ChipReorderDropDelegate(
             targetIndex: 0,
             items: [item],
             draggingItemID: Binding(get: { draggingItemID }, set: { draggingItemID = $0 }),
@@ -396,7 +396,7 @@ final class ChipReorderDropDelegateTests: XCTestCase {
         let second = JournalItem(fullText: "Second")
         let items = [first, second]
         XCTAssertNil(
-            ChipReorderDropDelegate.chipReorderMoveParameters(
+            SequentialSectionChipRow.ChipReorderDropDelegate.chipReorderMoveParameters(
                 activeDragID: first.id,
                 items: items,
                 targetIndex: 0
@@ -409,7 +409,7 @@ final class ChipReorderDropDelegateTests: XCTestCase {
         let second = JournalItem(fullText: "Second")
         let third = JournalItem(fullText: "Third")
         let items = [first, second, third]
-        let params = ChipReorderDropDelegate.chipReorderMoveParameters(
+        let params = SequentialSectionChipRow.ChipReorderDropDelegate.chipReorderMoveParameters(
             activeDragID: first.id,
             items: items,
             targetIndex: 2
