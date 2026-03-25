@@ -31,17 +31,27 @@ Manage branch, commit, PR, and release hygiene so work lands on the correct vers
 - `Documentation Check`
 - `Merge/Release Readiness`
 
+## Versioning (TestFlight default)
+
+- **Marketing version** (`CFBundleShortVersionString` / `MARKETING_VERSION`) stays **fixed** for a roadmap **line** until product intentionally opens the next line (for example **`0.5.0`** across multiple drops, then **`0.6.0`** when that minor is declared).
+- **Build** (`CFBundleVersion` / `CURRENT_PROJECT_VERSION`) **increments every** App Store Connect / TestFlight binary (**`7` → `8` → …**). Faster review cycles use same marketing + new build, not a new patch digit.
+- **Git annotated tags** encode both: **`v{marketing}+{build}`** (SemVer build metadata), e.g. **`v0.5.0+7`**, **`v0.5.0+8`**. If a tool chokes on **`+`**, fallback **`v0.5.0-build8`** — prefer **`+`** when everything accepts it.
+- **CHANGELOG / README:** One **`[0.5.0]`** section can accumulate several dated ship notes; call out **build** in **Developer** (and anywhere users care about “which binary”).
+- **Orientation / upgrade gates** in app code must use **marketing + build** (or an explicit build threshold) when behavior must fire across **same-marketing** updates — not marketing alone.
+
+Roadmap headings (for example **0.5.2 — …**) name **scope lanes** and GitHub milestones; they do **not** imply a new marketing patch for every lane unless product says so.
+
 ## Branch Workflow (Grace Notes default)
 
 - **Daily work:** Commit features, fixes, and tests to **`main`**.
-- **Cut for publish:** When executing a release, create **`release/<version>`** from **`main`** (example: `release/0.5.1`). Perform **release-window** edits only on that branch (version finalization, `CHANGELOG` ship date, last doc alignment).
-- **Finish:** **Squash merge** the release branch into **`main`**, then tag **`v<version>`** on `main` (example: `v0.5.1`). Reuse an existing `release/<version>` branch if it is already open for the same version; do not create a second branch for the same release.
+- **Cut for publish:** When executing a release, create **`release/<line-or-build>`** from **`main`**. Examples: reuse **`release/0.5.0`** across several builds, or a one-off **`release/0.5.0-build8`** for a single cut. Perform **release-window** edits only on that branch (bump **build**, `CHANGELOG` ship note/date, last doc alignment). **Marketing** changes only when opening a new line.
+- **Finish:** Land the release work on **`main`** (squash merge per team habit, or merge commit if that is the agreed pattern), then tag **`v{marketing}+{build}`** on the release tip. Do not reuse the same tag name for a different commit.
 - Escalate if the user asks for a different strategy (for example, long-lived release branches for all integration).
 
 ## Decision Checklist
 
 - Is the base branch correct for this feature/fix and release target?
-- For release execution, was **`release/<version>`** cut from `main` and used for release-window edits before squash merge and tag?
+- For release execution, was a **`release/…`** branch cut from `main` and used for release-window edits (build bump, docs) before merge and **`v{marketing}+{build}`** tag?
 - Is there one clean branch per unit of work?
 - Are daily commits grouped sensibly with succinct, consistent messages?
 - Does PR title/body explain why and impact, not only what changed?

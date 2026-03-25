@@ -45,7 +45,7 @@ Each role handoff must include:
 
 - No merge recommendation without an explicit pass/fail checklist.
 - Update `README.md` and `CHANGELOG.md` when product behavior changes.
-- Confirm base branch and release/version intent before starting branch work.
+- Confirm base branch and release/version intent before starting branch work (default: fixed marketing version + incrementing build; see `vc` skill **Versioning**).
 - Evaluate testing by critical behavior and risk paths, not raw coverage percentages.
 - Require `QA Reviewer` to verify requirement fit and `Test Lead` to verify test adequacy before final merge recommendation.
 
