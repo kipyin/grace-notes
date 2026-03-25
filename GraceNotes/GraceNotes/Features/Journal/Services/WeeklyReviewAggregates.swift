@@ -376,7 +376,7 @@ private extension WeeklyReviewAggregatesBuilder {
             activity.append(
                 ReviewDayActivity(
                     date: day,
-                    hasMeaningfulContent: activeDays.contains(calendar.startOfDay(for: day)),
+                    hasReflectiveActivity: activeDays.contains(calendar.startOfDay(for: day)),
                     strongestCompletionLevel: activeDays.contains(calendar.startOfDay(for: day))
                         ? strongestCompletionByDay[calendar.startOfDay(for: day)]
                         : nil

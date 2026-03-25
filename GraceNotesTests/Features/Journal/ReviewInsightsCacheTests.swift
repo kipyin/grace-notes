@@ -187,10 +187,10 @@ final class ReviewInsightsCacheTests: XCTestCase {
                 abundanceDays: 0
             ),
             activity: [
-                ReviewDayActivity(date: weekStart, hasMeaningfulContent: true),
+                ReviewDayActivity(date: weekStart, hasReflectiveActivity: true),
                 ReviewDayActivity(
                     date: calendar.date(byAdding: .day, value: 1, to: weekStart)!,
-                    hasMeaningfulContent: true
+                    hasReflectiveActivity: true
                 )
             ],
             sectionTotals: ReviewWeekSectionTotals(

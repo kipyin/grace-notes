@@ -194,7 +194,7 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
                 harvestDays: 1,
                 abundanceDays: 0
             ),
-            activity: [ReviewDayActivity(date: weekStart, hasMeaningfulContent: true)],
+            activity: [ReviewDayActivity(date: weekStart, hasReflectiveActivity: true)],
             sectionTotals: ReviewWeekSectionTotals(
                 gratitudeMentions: 2,
                 needMentions: 1,

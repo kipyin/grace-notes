@@ -18,16 +18,22 @@ enum ReviewStatsSectionKind: String, CaseIterable, Equatable, Sendable, Codable 
 
 struct ReviewDayActivity: Equatable, Hashable, Sendable, Codable {
     let date: Date
-    let hasMeaningfulContent: Bool
+    let hasReflectiveActivity: Bool
     let strongestCompletionLevel: JournalCompletionLevel?
+
+    private enum CodingKeys: String, CodingKey {
+        case date
+        case hasReflectiveActivity = "hasMeaningfulContent"
+        case strongestCompletionLevel
+    }
 
     init(
         date: Date,
-        hasMeaningfulContent: Bool,
+        hasReflectiveActivity: Bool,
         strongestCompletionLevel: JournalCompletionLevel? = nil
     ) {
         self.date = date
-        self.hasMeaningfulContent = hasMeaningfulContent
+        self.hasReflectiveActivity = hasReflectiveActivity
         self.strongestCompletionLevel = strongestCompletionLevel
     }
 }

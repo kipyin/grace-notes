@@ -77,7 +77,9 @@ struct ReviewSummaryCard: View {
                     recurringThemesPanel(groups: recurringGroups)
                 }
                 observationPanel(body: bodies.observation)
+                // Intentional product choice: keep the middle "Thinking"/narrative layer hidden for now.
                 if insights.presentationMode == .insight {
+                    // `.statsFirst` stays rhythm-led by design, so we omit the next-step panel in that mode.
                     actionPanel(body: bodies.action)
                 }
                 if weekJournalEntryCount < Self.minWeekEntriesToOmitContinueNudge {
@@ -291,9 +293,9 @@ struct ReviewSummaryCard: View {
 
         var action = actionBodyCandidate(for: insights)
         let observationKey = normalizedInsightText(observation)
-        let threadKey = normalizedInsightText(thread)
         let actionKey = normalizedInsightText(action)
-        let actionDuplicatesPanel = actionKey == observationKey || actionKey == threadKey
+        // Action dedupes against visible panels only; Thinking is intentionally hidden in this layout.
+        let actionDuplicatesPanel = actionKey == observationKey
         if action.isEmpty || actionDuplicatesPanel {
             action = String(localized: "What's one thing you're glad happened, even if small?")
         }
@@ -421,7 +423,7 @@ struct ReviewSummaryCard: View {
                 dateText
             )
         }
-        if day.hasMeaningfulContent {
+        if day.hasReflectiveActivity {
             return String(
                 format: String(localized: "You wrote on %@"),
                 dateText

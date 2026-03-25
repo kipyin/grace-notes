@@ -498,9 +498,9 @@ final class ReviewInsightsProviderTests: XCTestCase {
                 abundanceDays: 0
             ),
             activity: [
-                ReviewDayActivity(date: Date(timeIntervalSince1970: 1), hasMeaningfulContent: true),
-                ReviewDayActivity(date: Date(timeIntervalSince1970: 2), hasMeaningfulContent: true),
-                ReviewDayActivity(date: Date(timeIntervalSince1970: 3), hasMeaningfulContent: true)
+                ReviewDayActivity(date: Date(timeIntervalSince1970: 1), hasReflectiveActivity: true),
+                ReviewDayActivity(date: Date(timeIntervalSince1970: 2), hasReflectiveActivity: true),
+                ReviewDayActivity(date: Date(timeIntervalSince1970: 3), hasReflectiveActivity: true)
             ],
             sectionTotals: ReviewWeekSectionTotals(
                 gratitudeMentions: 3,
