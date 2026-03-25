@@ -6,8 +6,9 @@
 
 - Repo audit / roadmap sync → [`019-repo-improvement-audit-roadmap`](initiatives/019-repo-improvement-audit-roadmap/).
 - [#91](https://github.com/kipyin/grace-notes/issues/91) Text field horizontal scroll → [`022-issue-91-textfield-horizontal-scroll`](initiatives/022-issue-91-textfield-horizontal-scroll/).
+- Today orientation / post-Seed policy → [`023-onboarding-first-entry-policy`](initiatives/023-onboarding-first-entry-policy/).
 
-Start the next initiative under [`initiatives/`](initiatives/) (next id **023**, see [initiatives/README.md](initiatives/README.md)).
+Start the next initiative under [`initiatives/`](initiatives/) (next id **024**, see [initiatives/README.md](initiatives/README.md)).
 
 Shipped or superseded work: [`initiatives/archive/README.md`](initiatives/archive/README.md).
 
