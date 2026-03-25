@@ -1,7 +1,7 @@
 ---
 initiative_id: 021-issue-85-insights-screen-follow-through
 role: Strategist
-status: in_progress
+status: completed
 updated_at: 2026-03-24
 related_issue: 85
 related_pr: none
@@ -28,11 +28,8 @@ Nested cards can feel repetitive if contrast and borders are pushed further; fri
 
 ## Open Questions
 
-- Preferred final label for the thread panel (`A thread` vs alternatives) pending copy and localization check.
-- Exact CTA string and deep-link behavior to **Today** (copy + analytics/none).
+- None. Shipped copy: section 2 displays **A pattern** (`zh-Hans` **规律**); CTA **Write today’s reflection** / **写写今天的感受**; tab switch to **Today** only (no analytics hook).
 
 ## Next Owner
 
-**Designer** — produce `design.md` (states: thin week vs rich week, segmented control specs, panel hierarchy and spacing tokens intent, CTA placement) for handoff to **Architect**.
-
-`Architect` should:
+`Release Manager` — merge via normal `main` workflow; close or update GitHub **#85** when verified.

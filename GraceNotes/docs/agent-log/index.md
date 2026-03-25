@@ -4,13 +4,14 @@
 
 ## Active initiatives
 
-- [#85](https://github.com/kipyin/grace-notes/issues/85) Insights screen follow-through and hierarchy polish → [`021-issue-85-insights-screen-follow-through`](initiatives/021-issue-85-insights-screen-follow-through/).
+- Repo audit / roadmap sync → [`019-repo-improvement-audit-roadmap`](initiatives/019-repo-improvement-audit-roadmap/).
+- [#91](https://github.com/kipyin/grace-notes/issues/91) Text field horizontal scroll → [`022-issue-91-textfield-horizontal-scroll`](initiatives/022-issue-91-textfield-horizontal-scroll/).
 
-Start the next initiative under [`initiatives/`](initiatives/) (next id **022**, see [initiatives/README.md](initiatives/README.md)).
+Start the next initiative under [`initiatives/`](initiatives/) (next id **023**, see [initiatives/README.md](initiatives/README.md)).
 
 Shipped or superseded work: [`initiatives/archive/README.md`](initiatives/archive/README.md).
 
-**Recently archived:** [#84](https://github.com/kipyin/grace-notes/issues/84) Settings section header title case → [`archive/020-issue-84-settings-section-headers`](initiatives/archive/020-issue-84-settings-section-headers/).
+**Recently archived:** [#85](https://github.com/kipyin/grace-notes/issues/85) Insights screen follow-through → [`archive/021-issue-85-insights-screen-follow-through`](initiatives/archive/021-issue-85-insights-screen-follow-through/).
 
 ## Archived initiatives
 
