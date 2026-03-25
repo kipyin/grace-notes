@@ -15,6 +15,9 @@ Work tracked toward milestone **0.5.2** (Settings cohesion and insight follow-th
 - Versioning: Grace Notes app **marketing version** stays **0.5.0** for this lane; **bundle** (`CURRENT_PROJECT_VERSION`) **8** (increment build under the minor for faster TestFlight review; build **7** was the previous ship).
 - Contributor workflow: removed `GraceNotes/docs/agent-log/`, `Scripts/validate-agent-log.sh`, and `make verify-agent-log*`; use GitHub issues/PRs and `AGENTS.md` for coordination.
 
+### Fixed
+- Review: weekly **cloud** insights could fall back to on-device digest with the unreadable-response explanation when the model reply was cut off mid-JSON; raised completion **max_tokens** so the full structured payload can finish (#99).
+
 ### Changed
 - Review > Insights: single read-only **Source** badge (replacing twin pills that read like a control); when Cloud AI is on but the digest is still on-device, an info button explains why (weekly evidence threshold, missing cloud setup, or a failed cloud attempt) (#83).
 - Review > Insights: on-device cloud skip explanations are **more specific** (connection, timeout, service or access limits, unreadable response, quality gate, or generic fallback), mapped from `CloudReviewInsightsError`, HTTP status, and `URLError`, with matching **en** / **zh-Hans** catalog strings.

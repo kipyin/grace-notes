@@ -51,7 +51,7 @@ struct CloudReviewInsightsGenerator: ReviewInsightsGenerating {
             request: CloudReviewInsightsRequest(
                 model: model,
                 messages: [CloudReviewMessage(role: "user", content: prompt(for: contexts))],
-                maxTokens: 350,
+                maxTokens: 800,
                 temperature: 0.2
             )
         )
