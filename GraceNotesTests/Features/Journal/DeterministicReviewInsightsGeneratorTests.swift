@@ -191,6 +191,37 @@ final class DeterministicReviewInsightsTests: XCTestCase {
         XCTAssertTrue(summary?.contains("Mia") == true)
     }
 
+    func test_weeklyInsightCandidateBuilder_narrativeSummary_sparseFallbackZeroDay_returnsNil() {
+        let builder = WeeklyInsightCandidateBuilder(textNormalizer: WeeklyInsightTextNormalizer())
+        let starter = String(localized: "Start with one reflection today to build your weekly review.")
+        let insight = ReviewWeeklyInsight(
+            pattern: .sparseFallback,
+            observation: starter,
+            action: builder.defaultContinuityPrompt,
+            primaryTheme: nil,
+            mentionCount: nil,
+            dayCount: 0
+        )
+        XCTAssertNil(builder.narrativeSummary(from: [insight]))
+    }
+
+    func test_weeklyInsightCandidateBuilder_narrativeSummary_sparseFallbackNonZeroDay_returnsTrimmed() {
+        let builder = WeeklyInsightCandidateBuilder(textNormalizer: WeeklyInsightTextNormalizer())
+        let observation = "  Sparse week summary line.  "
+        let easyStart = String(localized: "What would make tomorrow's check-in easy to start?")
+        let insight = ReviewWeeklyInsight(
+            pattern: .sparseFallback,
+            observation: observation,
+            action: easyStart,
+            primaryTheme: nil,
+            mentionCount: nil,
+            dayCount: 1
+        )
+        let summary = builder.narrativeSummary(from: [insight])
+        let trimmed = observation.trimmingCharacters(in: .whitespacesAndNewlines)
+        XCTAssertEqual(summary, trimmed)
+    }
+
     func test_generateInsights_limitsInsightCountToTwo() async throws {
         let reference = date(year: 2026, month: 3, day: 18)
         let previousWeekEntries = [

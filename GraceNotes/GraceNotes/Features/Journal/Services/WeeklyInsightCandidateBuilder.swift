@@ -125,7 +125,12 @@ struct WeeklyInsightCandidateBuilder {
                 theme
             )
         }
-        return nil
+        let first = insights[0]
+        if first.pattern == .sparseFallback, first.dayCount == 0 {
+            return nil
+        }
+        let observation = first.observation.trimmingCharacters(in: .whitespacesAndNewlines)
+        return observation.isEmpty ? nil : observation
     }
 
     private func observationsAreEffectivelyDuplicate(_ lhs: String, _ rhs: String) -> Bool {

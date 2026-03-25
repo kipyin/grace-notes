@@ -26,5 +26,6 @@ Ids follow `NNN-kebab-name` (see `.agents/skills/housekeep/SKILL.md`). Numbers *
 | `018-release-0-5-2-patch` | **0.5.2** release scaffolding started then **cancelled**; use `CHANGELOG.md` / roadmap for **0.5.2** scope |
 | `019-repo-improvement-audit-roadmap` | Repo audit + roadmap sync **2026-03-24**: inventory, **#87**–**#90**, milestones **0.5.2** / **0.5.3** / **0.6.1**, retarget **#80** / **#83**–**#86** to **0.5.2** |
 | `020-issue-84-settings-section-headers` | Settings **List** section headers: **#84** closed **2026-03-24**; `.textCase(nil)` on AI, Reminders, Data & Privacy, Import/Export (lane **0.5.2**) |
+| `021-issue-85-insights-screen-follow-through` | Review **Insights** hierarchy + UI polish (**#85**): flat column, `reviewPaper` inset panels, system segmented control, two source pills, week range on **This week**, string pass (Translator/Marketing); archived **2026-03-24** (lane **0.5.2**) |
 
 **Active** initiatives remain at `../<initiative-id>/` (see [../README.md](../README.md) and [../../index.md](../../index.md)).

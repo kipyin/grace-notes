@@ -4,7 +4,9 @@ Date: 2026-03-24
 
 This roadmap turns the strategic priority stack into a release sequence grounded in the current open issue set. For **shipped** scope detail, treat `CHANGELOG.md` as the source of truth and keep this document aligned when tagging releases.
 
-**GitHub milestones:** Open issues on [kipyin/grace-notes](https://github.com/kipyin/grace-notes) use milestones that mirror the releases below, including patch lanes for engineering hygiene: `0.5.0 - Insight quality and first-week guidance`, `0.5.2 - Settings cohesion and insight follow-through`, `0.5.3 - Swift hygiene and lint baseline`, `0.6.0 - Trust and ownership`, `0.6.1 - Test coverage and maintainability`, `0.7.0 - Activation and flexible depth`, and `0.8.x+ - Streak and calendar refinement`. Internal workflow-only work may stay untracked on these milestones per team preference; when you add or retarget issues, update this file and the milestone in the same change.
+**Versioning vs milestones:** Headings below (for example **0.5.2 — …**) and GitHub **milestone titles** name **scope lanes**, not necessarily a new App Store **marketing** version every time. For TestFlight and store uploads, Grace Notes defaults to a **fixed marketing version per line** (for example **`0.5.0`**) with a **monotonic build** (`CURRENT_PROJECT_VERSION`: 7, 8, …). Git tags use **`v{marketing}+{build}`** (e.g. **`v0.5.0+8`**). Bump **marketing** only when product opens the next line (for example **`0.6.0`**). See `.agents/skills/vc/SKILL.md` (**Versioning**).
+
+**GitHub milestones:** Open issues on [kipyin/grace-notes](https://github.com/kipyin/grace-notes) use milestones that mirror the lanes below, including engineering-hygiene tracks: `0.5.0 - Insight quality and first-week guidance`, `0.5.2 - Settings cohesion and insight follow-through`, `0.5.3 - Swift hygiene and lint baseline`, `0.6.0 - Trust and ownership`, `0.6.1 - Test coverage and maintainability`, `0.7.0 - Activation and flexible depth`, and `0.8.x+ - Streak and calendar refinement`. Internal workflow-only work may stay untracked on these milestones per team preference; when you add or retarget issues, update this file and the milestone in the same change.
 
 ## Roadmap principles
 
@@ -171,25 +173,25 @@ This roadmap turns the strategic priority stack into a release sequence grounded
 ## 0.5.1 — Upgrade orientation (installed base)
 
 **Release status**
-- **Released (2026-03-24)** — marketing version **`0.5.1`**, bundle **`3`**; see `CHANGELOG.md` and git tag **`v0.5.1`**.
-- Branch/tag playbook: `GraceNotes/docs/agent-log/initiatives/archive/015-release-0-5-1-patch/release.md`.
+- **Ships as marketing `0.5.0`, build `7`** (2026-03-24); git tag **`v0.5.0+7`**. Interim docs may say **0.5.1** / bundle **3**; **CHANGELOG.md** is source of truth.
+- Historical playbook: `GraceNotes/docs/agent-log/initiatives/archive/015-release-0-5-1-patch/release.md`.
 
-**Goal:** Users upgrading from `0.5.0` (or any build below `0.5.1`) into `0.5.1` get a **one-time** first-week orientation on the first launch of that version; later launches and later versions do not repeat it unless product adds a new rule.
+**Goal:** Users crossing onto **`0.5.0` build `7` or later** from an older marketing version or an older **`0.5.0` build** get a **one-time** first-week orientation on that transition; later cold launches do not repeat it unless product adds a new rule.
 
 **Scope in**
-- Version-persisted launch tracking (`lastLaunchedMarketingVersion`) and a pending upgrade-orientation flag
+- Version-persisted launch tracking (`lastLaunchedMarketingVersion`, `lastLaunchedBundleVersion`) and a pending upgrade-orientation flag
 - **Below Seed** on Today: full behavior-first guided journal, then the existing post-Seed journey (including congratulations)
 - **At or above Seed** on Today: skip chip coaching; post-Seed journey starts on the path/insights pages (no Seed congratulations); finish/skip clears the pending flag
 - No automatic changes to reminders, AI, or iCloud preferences during orientation; completing the journey no longer auto-dismisses Today suggestion banners
 
 **Acceptance intent**
-- Fresh install on `0.5.1` is unchanged relative to `0.5.0` onboarding behavior except as defined by the same first-week flows
-- Upgrade cohort sees orientation exactly once; second launch on `0.5.1` does not replay it
+- Fresh install on **0.5.0 (build ≥ 7)** matches onboarding behavior defined by the same first-week flows
+- Upgrade cohort sees orientation exactly once; second cold launch does not replay it
 
 ## 0.5.2 — Settings cohesion and insight follow-through
 
 **Release status**
-- Unreleased patch on the `0.5.x` line.
+- **Unreleased** — milestone **0.5.2** (scope lane). **Ships as marketing `0.5.0`, build `8`** (tag **`v0.5.0+8`**) at cut time, not a new marketing patch.
 - Keep `CHANGELOG.md`, `README.md`, and this roadmap aligned at ship time (no dedicated release initiative for 0.5.2).
 
 **Goal:** Improve Settings readability consistency and close remaining insight follow-through work tracked for #40 and #80.
@@ -199,6 +201,7 @@ This roadmap turns the strategic priority stack into a release sequence grounded
 - `#83` Optional placement for AI / on-device source label on review insights.
 - `#85` Design critique: Review Insights screen follow-through and hierarchy polish.
 - `#86` Surface Cloud AI insight / summarization status to users.
+- `#91` Today journal: horizontally scrollable draft `TextField` in sequential sections (Gratitudes / Needs / People) so long lines stay visible while editing.
 - `#80` Review deep insight engine (prompts, fixtures, contract conformance) — remaining open work toward this patch lane.
 - `#40` / `#80` review insight follow-through where remaining intent is still tracked toward 0.5.2 acceptance.
 - Agent-log initiative context for this lane:
@@ -206,18 +209,20 @@ This roadmap turns the strategic priority stack into a release sequence grounded
   - Archived implementation (v1 landed on **`main`**): `GraceNotes/docs/agent-log/initiatives/archive/017-issue-40-80-insight-implementation/` — **GitHub #80** remains **open** for engine depth
 
 **Why now**
-- `0.5.1` shipped upgrade orientation; this patch keeps Settings copy and structure consistent while finishing insight-focused scope; v1 implementation is **archived** under **017** while **GitHub #80** may still carry engine follow-up.
+- **0.5.0 build 7** shipped upgrade orientation; this build keeps Settings copy and structure consistent while finishing insight-focused scope; v1 implementation is **archived** under **017** while **GitHub #80** may still carry engine follow-up.
+- `#91` tightens the core Today input loop (draft visibility) without expanding surface area; it pairs naturally with other small **0.5.0**-line polish before **0.5.3** (milestone) lint refactors that may touch `SequentialSectionView`.
 - This is a small, focused release window that improves clarity without opening broader Settings redesign or 0.6.0 trust expansion.
 
 **Acceptance intent**
 - Settings section headings read in title case across Settings surfaces, including nested Settings lists where applicable.
 - #40 / #80 close criteria tracked in agent-log are reflected in shipped behavior and documentation for the 0.5.2 release window.
-- Open issues `#83`, `#85`, `#86`, and `#80` carry milestone **0.5.2**; ship or retarget explicitly if scope slips.
+- **#91:** Long draft text in Gratitudes, Needs, and People remains reachable via horizontal pan or caret movement while focused; chip row scroll and onboarding locks behave as today.
+- Open issues `#83`, `#85`, `#86`, `#91`, and `#80` carry milestone **0.5.2**; ship or retarget explicitly if scope slips.
 
 ## 0.5.3 — Swift hygiene and lint baseline
 
 **Release status**
-- Unreleased patch on the `0.5.x` line after **0.5.1** / **0.5.2** planning.
+- **Unreleased** — milestone **0.5.3** (scope lane). **Ships as marketing `0.5.0`, next monotonic build** (e.g. **`v0.5.0+9`**) after **build 8**, unless product reorders drops.
 
 **Goal:** Bring production and test Swift sources back in line with SwiftLint and [AGENTS.md](../../AGENTS.md) file-size guidance without changing product behavior.
 

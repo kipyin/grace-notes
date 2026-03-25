@@ -1,8 +1,12 @@
 # Changelog
 
-## [0.5.2] - Unreleased
+## [0.5.0]
 
-Planned patch on the 0.5.x line: Settings title-case consistency plus insight follow-through tracked in the current release lane.
+Marketing version **0.5.0** ships as successive **builds** (TestFlight / App Store); git tags **`v0.5.0+{build}`**. GitHub milestones **0.5.2**, **0.5.3**, etc. name **scope lanes**, not separate marketing versions — see `GraceNotes/docs/07-release-roadmap.md`. Archived agent-log entries may still mention interim labels (**0.5.1**, **0.5.2**); **ship truth** is **0.5.0 + build** below.
+
+### Build 8 — Unreleased
+
+Work tracked toward milestone **0.5.2** (Settings cohesion and insight follow-through); ships as marketing **0.5.0**, next **bundle** increment at cut time (tag e.g. **`v0.5.0+8`**).
 
 ### Developer
 
@@ -12,14 +16,16 @@ Planned patch on the 0.5.x line: Settings title-case consistency plus insight fo
 
 ### Changed
 - Settings: section headers use authored title case instead of all-caps list header styling (#84).
-- Review insights: continue #40 / #80 follow-through in the 0.5.2 release lane, with handoff context in `GraceNotes/docs/agent-log/initiatives/archive/016-issue-80-insight-direction/` and `GraceNotes/docs/agent-log/initiatives/archive/017-issue-40-80-insight-implementation/` (**#80** may remain open for engine depth).
+- Review > Insights: thin-week **Write today's reflection** control switches to **Today**; flatter insights column (inset panels only, no outer summary shell); **This week** title row shows the week date range; read-only **On your device** / **AI** source pills; unified semibold panel titles; system **Insights** / **Timeline** segmented control (Liquid Glass on iOS 26+) with `ReviewModePicker` id preserved (#85).
+- Review insights engine: weekly **reflection day count** and **narrative summary** now treat non-empty reading notes or reflections as signal (even when the entry is still at **Soil** chip-wise), so sparse-week and narrative behavior match long-form journaling (#85).
+- Review insights: continue #40 / #80 follow-through in the **0.5.2** milestone lane, with handoff context in `GraceNotes/docs/agent-log/initiatives/archive/016-issue-80-insight-direction/` and `GraceNotes/docs/agent-log/initiatives/archive/017-issue-40-80-insight-implementation/` (**#80** may remain open for engine depth).
 
-## [0.5.1] - 2026-03-24
+### Build 7 — 2026-03-24
 
-Patch on the 0.5.x line: version and build bump plus Xcode packaging defaults carried from local workspace changes.
+Packaging, upgrade orientation, localization, and stability under marketing **0.5.0** / bundle **7** (git tag **`v0.5.0+7`**; replaces interim **0.5.1** / bundle **3** labeling).
 
 ### Added
-- Journal: **one-time upgrade orientation** on the first launch of **0.5.1** after an older marketing version (e.g. 0.5.0). Users still below **Seed** on Today keep the full guided chip path; users **at or above Seed** see the post-Seed settings-oriented journey **without** the Seed congratulations page. Launch tracks `lastLaunchedMarketingVersion`; migration into `completedGuidedJournal` is deferred until Today’s completion level is known for that cohort.
+- Journal: **one-time upgrade orientation** on the first launch of **0.5.0** build **7** after an older marketing version or an older **0.5.0** build. Users still below **Seed** on Today keep the full guided chip path; users **at or above Seed** see the post-Seed settings-oriented journey **without** the Seed congratulations page. Launch tracks marketing and bundle (`lastLaunchedMarketingVersion`, `lastLaunchedBundleVersion`); migration into `completedGuidedJournal` is deferred until Today’s completion level is known for that cohort.
 
 ### Changed
 - Copy: user-facing **en** / **zh-Hans** avoids **chip** and **journal** in favor of product language (Grace Notes, short labels, spots, entries, and the three section names). Updated onboarding locks, completion hints, startup and save errors, Data & Privacy, Review timeline a11y, AI suggestions, and **Save to Photos** permission text (`Localizable.xcstrings`, `Info.plist` / `InfoPlist.xcstrings`, matching `String(localized:)` keys in app sources).
@@ -43,7 +49,7 @@ Patch on the 0.5.x line: version and build bump plus Xcode packaging defaults ca
 - New tests: `CloudSummarizerPromptAndGroundingTests` (+ `CloudSummarizerTestSupport`).
 - Cloud summarization: app `Info.plist` uses `$(GRACE_NOTES_CLOUD_API_KEY)`, expanded from committed `DeveloperSettings.xcconfig` and optional gitignored `DeveloperSettings.local.xcconfig` (see `DeveloperSettings.local.xcconfig.example`); `ITSAppUsesNonExemptEncryption` is `false` for export compliance.
 
-- App **marketing version** `0.5.1`; **bundle version** (`CURRENT_PROJECT_VERSION`) `3` for Grace Notes app configurations (Debug, Release, Demo).
+- App **marketing version** `0.5.0`; **bundle version** (`CURRENT_PROJECT_VERSION`) `7` for Grace Notes app configurations (Debug, Release, Demo); git tag **`v0.5.0+7`**. `OrientationReleaseGate` + `lastLaunchedBundleVersion` gate upgrade orientation across **0.5.0** build bumps.
 - Project-level **Debug** and **Demo** build settings use `DEBUG_INFORMATION_FORMAT = dwarf-with-dsym` so Debug-style builds still produce dSYM for symbolication.
 - Shared `GraceNotes.xcscheme`: **Run** uses **Release** build configuration (revert locally if you prefer ⌘R to stay on Debug).
 - App target **Swift strict concurrency** set to **minimal**; removed `SWIFT_APPROACHABLE_CONCURRENCY`, `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`, and `SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY` from Grace Notes app build settings.
@@ -52,9 +58,9 @@ Patch on the 0.5.x line: version and build bump plus Xcode packaging defaults ca
 - Journal: milestone suggestion cards and Settings deep-links share `JournalOnboardingSuggestionEvaluator`; eligibility is recomputed at tap time before changing tabs (PR #79 review). Onboarding and iCloud continuity scans use shared UserDefaults key constants (`FirstRunOnboardingStorageKeys`, `JournalTutorialStorageKeys`, `JournalOnboardingStorageKeys`, `ReminderSettings.timeIntervalKey`, summarizer/review-insight keys) to avoid migration drift.
 - UI tests: `ProcessInfo.graceNotesIsRunningUITests` centralizes UI-test detection (UITest bundle path or `-ui-testing`); SwiftData UI-test stores persist across `terminate()` + `launch()` by reusing the last XCTest session key (`active-uitest-session-key.txt`). During UI tests, gratitude chips expose stable accessibility identifiers (`JournalGratitudeChip.<index>`); the post-Seed full-screen journey is skipped; Review keeps timeline/insights chrome under the same detection so an empty journal can still reach the mode picker. `JournalUITests` forces English locale and reapplies `-ui-testing` launch arguments after every relaunch.
 
-## [0.5.0] - 2026-03-21
+### 2026-03-21 — Foundation
 
-Insight quality: Review that feels specific and grounded, better chip source material, calmer completion feedback. Release scope context: `GraceNotes/docs/07-release-roadmap.md` §0.5.0.
+Insight quality: Review that feels specific and grounded, better chip source material, calmer completion feedback. Release scope context: `GraceNotes/docs/07-release-roadmap.md` §0.5.0. Shipped as marketing **0.5.0** (initial line ship; bundle per Xcode at time of release).
 
 ### Added
 - Journal: first-run guided tutorial on Today—dismissible hints toward Seed (at least one gratitude, need, and person) and Harvest (15 chips), plus one-time congratulations when each milestone is first reached; progress is per install with an optional UI-test reset launch argument (`#60`).

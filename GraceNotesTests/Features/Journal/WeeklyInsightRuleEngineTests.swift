@@ -1,9 +1,12 @@
+import SwiftData
 import XCTest
 @testable import GraceNotes
 
 final class WeeklyInsightRuleEngineTests: XCTestCase {
     private var calendar: Calendar!
     private var ruleEngine: WeeklyInsightRuleEngine!
+    /// Retains the in-memory store for the duration of each `withPersisted*` closure (app-hosted SwiftData).
+    private var persistedModelContainer: ModelContainer?
 
     override func setUp() {
         super.setUp()
@@ -24,81 +27,149 @@ final class WeeklyInsightRuleEngineTests: XCTestCase {
         XCTAssertEqual(analysis.weeklyInsights.first?.pattern, .sparseFallback)
     }
 
-    func test_analyze_richSignal_limitsInsightsToTwo() {
-        let currentEntries = [
-            makeEntry(
-                on: date(year: 2026, month: 3, day: 17),
-                gratitudes: ["Family"],
-                needs: ["Rest"],
-                people: ["Mia"],
-                readingNotes: "Rest came up in reading notes",
-                reflections: "I need better rest and clear boundaries."
-            ),
-            makeEntry(
-                on: date(year: 2026, month: 3, day: 18),
-                gratitudes: ["Family"],
-                needs: ["Rest"],
-                people: ["Mia"],
-                readingNotes: "Still thinking about rest",
-                reflections: "Mia was on my mind and I need rest."
-            ),
-            makeEntry(
-                on: date(year: 2026, month: 3, day: 19),
-                gratitudes: ["Family"],
-                needs: ["Rest"],
-                people: ["Mia"],
-                readingNotes: "",
-                reflections: "Rest is a recurring need."
+    func test_analyze_richSignal_limitsInsightsToTwo() throws {
+        try withInsertedEntries { context in
+            let currentEntries = [
+                makeEntry(
+                    on: date(year: 2026, month: 3, day: 17),
+                    gratitudes: ["Family"],
+                    needs: ["Rest"],
+                    people: ["Mia"],
+                    readingNotes: "Rest came up in reading notes",
+                    reflections: "I need better rest and clear boundaries."
+                ),
+                makeEntry(
+                    on: date(year: 2026, month: 3, day: 18),
+                    gratitudes: ["Family"],
+                    needs: ["Rest"],
+                    people: ["Mia"],
+                    readingNotes: "Still thinking about rest",
+                    reflections: "Mia was on my mind and I need rest."
+                ),
+                makeEntry(
+                    on: date(year: 2026, month: 3, day: 19),
+                    gratitudes: ["Family"],
+                    needs: ["Rest"],
+                    people: ["Mia"],
+                    readingNotes: "",
+                    reflections: "Rest is a recurring need."
+                )
+            ]
+            for entry in currentEntries {
+                context.insert(entry)
+            }
+            try context.save()
+
+            let analysis = ruleEngine.analyze(
+                currentWeekEntries: currentEntries,
+                previousWeekEntries: [],
+                calendar: calendar
             )
-        ]
-
-        let analysis = ruleEngine.analyze(
-            currentWeekEntries: currentEntries,
-            previousWeekEntries: [],
-            calendar: calendar
-        )
-
-        XCTAssertLessThanOrEqual(analysis.weeklyInsights.count, 2)
-    }
-
-    func test_analyze_detectsContinuityShiftAgainstPreviousWeek() {
-        let previousEntries = [
-            makeEntry(on: date(year: 2026, month: 3, day: 9), needs: ["Rest"]),
-            makeEntry(on: date(year: 2026, month: 3, day: 10), needs: ["Rest"]),
-            makeEntry(on: date(year: 2026, month: 3, day: 11), needs: ["Rest"])
-        ]
-        let currentEntries = [
-            makeEntry(on: date(year: 2026, month: 3, day: 17), gratitudes: ["Family connection"]),
-            makeEntry(on: date(year: 2026, month: 3, day: 18), gratitudes: ["Family connection"]),
-            makeEntry(on: date(year: 2026, month: 3, day: 19), gratitudes: ["Family connection"])
-        ]
-
-        let analysis = ruleEngine.analyze(
-            currentWeekEntries: currentEntries,
-            previousWeekEntries: previousEntries,
-            calendar: calendar
-        )
-
-        let shift = analysis.weeklyInsights.first { $0.pattern == .continuityShift }
-        XCTAssertNotNil(shift)
-        XCTAssertTrue(shift?.observation.contains("Rest") == true)
-        XCTAssertTrue(shift?.observation.contains("Family connection") == true)
-    }
-
-    func test_analyze_detectsFullCompletionPattern_forSevenPerfectDays() {
-        let currentEntries = (0...6).map { dayOffset in
-            makeFullEntry(on: date(year: 2026, month: 3, day: 16 + dayOffset))
+            XCTAssertLessThanOrEqual(analysis.weeklyInsights.count, 2)
         }
+    }
 
-        let analysis = ruleEngine.analyze(
-            currentWeekEntries: currentEntries,
-            previousWeekEntries: [],
-            calendar: calendar
-        )
+    func test_analyze_detectsContinuityShiftAgainstPreviousWeek() throws {
+        try withInsertedEntries { context in
+            let previousEntries = [
+                makeEntry(on: date(year: 2026, month: 3, day: 9), needs: ["Rest"]),
+                makeEntry(on: date(year: 2026, month: 3, day: 10), needs: ["Rest"]),
+                makeEntry(on: date(year: 2026, month: 3, day: 11), needs: ["Rest"])
+            ]
+            let currentEntries = [
+                makeEntry(on: date(year: 2026, month: 3, day: 17), gratitudes: ["Family connection"]),
+                makeEntry(on: date(year: 2026, month: 3, day: 18), gratitudes: ["Family connection"]),
+                makeEntry(on: date(year: 2026, month: 3, day: 19), gratitudes: ["Family connection"])
+            ]
+            for entry in previousEntries + currentEntries {
+                context.insert(entry)
+            }
+            try context.save()
 
-        let completion = analysis.weeklyInsights.first { $0.pattern == .fullCompletion }
-        XCTAssertNotNil(completion)
-        XCTAssertEqual(completion?.dayCount, 7)
+            let analysis = ruleEngine.analyze(
+                currentWeekEntries: currentEntries,
+                previousWeekEntries: previousEntries,
+                calendar: calendar
+            )
+
+            let shift = analysis.weeklyInsights.first { $0.pattern == .continuityShift }
+            XCTAssertNotNil(shift)
+            XCTAssertTrue(shift?.observation.contains("Rest") == true)
+            XCTAssertTrue(shift?.observation.contains("Family connection") == true)
+        }
+    }
+
+    func test_analyze_detectsFullCompletionPattern_forSevenPerfectDays() throws {
+        try withInsertedEntries { context in
+            let currentEntries = (0...6).map { dayOffset in
+                makeFullEntry(on: date(year: 2026, month: 3, day: 16 + dayOffset))
+            }
+            for entry in currentEntries {
+                context.insert(entry)
+            }
+            try context.save()
+
+            let analysis = ruleEngine.analyze(
+                currentWeekEntries: currentEntries,
+                previousWeekEntries: [],
+                calendar: calendar
+            )
+
+            let completion = analysis.weeklyInsights.first { $0.pattern == .fullCompletion }
+            XCTAssertNotNil(completion)
+            XCTAssertEqual(completion?.dayCount, 7)
+        }
+    }
+
+    /// Surface text counts as a reflection day for `.soil` entries (no harvest chips).
+    func test_analyze_soilEntryWithSurfaceText_usesNonEmptySparseFallbackWhenWeekIsSparse() throws {
+        try withInsertedEntries { context in
+            let entries = [
+                makeEntry(
+                    on: date(year: 2026, month: 3, day: 17),
+                    readingNotes: String(repeating: "n", count: 39)
+                )
+            ]
+            for entry in entries {
+                context.insert(entry)
+            }
+            try context.save()
+
+            let analysis = ruleEngine.analyze(
+                currentWeekEntries: entries,
+                previousWeekEntries: [],
+                calendar: calendar
+            )
+
+            XCTAssertEqual(analysis.weeklyInsights.count, 1)
+            let insight = analysis.weeklyInsights[0]
+            XCTAssertEqual(insight.pattern, .sparseFallback)
+            XCTAssertEqual(insight.dayCount, 1)
+            XCTAssertNotEqual(
+                insight.observation,
+                "Start with one reflection today to build your weekly review.",
+                "Sparse week with reflection surface text should not use the empty-week starter observation."
+            )
+        }
+    }
+
+    private func makeInMemoryContainerAndContext() throws -> (ModelContainer, ModelContext) {
+        let schema = Schema([JournalEntry.self])
+        let storeURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("GraceNotesWeeklyInsightRuleTests-\(UUID().uuidString).store")
+        let configuration = ModelConfiguration(schema: schema, url: storeURL)
+        let container = try ModelContainer(for: schema, configurations: configuration)
+        return (container, ModelContext(container))
+    }
+
+    /// In-memory stack exists before building `@Model` rows (chip payloads), same idea as `StreakCalculatorTests`.
+    private func withInsertedEntries<T>(
+        _ run: (ModelContext) throws -> T
+    ) throws -> T {
+        let (container, context) = try makeInMemoryContainerAndContext()
+        persistedModelContainer = container
+        defer { persistedModelContainer = nil }
+        return try run(context)
     }
 
     private func makeEntry(
