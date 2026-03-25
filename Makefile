@@ -99,7 +99,11 @@ test-ui:
 
 test-ui-smoke:
 	@resolved_destination="$$($(PYTHON) "$(SIMULATOR_HELPER)" resolve "$(DESTINATION)")" || exit $$?; \
+	simulator_name="$$($(PYTHON) "$(SIMULATOR_HELPER)" name "$$resolved_destination")" || exit $$?; \
 	echo "Using destination: $$resolved_destination"; \
+	$(MAKE) reset-simulators; \
+	xcrun simctl boot "$$simulator_name" >/dev/null 2>&1 || true; \
+	xcrun simctl bootstatus "$$simulator_name" -b >/dev/null 2>&1 || true; \
 	xcodebuild -project "$(PROJECT)" -scheme "$(SCHEME)" -destination "$$resolved_destination" $(XCODE_TEST_FLAGS) -only-testing:"$(SMOKE_UI_TEST)" test
 
 test-isolated:
