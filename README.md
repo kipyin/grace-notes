@@ -6,25 +6,29 @@ A journaling iOS app for daily gratitude, reflection, and people in mind.
 
 Grace Notes (`感恩记`) guides you through a simple daily rhythm: 5 gratitudes, 5 needs, 5 people in mind, reading notes, and space for what you're thinking and learning. The app offers a quiet, low-friction place for gratitude and reflection, with a gentle framing that feels welcoming rather than pushy.
 
-## What's new in 0.5.2 (Unreleased)
-
-- **Settings (#84)** — Section headers move to authored title case instead of forced all-caps list styling.
-- **Review insights (#40 / #80)** — 0.5.2 includes insight follow-through tracked in initiative handoffs (`GraceNotes/docs/agent-log/initiatives/archive/016-issue-80-insight-direction/` and `GraceNotes/docs/agent-log/initiatives/archive/017-issue-40-80-insight-implementation/`; **GitHub #80** may remain open for engine depth).
-
-## What's new in 0.5.1 (2026-03-24)
-
-- **Packaging** — Patch bump on the 0.5.x line: marketing version **0.5.1**, build **3**, Debug builds emit **dSYM** for richer crash logs, and the shared **GraceNotes** scheme’s Run action uses the **Release** configuration (verify this matches your day-to-day workflow in Xcode).
-- **Onboarding** — Milestone cards that jump to Settings share one eligibility rule with the UI and re-check it when you tap; onboarding/iCloud continuity keys use shared constants (see CHANGELOG **Developer** for detail). Post-Seed orientation sample Review preview matches real insights layout; welcome copy is slightly tighter.
-- **Localization** — String Catalog **zh-Hans** polish (including onboarding and Abundance-related copy) and aligned **Save to Photos** permission wording for **感恩记**.
-- **Cloud chips (#39)** — Chip cloud summarization picks instruction language the same way as Review (`AppInstructionLocale`), tightens low-signal and ungrounded-output handling, and adds focused unit tests (see CHANGELOG).
-- **Product docs** — Review insight roadmap now separates **#40** (insight-first presentation) from **#80** (deeper insight engine work); see `GraceNotes/docs/07-release-roadmap.md`.
-- **UI tests** — Journal UI tests use stable chip and add-row identifiers, English locale, relaunch-safe launch arguments, optional **`-grace-notes-reset-uitest-store`** between cases, and a UI-test SwiftData session key so data survives `terminate()` + `launch()` when appropriate (see CHANGELOG **Developer**).
-
 ## What's new in 0.5.0
 
-- **Insight quality** — Review and weekly insights that better reflect your own entries: presentation work as **#40**, deeper generation iteration as **#80**; refined chip-label prompts for AI where used (**#39**); clearer feedback when a section is fully filled (**#11**).
-- **First-run tutorial** — Dismissible hints on Today toward Seed and Harvest, with one-time congratulations when you first reach those tiers (`#60`).
-- **Behavior-first onboarding** — First launch now opens with a minimal welcome, then guides your first journal on Today one step at a time (Gratitude → Need → People → Seed / Ripening / Harvest / Abundance). The first time you reach Seed, an optional skippable full-screen intro can appear; afterward, milestone suggestions for reminders, AI, and iCloud stay contextual (`#71`, `#72`, `#73`, `#74`, `#75`).
+Marketing version stays **0.5.0** across several TestFlight / App Store drops; each drop bumps **build** and git tag **`v0.5.0+{build}`**. GitHub milestone **0.5.2** names the scope lane for the work below, not a separate marketing version.
+
+### Build 8 (Unreleased)
+
+- **Settings (#84)** — Section headers move to authored title case instead of forced all-caps list styling.
+- **Review insights (#40 / #80)** — Insight follow-through from initiative handoffs (`GraceNotes/docs/agent-log/initiatives/archive/016-issue-80-insight-direction/` and `GraceNotes/docs/agent-log/initiatives/archive/017-issue-40-80-insight-implementation/`; **GitHub #80** may remain open for engine depth). See CHANGELOG for full bullets.
+
+### Build 7 (2026-03-24)
+
+- **Packaging** — Marketing **0.5.0**, build **7**, tag **`v0.5.0+7`**; Debug **dSYM**; shared **GraceNotes** scheme **Run** uses **Release** (adjust locally if you prefer ⌘R on Debug).
+- **Onboarding** — Milestone cards that jump to Settings share one eligibility rule with the UI and re-check it when you tap; onboarding/iCloud continuity keys use shared constants (see CHANGELOG **Developer**). Post-Seed orientation sample Review preview matches real insights layout; welcome copy is slightly tighter.
+- **Localization** — String Catalog **zh-Hans** polish and aligned **Save to Photos** permission wording for **感恩记**.
+- **Cloud chips (#39)** — `AppInstructionLocale`, low-signal / grounding handling, unit tests (see CHANGELOG).
+- **Product docs** — Roadmap separates **#40** vs **#80**; see `GraceNotes/docs/07-release-roadmap.md`.
+- **UI tests** — Stable identifiers, English locale, relaunch-safe arguments, optional **`-grace-notes-reset-uitest-store`**, UI-test SwiftData session key (see CHANGELOG **Developer**).
+
+### Foundation (2026-03-21)
+
+- **Insight quality** — Review and weekly insights that better reflect your own entries: **#40**, **#80**, **#39**, **#11**.
+- **First-run tutorial** — Dismissible hints toward Seed and Harvest (`#60`).
+- **Behavior-first onboarding** — Welcome, then guided first journal (Gratitude → Need → People → …); optional post-Seed journey; milestone suggestions (`#71`–`#75`).
 
 See `GraceNotes/docs/07-release-roadmap.md`.
 
