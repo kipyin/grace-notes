@@ -199,7 +199,15 @@ final class JournalViewModelMutationTests: XCTestCase {
         UserDefaults.standard.set(true, forKey: AIFeaturesSettings.enabledUserDefaultsKey)
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let viewModel = makeViewModel(now: now)
+        // Fixed summarizer forces `effectiveUsesCloudForChips` false; override matches cloud chip truncation policy.
+        let viewModel = JournalViewModel(
+            calendar: calendar,
+            nowProvider: { now },
+            summarizerProvider: SummarizerProvider(
+                fixedSummarizer: MockSummarizer(),
+                effectiveUsesCloudForChipsOverride: true
+            )
+        )
 
         viewModel.loadEntry(for: now, using: context)
         await viewModel.addGratitude("I am grateful for my family.")
