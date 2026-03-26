@@ -5,11 +5,6 @@ on:
     - cron: '0 20 * * *'
   workflow_dispatch:
 
-permissions:
-  contents: read
-  security-events: write
-  actions: write
-
 concurrency:
   group: codeql-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
@@ -21,6 +16,9 @@ jobs:
   gate:
     name: Gate (skip if main unchanged)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
     outputs:
       run: ${{ steps.decide.outputs.run }}
     steps:
@@ -28,10 +26,12 @@ jobs:
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && github.ref || 'main' }}
 
+      # Primary key never matches so restore-keys picks the latest codeql-last-main-sha-v1-* entry.
       - uses: actions/cache/restore@v4
         with:
           path: .codeql-cache
-          key: codeql-last-main-sha-v1
+          key: codeql-last-main-sha-v1-bootstrap-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: codeql-last-main-sha-v1-
           fail-on-cache-miss: false
           enableCrossOsArchive: true
 
@@ -54,6 +54,10 @@ jobs:
     needs: gate
     if: needs.gate.outputs.run == 'true'
     runs-on: macos-15
+    permissions:
+      contents: read
+      security-events: write
+      actions: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -86,5 +90,5 @@ jobs:
         if: success() && (github.event_name == 'schedule' || github.ref == 'refs/heads/main')
         with:
           path: .codeql-cache
-          key: codeql-last-main-sha-v1
+          key: codeql-last-main-sha-v1-${{ github.sha }}
           enableCrossOsArchive: true
