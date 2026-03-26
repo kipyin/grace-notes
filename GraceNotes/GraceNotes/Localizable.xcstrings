@@ -17,6 +17,22 @@
         }
       }
     },
+    "%@ editor" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ editor"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 编辑框"
+          }
+        }
+      }
+    },
     "%@ input" : {
       "localizations" : {
         "en" : {
@@ -109,6 +125,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "「%1$@」和「%2$@」经常成对出现。"
+          }
+        }
+      }
+    },
+    "%1$@ item %2$d of %3$d" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ item %2$d of %3$d"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@，第 %2$d 项，共 %3$d 项"
           }
         }
       }
@@ -460,6 +492,71 @@
         }
       }
     },
+    "Add another gratitude" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add another gratitude"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再记一件感恩的事"
+          }
+        }
+      }
+    },
+    "Add another need" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add another need"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再记一件需要的事"
+          }
+        }
+      }
+    },
+    "Add another person" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add another person"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再记一位牵挂的人"
+          }
+        }
+      }
+    },
+    "Add another sentence in %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add another sentence in %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 %@ 中再添加一句内容"
+          }
+        }
+      }
+    },
     "Add new" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -478,6 +575,7 @@
       }
     },
     "Add new item in %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -494,6 +592,7 @@
       }
     },
     "Adds another item in %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1958,6 +2057,54 @@
         }
       }
     },
+    "Double-tap to edit this sentence." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Double-tap to edit this sentence."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连点两下即可编辑这句话。"
+          }
+        }
+      }
+    },
+    "Double-tap to edit this sentence. Use Show more to preview the full text." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Double-tap to edit this sentence. Use Show more to preview the full text."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连点两下即可编辑这句话。如需查看全文，可轻点“展开”。"
+          }
+        }
+      }
+    },
+    "Editing this sentence. Press Done to save, or tap outside the text field." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Editing this sentence. Press Done to save, or tap outside the text field."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在编辑这句话。轻点“完成”即可保存，也可以轻点输入框外保存。"
+          }
+        }
+      }
+    },
     "Entries stay private to your devices and account. Export creates a full JSON backup." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2039,6 +2186,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已展开"
+          }
+        }
+      }
+    },
+    "Expands or collapses the sentence preview" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expands or collapses the sentence preview"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "展开或收起这句话的预览"
           }
         }
       }
@@ -3161,6 +3324,22 @@
         }
       }
     },
+    "Opens a text field so you can add another item." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens a text field so you can add another item."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开输入框，继续添加内容。"
+          }
+        }
+      }
+    },
     "Opens iOS Settings where you can sign in to iCloud or review restrictions." : {
       "localizations" : {
         "en" : {
@@ -4270,6 +4449,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "分享"
+          }
+        }
+      }
+    },
+    "Show less" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show less"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收起"
+          }
+        }
+      }
+    },
+    "Show more" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show more"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "展开"
           }
         }
       }
