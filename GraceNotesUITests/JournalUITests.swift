@@ -309,8 +309,15 @@ final class JournalUITests: XCTestCase {
 
         let showMore = app.buttons["JournalGratitudeStrip.0.more"]
         XCTAssertTrue(showMore.waitForExistence(timeout: 5))
+        XCTAssertFalse(
+            app.staticTexts[longSentence].exists,
+            "Expected the full long sentence not to be visible as a single static text before expansion."
+        )
         showMore.tap()
-        XCTAssertTrue(showMore.waitForExistence(timeout: 5))
+        XCTAssertTrue(
+            app.staticTexts[longSentence].waitForExistence(timeout: 5),
+            "Expected the full long sentence to be visible after expanding the preview."
+        )
     }
 
     @MainActor

@@ -1,5 +1,17 @@
 import SwiftUI
 
+private struct StripDeleteAccessibilityAction: ViewModifier {
+    let onDelete: (() -> Void)?
+
+    func body(content: Content) -> some View {
+        if let onDelete {
+            content.accessibilityAction(named: Text(String(localized: "Delete")), onDelete)
+        } else {
+            content
+        }
+    }
+}
+
 struct SentenceStripView: View {
     private enum Layout {
         static let expansionThreshold = 88
@@ -121,10 +133,7 @@ struct SentenceStripView: View {
                 identifier: accessibilityIdentifier
             )
         )
-        .accessibilityAction(named: Text(String(localized: "Delete"))) {
-            guard onDelete != nil else { return }
-            onDelete?()
-        }
+        .modifier(StripDeleteAccessibilityAction(onDelete: onDelete))
     }
 
     private var rowAccessibilityLabel: String {

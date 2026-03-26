@@ -55,7 +55,7 @@ private struct InlineSentenceEditorTextView: UIViewRepresentable {
 
         if isFocused, uiView.isFirstResponder == false {
             uiView.becomeFirstResponder()
-        } else if isInteractionEnabled == false, uiView.isFirstResponder {
+        } else if !isFocused || isInteractionEnabled == false, uiView.isFirstResponder {
             uiView.resignFirstResponder()
         }
     }
