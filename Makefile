@@ -15,7 +15,7 @@ SIMULATOR_HELPER := Scripts/simulator_destination.py
 # iOS 17 hosted runtime can crash in these suites before assertions run.
 LEGACY_RUNTIME_SKIP_FLAGS := -skip-testing:GraceNotesTests/CloudReviewInsightsGeneratorTests -skip-testing:GraceNotesTests/DeterministicReviewInsightsTests -skip-testing:GraceNotesTests/HistoryEntryGroupingTests
 
-.PHONY: help lint lint-preflight build test test-unit test-ui test-ui-smoke test-isolated test-all test-matrix ci ci-matrix ci-build ci-merge-queue ci-pr-full-ci reset-simulators list-simulator-destinations validate-destination validate-test-matrix
+.PHONY: help lint lint-preflight build test test-unit test-ui test-ui-smoke test-isolated test-all test-matrix ci ci-matrix ci-build ci-full ci-merge-queue ci-pr-full-ci reset-simulators list-simulator-destinations validate-destination validate-test-matrix
 
 help:
 	@echo "Available targets:"
@@ -34,8 +34,9 @@ help:
 	@echo "  make ci     - Run lint and test-all"
 	@echo "  make ci-matrix - Run lint and test-matrix"
 	@echo "  make ci-build - Build for CI_SIMULATOR_PRO (used by GitHub Actions)"
-	@echo "  make ci-merge-queue - Lint, test on CI_SIMULATOR_PRO, UI smoke on CI_SIMULATOR_XR"
-	@echo "  make ci-pr-full-ci - Same as ci-merge-queue (PR label full-ci)"
+	@echo "  make ci-full - Lint, test on CI_SIMULATOR_PRO, UI smoke on CI_SIMULATOR_XR (GitHub Actions full suite)"
+	@echo "  make ci-merge-queue - Alias for ci-full (compat)"
+	@echo "  make ci-pr-full-ci - Alias for ci-full (PR label full-ci in Actions)"
 	@echo ""
 	@echo "Configurable variables:"
 	@echo "  DESTINATION='platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2'"
@@ -154,9 +155,11 @@ ci-matrix:
 ci-build:
 	$(MAKE) build DESTINATION="$(CI_SIMULATOR_PRO)"
 
-ci-merge-queue:
+ci-full:
 	$(MAKE) lint
 	$(MAKE) test DESTINATION="$(CI_SIMULATOR_PRO)"
 	$(MAKE) test-ui-smoke DESTINATION="$(CI_SIMULATOR_XR)"
 
-ci-pr-full-ci: ci-merge-queue
+ci-merge-queue: ci-full
+
+ci-pr-full-ci: ci-full
