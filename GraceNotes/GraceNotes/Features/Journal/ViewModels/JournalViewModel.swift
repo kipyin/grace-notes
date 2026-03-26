@@ -3,15 +3,6 @@ import Combine
 import Observation
 import SwiftData
 
-struct JournalExportPayload {
-    let dateFormatted: String
-    let gratitudes: [String]
-    let needs: [String]
-    let people: [String]
-    let readingNotes: String
-    let reflections: String
-}
-
 @MainActor
 @Observable
 final class JournalViewModel {
@@ -168,8 +159,12 @@ final class JournalViewModel {
 
         let streakTrace = PerformanceTrace.begin("JournalViewModel.refreshStreakSummary")
         do {
-            var entriesForStreak = try repository.fetchAllEntries(context: context)
-            streakSummary = streakCalculator.summary(from: entriesForStreak, now: nowProvider())
+            streakSummary = try JournalStreakSummaryRefresher.loadSummary(
+                repository: repository,
+                calculator: streakCalculator,
+                context: context,
+                now: nowProvider()
+            )
             PerformanceTrace.end("JournalViewModel.refreshStreakSummary", startedAt: streakTrace)
         } catch {
             streakSummary = .empty
@@ -235,14 +230,15 @@ final class JournalViewModel {
 
 extension JournalViewModel {
     func exportSnapshot() -> JournalExportPayload {
-        let dateStr = entryDate.formatted(date: .long, time: .omitted)
-        return JournalExportPayload(
-            dateFormatted: dateStr,
-            gratitudes: gratitudes.map(\.fullText),
-            needs: needs.map(\.fullText),
-            people: people.map(\.fullText),
-            readingNotes: readingNotes.trimmingCharacters(in: .whitespacesAndNewlines),
-            reflections: reflections.trimmingCharacters(in: .whitespacesAndNewlines)
+        JournalExportPayload.make(
+            from: JournalExportSnapshotSource(
+                entryDate: entryDate,
+                gratitudes: gratitudes,
+                needs: needs,
+                people: people,
+                readingNotes: readingNotes,
+                reflections: reflections
+            )
         )
     }
 }
