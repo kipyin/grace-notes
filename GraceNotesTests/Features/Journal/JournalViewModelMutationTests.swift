@@ -2,24 +2,27 @@ import XCTest
 import SwiftData
 @testable import GraceNotes
 
-// Keeps mutation-path assertions in one place until test extraction is completed.
 @MainActor
 final class JournalViewModelMutationTests: XCTestCase {
-    private var calendar: Calendar!
+    var calendar: Calendar!
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        var cal = Calendar(identifier: .gregorian)
-        cal.timeZone = TimeZone(secondsFromGMT: 0)!
-        calendar = cal
+        try skipIfKnownHostedSwiftDataCrash()
+    }
+
+    override func setUp() {
+        super.setUp()
+        calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
         UserDefaults.standard.set(false, forKey: AIFeaturesSettings.enabledUserDefaultsKey)
         UserDefaults.standard.removeObject(forKey: AIFeaturesSettings.legacyAIReviewInsightsKey)
     }
 
-    override func tearDownWithError() throws {
+    override func tearDown() {
         UserDefaults.standard.removeObject(forKey: AIFeaturesSettings.enabledUserDefaultsKey)
         UserDefaults.standard.removeObject(forKey: AIFeaturesSettings.legacyAIReviewInsightsKey)
-        try super.tearDownWithError()
+        super.tearDown()
     }
 
     func test_updateGratitudeRejectsEmptyString_leavesOriginalUnchanged() async throws {
@@ -84,6 +87,7 @@ final class JournalViewModelMutationTests: XCTestCase {
     }
 
     func test_updateGratitudeImmediate_updatesWithInterimLabel() throws {
+        try skipIfKnownHostedSwiftDataCrash()
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
         let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now })
@@ -101,6 +105,7 @@ final class JournalViewModelMutationTests: XCTestCase {
     }
 
     func test_updatePersonImmediate_mixedLanguage_preservesLatinNameInChipLabel() throws {
+        try skipIfKnownHostedSwiftDataCrash()
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
         let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now })
@@ -117,6 +122,7 @@ final class JournalViewModelMutationTests: XCTestCase {
     }
 
     func test_addGratitudeImmediate_appendsWithInterimLabel() throws {
+        try skipIfKnownHostedSwiftDataCrash()
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
         let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now })
@@ -149,6 +155,7 @@ final class JournalViewModelMutationTests: XCTestCase {
     }
 
     func test_renameNeedLabel_shortLabelClearsTruncation() throws {
+        try skipIfKnownHostedSwiftDataCrash()
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
         let viewModel = makeViewModel(now: now)
@@ -179,6 +186,7 @@ final class JournalViewModelMutationTests: XCTestCase {
     }
 
     func test_updateGratitudeImmediate_aiFeaturesEnabled_keepsFullLabelWithoutEllipsis() throws {
+        try skipIfKnownHostedSwiftDataCrash()
         UserDefaults.standard.set(true, forKey: AIFeaturesSettings.enabledUserDefaultsKey)
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
@@ -232,109 +240,5 @@ final class JournalViewModelMutationTests: XCTestCase {
 
         XCTAssertFalse(didRename)
         XCTAssertEqual(viewModel.people[0].chipLabel, existingLabel)
-    }
-
-    func test_removeGratitude_validIndex_removesAndPersists() async throws {
-        let context = try makeInMemoryContext()
-        let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let viewModel = makeViewModel(now: now)
-
-        viewModel.loadEntry(for: now, using: context)
-        await viewModel.addGratitude("First")
-        await viewModel.addGratitude("Second")
-
-        let removed = viewModel.removeGratitude(at: 0)
-
-        XCTAssertTrue(removed)
-        XCTAssertEqual(viewModel.gratitudes.count, 1)
-        XCTAssertEqual(viewModel.gratitudes[0].fullText, "Second")
-    }
-
-    func test_removeGratitude_invalidIndex_returnsFalse() throws {
-        let context = try makeInMemoryContext()
-        let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now })
-
-        viewModel.loadEntry(for: now, using: context)
-
-        let removed = viewModel.removeGratitude(at: 99)
-
-        XCTAssertFalse(removed)
-        XCTAssertEqual(viewModel.gratitudes.count, 0)
-    }
-
-    func test_removeNeed_validIndex_removesAndPersists() async throws {
-        let context = try makeInMemoryContext()
-        let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let viewModel = makeViewModel(now: now)
-
-        viewModel.loadEntry(for: now, using: context)
-        await viewModel.addNeed("Peace")
-        await viewModel.addNeed("Joy")
-
-        let removed = viewModel.removeNeed(at: 0)
-
-        XCTAssertTrue(removed)
-        XCTAssertEqual(viewModel.needs.count, 1)
-        XCTAssertEqual(viewModel.needs[0].fullText, "Joy")
-    }
-
-    func test_removePerson_validIndex_removesAndPersists() async throws {
-        let context = try makeInMemoryContext()
-        let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let viewModel = makeViewModel(now: now)
-
-        viewModel.loadEntry(for: now, using: context)
-        await viewModel.addPerson("Alice")
-        await viewModel.addPerson("Bob")
-
-        let removed = viewModel.removePerson(at: 1)
-
-        XCTAssertTrue(removed)
-        XCTAssertEqual(viewModel.people.count, 1)
-        XCTAssertEqual(viewModel.people[0].fullText, "Alice")
-    }
-
-    func test_moveGratitude_validMove_reordersItems() async throws {
-        let context = try makeInMemoryContext()
-        let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let viewModel = makeViewModel(now: now)
-
-        viewModel.loadEntry(for: now, using: context)
-        await viewModel.addGratitude("First")
-        await viewModel.addGratitude("Second")
-        await viewModel.addGratitude("Third")
-
-        let moved = viewModel.moveGratitude(from: 0, to: 3)
-
-        XCTAssertTrue(moved)
-        XCTAssertEqual(viewModel.gratitudes.map(\.fullText), ["Second", "Third", "First"])
-    }
-
-    func test_moveNeed_invalidDestination_returnsFalse() async throws {
-        let context = try makeInMemoryContext()
-        let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let viewModel = makeViewModel(now: now)
-
-        viewModel.loadEntry(for: now, using: context)
-        await viewModel.addNeed("Need one")
-        await viewModel.addNeed("Need two")
-
-        let moved = viewModel.moveNeed(from: 1, to: 99)
-
-        XCTAssertFalse(moved)
-        XCTAssertEqual(viewModel.needs.map(\.fullText), ["Need one", "Need two"])
-    }
-
-    private func makeViewModel(now: Date) -> JournalViewModel {
-        JournalViewModel(
-            calendar: calendar,
-            nowProvider: { now },
-            summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer())
-        )
-    }
-
-    private func makeInMemoryContext() throws -> ModelContext {
-        try SwiftDataTestIsolation.makeModelContext()
     }
 }
