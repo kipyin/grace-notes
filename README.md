@@ -103,20 +103,19 @@ Note: `make test-all` resets simulators (wipes simulator state) to reduce flaky 
 
 ## CI (GitHub Actions)
 
-Workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml). All simulator work goes through **`make`** (`ci-build`, `ci-merge-queue`, `ci-pr-full-ci` in the [`Makefile`](Makefile)) so destinations match `Scripts/simulator_destination.py` resolution.
+Workflows: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (lint, build, tests) and [`.github/workflows/codeql.yml`](.github/workflows/codeql.yml) (CodeQL Swift). Simulator steps use **`make`** (`ci-build`, `ci-full`, `ci-pr-full-ci`; `ci-merge-queue` is an alias for `ci-full` in the [`Makefile`](Makefile)) so destinations match `Scripts/simulator_destination.py` resolution.
 
 **Why not both `push` and `pull_request` on every branch?** A push to a PR branch used to trigger *two* workflow runs (push + pull_request), which was noisy. The workflow now uses **`pull_request` only for PRs targeting `main`**, and **`push` only for the `main` branch** (post-merge build). Feature branches without a PR do not run CI until you open one.
 
 | When | What runs |
 |------|-----------|
 | **Pull request → `main`** | **Lint & build (iPhone 17 Pro)** — `make lint` then `make ci-build`. **`CI_SIMULATOR_PRO`** is **iPhone 17 Pro @ iOS 26.2** (hosted-runner compromise; SE (3rd generation) smoke remains iOS 18.5). |
-| **Push → `main`** | **Push main — lint, test, UI smoke** — `make ci-merge-queue` (same as merge queue). Use this path when `main` moves outside a normal PR/merge-queue flow (rare). Routine merges via merge queue are validated by **`merge_group`**, not by this job. |
-| **Merge queue** | **Merge queue — lint, test, UI smoke** — `make ci-merge-queue`: `make lint`, `make test` on **iPhone 17 Pro** (`CI_SIMULATOR_PRO`), then `make test-ui-smoke` on **iPhone SE (3rd generation)** (`CI_SIMULATOR_XR`), **iOS 26.2** (17 Pro) and **iOS 18.5** (SE). Smoke: `GraceNotesSmokeUITests.testSmokeLaunch`. |
-| **Pull request + label `full-ci`** | **PR full-ci — lint, test, UI smoke** — `make ci-pr-full-ci` (same as merge queue). Re-runs on new commits while the label is present. |
+| **Push → `main`** | **Push main — lint, test, UI smoke** — `make ci-full`: `make lint`, `make test` on **iPhone 17 Pro** (`CI_SIMULATOR_PRO`), then `make test-ui-smoke` on **iPhone SE (3rd generation)** (`CI_SIMULATOR_XR`). Smoke: `GraceNotesSmokeUITests.testSmokeLaunch`. Skipped when the commit is associated with a merged PR labeled **`no-ci`**. |
+| **Pull request + label `full-ci`** | **PR full-ci — lint, test, UI smoke** — `make ci-pr-full-ci` (same as `ci-full`). Re-runs on new commits while the label is present. |
 
-The **`full-ci`** label must exist in the GitHub repo (Issues → Labels). Adjust **`CI_SIMULATOR_PRO`** / **`CI_SIMULATOR_XR`** in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) and [`Makefile`](Makefile) if Apple or runner images change.
+The **`full-ci`** and **`no-ci`** labels must exist in the GitHub repo (Issues → Labels). Adjust **`CI_SIMULATOR_PRO`** / **`CI_SIMULATOR_XR`** in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) and [`Makefile`](Makefile) if Apple or runner images change.
 
-**Branch protection and merge queue:** Required status checks should match how you gate merges. Jobs that run on **`merge_group`** (for example **Merge queue — lint, test, UI smoke**) validate the merge-queue preview commit. **Lint & build (iPhone 17 Pro)** runs on the pull-request SHA only; keep it as a fast PR signal, but do not rely on it alone as the merge-queue gate.
+**Branch protection:** Configure required status checks for your merge policy—for example **Lint & build (iPhone 17 Pro)** on PRs, and optionally **Push main — lint, test, UI smoke** after merges. **Lint & build** runs on the pull-request SHA only; add **PR full-ci** (label) when you need the full suite before merge. If you used GitHub merge queue before, remove merge queue and any obsolete required checks in **Settings → Branches**.
 
 ## Tech Stack
 
