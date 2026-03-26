@@ -66,12 +66,13 @@ private struct JournalNavigationBarTapProbe: UIViewControllerRepresentable {
 
         func attachIfPossible() {
             guard let navigationContainerView = navigationController?.view else { return }
-            coordinator?.attach(to: navigationContainerView)
+            coordinator?.attach(to: navigationContainerView, host: self)
         }
     }
 
     final class Coordinator: NSObject, UIGestureRecognizerDelegate {
         weak var navigationContainerView: UIView?
+        weak var hostViewController: ProbeViewController?
         var isEnabled: Bool
         var onTap: (TapContext) -> Void
         private weak var recognizer: UITapGestureRecognizer?
@@ -81,14 +82,18 @@ private struct JournalNavigationBarTapProbe: UIViewControllerRepresentable {
             self.onTap = onTap
         }
 
-        func attach(to navigationContainerView: UIView) {
-            guard self.navigationContainerView !== navigationContainerView else { return }
+        func attach(to navigationContainerView: UIView, host: ProbeViewController) {
+            guard self.navigationContainerView !== navigationContainerView else {
+                hostViewController = host
+                return
+            }
             detach()
             let recognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
             recognizer.cancelsTouchesInView = false
             recognizer.delegate = self
             navigationContainerView.addGestureRecognizer(recognizer)
             self.navigationContainerView = navigationContainerView
+            self.hostViewController = host
             self.recognizer = recognizer
         }
 
@@ -98,29 +103,21 @@ private struct JournalNavigationBarTapProbe: UIViewControllerRepresentable {
             }
             recognizer = nil
             navigationContainerView = nil
+            hostViewController = nil
         }
 
         @objc private func handleTap(_ recognizer: UITapGestureRecognizer) {
             guard isEnabled, let navigationContainerView else { return }
             let location = recognizer.location(in: navigationContainerView)
-            let hitView = navigationContainerView.hitTest(location, with: nil)
-            let hitViewChain = viewChainDescription(startingAt: hitView)
-            let isNavigationChrome =
-                hitViewChain.contains("UINavigationBar")
-                || hitViewChain.contains("NavigationBarContentView")
-                || hitViewChain.contains("_UINavigationBarLargeTitleView")
-                || hitViewChain.contains("UIKitNavigationBar")
-            onTap(TapContext(isNavigationChrome: isNavigationChrome))
-        }
-
-        private func viewChainDescription(startingAt view: UIView?) -> String {
-            var classes: [String] = []
-            var currentView = view
-            while let candidate = currentView, classes.count < 6 {
-                classes.append(String(describing: type(of: candidate)))
-                currentView = candidate.superview
+            let isNavigationChrome: Bool
+            if let nav = hostViewController?.navigationController {
+                let navBar = nav.navigationBar
+                let barFrame = navBar.convert(navBar.bounds, to: navigationContainerView)
+                isNavigationChrome = barFrame.contains(location)
+            } else {
+                isNavigationChrome = false
             }
-            return classes.joined(separator: " > ")
+            onTap(TapContext(isNavigationChrome: isNavigationChrome))
         }
 
         func gestureRecognizer(
@@ -257,7 +254,7 @@ struct JournalScreen: View {
             .padding(.top, AppTheme.todayTopPadding)
             .padding(.bottom, contentBottomPadding)
             .background(journalScrollOffsetReader)
-            .background(journalInlineEditGapTapCatcher)
+            .background(journalInlineScrollBackdropDismiss)
             .journalDismissUnlockToastOnTapOutside(unlockToastLevel != nil) {
                 dismissUnlockToastIfNeeded()
             }
@@ -422,8 +419,9 @@ private extension JournalScreen {
         AppTheme.todayBottomPadding + bottomSpacingAdjustment
     }
 
+    /// Single backdrop behind the journal column: taps on “empty” scroll space dismiss inline editing.
     @ViewBuilder
-    var journalInlineEditGapTapCatcher: some View {
+    var journalInlineScrollBackdropDismiss: some View {
         if isAnyInlineChipEditing {
             Color.clear
                 .contentShape(Rectangle())
@@ -1017,6 +1015,16 @@ private extension JournalScreen {
         let move: (Int, Int) -> Bool
         let remove: (Int) -> Bool
         let operations: ChipSectionOperations
+
+        var chipInteractionContext: JournalChipInteractionCoordinator.SectionContext {
+            JournalChipInteractionCoordinator.SectionContext(
+                input: input,
+                editingIndex: editingIndex,
+                isTransitioning: isTransitioning,
+                inputFocus: inputFocus,
+                operations: operations
+            )
+        }
     }
     func chipSectionAdapter(for section: ChipSection) -> ChipSectionAdapter {
         switch section {
@@ -1096,15 +1104,10 @@ private extension JournalScreen {
     }
     func addNewTapped(section: ChipSection) {
         let adapter = chipSectionAdapter(for: section)
-        let handled = JournalScreenChipHandling.handleAddChipTap(
-            input: adapter.input,
-            editingIndex: adapter.editingIndex,
-            operations: adapter.operations,
-            isTransitioning: adapter.isTransitioning
+        JournalChipInteractionCoordinator.addNewTapped(
+            context: adapter.chipInteractionContext,
+            restoreInputFocus: restoreInputFocus
         )
-        if handled {
-            restoreInputFocus(adapter.inputFocus)
-        }
     }
 
     func deleteChip(section: ChipSection, index: Int) {
@@ -1129,16 +1132,11 @@ private extension JournalScreen {
 
     func chipTapped(section: ChipSection, index: Int) {
         let adapter = chipSectionAdapter(for: section)
-        let handled = JournalScreenChipHandling.performChipTap(
+        JournalChipInteractionCoordinator.chipTapped(
+            context: adapter.chipInteractionContext,
             tapIndex: index,
-            input: adapter.input,
-            editingIndex: adapter.editingIndex,
-            operations: adapter.operations,
-            isTransitioning: adapter.isTransitioning
+            restoreInputFocus: restoreInputFocus
         )
-        if handled {
-            restoreInputFocus(adapter.inputFocus)
-        }
     }
 
     func scheduleSummarization(for section: ChipSection, index: Int) {
