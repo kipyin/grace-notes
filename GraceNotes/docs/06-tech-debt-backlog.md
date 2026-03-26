@@ -72,28 +72,19 @@ These align with lint complexity/length signals.
 ### Issues
 
 #### D1 (P1): `JournalViewModel` is oversized and multi-responsibility
-- **Location:** `Features/Journal/ViewModels/JournalViewModel.swift`
+- **Location:** `Features/Journal/ViewModels/JournalViewModel.swift` (+ `JournalViewModel+ChipEditing.swift`)
 - **Why it matters:** Increases cognitive load and regression risk; difficult to reason about independent concerns.
-- **Current concern mix:**
-  - persistence hydration/save
-  - autosave debounce
-  - summarization orchestration
-  - streak cache/update strategy
-  - export formatting
-- **Recommendation:** split by concern:
-  - chip editing/summarization coordinator
-  - streak projection/cache helper
-  - export formatter utility
+- **Progress (#90):** Export snapshot building → `JournalExportPayload.make`; streak refresh fetch/compute → `JournalStreakSummaryRefresher`; chip summarization/interim labels → `JournalChipLabelSummarizationCoordinator`. Core VM still owns hydration, autosave debounce, and coordination.
+- **Remaining mix:** autosave debounce, persistence, completion projection; optional further splits (e.g. thinner `JournalScreen` per D2).
 
 #### D2 (P1): `JournalScreen` carries heavy interaction orchestration
 - **Location:** `Features/Journal/Views/JournalScreen.swift`
 - **Why it matters:** View readability and testability degrade as event wiring grows.
 - **Recommendation:** move section interaction orchestration to focused helper objects or nested view adapters.
 
-#### D3 (P2): terminology drift in domain naming
-- **Location:** model/VM properties use `bibleNotes` while UI labels show “Reading Notes”
-- **Why it matters:** mental model mismatch for new contributors.
-- **Recommendation:** rename domain property to `readingNotes` with migration shim.
+#### ~~D3 (P2): terminology drift in domain naming~~ **Resolved**
+- **Was:** model/VM properties used `bibleNotes` while UI labels show “Reading Notes”.
+- **Now:** `JournalEntry.readingNotes` with `@Attribute(originalName: "bibleNotes")` for SwiftData migration; VM and services use `readingNotes` (see `CHANGELOG.md`).
 
 ---
 
@@ -199,9 +190,9 @@ These align with lint complexity/length signals.
 
 ## Structural improvements (P1/P2, moderate risk)
 
-6. Break up `JournalViewModel` by concern.
+6. Break up `JournalViewModel` by concern (partial: #90 — export, streak refresh, chip summarization coordinator).
 7. Further split `JournalScreen` orchestration logic.
-8. Rename `bibleNotes` to `readingNotes` with migration compatibility.
+8. ~~Rename `bibleNotes` to `readingNotes` with migration compatibility.~~ Done — `JournalEntry.readingNotes` + `originalName: "bibleNotes"`.
 
 ## Follow-up hardening
 
