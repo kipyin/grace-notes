@@ -64,6 +64,8 @@ enum AppTheme {
     // MARK: - Journal Semantic Colors
 
     static let journalBackground = Color("JournalBackground")
+    /// Slightly cooler tone when inline sentence editing is active (no scrim cutout).
+    static let journalAmbientEditingBackground = Color(hex: 0xE5DFD6)
     static let journalPaper = Color("JournalPaper")
     static let journalTextPrimary = Color("JournalTextPrimary")
     static let journalTextMuted = Color("JournalTextMuted")
