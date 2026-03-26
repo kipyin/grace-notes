@@ -16,37 +16,34 @@ struct JournalChipLabelSummarizationCoordinator {
         DeterministicChipLabelSummarizer()
     }
 
-    private func displayReadyChipResult(_ result: SummarizationResult) -> SummarizationResult {
-        guard shouldLimitToChipUnits else {
+    /// Shared chip-display rules for main actor and `Task.detached` paths.
+    private nonisolated static func displayReadySummarizationResult(
+        _ result: SummarizationResult,
+        limitToChipUnits: Bool
+    ) -> SummarizationResult {
+        guard limitToChipUnits else {
             return SummarizationResult(label: result.label, isTruncated: false)
         }
         return ChipLabelUnitTruncator.displayCappedLabel(from: result.label)
     }
 
+    private func displayReadyChipResult(_ result: SummarizationResult) -> SummarizationResult {
+        Self.displayReadySummarizationResult(result, limitToChipUnits: shouldLimitToChipUnits)
+    }
+
     func summarizeForChip(_ text: String, section: SummarizationSection) async -> SummarizationResult {
-        let usesCloudChips = summarizerProvider.effectiveUsesCloudForChips()
-        let shouldLimitToChipUnits = !usesCloudChips
-        if usesCloudChips, !ChipLabelUnitTruncator.truncate(text).isTruncated {
+        let limitToChipUnits = shouldLimitToChipUnits
+        if !limitToChipUnits, !ChipLabelUnitTruncator.truncate(text).isTruncated {
             return ChipLabelUnitTruncator.displayCappedLabel(from: text)
         }
         let summarizer = summarizerProvider.currentSummarizer()
         return await Task.detached(priority: .utility) {
-            func displayReady(
-                _ result: SummarizationResult,
-                shouldLimitToChipUnits limit: Bool
-            ) -> SummarizationResult {
-                guard limit else {
-                    return SummarizationResult(label: result.label, isTruncated: false)
-                }
-                return ChipLabelUnitTruncator.displayCappedLabel(from: result.label)
-            }
-
             do {
                 let result = try await summarizer.summarize(text, section: section)
-                return displayReady(result, shouldLimitToChipUnits: shouldLimitToChipUnits)
+                return Self.displayReadySummarizationResult(result, limitToChipUnits: limitToChipUnits)
             } catch {
                 let fallback = DeterministicChipLabelSummarizer().summarizeSync(text, section: section)
-                return displayReady(fallback, shouldLimitToChipUnits: shouldLimitToChipUnits)
+                return Self.displayReadySummarizationResult(fallback, limitToChipUnits: limitToChipUnits)
             }
         }.value
     }
