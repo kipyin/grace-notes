@@ -149,6 +149,12 @@ extension PostSeedJourneyView {
 
             PostSeedJourneyInsightsPreview()
                 .padding(.top, AppTheme.spacingWide)
+
+            Text(String(localized: "PostSeedJourney.sampleInsights.filler"))
+                .font(AppTheme.warmPaperMeta)
+                .foregroundStyle(AppTheme.settingsTextMuted)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, AppTheme.spacingTight)
         }
     }
 

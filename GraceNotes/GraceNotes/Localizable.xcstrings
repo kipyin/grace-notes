@@ -2954,6 +2954,7 @@
       }
     },
     "Insights" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3279,6 +3280,22 @@
         }
       }
     },
+    "No saved journal entry for this day." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No saved journal entry for this day."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "该日尚无已保存的日记条目。"
+          }
+        }
+      }
+    },
     "No writing on %@" : {
       "localizations" : {
         "en" : {
@@ -3533,22 +3550,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "打开该日的感恩记。"
-          }
-        }
-      }
-    },
-    "No saved journal entry for this day." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No saved journal entry for this day."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "该日尚无已保存的日记条目。"
           }
         }
       }
@@ -3952,22 +3953,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "仅为示例。开启云端 AI 时，真实的「回顾」卡片可能还有更多栏目。实卡里的灰色小字是跟进提示，想写时可以在「今天」的反思里接几句，或在下一篇记录里回应。"
-          }
-        }
-      }
-    },
-    "PostSeedJourney.sampleInsights.rhythm.body" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You reflected on four days this week."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "本周你有四天写下了反思。"
           }
         }
       }

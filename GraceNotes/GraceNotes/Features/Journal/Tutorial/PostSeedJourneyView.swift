@@ -1,7 +1,5 @@
 import SwiftUI
 
-// swiftlint:disable file_length
-
 /// One-time full-screen post-Seed journey from Today or Settings (**App tour**).
 /// Styled like app onboarding; **Done** (last page) or **Skip** (earlier pages) ends the flow.
 struct PostSeedJourneyView: View {
@@ -354,135 +352,54 @@ struct PostSeedJourneyPathStrip: View {
 
 struct PostSeedJourneyInsightsPreview: View {
     private static let fadeBandHeight: CGFloat = 140
-    private static let previewClipHeight: CGFloat = 420
+    /// Tall enough for ``ReviewSummaryCard`` (reflection rhythm + panels) before the fade.
+    private static let previewClipHeight: CGFloat = 520
 
-    /// Same review period as ``ReviewScreen`` (past seven calendar days) and the shared “%1$@ to %2$@” range line.
-    private var sampleWeekRangeLine: String {
-        let calendar = Calendar.current
-        let period = ReviewInsightsPeriod.currentPeriod(containing: Date(), calendar: calendar)
-        let weekStart = period.lowerBound
-        let inclusiveEnd = calendar.date(byAdding: .day, value: -1, to: period.upperBound) ?? period.upperBound
-        let startText = weekStart.formatted(.dateTime.month(.abbreviated).day())
-        let endText = inclusiveEnd.formatted(.dateTime.month(.abbreviated).day())
-        return String(
-            format: String(localized: "%1$@ to %2$@"),
-            startText,
-            endText
-        )
+    private var sampleInsights: ReviewInsights {
+        ReviewInsights.postSeedJourneyTutorialPreview()
     }
 
     var body: some View {
-        sampleContent
-            .compositingGroup()
-            .mask(
-                LinearGradient(
-                    stops: [
-                        .init(color: .white, location: 0),
-                        .init(color: .white, location: 0.56),
-                        .init(color: .white.opacity(0.35), location: 0.84),
-                        .init(color: .clear, location: 1)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-            )
-            .frame(height: Self.previewClipHeight, alignment: .top)
-            .clipped()
-            .overlay(alignment: .bottom) {
-                LinearGradient(
-                    colors: [
-                        AppTheme.settingsBackground.opacity(0),
-                        AppTheme.settingsBackground.opacity(0.55),
-                        AppTheme.settingsBackground
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: Self.fadeBandHeight)
-                .allowsHitTesting(false)
-            }
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(String(localized: "PostSeedJourney.sampleInsights.a11yLabel"))
-    }
-
-    private var sampleContent: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(String(localized: "This Week"))
-                .font(AppTheme.warmPaperHeader)
-                .foregroundStyle(AppTheme.reviewTextPrimary)
-
-            Text(sampleWeekRangeLine)
-                .font(AppTheme.warmPaperMeta)
-                .foregroundStyle(AppTheme.reviewTextMuted)
-
-            sampleSourceBadge
-
-            VStack(alignment: .leading, spacing: 10) {
-                ReviewInsightInsetPanel(
-                    title: String(localized: "Reflection rhythm"),
-                    panelChrome: .standard
-                ) {
-                    Text(String(localized: "PostSeedJourney.sampleInsights.rhythm.body"))
-                        .font(AppTheme.warmPaperBody)
-                        .foregroundStyle(AppTheme.reviewTextPrimary)
-                        .lineSpacing(4)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                ReviewInsightInsetPanel(
-                    title: String(localized: "Observation"),
-                    panelChrome: .lead
-                ) {
-                    Text(String(localized: "PostSeedJourney.sampleInsights.row1.observation"))
-                        .font(AppTheme.warmPaperBody)
-                        .foregroundStyle(AppTheme.reviewTextPrimary)
-                        .lineSpacing(4)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                ReviewInsightInsetPanel(
-                    title: String(localized: "A next step"),
-                    panelChrome: .standard
-                ) {
-                    Text(String(localized: "PostSeedJourney.sampleInsights.row1.action"))
-                        .font(AppTheme.warmPaperBody)
-                        .foregroundStyle(AppTheme.reviewTextPrimary)
-                        .lineSpacing(4)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-
-            Text(String(localized: "PostSeedJourney.sampleInsights.filler"))
-                .font(AppTheme.warmPaperMeta)
-                .foregroundStyle(AppTheme.reviewTextMuted)
-                .padding(.top, 4)
-        }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppTheme.reviewPaper)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(AppTheme.border.opacity(0.4), lineWidth: 1)
+        ReviewSummaryCard(
+            insights: sampleInsights,
+            aiFeaturesEnabled: false,
+            isLoading: false,
+            weekJournalEntryCount: 8,
+            onContinueToToday: {}
         )
-    }
-
-    /// Parity with ``ReviewSummaryCard`` source badge (sample only).
-    private var sampleSourceBadge: some View {
-        Text(String(localized: "Source: On your device"))
-            .font(AppTheme.warmPaperMeta.weight(.semibold))
-            .foregroundStyle(AppTheme.reviewTextPrimary)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(AppTheme.reviewAccent.opacity(0.2))
-            }
-            .overlay {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .stroke(AppTheme.border.opacity(0.45), lineWidth: 1)
-            }
-            .accessibilityAddTraits(.isHeader)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .allowsHitTesting(false)
+        .background(AppTheme.reviewBackground)
+        .compositingGroup()
+        .mask(
+            LinearGradient(
+                stops: [
+                    .init(color: .white, location: 0),
+                    .init(color: .white, location: 0.52),
+                    .init(color: .white.opacity(0.35), location: 0.82),
+                    .init(color: .clear, location: 1)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+        .frame(height: Self.previewClipHeight, alignment: .top)
+        .clipped()
+        .overlay(alignment: .bottom) {
+            LinearGradient(
+                colors: [
+                    AppTheme.reviewBackground.opacity(0),
+                    AppTheme.reviewBackground.opacity(0.55),
+                    AppTheme.reviewBackground
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(height: Self.fadeBandHeight)
+            .allowsHitTesting(false)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(String(localized: "PostSeedJourney.sampleInsights.a11yLabel"))
     }
 }
 
