@@ -2,6 +2,22 @@ import Foundation
 
 enum ReviewInsightSource: String, Sendable, Codable {
     case deterministic
+    @available(*, deprecated, message: "Deprecated legacy source, treated as deterministic.")
+    case cloudAI
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValue = (try? container.decode(String.self)) ?? ""
+
+        switch rawValue {
+        case Self.deterministic.rawValue:
+            self = .deterministic
+        case Self.cloudAI.rawValue:
+            self = .cloudAI
+        default:
+            self = .deterministic
+        }
+    }
 }
 
 enum ReviewPresentationMode: String, Equatable, Sendable, Codable {
