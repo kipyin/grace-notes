@@ -194,6 +194,7 @@
       }
     },
     "%1$@, %2$@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3520,18 +3521,18 @@
         }
       }
     },
-    "Opens that day's entry." : {
+    "Opens the journal entry for that day." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Opens that day's entry."
+            "value" : "Opens the journal entry for that day."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打开该日的记录。"
+            "value" : "打开该日的感恩记。"
           }
         }
       }
@@ -3570,6 +3571,7 @@
       }
     },
     "Past seven days rhythm" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3581,22 +3583,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "过去七天节奏"
-          }
-        }
-      }
-    },
-    "Reflection rhythm" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reflection rhythm"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "反思节奏"
           }
         }
       }
@@ -4100,6 +4086,22 @@
         }
       }
     },
+    "Reflection rhythm" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reflection rhythm"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「回顾」节奏"
+          }
+        }
+      }
+    },
     "Reflections" : {
       "localizations" : {
         "en" : {
@@ -4311,6 +4313,7 @@
       }
     },
     "Review mode" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5166,6 +5169,7 @@
       }
     },
     "Switch between Insights and Timeline." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5443,6 +5447,7 @@
       }
     },
     "Timeline" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6394,7 +6399,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本周你的反思节奏很稳定。"
+            "value" : "本周你的「回顾」节奏很稳定。"
           }
         }
       }

@@ -439,7 +439,7 @@ struct ReviewSummaryCard: View {
                 .buttonStyle(.plain)
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(activityAccessibilityLabel(for: day))
-                .accessibilityHint(String(localized: "Opens that day's entry."))
+                .accessibilityHint(String(localized: "Opens the journal entry for that day."))
                 .accessibilityIdentifier(accessibilityRhythmColumnId(for: day))
                 .id(day.date)
             }
