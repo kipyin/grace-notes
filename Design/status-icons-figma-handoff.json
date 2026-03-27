@@ -13,12 +13,56 @@
       "02 Final Icon Family",
       "03 Handoff Specs",
       "05 No-Bar Concepts",
-      "06 Theme-Aligned Concepts (Subtle)"
+      "06 Theme-Aligned Concepts (Subtle)",
+      "07 Three Concept Sets (distinct silhouettes)"
+    ]
+  },
+  "three_concept_sets_silhouettes": {
+    "page": "07 Three Concept Sets (distinct silhouettes)",
+    "selection_bar": "Prefer sets where Started vs Growing and Balanced vs Full differ by shape class at 16px, not only opacity or weight.",
+    "sets": [
+      {
+        "id": "Set1_Stationery",
+        "name": "Stationery path",
+        "thesis": "Paper frame → first mark → branching effort → even triad → done check.",
+        "shape_classes": {
+          "Empty": "open_rounded_frame",
+          "Started": "single_focal_dot",
+          "Growing": "three_way_fork",
+          "Balanced": "triangle_triad_dots",
+          "Full": "soft_checkmark"
+        }
+      },
+      {
+        "id": "Set2_Presence",
+        "name": "Presence path",
+        "thesis": "Ghost trio → one solid center → asymmetric fills → matched fills → triad inside frame.",
+        "shape_classes": {
+          "Empty": "three_hollow_circles",
+          "Started": "center_solid_sides_line",
+          "Growing": "two_filled_one_line",
+          "Balanced": "three_equal_fills",
+          "Full": "three_fills_inside_rounded_frame"
+        }
+      },
+      {
+        "id": "Set3_Light",
+        "name": "Light path",
+        "thesis": "Whisper arcs → one bright arc → uneven peaks → matched arcs → complete disk.",
+        "shape_classes": {
+          "Empty": "three_whisper_arcs",
+          "Started": "center_arc_emphasis",
+          "Growing": "three_uneven_arc_peaks",
+          "Balanced": "three_matched_arcs",
+          "Full": "filled_disk_not_arcs"
+        }
+      }
     ]
   },
   "theme_aligned_concepts": {
     "page": "06 Theme-Aligned Concepts (Subtle)",
     "tone": "Warm ink #5C5346, calm stationery — not dashboard or analytics chrome.",
+    "note": "Earlier single-family rows; page 07 supersedes for silhouette distinctness review.",
     "families": [
       {
         "id": "ThemeA_PaperMarks",
