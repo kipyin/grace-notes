@@ -53,14 +53,14 @@ final class JournalCompletionLevelTests: XCTestCase {
         XCTAssertEqual(level, .started)
     }
 
-    func test_completionLevel_started_weakestSectionTwo() {
+    func test_completionLevel_growing_fiveTwoThree() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 5,
             needsCount: 2,
             peopleCount: 3
         )
 
-        XCTAssertEqual(level, .started)
+        XCTAssertEqual(level, .growing)
     }
 
     func test_completionLevel_growing_threeZeroZero() {

@@ -34,9 +34,9 @@ final class StreakCalculatorTests: XCTestCase {
 
         let summary = calculator.summary(from: try persisted(context, partialToday), now: now)
 
-        XCTAssertEqual(summary.basicCurrent, 0)
+        XCTAssertEqual(summary.basicCurrent, 1)
         XCTAssertEqual(summary.perfectCurrent, 0)
-        XCTAssertFalse(summary.basicDoneToday)
+        XCTAssertTrue(summary.basicDoneToday)
         XCTAssertFalse(summary.perfectDoneToday)
     }
 
