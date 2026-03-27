@@ -8,6 +8,16 @@ final class JournalUITests: XCTestCase {
         Thread.sleep(forTimeInterval: 0.25)
     }
 
+    private func waitForLabel(
+        _ expectedLabel: String,
+        on element: XCUIElement,
+        timeout: TimeInterval
+    ) -> Bool {
+        let predicate = NSPredicate(format: "label == %@", expectedLabel)
+        let expectation = XCTNSPredicateExpectation(predicate: predicate, object: element)
+        return XCTWaiter.wait(for: [expectation], timeout: timeout) == .completed
+    }
+
     @MainActor
     private func launchApp(resetUITestStore: Bool = true) -> XCUIApplication {
         let app = XCUIApplication()
@@ -261,6 +271,20 @@ final class JournalUITests: XCTestCase {
             "I am grateful for a long, quiet evening where I could slow down, breathe, and write with clarity."
         addGratitude(longSentence, in: app)
 
+        // Submitting can leave the composer focused with keyboard present.
+        // Defocus before tapping strip controls so taps are not consumed by focus changes.
+        if app.keyboards.firstMatch.exists {
+            app.staticTexts["Gratitudes"].tap()
+        }
+
+        let updatingIndicator = app.otherElements["Gratitudes section is updating."]
+        if updatingIndicator.exists {
+            XCTAssertTrue(
+                updatingIndicator.waitForNonExistence(timeout: 10),
+                "Expected section update overlay to finish before interacting with preview toggle."
+            )
+        }
+
         let expandToggle = app.buttons["JournalGratitudeStrip.0.more"]
         XCTAssertTrue(expandToggle.waitForExistence(timeout: 5))
         XCTAssertEqual(expandToggle.label, "Show more")
@@ -271,9 +295,13 @@ final class JournalUITests: XCTestCase {
         expandToggle.tap()
         let collapseToggle = app.buttons["JournalGratitudeStrip.0.more"]
         XCTAssertTrue(collapseToggle.waitForExistence(timeout: 5))
-        XCTAssertEqual(
-            collapseToggle.label,
-            "Show less",
+        if !waitForLabel("Show less", on: collapseToggle, timeout: 1.5) {
+            // First tap can clear lingering focus from the composer before the
+            // toggle receives activation.
+            collapseToggle.tap()
+        }
+        XCTAssertTrue(
+            waitForLabel("Show less", on: collapseToggle, timeout: 5),
             "Expected the preview toggle to reflect expanded state."
         )
         let strip = app.buttons["JournalGratitudeStrip.0"]
