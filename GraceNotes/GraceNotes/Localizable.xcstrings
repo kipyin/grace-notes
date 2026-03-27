@@ -3785,13 +3785,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The more specific you write each day, the closer Review insights stay to you. It may take a little time."
+            "value" : "Open the Review tab for this week’s digest: your reflection rhythm, patterns across your sentence strips, one observation grounded in what you wrote, and a practical next step. The more specific you write each day, the closer these insights stay to you—it may take a little time."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "每天写得越具体，「回顾」里的洞察也会越贴近你，不过这可能需要一点时间。"
+            "value" : "在「回顾」里可以查看本周摘要：反思节奏、你在各个句子条里的规律、基于你所写内容的观察，以及一个可执行的下一步。每天写得越具体，这些洞察就越贴近你，不过这可能需要一点时间。"
           }
         }
       }
@@ -3833,13 +3833,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No chips yet in Gratitudes, Needs, or People in Mind."
+            "value" : "No sentence strips yet in Gratitudes, Needs, or People in Mind."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "感恩的事、需要的事和牵挂的人里都还没有条目。"
+            "value" : "感恩的事、需要的事和牵挂的人里都还没有句子条。"
           }
         }
       }
@@ -3881,7 +3881,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "At least one chip is filled, and all three sections are still under three."
+            "value" : "At least one strip is filled, and all three sections are still under three."
           }
         },
         "zh-Hans" : {
@@ -3897,13 +3897,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Empty, Started, Growing, Balanced, and Full track your three chip sections. Reading notes and reflections do not change status."
+            "value" : "Empty, Started, Growing, Balanced, and Full track how full your sentence strips are in Gratitudes, Needs, and People in Mind. Reading notes and reflections do not change status."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「空白、起步、成长、平衡、圆满」只看感恩的事、需要的事和牵挂的人这三个分栏。阅读笔记和反思不会改变状态。"
+            "value" : "「空白、起步、成长、平衡、圆满」反映感恩的事、需要的事和牵挂的人里句子条的充实程度。阅读笔记和反思不会改变状态。"
           }
         }
       }
@@ -3945,13 +3945,29 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sample only. Gray lines are follow-up prompts—answer in Reflections on Today, or in your next entry."
+            "value" : "Sample only. Your real Review card may include more sections when Cloud AI is on. Gray lines in the live card are follow-up prompts—answer in Reflections on Today, or in your next entry."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅为示例。灰色小字是跟进提示，想写时可以在「今天」的反思里接几句，或在下一篇记录里回应。"
+            "value" : "仅为示例。开启云端 AI 时，真实的「回顾」卡片可能还有更多栏目。实卡里的灰色小字是跟进提示，想写时可以在「今天」的反思里接几句，或在下一篇记录里回应。"
+          }
+        }
+      }
+    },
+    "PostSeedJourney.sampleInsights.rhythm.body" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You reflected on four days this week."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本周你有四天写下了反思。"
           }
         }
       }
@@ -3984,38 +4000,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你常常把「休息」写在「需要的事」里，但是「感恩的事」里还没有出现过它。"
-          }
-        }
-      }
-    },
-    "PostSeedJourney.sampleInsights.row2.action" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "How could you make space for short walks again next week?"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "下周你可以怎样再为「散一会儿步」留出一点时间？"
-          }
-        }
-      }
-    },
-    "PostSeedJourney.sampleInsights.row2.observation" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You kept noticing short walks on several days this week."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "本周你有好几天在感恩的事里写到了「散一会儿步」。"
           }
         }
       }
@@ -6639,13 +6623,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You reached Full today. All fifteen chip spots are filled."
+            "value" : "You reached Full today. All fifteen sentence stripes are filled."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你今天达到了「圆满」。十五个条目位都已填满。"
+            "value" : "你今天达到了「圆满」。十五个句子条都已写满。"
           }
         }
       }
@@ -6920,13 +6904,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your first Full day. All fifteen chip spots are filled."
+            "value" : "Your first Full day. All fifteen sentence stripes are filled."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "第一次达到「圆满」。十五个条目位都已填满。"
+            "value" : "第一次达到「圆满」。十五个句子条都已写满。"
           }
         }
       }

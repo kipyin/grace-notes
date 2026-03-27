@@ -9,16 +9,16 @@ struct OnboardingScreen: View {
 
             Text(String(localized: "Welcome to Grace Notes"))
                 .font(AppTheme.warmPaperHeader)
-                .foregroundStyle(AppTheme.textPrimary)
+                .foregroundStyle(AppTheme.settingsTextPrimary)
 
             VStack(alignment: .leading, spacing: AppTheme.spacingRegular) {
                 Text(String(localized: "Start with one gratitude, and the rest will follow."))
                     .font(AppTheme.warmPaperMetaEmphasis)
-                    .foregroundStyle(AppTheme.accentText)
+                    .foregroundStyle(AppTheme.reminderSecondaryActionTint)
             }
             .padding(AppTheme.spacingWide)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(AppTheme.paper)
+            .background(AppTheme.settingsPaper)
             .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusLarge))
             .overlay(
                 RoundedRectangle(cornerRadius: AppTheme.cornerRadiusLarge)
@@ -28,10 +28,10 @@ struct OnboardingScreen: View {
             Button(action: onGetStarted) {
                 Text(String(localized: "Begin today's entry"))
                     .font(AppTheme.warmPaperBody.weight(.semibold))
-                    .foregroundStyle(AppTheme.onAccent)
+                    .foregroundStyle(AppTheme.reminderPrimaryActionForeground)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, AppTheme.spacingRegular)
-                    .background(AppTheme.accent)
+                    .background(AppTheme.reminderPrimaryActionBackground)
                     .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium))
             }
             .buttonStyle(WarmPaperPressStyle())
@@ -41,6 +41,6 @@ struct OnboardingScreen: View {
         }
         .padding(.horizontal, AppTheme.spacingWide)
         .padding(.vertical, AppTheme.spacingSection)
-        .background(AppTheme.background.ignoresSafeArea())
+        .background(AppTheme.settingsBackground.ignoresSafeArea())
     }
 }

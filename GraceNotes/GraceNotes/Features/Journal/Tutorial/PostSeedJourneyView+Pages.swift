@@ -5,12 +5,12 @@ extension PostSeedJourneyView {
         HStack(spacing: 6) {
             ForEach(firstPageIndex ... lastPageIndex, id: \.self) { index in
                 Circle()
-                    .fill(index == pageIndex ? AppTheme.accent : AppTheme.textMuted.opacity(0.35))
+                    .fill(index == pageIndex ? AppTheme.reviewAccent : AppTheme.settingsTextMuted.opacity(0.35))
                     .frame(width: index == pageIndex ? 8 : 6, height: index == pageIndex ? 8 : 6)
                     .overlay(
                         Circle()
                             .stroke(
-                                index == pageIndex ? AppTheme.accentText.opacity(0.35) : AppTheme.journalInputBorder,
+                                index == pageIndex ? AppTheme.reviewAccent.opacity(0.45) : AppTheme.border.opacity(0.5),
                                 lineWidth: 1
                             )
                     )
@@ -34,10 +34,10 @@ extension PostSeedJourneyView {
                 Button(action: finishJourney) {
                     Text(String(localized: "Done"))
                         .font(AppTheme.warmPaperBody.weight(.semibold))
-                        .foregroundStyle(AppTheme.onAccent)
+                        .foregroundStyle(AppTheme.reminderPrimaryActionForeground)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, AppTheme.spacingRegular)
-                        .background(AppTheme.accent)
+                        .background(AppTheme.reminderPrimaryActionBackground)
                         .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium))
                 }
                 .buttonStyle(WarmPaperPressStyle())
@@ -47,7 +47,7 @@ extension PostSeedJourneyView {
                         finishJourney()
                     }
                     .font(AppTheme.warmPaperBody.weight(.medium))
-                    .foregroundStyle(AppTheme.textMuted)
+                    .foregroundStyle(AppTheme.settingsTextMuted)
 
                     Spacer(minLength: 0)
 
@@ -56,10 +56,10 @@ extension PostSeedJourneyView {
                         label: {
                             Text(String(localized: "Next"))
                                 .font(AppTheme.warmPaperBody.weight(.semibold))
-                                .foregroundStyle(AppTheme.onAccent)
+                                .foregroundStyle(AppTheme.reminderPrimaryActionForeground)
                                 .padding(.horizontal, AppTheme.spacingWide)
                                 .padding(.vertical, AppTheme.spacingRegular)
-                                .background(AppTheme.accent)
+                                .background(AppTheme.reminderPrimaryActionBackground)
                                 .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium))
                         }
                     )
@@ -80,7 +80,7 @@ extension PostSeedJourneyView {
             HStack(alignment: .firstTextBaseline, spacing: AppTheme.spacingRegular) {
                 Text(String(localized: "PostSeedJourney.congrats.headline"))
                     .font(AppTheme.warmPaperHeader)
-                    .foregroundStyle(AppTheme.textPrimary)
+                    .foregroundStyle(AppTheme.settingsTextPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .scaleEffect(congratsAnimatedIn ? 1 : 0.97, anchor: .leading)
@@ -95,7 +95,7 @@ extension PostSeedJourneyView {
                 )
             )
             .font(AppTheme.warmPaperBody)
-            .foregroundStyle(AppTheme.textMuted)
+            .foregroundStyle(AppTheme.settingsTextMuted)
             .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -115,7 +115,7 @@ extension PostSeedJourneyView {
         journeyPage {
             Text(String(localized: "Your path"))
                 .font(AppTheme.warmPaperHeader)
-                .foregroundStyle(AppTheme.textPrimary)
+                .foregroundStyle(AppTheme.settingsTextPrimary)
 
             Text(
                 String(
@@ -123,7 +123,7 @@ extension PostSeedJourneyView {
                 )
             )
             .font(AppTheme.warmPaperBody)
-            .foregroundStyle(AppTheme.textMuted)
+            .foregroundStyle(AppTheme.settingsTextMuted)
             .fixedSize(horizontal: false, vertical: true)
 
             PostSeedJourneyPathStrip(highlightedLevel: .started)
@@ -135,7 +135,7 @@ extension PostSeedJourneyView {
             VStack(alignment: .leading, spacing: AppTheme.spacingTight) {
                 Text(String(localized: "Depth and insights"))
                     .font(AppTheme.warmPaperHeader)
-                    .foregroundStyle(AppTheme.textPrimary)
+                    .foregroundStyle(AppTheme.settingsTextPrimary)
 
                 Text(
                     String(
@@ -143,7 +143,7 @@ extension PostSeedJourneyView {
                     )
                 )
                 .font(AppTheme.warmPaperBody)
-                .foregroundStyle(AppTheme.textMuted)
+                .foregroundStyle(AppTheme.settingsTextMuted)
                 .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -156,11 +156,11 @@ extension PostSeedJourneyView {
         journeyPage {
             Text(String(localized: "Daily reminders"))
                 .font(AppTheme.warmPaperHeader)
-                .foregroundStyle(AppTheme.textPrimary)
+                .foregroundStyle(AppTheme.settingsTextPrimary)
 
             Text(String(localized: "PostSeedJourney.reminders.intro"))
                 .font(AppTheme.warmPaperBody)
-                .foregroundStyle(AppTheme.textMuted)
+                .foregroundStyle(AppTheme.settingsTextMuted)
                 .fixedSize(horizontal: false, vertical: true)
 
             journeySettingsCard {
@@ -180,7 +180,7 @@ extension PostSeedJourneyView {
 
             Text(String(localized: "PostSeedJourney.footer.settingsNote"))
                 .font(AppTheme.warmPaperMeta)
-                .foregroundStyle(AppTheme.textMuted)
+                .foregroundStyle(AppTheme.settingsTextMuted)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -189,11 +189,11 @@ extension PostSeedJourneyView {
         journeyPage {
             Text(String(localized: "AI support"))
                 .font(AppTheme.warmPaperHeader)
-                .foregroundStyle(AppTheme.textPrimary)
+                .foregroundStyle(AppTheme.settingsTextPrimary)
 
             Text(String(localized: "PostSeedJourney.ai.intro"))
                 .font(AppTheme.warmPaperBody)
-                .foregroundStyle(AppTheme.textMuted)
+                .foregroundStyle(AppTheme.settingsTextMuted)
                 .fixedSize(horizontal: false, vertical: true)
 
             journeySettingsCard {
@@ -202,7 +202,7 @@ extension PostSeedJourneyView {
 
             Text(String(localized: "PostSeedJourney.footer.settingsNote"))
                 .font(AppTheme.warmPaperMeta)
-                .foregroundStyle(AppTheme.textMuted)
+                .foregroundStyle(AppTheme.settingsTextMuted)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -211,11 +211,11 @@ extension PostSeedJourneyView {
         journeyPage {
             Text(String(localized: "Keep entries with you"))
                 .font(AppTheme.warmPaperHeader)
-                .foregroundStyle(AppTheme.textPrimary)
+                .foregroundStyle(AppTheme.settingsTextPrimary)
 
             Text(String(localized: "PostSeedJourney.icloud.intro"))
                 .font(AppTheme.warmPaperBody)
-                .foregroundStyle(AppTheme.textMuted)
+                .foregroundStyle(AppTheme.settingsTextMuted)
                 .fixedSize(horizontal: false, vertical: true)
 
             PostSeedJourneyICloudCard(
@@ -227,7 +227,7 @@ extension PostSeedJourneyView {
 
             Text(String(localized: "PostSeedJourney.footer.settingsNote"))
                 .font(AppTheme.warmPaperMeta)
-                .foregroundStyle(AppTheme.textMuted)
+                .foregroundStyle(AppTheme.settingsTextMuted)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
