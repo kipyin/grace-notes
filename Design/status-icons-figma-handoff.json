@@ -1,0 +1,64 @@
+{
+  "title": "Status Icons Figma Handoff",
+  "created_at": "2026-03-27",
+  "related_pr": {
+    "stacked_on": "https://github.com/kipyin/grace-notes/pull/120"
+  },
+  "figma_file": {
+    "url": "https://www.figma.com/design/ADC685re4bvclS1oYOPq1L",
+    "key": "ADC685re4bvclS1oYOPq1L",
+    "pages": [
+      "00 Audit Constraints",
+      "01 Concept Exploration",
+      "02 Final Icon Family",
+      "03 Handoff Specs"
+    ]
+  },
+  "selected_concept": {
+    "name": "ThreeBars",
+    "rationale": "Strong fit to three-section semantics, clear distinction between Growing and Balanced, reliable legibility at 16x16."
+  },
+  "statuses": [
+    {
+      "name": "Empty",
+      "component_variant": "StatusIcon/State=Empty",
+      "rule": "Exactly 0/0/0 across Gratitudes, Needs, and People in Mind."
+    },
+    {
+      "name": "Started",
+      "component_variant": "StatusIcon/State=Started",
+      "rule": "At least one section is > 0, and all three sections are < 3."
+    },
+    {
+      "name": "Growing",
+      "component_variant": "StatusIcon/State=Growing",
+      "rule": "At least one section is >= 3, and at least one section is < 3."
+    },
+    {
+      "name": "Balanced",
+      "component_variant": "StatusIcon/State=Balanced",
+      "rule": "All three sections are >= 3, but not all three are 5."
+    },
+    {
+      "name": "Full",
+      "component_variant": "StatusIcon/State=Full",
+      "rule": "All three sections are exactly 5."
+    }
+  ],
+  "rendering_rules": {
+    "icon_style": "Monochrome only, tint applied in app.",
+    "minimum_size": "16x16",
+    "validation_sizes": [
+      "16x16",
+      "20x20",
+      "24x24"
+    ]
+  },
+  "review_surfaces": [
+    "JournalCompletionPill",
+    "ReviewSummaryCard activity strip",
+    "CompletionInfoCard and CompletionBadgeInfo",
+    "JournalUnlockToastView",
+    "PostSeedJourneyPathStrip"
+  ]
+}
