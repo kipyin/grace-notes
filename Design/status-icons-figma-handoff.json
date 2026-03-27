@@ -11,12 +11,36 @@
       "00 Audit Constraints",
       "01 Concept Exploration",
       "02 Final Icon Family",
-      "03 Handoff Specs"
+      "03 Handoff Specs",
+      "05 No-Bar Concepts",
+      "06 Theme-Aligned Concepts (Subtle)"
+    ]
+  },
+  "theme_aligned_concepts": {
+    "page": "06 Theme-Aligned Concepts (Subtle)",
+    "tone": "Warm ink #5C5346, calm stationery — not dashboard or analytics chrome.",
+    "families": [
+      {
+        "id": "ThemeA_PaperMarks",
+        "name": "Paper marks",
+        "description": "Gentle diagonal ink ticks; Full uses soft filled dots."
+      },
+      {
+        "id": "ThemeB_Breath",
+        "name": "Breath / presence",
+        "description": "Soft rounded ellipses; progression through fill and outline."
+      },
+      {
+        "id": "ThemeC_MorningLight",
+        "name": "Morning light",
+        "description": "Soft upward arcs (light on paper); thicker stroke on Full."
+      }
     ]
   },
   "selected_concept": {
     "name": "ThreeBars",
-    "rationale": "Strong fit to three-section semantics, clear distinction between Growing and Balanced, reliable legibility at 16x16."
+    "rationale": "Legacy exploration; prefer theme-aligned families on page 06 for Grace Notes tone.",
+    "superseded_for_review_by": "theme_aligned_concepts"
   },
   "statuses": [
     {
