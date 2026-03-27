@@ -14,7 +14,29 @@
       "03 Handoff Specs",
       "05 No-Bar Concepts",
       "06 Theme-Aligned Concepts (Subtle)",
-      "07 Three Concept Sets (distinct silhouettes)"
+      "07 Three Concept Sets (distinct silhouettes)",
+      "08 Refined concepts v2"
+    ]
+  },
+  "refined_concepts_v2": {
+    "page": "08 Refined concepts v2",
+    "note": "Beauty pass: fewer strokes per glyph, no forks or heavy disks; Full uses soft check or ring+check. Prefer for product tone vs pages 06–07.",
+    "sets": [
+      {
+        "id": "Refined1_Whitespace",
+        "name": "Whitespace",
+        "description": "Soft frame → single dot → two dots (unequal) → three dots → check."
+      },
+      {
+        "id": "Refined2_PaperLines",
+        "name": "Paper lines",
+        "description": "Horizon line → one vertical stem → two uneven stems → three equal stems → check."
+      },
+      {
+        "id": "Refined3_SoftRing",
+        "name": "Soft ring",
+        "description": "Ring → center dot → two dots in ring → three dots on triangle → ring + check."
+      }
     ]
   },
   "three_concept_sets_silhouettes": {
@@ -83,8 +105,8 @@
   },
   "selected_concept": {
     "name": "ThreeBars",
-    "rationale": "Legacy exploration; prefer theme-aligned families on page 06 for Grace Notes tone.",
-    "superseded_for_review_by": "theme_aligned_concepts"
+    "rationale": "Legacy exploration; prefer refined sets on page 08 for Grace Notes tone.",
+    "superseded_for_review_by": "refined_concepts_v2"
   },
   "statuses": [
     {
