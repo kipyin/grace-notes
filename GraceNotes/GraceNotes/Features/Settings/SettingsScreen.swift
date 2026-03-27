@@ -169,7 +169,7 @@ struct SettingsScreen: View {
             .fullScreenCover(isPresented: $showAppTourFromSettings) {
                 PostSeedJourneyView(
                     onFinish: {
-                        hasSeenPostSeedJourney = true
+                        JournalOnboardingProgress.applyAppTourCompletion(using: .standard)
                         showAppTourFromSettings = false
                     },
                     skipsCongratulationsPage: hasCompletedGuidedJournal

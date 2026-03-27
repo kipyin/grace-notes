@@ -1,7 +1,5 @@
 import SwiftUI
 
-// swiftlint:disable file_length
-
 /// One-time full-screen post-Seed journey from Today or Settings (**App tour**).
 /// Styled like app onboarding; **Done** (last page) or **Skip** (earlier pages) ends the flow.
 struct PostSeedJourneyView: View {
@@ -64,9 +62,9 @@ struct PostSeedJourneyView: View {
                 .padding(.horizontal, AppTheme.spacingWide)
                 .padding(.top, AppTheme.spacingRegular)
                 .padding(.bottom, AppTheme.spacingSection)
-                .background(AppTheme.background)
+                .background(AppTheme.settingsBackground)
         }
-        .background(AppTheme.background.ignoresSafeArea())
+        .background(AppTheme.settingsBackground.ignoresSafeArea())
         .task {
             await reminderState.refreshStatus()
             syncReminderControlState(with: reminderState.liveStatus)
@@ -162,7 +160,7 @@ private struct PostSeedJourneyPathStepRow: View {
                     .frame(width: Self.dotDiameter, height: Self.dotDiameter)
                     .background {
                         if isHighlighted {
-                            Circle().fill(AppTheme.paper)
+                            Circle().fill(AppTheme.settingsPaper)
                         }
                     }
                     .overlay(
@@ -178,12 +176,12 @@ private struct PostSeedJourneyPathStepRow: View {
                     if !titleSystemImage.isEmpty {
                         Image(systemName: titleSystemImage)
                             .font(isHighlighted ? AppTheme.warmPaperMetaEmphasis : AppTheme.warmPaperMeta)
-                            .foregroundStyle(isHighlighted ? AppTheme.accentText : AppTheme.textMuted)
+                            .foregroundStyle(isHighlighted ? AppTheme.reviewAccent : AppTheme.settingsTextMuted)
                             .accessibilityHidden(true)
                     }
                     Text(title)
                         .font(isHighlighted ? AppTheme.warmPaperMetaEmphasis : AppTheme.warmPaperMeta)
-                        .foregroundStyle(isHighlighted ? AppTheme.accentText : AppTheme.textMuted)
+                        .foregroundStyle(isHighlighted ? AppTheme.reviewAccent : AppTheme.settingsTextMuted)
                 }
                 .background {
                     GeometryReader { geometry in
@@ -196,7 +194,7 @@ private struct PostSeedJourneyPathStepRow: View {
 
                 Text(criterionText)
                     .font(AppTheme.warmPaperCaption)
-                    .foregroundStyle(AppTheme.textMuted.opacity(0.88))
+                    .foregroundStyle(AppTheme.settingsTextMuted.opacity(0.88))
                     .fixedSize(horizontal: false, vertical: true)
 
                 if !isLastStep {
@@ -297,7 +295,7 @@ struct PostSeedJourneyPathStrip: View {
         }
         .padding(AppTheme.spacingWide)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppTheme.paper)
+        .background(AppTheme.settingsPaper)
         .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusLarge))
         .overlay(
             RoundedRectangle(cornerRadius: AppTheme.cornerRadiusLarge)
@@ -337,14 +335,14 @@ struct PostSeedJourneyPathStrip: View {
 
     private func dotFill(for level: JournalCompletionLevel) -> Color {
         if level == highlightedLevel {
-            return AppTheme.accent.opacity(0.35)
+            return AppTheme.reviewAccent.opacity(0.35)
         }
         return AppTheme.journalBackground
     }
 
     private func dotBorder(for level: JournalCompletionLevel) -> Color {
         if level == highlightedLevel {
-            return AppTheme.accent
+            return AppTheme.reviewAccent
         }
         return AppTheme.journalBorder
     }
@@ -353,117 +351,56 @@ struct PostSeedJourneyPathStrip: View {
 // MARK: - Sample insights preview
 
 struct PostSeedJourneyInsightsPreview: View {
+    /// Soft scrim over the bottom of the clip (matches ``AppTheme.reviewBackground``).
     private static let fadeBandHeight: CGFloat = 120
-    private static let previewClipHeight: CGFloat = 328
+    /// Shows roughly the source row + upper ~4/5 of the Reflection rhythm panel, then fades before Observation.
+    private static let previewClipHeight: CGFloat = 360
 
-    /// Same review period as ``ReviewScreen`` (past seven calendar days) and the shared “%1$@ to %2$@” range line.
-    private var sampleWeekRangeLine: String {
-        let calendar = Calendar.current
-        let period = ReviewInsightsPeriod.currentPeriod(containing: Date(), calendar: calendar)
-        let weekStart = period.lowerBound
-        let inclusiveEnd = calendar.date(byAdding: .day, value: -1, to: period.upperBound) ?? period.upperBound
-        let startText = weekStart.formatted(.dateTime.month(.abbreviated).day())
-        let endText = inclusiveEnd.formatted(.dateTime.month(.abbreviated).day())
-        return String(
-            format: String(localized: "%1$@ to %2$@"),
-            startText,
-            endText
-        )
+    private var sampleInsights: ReviewInsights {
+        ReviewInsights.postSeedJourneyTutorialPreview()
     }
 
     var body: some View {
-        sampleContent
-            .compositingGroup()
-            .mask(
-                LinearGradient(
-                    stops: [
-                        .init(color: .white, location: 0),
-                        .init(color: .white, location: 0.56),
-                        .init(color: .white.opacity(0.35), location: 0.84),
-                        .init(color: .clear, location: 1)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-            )
-            .frame(height: Self.previewClipHeight, alignment: .top)
-            .clipped()
-            .overlay(alignment: .bottom) {
-                LinearGradient(
-                    colors: [
-                        AppTheme.background.opacity(0),
-                        AppTheme.background.opacity(0.55),
-                        AppTheme.background
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: Self.fadeBandHeight)
-                .allowsHitTesting(false)
-            }
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(String(localized: "PostSeedJourney.sampleInsights.a11yLabel"))
-    }
-
-    private var sampleContent: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(String(localized: "This Week"))
-                .font(AppTheme.warmPaperHeader)
-                .foregroundStyle(AppTheme.reviewTextPrimary)
-
-            Text(sampleWeekRangeLine)
-                .font(AppTheme.warmPaperMeta)
-                .foregroundStyle(AppTheme.reviewTextMuted)
-
-            Text(String(localized: "Insights"))
-                .font(AppTheme.warmPaperBody.weight(.semibold))
-                .foregroundStyle(AppTheme.reviewTextPrimary)
-
-            VStack(alignment: .leading, spacing: 8) {
-                sampleInsightRow(
-                    observation: String(localized: "PostSeedJourney.sampleInsights.row1.observation"),
-                    action: String(localized: "PostSeedJourney.sampleInsights.row1.action")
-                )
-
-                Divider()
-
-                sampleInsightRow(
-                    observation: String(localized: "PostSeedJourney.sampleInsights.row2.observation"),
-                    action: String(localized: "PostSeedJourney.sampleInsights.row2.action")
-                )
-            }
-
-            // Extra lines so fade has content to soften against
-            Text(String(localized: "PostSeedJourney.sampleInsights.filler"))
-                .font(AppTheme.warmPaperMeta)
-                .foregroundStyle(AppTheme.reviewTextMuted)
-                .padding(.top, 4)
-        }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppTheme.reviewPaper)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(AppTheme.border.opacity(0.4), lineWidth: 1)
+        ReviewSummaryCard(
+            insights: sampleInsights,
+            aiFeaturesEnabled: false,
+            isLoading: false,
+            weekJournalEntryCount: 8,
+            onContinueToToday: {}
         )
-    }
-
-    /// Mirrors ``ReviewWeeklyInsightsSection``: body observation plus muted follow-up line (not an in-app text field).
-    private func sampleInsightRow(observation: String, action: String) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(observation)
-                .font(AppTheme.warmPaperBody)
-                .foregroundStyle(AppTheme.reviewTextPrimary)
-                .lineSpacing(2)
-                .fixedSize(horizontal: false, vertical: true)
-
-            Text(action)
-                .font(AppTheme.warmPaperMeta)
-                .foregroundStyle(AppTheme.reviewTextMuted)
-                .lineSpacing(2)
-                .fixedSize(horizontal: false, vertical: true)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .allowsHitTesting(false)
+        .background(AppTheme.reviewBackground)
+        .compositingGroup()
+        .mask(
+            LinearGradient(
+                stops: [
+                    .init(color: .white, location: 0),
+                    .init(color: .white, location: 0.62),
+                    .init(color: .white.opacity(0.4), location: 0.76),
+                    .init(color: .clear, location: 0.86)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+        .frame(height: Self.previewClipHeight, alignment: .top)
+        .clipped()
+        .overlay(alignment: .bottom) {
+            LinearGradient(
+                colors: [
+                    AppTheme.reviewBackground.opacity(0),
+                    AppTheme.reviewBackground.opacity(0.65),
+                    AppTheme.reviewBackground
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(height: Self.fadeBandHeight)
+            .allowsHitTesting(false)
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(String(localized: "PostSeedJourney.sampleInsights.a11yLabel"))
     }
 }
 
@@ -488,7 +425,7 @@ struct PostSeedJourneyICloudCard: View {
                     Toggle(String(localized: "iCloud sync"), isOn: $isICloudSyncEnabled)
                         .font(AppTheme.warmPaperBody)
                         .foregroundStyle(AppTheme.settingsTextPrimary)
-                        .tint(AppTheme.accent)
+                        .tint(AppTheme.reviewAccent)
                         .frame(minHeight: 44)
                 }
             }

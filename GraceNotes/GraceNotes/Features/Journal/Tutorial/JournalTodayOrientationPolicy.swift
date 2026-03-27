@@ -4,8 +4,8 @@ import Foundation
 /// suppress the Seed unlock toast so it does not stack with that full-screen flow.
 ///
 /// **Product matrix (summary):**
-/// - **Today, not yet seen C:** At or above **Seed**, show the post-Seed journey once. Skip the
-///   congratulations page when `completedGuidedJournal` is already true (user already knows the sections).
+/// - **Today, not yet seen C:** After **1/1/1** (at least one chip in gratitudes, needs, and people), show the
+///   post-Seed journey once. Skip the congratulations page when `completedGuidedJournal` is already true.
 /// - **Dated entry** (`entryDate != nil`), **UI tests:** No post-Seed presentation from this policy.
 ///
 /// **Dual completion:** Guided first entry can end by reaching **Abundance** on Today
@@ -19,7 +19,7 @@ enum JournalTodayOrientationPolicy {
         var isRunningUITests: Bool
         var hasSeenPostSeedJourney: Bool
         var hasCompletedGuidedJournal: Bool
-        var completionLevel: JournalCompletionLevel
+        var hasAtLeastOneInEachChipSection: Bool
     }
 
     /// - Returns: Outcome when the full-screen post-Seed journey should be presented; `nil` otherwise.
@@ -29,20 +29,22 @@ enum JournalTodayOrientationPolicy {
         return PostSeedJourneyTrigger.evaluate(
             hasSeenPostSeedJourney: inputs.hasSeenPostSeedJourney,
             hasCompletedGuidedJournal: inputs.hasCompletedGuidedJournal,
-            todayCompletionLevel: inputs.completionLevel
+            hasAtLeastOneInEachChipSection: inputs.hasAtLeastOneInEachChipSection
         )
     }
 
-    /// Suppress the Seed unlock toast on rank-up into **Seed** when the post-Seed journey has not been
-    /// seen yet (avoids stacking with the full-screen flow).
+    /// Suppress the generic **Started** unlock toast when Post-Seed is about to present at **1/1/1** (avoids
+    /// stacking with the full-screen flow). The first chip alone still shows the toast.
     static func shouldSuppressSeedUnlockToast(
         isTodayEntry: Bool,
         newLevel: JournalCompletionLevel,
         hasSeenPostSeedJourney: Bool,
-        milestoneHighlight: JournalUnlockMilestoneHighlight
+        milestoneHighlight: JournalUnlockMilestoneHighlight,
+        hasAtLeastOneInEachChipSection: Bool
     ) -> Bool {
         guard milestoneHighlight == .none else { return false }
         guard isTodayEntry, newLevel == .started, !hasSeenPostSeedJourney else { return false }
+        guard hasAtLeastOneInEachChipSection else { return false }
         return true
     }
 }

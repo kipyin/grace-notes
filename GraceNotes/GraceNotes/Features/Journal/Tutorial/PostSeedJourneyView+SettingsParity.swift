@@ -60,7 +60,7 @@ extension PostSeedJourneyView {
 
             Toggle("", isOn: reminderToggleBinding)
                 .labelsHidden()
-                .tint(AppTheme.accent)
+                .tint(AppTheme.reviewAccent)
                 .disabled(reminderState.isPermissionDenied || reminderState.isWorking)
                 .accessibilityLabel(String(localized: "Daily reminder"))
         }
@@ -265,7 +265,7 @@ extension PostSeedJourneyView {
 
             Toggle("", isOn: aiFeaturesToggleBinding)
                 .labelsHidden()
-                .tint(AppTheme.accent)
+                .tint(AppTheme.reviewAccent)
                 .disabled(!ApiSecrets.isCloudApiKeyConfigured)
                 .accessibilityLabel(String(localized: "Settings.ai.toggleLabel"))
                 .accessibilityHint(aiToggleAccessibilityHint)
