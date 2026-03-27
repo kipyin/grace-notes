@@ -3,117 +3,114 @@ import XCTest
 @testable import GraceNotes
 
 final class JournalCompletionLevelTests: XCTestCase {
-    func test_completionLevel_soil_whenEntryIsBlank() {
+    func test_completionLevel_empty_whenEntryIsBlank() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 0,
             needsCount: 0,
-            peopleCount: 0,
-            readingNotes: "",
-            reflections: ""
+            peopleCount: 0
         )
 
-        XCTAssertEqual(level, .soil)
+        XCTAssertEqual(level, .empty)
     }
 
-    func test_completionLevel_soil_withSingleGratitudeOnly() {
+    func test_completionLevel_started_withSingleGratitudeOnly() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 1,
             needsCount: 0,
-            peopleCount: 0,
-            readingNotes: "",
-            reflections: ""
+            peopleCount: 0
         )
 
-        XCTAssertEqual(level, .soil)
+        XCTAssertEqual(level, .started)
     }
 
-    func test_completionLevel_ripening_withThreeByThreeByThree() {
+    func test_completionLevel_started_twoZeroZero() {
         let level = JournalEntry.completionLevel(
-            gratitudesCount: 3,
-            needsCount: 3,
-            peopleCount: 3,
-            readingNotes: "",
-            reflections: ""
+            gratitudesCount: 2,
+            needsCount: 0,
+            peopleCount: 0
         )
 
-        XCTAssertEqual(level, .ripening)
+        XCTAssertEqual(level, .started)
     }
 
-    func test_completionLevel_soil_withMixedContentButMissingOneChipSection() {
+    func test_completionLevel_started_twoTwoTwo() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 2,
             needsCount: 2,
-            peopleCount: 0,
-            readingNotes: "A short note",
-            reflections: ""
+            peopleCount: 2
         )
 
-        XCTAssertEqual(level, .soil)
+        XCTAssertEqual(level, .started)
     }
 
-    func test_completionLevel_seed_withOneGratitudeOneNeedAndOnePerson() {
+    func test_completionLevel_started_oneOneOne() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 1,
             needsCount: 1,
-            peopleCount: 1,
-            readingNotes: "",
-            reflections: ""
+            peopleCount: 1
         )
 
-        XCTAssertEqual(level, .seed)
+        XCTAssertEqual(level, .started)
     }
 
-    func test_completionLevel_seed_withWeakestSectionTwo() {
+    func test_completionLevel_growing_fiveTwoThree() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 5,
             needsCount: 2,
-            peopleCount: 3,
-            readingNotes: "",
-            reflections: ""
+            peopleCount: 3
         )
 
-        XCTAssertEqual(level, .seed)
+        XCTAssertEqual(level, .growing)
     }
 
-    func test_completionLevel_harvest_withFiveByFiveByFiveOnly() {
+    func test_completionLevel_growing_threeZeroZero() {
+        let level = JournalEntry.completionLevel(
+            gratitudesCount: 3,
+            needsCount: 0,
+            peopleCount: 0
+        )
+
+        XCTAssertEqual(level, .growing)
+    }
+
+    func test_completionLevel_growing_fiveTwoTwo() {
+        let level = JournalEntry.completionLevel(
+            gratitudesCount: 5,
+            needsCount: 2,
+            peopleCount: 2
+        )
+
+        XCTAssertEqual(level, .growing)
+    }
+
+    func test_completionLevel_balanced_fiveThreeThree() {
+        let level = JournalEntry.completionLevel(
+            gratitudesCount: 5,
+            needsCount: 3,
+            peopleCount: 3
+        )
+
+        XCTAssertEqual(level, .balanced)
+    }
+
+    func test_completionLevel_balanced_fiveFiveFour() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 5,
             needsCount: 5,
-            peopleCount: 5,
-            readingNotes: "",
-            reflections: ""
+            peopleCount: 4
         )
 
-        XCTAssertEqual(level, .harvest)
+        XCTAssertEqual(level, .balanced)
     }
 
-    func test_completionLevel_abundance_withCurrentFullCriteria() {
+    func test_completionLevel_full_fiveFiveFive() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 5,
             needsCount: 5,
-            peopleCount: 5,
-            readingNotes: "Reading notes",
-            reflections: "Reflections"
+            peopleCount: 5
         )
 
-        XCTAssertEqual(level, .abundance)
-    }
-
-    func test_completionStatusSystemImage_matchesCompletionIconDesign() {
-        XCTAssertEqual(JournalCompletionLevel.soil.completionStatusSystemImage(isEmphasized: false), "circle.dotted")
-        XCTAssertEqual(JournalCompletionLevel.soil.completionStatusSystemImage(isEmphasized: true), "circle.dotted")
-
-        XCTAssertEqual(JournalCompletionLevel.seed.completionStatusSystemImage(isEmphasized: false), "leaf")
-        XCTAssertEqual(JournalCompletionLevel.seed.completionStatusSystemImage(isEmphasized: true), "leaf.fill")
-
-        XCTAssertEqual(JournalCompletionLevel.ripening.completionStatusSystemImage(isEmphasized: false), "tree")
-        XCTAssertEqual(JournalCompletionLevel.ripening.completionStatusSystemImage(isEmphasized: true), "tree.fill")
-
-        XCTAssertEqual(JournalCompletionLevel.harvest.completionStatusSystemImage(isEmphasized: false), "sparkles")
-        XCTAssertEqual(JournalCompletionLevel.harvest.completionStatusSystemImage(isEmphasized: true), "sparkles")
-
-        XCTAssertEqual(JournalCompletionLevel.abundance.completionStatusSystemImage(isEmphasized: false), "sun.max")
-        XCTAssertEqual(JournalCompletionLevel.abundance.completionStatusSystemImage(isEmphasized: true), "sun.max.fill")
+        XCTAssertEqual(level, .full)
     }
 
     func test_hasHarvestChips_and_hasAbundanceRhythm_alignWithLevels() throws {
@@ -140,10 +137,53 @@ final class JournalCompletionLevelTests: XCTestCase {
         XCTAssertTrue(harvestOnly.hasHarvestChips)
         XCTAssertTrue(harvestOnly.isComplete)
         XCTAssertFalse(harvestOnly.hasAbundanceRhythm)
-        XCTAssertEqual(harvestOnly.completionLevel, .harvest)
+        XCTAssertEqual(harvestOnly.completionLevel, .full)
 
         XCTAssertTrue(abundance.hasAbundanceRhythm)
-        XCTAssertEqual(abundance.completionLevel, .abundance)
+        XCTAssertEqual(abundance.completionLevel, .full)
+    }
+
+    func test_tutorialCompletionRank_isMonotonic() {
+        XCTAssertEqual(JournalCompletionLevel.empty.tutorialCompletionRank, 0)
+        XCTAssertEqual(JournalCompletionLevel.started.tutorialCompletionRank, 1)
+        XCTAssertEqual(JournalCompletionLevel.growing.tutorialCompletionRank, 2)
+        XCTAssertEqual(JournalCompletionLevel.balanced.tutorialCompletionRank, 3)
+        XCTAssertEqual(JournalCompletionLevel.full.tutorialCompletionRank, 4)
+    }
+
+    func test_completionLevel_JSON_decodesLegacyRawStrings() throws {
+        let decoder = JSONDecoder()
+        let legacyPairs: [(String, JournalCompletionLevel)] = [
+            ("soil", .empty),
+            ("seed", .started),
+            ("ripening", .balanced),
+            ("harvest", .full),
+            ("abundance", .full)
+        ]
+        for (raw, expected) in legacyPairs {
+            let jsonString = "\"\(raw)\""
+            let data = try XCTUnwrap(jsonString.data(using: .utf8))
+            let decoded = try decoder.decode(JournalCompletionLevel.self, from: data)
+            XCTAssertEqual(decoded, expected, raw)
+        }
+    }
+
+    func test_completionLevel_JSON_encodesCurrentRawStrings() throws {
+        let data = try JSONEncoder().encode(JournalCompletionLevel.balanced)
+        XCTAssertEqual(String(data: data, encoding: .utf8), "\"balanced\"")
+    }
+
+    func test_hasMeaningfulContent_trueWhenOnlyReadingNotesOnEmptyChips() {
+        let entry = JournalEntry(
+            entryDate: .now,
+            gratitudes: [],
+            needs: [],
+            people: [],
+            readingNotes: "A verse stood out.",
+            reflections: ""
+        )
+        XCTAssertEqual(entry.completionLevel, .empty)
+        XCTAssertTrue(entry.hasMeaningfulContent)
     }
 
     private func makeInMemoryContext() throws -> ModelContext {

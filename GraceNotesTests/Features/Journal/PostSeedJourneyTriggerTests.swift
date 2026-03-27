@@ -6,42 +6,42 @@ final class PostSeedJourneyTriggerTests: XCTestCase {
         let outcome = PostSeedJourneyTrigger.evaluate(
             hasSeenPostSeedJourney: true,
             hasCompletedGuidedJournal: true,
-            todayCompletionLevel: .seed
+            todayCompletionLevel: .started
         )
         XCTAssertNil(outcome)
     }
 
-    func test_evaluate_atSeed_guidedIncomplete_showsWithCongratulations() {
+    func test_evaluate_atStarted_guidedIncomplete_showsWithCongratulations() {
         let outcome = PostSeedJourneyTrigger.evaluate(
             hasSeenPostSeedJourney: false,
             hasCompletedGuidedJournal: false,
-            todayCompletionLevel: .seed
+            todayCompletionLevel: .started
         )
         XCTAssertEqual(outcome?.skipsCongratulationsPage, false)
     }
 
-    func test_evaluate_belowSeed_neverShows() {
+    func test_evaluate_belowStarted_neverShows() {
         let outcome = PostSeedJourneyTrigger.evaluate(
             hasSeenPostSeedJourney: false,
             hasCompletedGuidedJournal: false,
-            todayCompletionLevel: .soil
+            todayCompletionLevel: .empty
         )
         XCTAssertNil(outcome)
     }
 
-    /// Version-free C: at or above Seed with journey not yet seen presents regardless of “upgrade cohort.”
-    func test_evaluate_atHarvest_notSeenPostSeed_showsJourney_documentsVersionFreeContract() {
+    /// Version-free C: at or above Started with journey not yet seen presents regardless of “upgrade cohort.”
+    func test_evaluate_atFull_notSeenPostSeed_showsJourney_documentsVersionFreeContract() {
         let outcome = PostSeedJourneyTrigger.evaluate(
             hasSeenPostSeedJourney: false,
             hasCompletedGuidedJournal: false,
-            todayCompletionLevel: .harvest
+            todayCompletionLevel: .full
         )
         XCTAssertNotNil(outcome)
         XCTAssertEqual(outcome?.skipsCongratulationsPage, false)
     }
 
-    func test_evaluate_atOrAboveSeed_guidedIncomplete_showsWithCongratulations() {
-        for level in [JournalCompletionLevel.seed, .ripening, .harvest, .abundance] {
+    func test_evaluate_atOrAboveStarted_guidedIncomplete_showsWithCongratulations() {
+        for level in [JournalCompletionLevel.started, .growing, .balanced, .full] {
             let outcome = PostSeedJourneyTrigger.evaluate(
                 hasSeenPostSeedJourney: false,
                 hasCompletedGuidedJournal: false,
@@ -55,8 +55,8 @@ final class PostSeedJourneyTriggerTests: XCTestCase {
         }
     }
 
-    func test_evaluate_atOrAboveSeed_guidedComplete_skipsCongratulations() {
-        for level in [JournalCompletionLevel.seed, .ripening, .harvest, .abundance] {
+    func test_evaluate_atOrAboveStarted_guidedComplete_skipsCongratulations() {
+        for level in [JournalCompletionLevel.started, .growing, .balanced, .full] {
             let outcome = PostSeedJourneyTrigger.evaluate(
                 hasSeenPostSeedJourney: false,
                 hasCompletedGuidedJournal: true,

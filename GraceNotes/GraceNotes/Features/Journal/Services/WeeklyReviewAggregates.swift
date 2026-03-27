@@ -331,31 +331,31 @@ private extension WeeklyReviewAggregatesBuilder {
     }
 
     private func buildCompletionMix(from strongestByDay: [Date: JournalCompletionLevel]) -> ReviewWeekCompletionMix {
-        var soilDays = 0
-        var seedDays = 0
-        var ripeningDays = 0
-        var harvestDays = 0
-        var abundanceDays = 0
+        var emptyDays = 0
+        var startedDays = 0
+        var growingDays = 0
+        var balancedDays = 0
+        var fullDays = 0
         for completion in strongestByDay.values {
             switch completion {
-            case .soil:
-                soilDays += 1
-            case .seed:
-                seedDays += 1
-            case .ripening:
-                ripeningDays += 1
-            case .harvest:
-                harvestDays += 1
-            case .abundance:
-                abundanceDays += 1
+            case .empty:
+                emptyDays += 1
+            case .started:
+                startedDays += 1
+            case .growing:
+                growingDays += 1
+            case .balanced:
+                balancedDays += 1
+            case .full:
+                fullDays += 1
             }
         }
         return ReviewWeekCompletionMix(
-            soilDays: soilDays,
-            seedDays: seedDays,
-            ripeningDays: ripeningDays,
-            harvestDays: harvestDays,
-            abundanceDays: abundanceDays
+            emptyDays: emptyDays,
+            startedDays: startedDays,
+            growingDays: growingDays,
+            balancedDays: balancedDays,
+            fullDays: fullDays
         )
     }
 
@@ -388,18 +388,7 @@ private extension WeeklyReviewAggregatesBuilder {
     }
 
     private func completionRank(_ level: JournalCompletionLevel) -> Int {
-        switch level {
-        case .soil:
-            0
-        case .seed:
-            1
-        case .ripening:
-            2
-        case .harvest:
-            3
-        case .abundance:
-            4
-        }
+        level.tutorialCompletionRank
     }
 }
 

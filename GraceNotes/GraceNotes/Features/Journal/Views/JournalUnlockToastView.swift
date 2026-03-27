@@ -3,144 +3,98 @@ import SwiftUI
 /// First-time congratulations variant for unlock toasts (issue #60).
 enum JournalUnlockMilestoneHighlight: Equatable {
     case none
-    case firstSeed
-    case firstFifteenChipHarvest
-    case firstFifteenChipHarvestWithFullRhythm
+    case firstOneOneOne
+    case firstBalanced
+    case firstFull
 }
 
 /// Brief encouragement when journal completion moves up a tier.
 struct JournalUnlockToastView: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var iconBounceTrigger = 0
 
     let level: JournalCompletionLevel
     var milestoneHighlight: JournalUnlockMilestoneHighlight = .none
 
     var body: some View {
-        HStack(alignment: .top, spacing: 8) {
-            toastIcon
-            Text(message)
-                .font(AppTheme.warmPaperBody)
-                .foregroundStyle(AppTheme.journalTextPrimary)
-                .multilineTextAlignment(.leading)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .padding(.horizontal, AppTheme.spacingWide)
-        .padding(.vertical, AppTheme.spacingRegular)
-        .background(AppTheme.journalPaper)
-        .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium))
-        .overlay(
-            RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
-                .stroke(borderTint, lineWidth: 1)
-        )
-        .journalToastOuterGlow(accentColor: glowAccentColor, reduceTransparency: reduceTransparency)
-    }
-
-    @ViewBuilder
-    private var toastIcon: some View {
-        if shouldPlayIconBounce {
-            Image(systemName: iconName)
-                .foregroundStyle(iconTint)
-                .symbolEffect(.bounce, value: iconBounceTrigger)
-                .onAppear {
-                    iconBounceTrigger += 1
-                }
-        } else {
-            Image(systemName: iconName)
-                .foregroundStyle(iconTint)
-        }
-    }
-
-    private var shouldPlayIconBounce: Bool {
-        !reduceMotion && (level == .harvest || level == .abundance)
+        Text(message)
+            .font(AppTheme.warmPaperBody)
+            .foregroundStyle(AppTheme.journalTextPrimary)
+            .multilineTextAlignment(.leading)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, AppTheme.spacingWide)
+            .padding(.vertical, AppTheme.spacingRegular)
+            .background(AppTheme.journalPaper)
+            .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium))
+            .overlay(
+                RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
+                    .stroke(borderTint, lineWidth: 1)
+            )
+            .journalToastOuterGlow(accentColor: glowAccentColor, reduceTransparency: reduceTransparency)
     }
 
     private var message: String {
         switch milestoneHighlight {
-        case .firstSeed:
+        case .firstOneOneOne:
+            return String(localized: "First time with one gratitude, one need, and someone in mind—nice work.")
+        case .firstBalanced:
             return String(
-                // swiftlint:disable:next line_length
-                localized: "You've planted Seed for the first time—one gratitude, one need, and someone on your mind. Lovely."
+                localized: "Your first Balanced day—at least three in each section. Keep going toward Full."
             )
-        case .firstFifteenChipHarvest:
+        case .firstFull:
             return String(
-                // swiftlint:disable:next line_length
-                localized: "Your first Harvest—you filled all fifteen spots today. Add reading notes and reflections when you're ready for Abundance."
-            )
-        case .firstFifteenChipHarvestWithFullRhythm:
-            return String(
-                localized: "Your first Harvest, and you've added reading notes and reflections—a full rhythm for today."
+                localized: "Your first Full—all fifteen chip spots filled. Add notes when you want."
             )
         case .none:
             break
         }
         switch level {
-        case .soil:
+        case .empty:
             return ""
-        case .seed:
-            return String(localized: "You planted a seed today.")
-        case .ripening:
-            return String(localized: "You're growing—at least three in each section. Keep going toward Harvest.")
-        case .harvest:
-            return String(localized: "You reached Harvest.")
-        case .abundance:
-            return String(localized: "You reached Abundance today.")
-        }
-    }
-
-    private var iconName: String {
-        level.completionStatusSystemImage(isEmphasized: true)
-    }
-
-    private var iconTint: Color {
-        switch level {
-        case .soil:
-            return AppTheme.journalTextMuted
-        case .seed:
-            return AppTheme.journalQuickCheckInText
-        case .ripening:
-            return AppTheme.journalStandardText
-        case .harvest:
-            return AppTheme.journalStandardText
-        case .abundance:
-            return AppTheme.journalFullText
+        case .started:
+            return String(localized: "You have started filling in today.")
+        case .growing:
+            return String(localized: "You are growing—keep going across the three sections.")
+        case .balanced:
+            return String(localized: "You reached Balanced today.")
+        case .full:
+            return String(localized: "You reached Full today—all chip spots filled.")
         }
     }
 
     private var borderTint: Color {
         switch level {
-        case .soil:
+        case .empty:
             return AppTheme.journalBorder
-        case .seed:
+        case .started:
             return AppTheme.journalQuickCheckInBorder
-        case .ripening:
+        case .growing:
             return AppTheme.journalStandardBorder
-        case .harvest:
+        case .balanced:
             return AppTheme.journalStandardBorder
-        case .abundance:
+        case .full:
             return AppTheme.journalFullBorder
         }
     }
 
     private var shadowTint: Color {
         switch level {
-        case .soil:
+        case .empty:
             return .clear
-        case .seed:
+        case .started:
             return AppTheme.journalQuickCheckInGlow
-        case .ripening:
+        case .growing:
             return AppTheme.journalStandardGlow
-        case .harvest:
+        case .balanced:
             return AppTheme.journalStandardGlow
-        case .abundance:
+        case .full:
             return AppTheme.journalFullGlow
         }
     }
 
     private var glowAccentColor: Color {
         switch level {
-        case .soil:
+        case .empty:
             return AppTheme.journalBorder
         default:
             return shadowTint

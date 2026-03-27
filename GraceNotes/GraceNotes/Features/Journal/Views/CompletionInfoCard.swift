@@ -3,7 +3,6 @@ import SwiftUI
 struct CompletionInfoCard: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var contentVisible = false
-    @State private var iconSettled = false
 
     let badgeInfo: CompletionBadgeInfo
     let cardTintColor: Color
@@ -13,23 +12,13 @@ struct CompletionInfoCard: View {
     let bloomProgress: CGFloat
 
     var body: some View {
-        HStack(alignment: .top, spacing: AppTheme.spacingRegular) {
-            Image(systemName: badgeInfo.iconName)
-                .font(AppTheme.outfitSemiboldSubheadline)
-                .foregroundStyle(cardTintColor)
-                .frame(width: 26, height: 26)
-                .background(Circle().fill(cardTintColor.opacity(0.16)))
-                .scaleEffect(iconSettled || reduceMotion ? 1 : 0.86)
-                .accessibilityHidden(true)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(badgeInfo.description)
-                    .font(AppTheme.warmPaperMeta)
-                    .foregroundStyle(AppTheme.journalTextMuted)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+        VStack(alignment: .leading, spacing: 4) {
+            Text(badgeInfo.description)
+                .font(AppTheme.warmPaperMeta)
+                .foregroundStyle(AppTheme.journalTextMuted)
+                .fixedSize(horizontal: false, vertical: true)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .opacity(contentVisible || reduceMotion ? 1 : 0)
         .offset(y: contentVisible || reduceMotion ? 0 : 8)
         .padding(AppTheme.spacingRegular)
@@ -73,19 +62,13 @@ struct CompletionInfoCard: View {
     private func animateEntry() {
         guard !reduceMotion else {
             contentVisible = true
-            iconSettled = true
             return
         }
 
         contentVisible = false
-        iconSettled = false
 
         withAnimation(.easeOut(duration: 0.24)) {
             contentVisible = true
-        }
-
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.64).delay(0.08)) {
-            iconSettled = true
         }
     }
 }

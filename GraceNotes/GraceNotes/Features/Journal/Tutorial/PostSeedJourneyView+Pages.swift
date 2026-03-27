@@ -78,11 +78,6 @@ extension PostSeedJourneyView {
     var congratulationsPage: some View {
         journeyPage {
             HStack(alignment: .firstTextBaseline, spacing: AppTheme.spacingRegular) {
-                Image(systemName: JournalCompletionLevel.seed.completionStatusSystemImage(isEmphasized: true))
-                    .font(.title2)
-                    .foregroundStyle(AppTheme.accent)
-                    .accessibilityHidden(true)
-
                 Text(String(localized: "PostSeedJourney.congrats.headline"))
                     .font(AppTheme.warmPaperHeader)
                     .foregroundStyle(AppTheme.textPrimary)
@@ -131,7 +126,7 @@ extension PostSeedJourneyView {
             .foregroundStyle(AppTheme.textMuted)
             .fixedSize(horizontal: false, vertical: true)
 
-            PostSeedJourneyPathStrip(highlightedLevel: .seed)
+            PostSeedJourneyPathStrip(highlightedLevel: .started)
         }
     }
 

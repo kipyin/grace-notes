@@ -31,6 +31,7 @@ final class JournalOnboardingProgress {
         JournalTutorialStorageKeys.dismissedSeedGuidance,
         JournalTutorialStorageKeys.dismissedHarvestGuidance,
         JournalTutorialStorageKeys.celebratedFirstSeed,
+        JournalTutorialStorageKeys.celebratedFirstBalanced,
         JournalTutorialStorageKeys.celebratedFirstHarvest
     ]
 
@@ -97,8 +98,8 @@ final class JournalOnboardingProgress {
             return
         }
 
-        let seedRank = JournalCompletionLevel.seed.tutorialCompletionRank
-        if todayCompletionLevel.tutorialCompletionRank >= seedRank {
+        let startedRank = JournalCompletionLevel.started.tutorialCompletionRank
+        if todayCompletionLevel.tutorialCompletionRank >= startedRank {
             defaults.set(true, forKey: JournalOnboardingStorageKeys.completedGuidedJournal)
         }
 

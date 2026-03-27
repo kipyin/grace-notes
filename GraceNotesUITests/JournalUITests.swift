@@ -307,16 +307,27 @@ final class JournalUITests: XCTestCase {
             "I am grateful for a long, quiet evening where I could slow down, breathe, and write with clarity."
         addGratitude(longSentence, in: app)
 
-        let showMore = app.buttons["JournalGratitudeStrip.0.more"]
-        XCTAssertTrue(showMore.waitForExistence(timeout: 5))
+        let expandToggle = app.buttons["JournalGratitudeStrip.0.more"]
+        XCTAssertTrue(expandToggle.waitForExistence(timeout: 5))
+        XCTAssertEqual(expandToggle.label, "Show more")
         XCTAssertFalse(
             app.staticTexts[longSentence].exists,
-            "Expected the full long sentence not to be visible as a single static text before expansion."
+            "SentenceStripView ignores child accessibility; the full line is not a standalone StaticText."
         )
-        showMore.tap()
-        XCTAssertTrue(
-            app.staticTexts["Show less"].waitForExistence(timeout: 8),
-            "Expected expanded preview to expose Show less."
+        expandToggle.tap()
+        let collapseToggle = app.buttons["JournalGratitudeStrip.0.more"]
+        XCTAssertTrue(collapseToggle.waitForExistence(timeout: 5))
+        XCTAssertEqual(
+            collapseToggle.label,
+            "Show less",
+            "Expected the preview toggle to reflect expanded state."
+        )
+        let strip = app.buttons["JournalGratitudeStrip.0"]
+        XCTAssertTrue(strip.waitForExistence(timeout: 5))
+        XCTAssertEqual(
+            strip.value as? String,
+            longSentence,
+            "Expected the strip accessibility value to carry the full sentence."
         )
     }
 

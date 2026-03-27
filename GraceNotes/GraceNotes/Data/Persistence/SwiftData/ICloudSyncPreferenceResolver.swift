@@ -5,6 +5,7 @@ enum ICloudSyncPreferenceResolver {
         JournalTutorialStorageKeys.dismissedSeedGuidance,
         JournalTutorialStorageKeys.dismissedHarvestGuidance,
         JournalTutorialStorageKeys.celebratedFirstSeed,
+        JournalTutorialStorageKeys.celebratedFirstBalanced,
         JournalTutorialStorageKeys.celebratedFirstHarvest
     ]
 

@@ -244,22 +244,19 @@ final class JournalScreenChipHandlingTests: XCTestCase {
         var editingIndex: Int? = 0
         var isTransitioning = false
         var removedIndex: Int?
-        var didRemoveFirstChip = false
+        var chipTexts = ["First", "Second"]
         let operations = ChipSectionOperations(
             updateImmediate: { _, _ in nil },
             addImmediate: { _ in nil },
             remove: { index in
                 removedIndex = index
-                if index == 0 {
-                    didRemoveFirstChip = true
-                }
-                return index == 0
+                guard index == 0 else { return false }
+                chipTexts.remove(at: 0)
+                return true
             },
             fullText: { index in
-                if didRemoveFirstChip {
-                    return index == 0 ? "Second" : nil
-                }
-                return index == 0 ? "First" : "Second"
+                guard chipTexts.indices.contains(index) else { return nil }
+                return chipTexts[index]
             },
             count: 2,
             summarizeAndUpdateChip: { _ in }

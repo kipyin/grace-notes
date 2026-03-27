@@ -34,10 +34,25 @@ final class StreakCalculatorTests: XCTestCase {
 
         let summary = calculator.summary(from: try persisted(context, partialToday), now: now)
 
-        XCTAssertEqual(summary.basicCurrent, 0)
+        XCTAssertEqual(summary.basicCurrent, 1)
         XCTAssertEqual(summary.perfectCurrent, 0)
-        XCTAssertFalse(summary.basicDoneToday)
+        XCTAssertTrue(summary.basicDoneToday)
         XCTAssertFalse(summary.perfectDoneToday)
+    }
+
+    func test_readingNotesOnlyOnEmptyChips_countsAsBasicStreak() throws {
+        let context = try makeInMemoryContext()
+        let now = date(year: 2026, month: 3, day: 17, hour: 12)
+        let notesOnly = makeEntry(
+            on: date(year: 2026, month: 3, day: 17, hour: 9),
+            readingNotes: "A short note from this morning."
+        )
+
+        let summary = calculator.summary(from: try persisted(context, notesOnly), now: now)
+
+        XCTAssertEqual(summary.basicCurrent, 1)
+        XCTAssertTrue(summary.basicDoneToday)
+        XCTAssertEqual(summary.perfectCurrent, 0)
     }
 
     func test_abundanceEntry_countsAsBasicAndPerfect() throws {

@@ -1,5 +1,7 @@
 import SwiftUI
 
+// swiftlint:disable file_length
+
 /// One-time full-screen post-Seed journey from Today or Settings (**App tour**).
 /// Styled like app onboarding; **Done** (last page) or **Skip** (earlier pages) ends the flow.
 struct PostSeedJourneyView: View {
@@ -173,10 +175,12 @@ private struct PostSeedJourneyPathStepRow: View {
 
             VStack(alignment: .leading, spacing: AppTheme.spacingTight) {
                 HStack(alignment: .firstTextBaseline, spacing: AppTheme.spacingTight) {
-                    Image(systemName: titleSystemImage)
-                        .font(isHighlighted ? AppTheme.warmPaperMetaEmphasis : AppTheme.warmPaperMeta)
-                        .foregroundStyle(isHighlighted ? AppTheme.accentText : AppTheme.textMuted)
-                        .accessibilityHidden(true)
+                    if !titleSystemImage.isEmpty {
+                        Image(systemName: titleSystemImage)
+                            .font(isHighlighted ? AppTheme.warmPaperMetaEmphasis : AppTheme.warmPaperMeta)
+                            .foregroundStyle(isHighlighted ? AppTheme.accentText : AppTheme.textMuted)
+                            .accessibilityHidden(true)
+                    }
                     Text(title)
                         .font(isHighlighted ? AppTheme.warmPaperMetaEmphasis : AppTheme.warmPaperMeta)
                         .foregroundStyle(isHighlighted ? AppTheme.accentText : AppTheme.textMuted)
@@ -267,7 +271,7 @@ struct PostSeedJourneyPathStrip: View {
     let highlightedLevel: JournalCompletionLevel
 
     private static let orderedLevels: [JournalCompletionLevel] = [
-        .soil, .seed, .ripening, .harvest, .abundance
+        .empty, .started, .growing, .balanced, .full
     ]
 
     private var pathSpineStroke: Color {
@@ -281,7 +285,7 @@ struct PostSeedJourneyPathStrip: View {
                     index: index,
                     stepCount: Self.orderedLevels.count,
                     title: displayName(for: level),
-                    titleSystemImage: level.completionStatusSystemImage(isEmphasized: level == highlightedLevel),
+                    titleSystemImage: "",
                     criterionText: criterion(for: level),
                     isHighlighted: level == highlightedLevel,
                     dotFill: dotFill(for: level),
@@ -303,31 +307,31 @@ struct PostSeedJourneyPathStrip: View {
 
     private func displayName(for level: JournalCompletionLevel) -> String {
         switch level {
-        case .soil:
-            return String(localized: "Soil")
-        case .seed:
-            return String(localized: "Seed")
-        case .ripening:
-            return String(localized: "Ripening")
-        case .harvest:
-            return String(localized: "Harvest")
-        case .abundance:
-            return String(localized: "Abundance")
+        case .empty:
+            return String(localized: "Empty")
+        case .started:
+            return String(localized: "Started")
+        case .growing:
+            return String(localized: "Growing")
+        case .balanced:
+            return String(localized: "Balanced")
+        case .full:
+            return String(localized: "Full")
         }
     }
 
     private func criterion(for level: JournalCompletionLevel) -> String {
         switch level {
-        case .soil:
-            return String(localized: "PostSeedJourney.path.criterion.soil")
-        case .seed:
-            return String(localized: "PostSeedJourney.path.criterion.seed")
-        case .ripening:
-            return String(localized: "PostSeedJourney.path.criterion.ripening")
-        case .harvest:
-            return String(localized: "PostSeedJourney.path.criterion.harvest")
-        case .abundance:
-            return String(localized: "PostSeedJourney.path.criterion.abundance")
+        case .empty:
+            return String(localized: "PostSeedJourney.path.criterion.empty")
+        case .started:
+            return String(localized: "PostSeedJourney.path.criterion.started")
+        case .growing:
+            return String(localized: "PostSeedJourney.path.criterion.growing")
+        case .balanced:
+            return String(localized: "PostSeedJourney.path.criterion.balanced")
+        case .full:
+            return String(localized: "PostSeedJourney.path.criterion.full")
         }
     }
 

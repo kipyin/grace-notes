@@ -53,42 +53,27 @@ struct JournalCompletionPill: View {
     }
 
     private var isCelebrating: Bool {
-        celebratingLevel == completionLevel && completionLevel != .soil
+        celebratingLevel == completionLevel && completionLevel != .empty
     }
 
     @ViewBuilder
     private var pillLabel: some View {
         switch completionLevel {
-        case .soil:
-            Label(
-                String(localized: "Soil"),
-                systemImage: completionLevel.completionStatusSystemImage(isEmphasized: isCelebrating)
-            )
-            .foregroundStyle(AppTheme.journalTextMuted)
-        case .seed:
-            Label(
-                String(localized: "Seed"),
-                systemImage: completionLevel.completionStatusSystemImage(isEmphasized: isCelebrating)
-            )
-            .foregroundStyle(AppTheme.journalQuickCheckInText)
-        case .ripening:
-            Label(
-                String(localized: "Ripening"),
-                systemImage: completionLevel.completionStatusSystemImage(isEmphasized: isCelebrating)
-            )
-            .foregroundStyle(AppTheme.journalStandardText)
-        case .harvest:
-            Label(
-                String(localized: "Harvest"),
-                systemImage: completionLevel.completionStatusSystemImage(isEmphasized: isCelebrating)
-            )
-            .foregroundStyle(AppTheme.journalStandardText)
-        case .abundance:
-            Label(
-                String(localized: "Abundance"),
-                systemImage: completionLevel.completionStatusSystemImage(isEmphasized: isCelebrating)
-            )
-            .foregroundStyle(AppTheme.journalFullText)
+        case .empty:
+            Text(String(localized: "Empty"))
+                .foregroundStyle(AppTheme.journalTextMuted)
+        case .started:
+            Text(String(localized: "Started"))
+                .foregroundStyle(AppTheme.journalQuickCheckInText)
+        case .growing:
+            Text(String(localized: "Growing"))
+                .foregroundStyle(AppTheme.journalStandardText)
+        case .balanced:
+            Text(String(localized: "Balanced"))
+                .foregroundStyle(AppTheme.journalStandardText)
+        case .full:
+            Text(String(localized: "Full"))
+                .foregroundStyle(AppTheme.journalFullText)
         }
     }
 
@@ -112,11 +97,11 @@ struct JournalCompletionPill: View {
 
     private func backgroundFill(for level: JournalCompletionLevel) -> AnyShapeStyle {
         switch level {
-        case .soil:
+        case .empty:
             return AnyShapeStyle(AppTheme.journalBackground)
-        case .seed:
+        case .started:
             return AnyShapeStyle(AppTheme.journalQuickCheckInBackground)
-        case .ripening, .harvest:
+        case .growing, .balanced:
             return AnyShapeStyle(
                 LinearGradient(
                     colors: [AppTheme.journalStandardBackgroundStart, AppTheme.journalStandardBackgroundEnd],
@@ -124,7 +109,7 @@ struct JournalCompletionPill: View {
                     endPoint: .bottomTrailing
                 )
             )
-        case .abundance:
+        case .full:
             return AnyShapeStyle(
                 LinearGradient(
                     colors: [AppTheme.journalFullBackgroundStart, AppTheme.journalFullBackgroundEnd],
@@ -137,13 +122,13 @@ struct JournalCompletionPill: View {
 
     private func borderColor(for level: JournalCompletionLevel) -> Color {
         switch level {
-        case .soil:
+        case .empty:
             return AppTheme.journalBorder
-        case .seed:
+        case .started:
             return AppTheme.journalQuickCheckInBorder
-        case .ripening, .harvest:
+        case .growing, .balanced:
             return AppTheme.journalStandardBorder
-        case .abundance:
+        case .full:
             return AppTheme.journalFullBorder
         }
     }
@@ -151,15 +136,15 @@ struct JournalCompletionPill: View {
     private func scaleFactor(for level: JournalCompletionLevel, isCelebrating: Bool) -> CGFloat {
         guard isCelebrating, !reduceMotion else { return 1.0 }
         switch level {
-        case .soil:
+        case .empty:
             return 1.0
-        case .seed:
+        case .started:
             return 1.008
-        case .ripening:
+        case .growing:
             return 1.01
-        case .harvest:
+        case .balanced:
             return 1.015
-        case .abundance:
+        case .full:
             return 1.02
         }
     }
@@ -167,13 +152,13 @@ struct JournalCompletionPill: View {
     private func shadowColor(for level: JournalCompletionLevel, isCelebrating: Bool) -> Color {
         guard isCelebrating, !reduceTransparency else { return .clear }
         switch level {
-        case .soil:
+        case .empty:
             return .clear
-        case .seed:
+        case .started:
             return AppTheme.journalQuickCheckInGlow.opacity(0.25)
-        case .ripening, .harvest:
+        case .growing, .balanced:
             return AppTheme.journalStandardGlow.opacity(0.4)
-        case .abundance:
+        case .full:
             return AppTheme.journalFullGlow.opacity(0.48)
         }
     }
@@ -181,15 +166,15 @@ struct JournalCompletionPill: View {
     private func shadowRadius(for level: JournalCompletionLevel, isCelebrating: Bool) -> CGFloat {
         guard isCelebrating, !reduceTransparency else { return 0 }
         switch level {
-        case .soil:
+        case .empty:
             return 0
-        case .seed:
+        case .started:
             return 4
-        case .ripening:
+        case .growing:
             return 6
-        case .harvest:
+        case .balanced:
             return 8
-        case .abundance:
+        case .full:
             return 11
         }
     }

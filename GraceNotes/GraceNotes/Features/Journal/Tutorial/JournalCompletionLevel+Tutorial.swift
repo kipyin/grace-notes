@@ -4,15 +4,15 @@ extension JournalCompletionLevel {
     /// Monotonic rank for tutorial milestones (matches `JournalScreen` completion progression).
     var tutorialCompletionRank: Int {
         switch self {
-        case .soil:
+        case .empty:
             return 0
-        case .seed:
+        case .started:
             return 1
-        case .ripening:
+        case .growing:
             return 2
-        case .harvest:
+        case .balanced:
             return 3
-        case .abundance:
+        case .full:
             return 4
         }
     }

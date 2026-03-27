@@ -22,17 +22,17 @@ final class OnboardingSuggestionEvaluatorTests: XCTestCase {
         XCTAssertNil(JournalOnboardingSuggestionEvaluator.currentSuggestion(context: context))
     }
 
-    func test_currentSuggestion_seedCelebrated_reminderEligible_returnsReminders() {
+    func test_currentSuggestion_tripleOneCelebrated_reminderEligible_returnsReminders() {
         var context = baseContext(entryDate: nil)
-        context.hasCelebratedFirstSeed = true
+        context.hasCelebratedFirstTripleOne = true
 
         XCTAssertEqual(JournalOnboardingSuggestionEvaluator.currentSuggestion(context: context), .reminders)
     }
 
-    func test_currentSuggestion_remindersAndHarvestMet_remindersWins() {
+    func test_currentSuggestion_remindersAndFullMet_remindersWins() {
         var context = baseContext(entryDate: nil)
-        context.hasCelebratedFirstSeed = true
-        context.hasCelebratedFirstHarvest = true
+        context.hasCelebratedFirstTripleOne = true
+        context.hasCelebratedFirstFull = true
         context.isCloudApiKeyConfigured = true
 
         XCTAssertEqual(JournalOnboardingSuggestionEvaluator.currentSuggestion(context: context), .reminders)
@@ -41,7 +41,7 @@ final class OnboardingSuggestionEvaluatorTests: XCTestCase {
     func test_currentSuggestion_remindersSatisfied_aiEligible_returnsNilWhenFeatureFlagOff() {
         var context = baseContext(entryDate: nil)
         context.hasConfiguredReminderTime = true
-        context.hasCelebratedFirstHarvest = true
+        context.hasCelebratedFirstFull = true
         context.isCloudApiKeyConfigured = true
 
         XCTAssertNil(JournalOnboardingSuggestionEvaluator.currentSuggestion(context: context))
@@ -52,7 +52,7 @@ final class OnboardingSuggestionEvaluatorTests: XCTestCase {
 
         var context = baseContext(entryDate: nil)
         context.hasConfiguredReminderTime = true
-        context.hasCelebratedFirstHarvest = true
+        context.hasCelebratedFirstFull = true
         context.isCloudApiKeyConfigured = true
 
         XCTAssertEqual(JournalOnboardingSuggestionEvaluator.currentSuggestion(context: context), .aiFeatures)
@@ -80,8 +80,8 @@ final class OnboardingSuggestionEvaluatorTests: XCTestCase {
     private func baseContext(entryDate: Date?) -> JournalOnboardingSuggestionContext {
         JournalOnboardingSuggestionContext(
             entryDate: entryDate,
-            hasCelebratedFirstSeed: false,
-            hasCelebratedFirstHarvest: false,
+            hasCelebratedFirstTripleOne: false,
+            hasCelebratedFirstFull: false,
             dismissedRemindersSuggestion: false,
             openedRemindersSuggestion: false,
             hasConfiguredReminderTime: false,

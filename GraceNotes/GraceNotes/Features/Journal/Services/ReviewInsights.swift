@@ -39,14 +39,58 @@ struct ReviewDayActivity: Equatable, Hashable, Sendable, Codable {
 }
 
 struct ReviewWeekCompletionMix: Equatable, Sendable, Codable {
-    let soilDays: Int
-    let seedDays: Int
-    let ripeningDays: Int
-    let harvestDays: Int
-    let abundanceDays: Int
+    let emptyDays: Int
+    let startedDays: Int
+    let growingDays: Int
+    let balancedDays: Int
+    let fullDays: Int
 
     var highCompletionDays: Int {
-        harvestDays + abundanceDays
+        balancedDays + fullDays
+    }
+
+    init(emptyDays: Int, startedDays: Int, growingDays: Int, balancedDays: Int, fullDays: Int) {
+        self.emptyDays = emptyDays
+        self.startedDays = startedDays
+        self.growingDays = growingDays
+        self.balancedDays = balancedDays
+        self.fullDays = fullDays
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case emptyDays, startedDays, growingDays, balancedDays, fullDays
+        case soilDays, seedDays, ripeningDays, harvestDays, abundanceDays
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        if container.contains(.emptyDays) {
+            emptyDays = try container.decode(Int.self, forKey: .emptyDays)
+            startedDays = try container.decode(Int.self, forKey: .startedDays)
+            growingDays = try container.decode(Int.self, forKey: .growingDays)
+            balancedDays = try container.decode(Int.self, forKey: .balancedDays)
+            fullDays = try container.decode(Int.self, forKey: .fullDays)
+        } else {
+            let soil = try container.decode(Int.self, forKey: .soilDays)
+            let seed = try container.decode(Int.self, forKey: .seedDays)
+            let ripening = try container.decode(Int.self, forKey: .ripeningDays)
+            let harvest = try container.decode(Int.self, forKey: .harvestDays)
+            let abundance = try container.decode(Int.self, forKey: .abundanceDays)
+            emptyDays = soil
+            startedDays = seed
+            growingDays = 0
+            balancedDays = ripening
+            fullDays = harvest + abundance
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(emptyDays, forKey: .emptyDays)
+        try container.encode(startedDays, forKey: .startedDays)
+        try container.encode(growingDays, forKey: .growingDays)
+        try container.encode(balancedDays, forKey: .balancedDays)
+        try container.encode(fullDays, forKey: .fullDays)
     }
 }
 

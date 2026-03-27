@@ -12,7 +12,7 @@ final class JournalTodayOrientationPolicyTests: XCTestCase {
                 isRunningUITests: false,
                 hasSeenPostSeedJourney: false,
                 hasCompletedGuidedJournal: false,
-                completionLevel: .seed
+                completionLevel: .started
             )
         )
         XCTAssertNil(outcome)
@@ -25,7 +25,7 @@ final class JournalTodayOrientationPolicyTests: XCTestCase {
                 isRunningUITests: true,
                 hasSeenPostSeedJourney: false,
                 hasCompletedGuidedJournal: false,
-                completionLevel: .seed
+                completionLevel: .started
             )
         )
         XCTAssertNil(outcome)
@@ -35,7 +35,7 @@ final class JournalTodayOrientationPolicyTests: XCTestCase {
         let expected = PostSeedJourneyTrigger.evaluate(
             hasSeenPostSeedJourney: false,
             hasCompletedGuidedJournal: true,
-            todayCompletionLevel: .ripening
+            todayCompletionLevel: .growing
         )
         let actual = JournalTodayOrientationPolicy.postSeedJourneyOutcome(
             for: .init(
@@ -43,7 +43,7 @@ final class JournalTodayOrientationPolicyTests: XCTestCase {
                 isRunningUITests: false,
                 hasSeenPostSeedJourney: false,
                 hasCompletedGuidedJournal: true,
-                completionLevel: .ripening
+                completionLevel: .growing
             )
         )
         XCTAssertEqual(actual?.skipsCongratulationsPage, expected?.skipsCongratulationsPage)
@@ -51,12 +51,13 @@ final class JournalTodayOrientationPolicyTests: XCTestCase {
 
     // MARK: - shouldSuppressSeedUnlockToast
 
-    func test_shouldSuppressSeedUnlockToast_todayAtSeed_notSeenPostSeed_suppresses() {
+    func test_shouldSuppressSeedUnlockToast_todayAtStarted_notSeenPostSeed_suppresses() {
         XCTAssertTrue(
             JournalTodayOrientationPolicy.shouldSuppressSeedUnlockToast(
                 isTodayEntry: true,
-                newLevel: .seed,
-                hasSeenPostSeedJourney: false
+                newLevel: .started,
+                hasSeenPostSeedJourney: false,
+                milestoneHighlight: .none
             )
         )
     }
@@ -65,18 +66,20 @@ final class JournalTodayOrientationPolicyTests: XCTestCase {
         XCTAssertFalse(
             JournalTodayOrientationPolicy.shouldSuppressSeedUnlockToast(
                 isTodayEntry: false,
-                newLevel: .seed,
-                hasSeenPostSeedJourney: false
+                newLevel: .started,
+                hasSeenPostSeedJourney: false,
+                milestoneHighlight: .none
             )
         )
     }
 
-    func test_shouldSuppressSeedUnlockToast_nonSeedLevel_doesNotSuppress() {
+    func test_shouldSuppressSeedUnlockToast_nonStartedLevel_doesNotSuppress() {
         XCTAssertFalse(
             JournalTodayOrientationPolicy.shouldSuppressSeedUnlockToast(
                 isTodayEntry: true,
-                newLevel: .ripening,
-                hasSeenPostSeedJourney: false
+                newLevel: .growing,
+                hasSeenPostSeedJourney: false,
+                milestoneHighlight: .none
             )
         )
     }
@@ -85,8 +88,20 @@ final class JournalTodayOrientationPolicyTests: XCTestCase {
         XCTAssertFalse(
             JournalTodayOrientationPolicy.shouldSuppressSeedUnlockToast(
                 isTodayEntry: true,
-                newLevel: .seed,
-                hasSeenPostSeedJourney: true
+                newLevel: .started,
+                hasSeenPostSeedJourney: true,
+                milestoneHighlight: .none
+            )
+        )
+    }
+
+    func test_shouldSuppressSeedUnlockToast_milestoneWithStarted_doesNotSuppress() {
+        XCTAssertFalse(
+            JournalTodayOrientationPolicy.shouldSuppressSeedUnlockToast(
+                isTodayEntry: true,
+                newLevel: .started,
+                hasSeenPostSeedJourney: false,
+                milestoneHighlight: .firstOneOneOne
             )
         )
     }

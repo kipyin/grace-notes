@@ -45,7 +45,7 @@ final class JournalViewModelCompletionAndLimitsTests: XCTestCase {
         XCTAssertFalse(viewModel.completedToday)
     }
 
-    func test_completionLevel_withSingleSectionEntry_returnsNone() async throws {
+    func test_completionLevel_withSingleSectionEntry_returnsStarted() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
         let viewModel = makeViewModel(now: now)
@@ -53,11 +53,11 @@ final class JournalViewModelCompletionAndLimitsTests: XCTestCase {
         viewModel.loadEntry(for: now, using: context)
         _ = await viewModel.addGratitude("One")
 
-        XCTAssertEqual(viewModel.completionLevel, .soil)
+        XCTAssertEqual(viewModel.completionLevel, .started)
         XCTAssertFalse(viewModel.completedToday)
     }
 
-    func test_completionLevel_withThreeByThreeByThree_returnsRipening() async throws {
+    func test_completionLevel_withThreeByThreeByThree_returnsBalanced() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
         let viewModel = makeViewModel(now: now)
@@ -69,7 +69,7 @@ final class JournalViewModelCompletionAndLimitsTests: XCTestCase {
             _ = await viewModel.addPerson("Person \(index)")
         }
 
-        XCTAssertEqual(viewModel.completionLevel, .ripening)
+        XCTAssertEqual(viewModel.completionLevel, .balanced)
         XCTAssertFalse(viewModel.completedToday)
     }
 
@@ -88,7 +88,7 @@ final class JournalViewModelCompletionAndLimitsTests: XCTestCase {
         XCTAssertTrue(viewModel.isChipsFiveCubedComplete)
         XCTAssertEqual(viewModel.chipsFilledCount, 15)
         XCTAssertEqual(viewModel.chipsProgressText, "15 of 15")
-        XCTAssertEqual(viewModel.completionLevel, .harvest)
+        XCTAssertEqual(viewModel.completionLevel, .full)
         XCTAssertFalse(viewModel.completedToday)
     }
 

@@ -168,7 +168,10 @@ struct JournalScreen: View {
     @State private var statusCelebrationDismissTask: Task<Void, Never>?
     @State private var celebratingLevel: JournalCompletionLevel?
     @State private var hasInitializedCompletionTracking = false
-    @State private var previousCompletionLevel: JournalCompletionLevel = .soil
+    @State private var previousCompletionLevel: JournalCompletionLevel = .empty
+    @State private var previousGratitudesCount = 0
+    @State private var previousNeedsCount = 0
+    @State private var previousPeopleCount = 0
     @State private var unlockToastLevel: JournalCompletionLevel?
     @State private var unlockToastMilestone: JournalUnlockMilestoneHighlight = .none
     @State private var journalScrollOffsetY: CGFloat = 0
@@ -220,7 +223,10 @@ struct JournalScreen: View {
                 Group {
                     DateSectionView(
                         completionLevel: viewModel.completionLevel,
-                        celebratingLevel: celebratingLevel
+                        celebratingLevel: celebratingLevel,
+                        gratitudesCount: viewModel.gratitudes.count,
+                        needsCount: viewModel.needs.count,
+                        peopleCount: viewModel.people.count
                     )
 
                     journalTutorialHintIfNeeded
@@ -328,8 +334,8 @@ struct JournalScreen: View {
         .onChange(of: onboardingPresentation.step) { _, newStep in
             focusOnboardingStepIfNeeded(newStep)
         }
-        .onChange(of: viewModel.completionLevel) { _, newLevel in
-            handleCompletionLevelChange(to: newLevel)
+        .onChange(of: journalProgressFingerprint) { _, _ in
+            handleJournalProgressChange()
         }
         .task {
             await runJournalScreenLoadTask()
@@ -338,6 +344,15 @@ struct JournalScreen: View {
 }
 
 private extension JournalScreen {
+    /// Tracks chip counts and completion level together so milestones like first 1/1/1 fire without a rank change.
+    var journalProgressFingerprint: String {
+        let gratitudesCount = viewModel.gratitudes.count
+        let needsCount = viewModel.needs.count
+        let peopleCount = viewModel.people.count
+        let levelRaw = viewModel.completionLevel.rawValue
+        return "\(gratitudesCount)-\(needsCount)-\(peopleCount)|\(levelRaw)"
+    }
+
     var isAnyInlineChipEditing: Bool {
         editingGratitudeIndex != nil
             || editingNeedIndex != nil
@@ -663,54 +678,132 @@ private extension JournalScreen {
         }
     }
 
-    func handleCompletionLevelChange(to newLevel: JournalCompletionLevel) {
+    func handleJournalProgressChange() {
         if !hasInitializedCompletionTracking {
+            initializeJournalCompletionTracking()
+            return
+        }
+        processJournalProgressUpdate()
+    }
+
+    private func initializeJournalCompletionTracking() {
+        previousCompletionLevel = viewModel.completionLevel
+        previousGratitudesCount = viewModel.gratitudes.count
+        previousNeedsCount = viewModel.needs.count
+        previousPeopleCount = viewModel.people.count
+        hasInitializedCompletionTracking = true
+        syncGuidedJournalCompletionIfNeeded()
+        evaluatePostSeedJourneyIfNeeded(for: viewModel.completionLevel)
+    }
+
+    private func processJournalProgressUpdate() {
+        let newLevel = viewModel.completionLevel
+        let newGratitudesCount = viewModel.gratitudes.count
+        let newNeedsCount = viewModel.needs.count
+        let newPeopleCount = viewModel.people.count
+
+        let prevLevel = previousCompletionLevel
+        let prevGratitudesCount = previousGratitudesCount
+        let prevNeedsCount = previousNeedsCount
+        let prevPeopleCount = previousPeopleCount
+
+        let newRank = newLevel.tutorialCompletionRank
+        let prevRank = prevLevel.tutorialCompletionRank
+
+        let milestoneOutcome = JournalTutorialUnlockEvaluator.milestoneOutcome(
+            JournalTutorialUnlockEvaluator.MilestoneEvaluationInput(
+                previousLevel: prevLevel,
+                newLevel: newLevel,
+                previousGratitudes: prevGratitudesCount,
+                previousNeeds: prevNeedsCount,
+                previousPeople: prevPeopleCount,
+                newGratitudes: newGratitudesCount,
+                newNeeds: newNeedsCount,
+                newPeople: newPeopleCount,
+                hasCelebratedFirstTripleOne: tutorialProgress.hasCelebratedFirstTripleOne,
+                hasCelebratedFirstBalanced: tutorialProgress.hasCelebratedFirstBalanced,
+                hasCelebratedFirstFull: tutorialProgress.hasCelebratedFirstFull
+            )
+        )
+
+        defer {
             previousCompletionLevel = newLevel
-            hasInitializedCompletionTracking = true
-            syncGuidedJournalCompletionIfNeeded(for: newLevel)
-            evaluatePostSeedJourneyIfNeeded(for: newLevel)
+            previousGratitudesCount = newGratitudesCount
+            previousNeedsCount = newNeedsCount
+            previousPeopleCount = newPeopleCount
+        }
+
+        if newRank < prevRank {
+            dismissUnlockToastAndCelebrationForRankDown()
+            syncGuidedAndPostSeedOnTodayIfNeeded(for: newLevel)
             return
         }
 
-        let previousRank = previousCompletionLevel.tutorialCompletionRank
-        let newRank = newLevel.tutorialCompletionRank
+        let rankUp = newRank > prevRank && newLevel != .empty
 
-        if newRank > previousRank, newLevel != .soil {
-            let unlockOutcome = JournalTutorialUnlockEvaluator.outcome(
-                previousRank: previousRank,
-                newRank: newRank,
-                newLevel: newLevel,
-                hasCelebratedFirstSeed: tutorialProgress.hasCelebratedFirstSeed,
-                hasCelebratedFirstHarvest: tutorialProgress.hasCelebratedFirstHarvest
-            )
-            triggerStatusCelebration(for: newLevel)
-            let suppressSeedUnlockToast = JournalTodayOrientationPolicy.shouldSuppressSeedUnlockToast(
-                isTodayEntry: entryDate == nil,
-                newLevel: newLevel,
-                hasSeenPostSeedJourney: hasSeenPostSeedJourney
-            )
-            if !suppressSeedUnlockToast {
-                presentUnlockToast(for: newLevel, milestoneHighlight: unlockOutcome.milestoneHighlight)
-            }
-            tutorialProgress.applyRecording(from: unlockOutcome)
-        } else if newRank < previousRank {
-            statusCelebrationDismissTask?.cancel()
-            celebratingLevel = nil
-            let dismissingLevel = unlockToastLevel
-            let fallbackExit = Animation.easeOut(duration: 0.16)
-            let toastExit = reduceMotion
-                ? nil
-                : dismissingLevel.map { AppTheme.unlockToastExitAnimation(for: $0) } ?? fallbackExit
-            withAnimation(toastExit) {
-                unlockToastLevel = nil
-                unlockToastMilestone = .none
-                unlockToastScrollBaseline = nil
-            }
+        if milestoneOutcome == nil && !rankUp {
+            syncGuidedAndPostSeedOnTodayIfNeeded(for: newLevel)
+            return
         }
 
-        previousCompletionLevel = newLevel
-        syncGuidedJournalCompletionIfNeeded(for: newLevel)
+        if let milestoneOutcome {
+            applyMilestoneUnlockToast(milestoneOutcome, newLevel: newLevel)
+        } else if rankUp {
+            applyGenericRankUpUnlockToast(newLevel: newLevel)
+        }
+
+        syncGuidedAndPostSeedOnTodayIfNeeded(for: newLevel)
+    }
+
+    private func dismissUnlockToastAndCelebrationForRankDown() {
+        statusCelebrationDismissTask?.cancel()
+        celebratingLevel = nil
+        let dismissingLevel = unlockToastLevel
+        let fallbackExit = Animation.easeOut(duration: 0.16)
+        let toastExit = reduceMotion
+            ? nil
+            : dismissingLevel.map { AppTheme.unlockToastExitAnimation(for: $0) } ?? fallbackExit
+        withAnimation(toastExit) {
+            unlockToastLevel = nil
+            unlockToastMilestone = .none
+            unlockToastScrollBaseline = nil
+        }
+    }
+
+    private func syncGuidedAndPostSeedOnTodayIfNeeded(for newLevel: JournalCompletionLevel) {
+        guard entryDate == nil else { return }
+        syncGuidedJournalCompletionIfNeeded()
         evaluatePostSeedJourneyIfNeeded(for: newLevel)
+    }
+
+    private func applyMilestoneUnlockToast(
+        _ milestoneOutcome: JournalTutorialUnlockEvaluator.MilestoneOutcome,
+        newLevel: JournalCompletionLevel
+    ) {
+        tutorialProgress.applyRecording(from: milestoneOutcome)
+        triggerStatusCelebration(for: newLevel)
+        let suppress = JournalTodayOrientationPolicy.shouldSuppressSeedUnlockToast(
+            isTodayEntry: entryDate == nil,
+            newLevel: newLevel,
+            hasSeenPostSeedJourney: hasSeenPostSeedJourney,
+            milestoneHighlight: milestoneOutcome.milestoneHighlight
+        )
+        if !suppress {
+            presentUnlockToast(for: newLevel, milestoneHighlight: milestoneOutcome.milestoneHighlight)
+        }
+    }
+
+    private func applyGenericRankUpUnlockToast(newLevel: JournalCompletionLevel) {
+        triggerStatusCelebration(for: newLevel)
+        let suppress = JournalTodayOrientationPolicy.shouldSuppressSeedUnlockToast(
+            isTodayEntry: entryDate == nil,
+            newLevel: newLevel,
+            hasSeenPostSeedJourney: hasSeenPostSeedJourney,
+            milestoneHighlight: .none
+        )
+        if !suppress {
+            presentUnlockToast(for: newLevel, milestoneHighlight: .none)
+        }
     }
 
     func runJournalScreenLoadTask() async {
@@ -737,8 +830,11 @@ private extension JournalScreen {
             }
         }
         previousCompletionLevel = viewModel.completionLevel
+        previousGratitudesCount = viewModel.gratitudes.count
+        previousNeedsCount = viewModel.needs.count
+        previousPeopleCount = viewModel.people.count
         hasInitializedCompletionTracking = true
-        syncGuidedJournalCompletionIfNeeded(for: viewModel.completionLevel)
+        syncGuidedJournalCompletionIfNeeded()
         focusOnboardingStepIfNeeded(onboardingPresentation.step)
         evaluatePostSeedJourneyIfNeeded(for: viewModel.completionLevel)
         PerformanceTrace.end("JournalScreen.loadTask", startedAt: loadTrace)
@@ -769,8 +865,8 @@ private extension JournalScreen {
     var onboardingSuggestionContext: JournalOnboardingSuggestionContext {
         JournalOnboardingSuggestionContext(
             entryDate: entryDate,
-            hasCelebratedFirstSeed: tutorialProgress.hasCelebratedFirstSeed,
-            hasCelebratedFirstHarvest: tutorialProgress.hasCelebratedFirstHarvest,
+            hasCelebratedFirstTripleOne: tutorialProgress.hasCelebratedFirstTripleOne,
+            hasCelebratedFirstFull: tutorialProgress.hasCelebratedFirstFull,
             dismissedRemindersSuggestion: dismissedRemindersSuggestion,
             openedRemindersSuggestion: openedRemindersSuggestion,
             hasConfiguredReminderTime: hasConfiguredReminderTime,
@@ -815,9 +911,9 @@ private extension JournalScreen {
         }
     }
 
-    func syncGuidedJournalCompletionIfNeeded(for level: JournalCompletionLevel) {
+    func syncGuidedJournalCompletionIfNeeded() {
         guard entryDate == nil else { return }
-        guard level == .abundance else { return }
+        guard viewModel.completedToday else { return }
         guard !hasCompletedGuidedJournal else { return }
         hasCompletedGuidedJournal = true
     }
@@ -1320,25 +1416,25 @@ private extension JournalScreen {
             return .opacity
         }
         switch level {
-        case .soil:
+        case .empty:
             return .opacity
-        case .seed:
+        case .started:
             return .move(edge: .bottom).combined(with: .opacity)
-        case .ripening:
+        case .growing:
             return .asymmetric(
                 insertion: .move(edge: .bottom)
                     .combined(with: .opacity)
                     .combined(with: .scale(scale: 0.97, anchor: .bottom)),
                 removal: .opacity.combined(with: .move(edge: .bottom))
             )
-        case .harvest:
+        case .balanced:
             return .asymmetric(
                 insertion: .move(edge: .bottom)
                     .combined(with: .opacity)
                     .combined(with: .scale(scale: 0.96, anchor: .bottom)),
                 removal: .opacity.combined(with: .move(edge: .bottom))
             )
-        case .abundance:
+        case .full:
             return .asymmetric(
                 insertion: .move(edge: .bottom)
                     .combined(with: .opacity)
@@ -1368,17 +1464,17 @@ private extension JournalScreen {
 
     func triggerStatusHaptics(for level: JournalCompletionLevel) {
         switch level {
-        case .soil:
+        case .empty:
             break
-        case .seed:
+        case .started:
             let light = UIImpactFeedbackGenerator(style: .light)
             light.prepare()
             light.impactOccurred(intensity: reduceMotion ? 0.45 : 0.65)
-        case .ripening:
+        case .growing:
             let light = UIImpactFeedbackGenerator(style: .light)
             light.prepare()
             light.impactOccurred(intensity: reduceMotion ? 0.5 : 0.72)
-        case .harvest:
+        case .balanced:
             let notification = UINotificationFeedbackGenerator()
             notification.prepare()
             notification.notificationOccurred(.success)
@@ -1388,7 +1484,7 @@ private extension JournalScreen {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
                 medium.impactOccurred(intensity: self.reduceMotion ? 0.6 : 0.85)
             }
-        case .abundance:
+        case .full:
             let notification = UINotificationFeedbackGenerator()
             notification.prepare()
             notification.notificationOccurred(.success)

@@ -3,8 +3,8 @@ import Foundation
 /// Inputs needed to decide which milestone Settings suggestion (if any) applies on Today.
 struct JournalOnboardingSuggestionContext: Equatable {
     var entryDate: Date?
-    var hasCelebratedFirstSeed: Bool
-    var hasCelebratedFirstHarvest: Bool
+    var hasCelebratedFirstTripleOne: Bool
+    var hasCelebratedFirstFull: Bool
     var dismissedRemindersSuggestion: Bool
     var openedRemindersSuggestion: Bool
     var hasConfiguredReminderTime: Bool
@@ -23,7 +23,7 @@ enum JournalOnboardingSuggestionEvaluator {
     static func currentSuggestion(context: JournalOnboardingSuggestionContext) -> JournalOnboardingSuggestion? {
         guard context.entryDate == nil else { return nil }
 
-        if context.hasCelebratedFirstSeed,
+        if context.hasCelebratedFirstTripleOne,
            !context.dismissedRemindersSuggestion,
            !context.openedRemindersSuggestion,
            !context.hasConfiguredReminderTime {
@@ -31,7 +31,7 @@ enum JournalOnboardingSuggestionEvaluator {
         }
 
         if AppFeatureFlags.cloudAIUserFacingEnabled,
-           context.hasCelebratedFirstHarvest,
+           context.hasCelebratedFirstFull,
            !context.dismissedAISuggestion,
            !context.openedAISuggestion,
            !context.aiFeaturesEnabled,

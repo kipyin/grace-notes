@@ -221,9 +221,7 @@ final class JournalViewModel {
         JournalEntry.completionLevel(
             gratitudesCount: gratitudes.count,
             needsCount: needs.count,
-            peopleCount: people.count,
-            readingNotes: readingNotes,
-            reflections: reflections
+            peopleCount: people.count
         )
     }
 }

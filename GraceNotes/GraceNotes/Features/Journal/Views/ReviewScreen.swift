@@ -303,16 +303,16 @@ struct ReviewScreen: View {
 
     private func completionText(for completionLevel: JournalCompletionLevel) -> String {
         switch completionLevel {
-        case .abundance:
-            return String(localized: "Abundance")
-        case .harvest:
-            return String(localized: "Harvest")
-        case .ripening:
-            return String(localized: "Ripening")
-        case .seed:
-            return String(localized: "Seed")
-        case .soil:
-            return String(localized: "Soil")
+        case .empty:
+            return String(localized: "Empty")
+        case .started:
+            return String(localized: "Started")
+        case .growing:
+            return String(localized: "Growing")
+        case .balanced:
+            return String(localized: "Balanced")
+        case .full:
+            return String(localized: "Full")
         }
     }
 
@@ -359,41 +359,41 @@ private struct HistoryRow: View {
     @ViewBuilder
     private func completionBadge(lineLimit: Int) -> some View {
         switch entry.completionLevel {
-        case .abundance:
+        case .full:
             statusChip(
-                text: String(localized: "Abundance"),
+                text: String(localized: "Full"),
                 textColor: AppTheme.reviewCompleteText,
                 backgroundColor: AppTheme.reviewCompleteBackground,
                 borderColor: AppTheme.reviewCompleteBorder
             )
             .lineLimit(lineLimit)
-        case .harvest:
+        case .balanced:
             statusChip(
-                text: String(localized: "Harvest"),
+                text: String(localized: "Balanced"),
                 textColor: AppTheme.reviewStandardText,
                 backgroundColor: AppTheme.reviewStandardBackground,
                 borderColor: AppTheme.reviewStandardBorder
             )
             .lineLimit(lineLimit)
-        case .ripening:
+        case .growing:
             statusChip(
-                text: String(localized: "Ripening"),
+                text: String(localized: "Growing"),
                 textColor: AppTheme.reviewStandardText,
                 backgroundColor: AppTheme.reviewStandardBackground,
                 borderColor: AppTheme.reviewStandardBorder
             )
             .lineLimit(lineLimit)
-        case .seed:
+        case .started:
             statusChip(
-                text: String(localized: "Seed"),
+                text: String(localized: "Started"),
                 textColor: AppTheme.reviewQuickStartText,
                 backgroundColor: AppTheme.reviewQuickStartBackground,
                 borderColor: AppTheme.reviewQuickStartBorder
             )
             .lineLimit(lineLimit)
-        case .soil:
+        case .empty:
             statusChip(
-                text: String(localized: "Soil"),
+                text: String(localized: "Empty"),
                 textColor: AppTheme.reviewTextMuted,
                 backgroundColor: AppTheme.reviewBackground,
                 borderColor: AppTheme.border

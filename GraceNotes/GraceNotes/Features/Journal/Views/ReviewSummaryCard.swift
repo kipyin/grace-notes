@@ -356,10 +356,9 @@ struct ReviewSummaryCard: View {
                     Text(day.date.formatted(.dateTime.weekday(.narrow)))
                         .font(AppTheme.warmPaperMeta)
                         .foregroundStyle(AppTheme.reviewTextMuted)
-                    Image(systemName: activityIconName(for: day))
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(activityIconTint(for: day))
-                        .frame(width: 16, height: 16)
+                    Circle()
+                        .fill(activityIconTint(for: day))
+                        .frame(width: 10, height: 10)
                 }
                 .frame(maxWidth: .infinity)
                 .accessibilityElement(children: .ignore)
@@ -370,24 +369,17 @@ struct ReviewSummaryCard: View {
 
     private func localizedCompletionStageName(for level: JournalCompletionLevel) -> String {
         switch level {
-        case .soil:
-            String(localized: "Soil")
-        case .seed:
-            String(localized: "Seed")
-        case .ripening:
-            String(localized: "Ripening")
-        case .harvest:
-            String(localized: "Harvest")
-        case .abundance:
-            String(localized: "Abundance")
+        case .empty:
+            String(localized: "Empty")
+        case .started:
+            String(localized: "Started")
+        case .growing:
+            String(localized: "Growing")
+        case .balanced:
+            String(localized: "Balanced")
+        case .full:
+            String(localized: "Full")
         }
-    }
-
-    private func activityIconName(for day: ReviewDayActivity) -> String {
-        guard let level = day.strongestCompletionLevel else {
-            return "circle"
-        }
-        return level.completionStatusSystemImage(isEmphasized: level == .harvest || level == .abundance)
     }
 
     private func activityIconTint(for day: ReviewDayActivity) -> Color {
@@ -395,15 +387,15 @@ struct ReviewSummaryCard: View {
             return AppTheme.reviewTextMuted.opacity(0.35)
         }
         switch level {
-        case .soil:
+        case .empty:
             return AppTheme.reviewTextMuted
-        case .seed:
+        case .started:
             return AppTheme.reviewQuickStartText
-        case .ripening:
+        case .growing:
             return AppTheme.reviewStandardText
-        case .harvest:
+        case .balanced:
             return AppTheme.reviewAccent
-        case .abundance:
+        case .full:
             return AppTheme.reviewCompleteText
         }
     }
@@ -411,7 +403,7 @@ struct ReviewSummaryCard: View {
     private func activityAccessibilityLabel(for day: ReviewDayActivity) -> String {
         let dateText = day.date.formatted(date: .abbreviated, time: .omitted)
         if let level = day.strongestCompletionLevel {
-            if level == .soil {
+            if level == .empty {
                 return String(
                     format: String(localized: "You wrote on %@"),
                     dateText

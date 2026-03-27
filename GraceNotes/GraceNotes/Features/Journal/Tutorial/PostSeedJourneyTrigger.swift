@@ -14,8 +14,8 @@ enum PostSeedJourneyTrigger {
     ) -> Outcome? {
         guard !hasSeenPostSeedJourney else { return nil }
 
-        let seedRank = JournalCompletionLevel.seed.tutorialCompletionRank
-        guard todayCompletionLevel.tutorialCompletionRank >= seedRank else { return nil }
+        let startedRank = JournalCompletionLevel.started.tutorialCompletionRank
+        guard todayCompletionLevel.tutorialCompletionRank >= startedRank else { return nil }
 
         let skipsCongratulationsPage = hasCompletedGuidedJournal
         return Outcome(skipsCongratulationsPage: skipsCongratulationsPage)

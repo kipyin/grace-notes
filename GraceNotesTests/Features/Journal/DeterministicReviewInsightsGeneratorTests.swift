@@ -152,19 +152,19 @@ final class DeterministicReviewInsightsTests: XCTestCase {
             insights.weekStats.activity
                 .first(where: { calendar.isDate($0.date, inSameDayAs: seedDay) })?
                 .strongestCompletionLevel,
-            .seed
+            .started
         )
         XCTAssertEqual(
             insights.weekStats.activity
                 .first(where: { calendar.isDate($0.date, inSameDayAs: harvestDay) })?
                 .strongestCompletionLevel,
-            .harvest
+            .full
         )
         XCTAssertEqual(
             insights.weekStats.activity
                 .first(where: { calendar.isDate($0.date, inSameDayAs: textOnlyDay) })?
                 .strongestCompletionLevel,
-            .soil
+            .empty
         )
     }
 

@@ -74,13 +74,13 @@ final class Orientation051LaunchTests: XCTestCase {
         XCTAssertFalse(defaults.bool(forKey: JournalOnboardingStorageKeys.completedGuidedJournal))
     }
 
-    func test_resolveBranch_atSoil_clearsFlagWithoutForcingGuidedComplete() {
+    func test_resolveBranch_atEmpty_clearsFlagWithoutForcingGuidedComplete() {
         let defaults = UserDefaults(suiteName: suiteName!)!
         defaults.set(true, forKey: legacyPendingBranch)
         defaults.set(false, forKey: JournalOnboardingStorageKeys.completedGuidedJournal)
 
         JournalOnboardingProgress.resolvePending051GuidedJournalBranch(
-            todayCompletionLevel: .soil,
+            todayCompletionLevel: .empty,
             using: defaults
         )
 
@@ -88,12 +88,12 @@ final class Orientation051LaunchTests: XCTestCase {
         XCTAssertFalse(defaults.bool(forKey: JournalOnboardingStorageKeys.completedGuidedJournal))
     }
 
-    func test_resolveBranch_atSeed_setsGuidedComplete() {
-        assertResolveBranchAtOrAboveSeedSetsGuidedComplete(level: .seed)
+    func test_resolveBranch_atStarted_setsGuidedComplete() {
+        assertResolveBranchAtOrAboveStartedSetsGuidedComplete(level: .started)
     }
 
-    func test_resolveBranch_atRipening_setsGuidedComplete() {
-        assertResolveBranchAtOrAboveSeedSetsGuidedComplete(level: .ripening)
+    func test_resolveBranch_atGrowing_setsGuidedComplete() {
+        assertResolveBranchAtOrAboveStartedSetsGuidedComplete(level: .growing)
     }
 
     func test_resolvedHasCompletedGuidedJournal_afterMigrateFromUpgrade_returnsFalse() {
@@ -108,7 +108,7 @@ final class Orientation051LaunchTests: XCTestCase {
         XCTAssertTrue(defaults.bool(forKey: legacyPendingBranch))
     }
 
-    private func assertResolveBranchAtOrAboveSeedSetsGuidedComplete(level: JournalCompletionLevel) {
+    private func assertResolveBranchAtOrAboveStartedSetsGuidedComplete(level: JournalCompletionLevel) {
         let defaults = UserDefaults(suiteName: suiteName!)!
         defaults.set(true, forKey: legacyPendingBranch)
 

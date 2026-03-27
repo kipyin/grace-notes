@@ -241,8 +241,8 @@ private extension JournalOnboardingFlowEvaluator {
     static func ripeningPresentation() -> JournalOnboardingPresentation {
         presentation(
             step: .ripening,
-            title: String(localized: "Seed"),
-            message: String(localized: "You've planted Seed. Keep going until each section has three."),
+            title: String(localized: "Started"),
+            message: String(localized: "You've begun. Keep going until each section has three."),
             states: chipSectionPresentation(
                 chipState: .active,
                 notesState: .active,
@@ -254,7 +254,7 @@ private extension JournalOnboardingFlowEvaluator {
     static func harvestPresentation() -> JournalOnboardingPresentation {
         presentation(
             step: .harvest,
-            title: String(localized: "Ripening"),
+            title: String(localized: "Balanced"),
             message: String(
                 localized: "You're ready to keep filling the rows. Reach five in each section when it feels right."
             ),
@@ -269,10 +269,10 @@ private extension JournalOnboardingFlowEvaluator {
     static func abundancePresentation() -> JournalOnboardingPresentation {
         presentation(
             step: .abundance,
-            title: String(localized: "Harvest"),
+            title: String(localized: "Full"),
             message: String(
                 // swiftlint:disable:next line_length
-                localized: "You've filled Gratitudes, Needs, and People. Add reading notes and reflections when you're ready for Abundance."
+                localized: "You've filled Gratitudes, Needs, and People. Add reading notes and reflections when you're ready."
             ),
             states: chipSectionPresentation(
                 chipState: .available,

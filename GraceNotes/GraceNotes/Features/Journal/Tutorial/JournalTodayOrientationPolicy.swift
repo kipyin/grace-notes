@@ -38,9 +38,11 @@ enum JournalTodayOrientationPolicy {
     static func shouldSuppressSeedUnlockToast(
         isTodayEntry: Bool,
         newLevel: JournalCompletionLevel,
-        hasSeenPostSeedJourney: Bool
+        hasSeenPostSeedJourney: Bool,
+        milestoneHighlight: JournalUnlockMilestoneHighlight
     ) -> Bool {
-        guard isTodayEntry, newLevel == .seed, !hasSeenPostSeedJourney else { return false }
+        guard milestoneHighlight == .none else { return false }
+        guard isTodayEntry, newLevel == .started, !hasSeenPostSeedJourney else { return false }
         return true
     }
 }

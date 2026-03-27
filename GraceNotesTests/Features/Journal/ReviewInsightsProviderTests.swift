@@ -288,11 +288,11 @@ extension ReviewInsightsProviderTests {
             reflectionDays: 3,
             meaningfulEntryCount: 3,
             completionMix: ReviewWeekCompletionMix(
-                soilDays: 0,
-                seedDays: 0,
-                ripeningDays: 1,
-                harvestDays: 2,
-                abundanceDays: 0
+                emptyDays: 0,
+                startedDays: 0,
+                growingDays: 1,
+                balancedDays: 2,
+                fullDays: 0
             ),
             activity: [
                 ReviewDayActivity(date: Date(timeIntervalSince1970: 1), hasReflectiveActivity: true),

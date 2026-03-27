@@ -188,11 +188,11 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
             reflectionDays: 2,
             meaningfulEntryCount: 2,
             completionMix: ReviewWeekCompletionMix(
-                soilDays: 0,
-                seedDays: 1,
-                ripeningDays: 0,
-                harvestDays: 1,
-                abundanceDays: 0
+                emptyDays: 0,
+                startedDays: 1,
+                growingDays: 0,
+                balancedDays: 1,
+                fullDays: 0
             ),
             activity: [ReviewDayActivity(date: weekStart, hasReflectiveActivity: true)],
             sectionTotals: ReviewWeekSectionTotals(

@@ -1,64 +1,47 @@
 import Foundation
 
 enum CompletionBadgeInfo: Equatable {
-    case soil
-    case seed
-    case ripening
-    case harvest
-    case abundance
+    case empty
+    case started
+    case growing
+    case balanced
+    case full
 
     var title: String {
         switch self {
-        case .soil:
-            return String(localized: "Soil")
-        case .seed:
-            return String(localized: "Seed")
-        case .ripening:
-            return String(localized: "Ripening")
-        case .harvest:
-            return String(localized: "Harvest")
-        case .abundance:
-            return String(localized: "Abundance")
-        }
-    }
-
-    var iconName: String {
-        journalCompletionLevel.completionStatusSystemImage(isEmphasized: true)
-    }
-
-    private var journalCompletionLevel: JournalCompletionLevel {
-        switch self {
-        case .soil:
-            return .soil
-        case .seed:
-            return .seed
-        case .ripening:
-            return .ripening
-        case .harvest:
-            return .harvest
-        case .abundance:
-            return .abundance
+        case .empty:
+            return String(localized: "Empty")
+        case .started:
+            return String(localized: "Started")
+        case .growing:
+            return String(localized: "Growing")
+        case .balanced:
+            return String(localized: "Balanced")
+        case .full:
+            return String(localized: "Full")
         }
     }
 
     // swiftlint:disable line_length
     var description: String {
         switch self {
-        case .soil:
-            return String(localized: "Soil means you have not yet added at least one gratitude, one need, and one person.")
-        case .seed:
-            return String(localized: "Seed means each section has at least one item, and you are still building toward three in each section.")
-        case .ripening:
+        case .empty:
+            return String(localized: "Empty means you have not added anything in Gratitudes, Needs, or People in Mind yet.")
+        case .started:
             return String(
-                localized: "Ripening means you have at least three items in each section. Keep going to fill all five slots in each section to reach Harvest."
+                localized: "Started means you have begun filling the three sections, and each section still has fewer than three items."
             )
-        case .harvest:
+        case .growing:
             return String(
-                localized: "Harvest means every spot is filled—five gratitudes, five needs, and five people. Add reading notes and reflections to reach Abundance."
+                localized: "Growing means at least one section has three or more items and at least one section still has room to grow."
             )
-        case .abundance:
+        case .balanced:
             return String(
-                localized: "Abundance means every spot is filled in Gratitudes, Needs, and People, and you have added reading notes and reflections for today."
+                localized: "Balanced means each section has at least three items. Keep going until each section has five for Full."
+            )
+        case .full:
+            return String(
+                localized: "Full means all five spots are filled in Gratitudes, Needs, and People in Mind. Reading notes and reflections are separate from this status."
             )
         }
     }

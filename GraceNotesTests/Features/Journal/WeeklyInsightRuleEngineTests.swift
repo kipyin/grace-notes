@@ -138,7 +138,7 @@ final class WeeklyInsightRuleEngineTests: XCTestCase {
         }
     }
 
-    /// Surface text counts as a reflection day for `.soil` entries (no harvest chips).
+    /// Surface text counts as a reflection day for `.empty` chip status (no chips filled).
     func test_analyze_soilEntryWithSurfaceText_usesNonEmptySparseFallbackWhenWeekIsSparse() throws {
         try withInsertedEntries { context in
             let entries = [

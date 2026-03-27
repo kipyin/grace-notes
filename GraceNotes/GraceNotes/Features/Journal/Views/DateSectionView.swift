@@ -15,6 +15,9 @@ struct DateSectionView: View {
 
     let completionLevel: JournalCompletionLevel
     let celebratingLevel: JournalCompletionLevel?
+    let gratitudesCount: Int
+    let needsCount: Int
+    let peopleCount: Int
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -63,85 +66,75 @@ struct DateSectionView: View {
     private var completionStatusLabel: some View {
         Group {
             switch completionLevel {
-            case .soil:
-                Button {
-                    completionBadgeTapped(.soil)
-                } label: {
-                    JournalCompletionPill(
-                        completionLevel: .soil,
-                        celebratingLevel: celebratingLevel,
-                        morphSource: false,
-                        morphNamespace: completionInfoMorphNamespace,
-                        morphAccentColor: infoCardTintColor(for: selectedBadgeInfo ?? .soil),
-                        morphBloomProgress: infoCardBloomProgress
-                    )
-                }
-                .buttonStyle(WarmPaperPressStyle())
-                .accessibilityHint(String(localized: "Shows what Soil means for today."))
-            case .seed:
-                Button {
-                    completionBadgeTapped(.seed)
-                } label: {
-                    JournalCompletionPill(
-                        completionLevel: .seed,
-                        celebratingLevel: celebratingLevel,
-                        morphSource: false,
-                        morphNamespace: completionInfoMorphNamespace,
-                        morphAccentColor: infoCardTintColor(for: selectedBadgeInfo ?? .seed),
-                        morphBloomProgress: infoCardBloomProgress
-                    )
-                }
-                .buttonStyle(WarmPaperPressStyle())
-                .accessibilityHint(String(localized: "Shows what Seed means for today."))
-            case .ripening:
-                Button {
-                    completionBadgeTapped(.ripening)
-                } label: {
-                    JournalCompletionPill(
-                        completionLevel: .ripening,
-                        celebratingLevel: celebratingLevel,
-                        morphSource: false,
-                        morphNamespace: completionInfoMorphNamespace,
-                        morphAccentColor: infoCardTintColor(for: selectedBadgeInfo ?? .ripening),
-                        morphBloomProgress: infoCardBloomProgress
-                    )
-                }
-                .buttonStyle(WarmPaperPressStyle())
-                .accessibilityHint(String(localized: "Shows what Ripening means for today."))
-            case .harvest:
-                Button {
-                    completionBadgeTapped(.harvest)
-                } label: {
-                    JournalCompletionPill(
-                        completionLevel: .harvest,
-                        celebratingLevel: celebratingLevel,
-                        morphSource: false,
-                        morphNamespace: completionInfoMorphNamespace,
-                        morphAccentColor: infoCardTintColor(for: selectedBadgeInfo ?? .harvest),
-                        morphBloomProgress: infoCardBloomProgress
-                    )
-                }
-                .buttonStyle(WarmPaperPressStyle())
-                .accessibilityHint(String(localized: "Shows what Harvest means for today."))
-            case .abundance:
-                Button {
-                    completionBadgeTapped(.abundance)
-                } label: {
-                    JournalCompletionPill(
-                        completionLevel: .abundance,
-                        celebratingLevel: celebratingLevel,
-                        morphSource: false,
-                        morphNamespace: completionInfoMorphNamespace,
-                        morphAccentColor: infoCardTintColor(for: selectedBadgeInfo ?? .abundance),
-                        morphBloomProgress: infoCardBloomProgress
-                    )
-                }
-                .buttonStyle(WarmPaperPressStyle())
-                .accessibilityHint(String(localized: "Shows what Abundance means for today."))
+            case .empty:
+                statusButton(.empty)
+            case .started:
+                statusButton(.started)
+            case .growing:
+                statusButton(.growing)
+            case .balanced:
+                statusButton(.balanced)
+            case .full:
+                statusButton(.full)
             }
         }
     }
 
+    private func statusButton(_ badgeInfo: CompletionBadgeInfo) -> some View {
+        Button {
+            completionBadgeTapped(badgeInfo)
+        } label: {
+            JournalCompletionPill(
+                completionLevel: badgeInfo.completionLevel,
+                celebratingLevel: celebratingLevel,
+                morphSource: false,
+                morphNamespace: completionInfoMorphNamespace,
+                morphAccentColor: infoCardTintColor(for: selectedBadgeInfo ?? badgeInfo),
+                morphBloomProgress: infoCardBloomProgress
+            )
+        }
+        .buttonStyle(WarmPaperPressStyle())
+        .accessibilityHint(String(localized: "Shows what this status means for today."))
+        .accessibilityLabel(statusAccessibilityLabel(for: badgeInfo.completionLevel))
+    }
+
+    private func statusAccessibilityLabel(for level: JournalCompletionLevel) -> String {
+        let statusName = CompletionBadgeInfo.matching(level).title
+        let format = String(localized: "%1$@. Gratitudes %2$d, Needs %3$d, People in Mind %4$d.")
+        return String(format: format, locale: Locale.current, statusName, gratitudesCount, needsCount, peopleCount)
+    }
+}
+
+private extension CompletionBadgeInfo {
+    var completionLevel: JournalCompletionLevel {
+        switch self {
+        case .empty:
+            return .empty
+        case .started:
+            return .started
+        case .growing:
+            return .growing
+        case .balanced:
+            return .balanced
+        case .full:
+            return .full
+        }
+    }
+
+    static func matching(_ level: JournalCompletionLevel) -> CompletionBadgeInfo {
+        switch level {
+        case .empty:
+            return .empty
+        case .started:
+            return .started
+        case .growing:
+            return .growing
+        case .balanced:
+            return .balanced
+        case .full:
+            return .full
+        }
+    }
 }
 
 private extension DateSectionView {
@@ -243,15 +236,13 @@ private extension DateSectionView {
 
     func infoCardTintColor(for badgeInfo: CompletionBadgeInfo) -> Color {
         switch badgeInfo {
-        case .soil:
+        case .empty:
             return AppTheme.journalTextMuted
-        case .seed:
+        case .started:
             return AppTheme.journalQuickCheckInText
-        case .ripening:
+        case .growing, .balanced:
             return AppTheme.journalStandardText
-        case .harvest:
-            return AppTheme.journalStandardText
-        case .abundance:
+        case .full:
             return AppTheme.journalFullText
         }
     }
