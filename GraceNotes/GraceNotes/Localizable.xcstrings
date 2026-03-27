@@ -6763,7 +6763,20 @@
       }
     },
     "You've begun. Keep going until each section has three." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You've begun. Keep going until each section has three."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你已经开始了。继续写，直到每个栏目都有三条。"
+          }
+        }
+      }
     },
     "You've filled Gratitudes, Needs, and People. Add reading notes and reflections when you're ready for Abundance." : {
       "extractionState" : "stale",
@@ -6783,7 +6796,20 @@
       }
     },
     "You've filled Gratitudes, Needs, and People. Add reading notes and reflections when you're ready." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You've filled Gratitudes, Needs, and People. Add reading notes and reflections when you're ready."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你已经在感恩、需要和牵挂的人三个栏目都写满了。可以在你准备好时继续写阅读笔记和今天的反思。"
+          }
+        }
+      }
     },
     "You've planted Seed for the first time—one gratitude, one need, and someone on your mind. Lovely." : {
       "extractionState" : "stale",

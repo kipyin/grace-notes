@@ -92,6 +92,19 @@ final class ReviewInsightsCacheTests: XCTestCase {
         XCTAssertEqual(decoded.cloudSkippedReason, .cloudInsightQualityCheckFailed)
     }
 
+    func test_ReviewWeekCompletionMix_decodesLegacySoilSeedKeyedPayload() throws {
+        let json = """
+        {"soilDays":1,"seedDays":2,"ripeningDays":3,"harvestDays":4,"abundanceDays":5}
+        """
+        let data = try XCTUnwrap(json.data(using: .utf8))
+        let mix = try JSONDecoder().decode(ReviewWeekCompletionMix.self, from: data)
+        XCTAssertEqual(mix.emptyDays, 1)
+        XCTAssertEqual(mix.startedDays, 2)
+        XCTAssertEqual(mix.growingDays, 0)
+        XCTAssertEqual(mix.balancedDays, 3)
+        XCTAssertEqual(mix.fullDays, 9)
+    }
+
     func test_corruptedPayload_clearsAndAllowsStore() async {
         // Must stay aligned with `ReviewInsightsCache.payloadKey`.
         let payloadKey = "GraceNotes.reviewInsightsByWeek.v1"

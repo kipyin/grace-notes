@@ -18,7 +18,7 @@ enum JournalTutorialHintPresentation {
             return .seed
         }
         let fifteenSlots = JournalViewModel.slotCount * 3
-        if completionLevel == .started || completionLevel == .growing,
+        if completionLevel == .started || completionLevel == .growing || completionLevel == .balanced,
            chipsFilledCount < fifteenSlots,
            !dismissedHarvestGuidance {
             return .harvest

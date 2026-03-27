@@ -151,6 +151,41 @@ final class JournalCompletionLevelTests: XCTestCase {
         XCTAssertEqual(JournalCompletionLevel.full.tutorialCompletionRank, 4)
     }
 
+    func test_completionLevel_JSON_decodesLegacyRawStrings() throws {
+        let decoder = JSONDecoder()
+        let legacyPairs: [(String, JournalCompletionLevel)] = [
+            ("soil", .empty),
+            ("seed", .started),
+            ("ripening", .balanced),
+            ("harvest", .full),
+            ("abundance", .full)
+        ]
+        for (raw, expected) in legacyPairs {
+            let jsonString = "\"\(raw)\""
+            let data = try XCTUnwrap(jsonString.data(using: .utf8))
+            let decoded = try decoder.decode(JournalCompletionLevel.self, from: data)
+            XCTAssertEqual(decoded, expected, raw)
+        }
+    }
+
+    func test_completionLevel_JSON_encodesCurrentRawStrings() throws {
+        let data = try JSONEncoder().encode(JournalCompletionLevel.balanced)
+        XCTAssertEqual(String(data: data, encoding: .utf8), "\"balanced\"")
+    }
+
+    func test_hasMeaningfulContent_trueWhenOnlyReadingNotesOnEmptyChips() {
+        let entry = JournalEntry(
+            entryDate: .now,
+            gratitudes: [],
+            needs: [],
+            people: [],
+            readingNotes: "A verse stood out.",
+            reflections: ""
+        )
+        XCTAssertEqual(entry.completionLevel, .empty)
+        XCTAssertTrue(entry.hasMeaningfulContent)
+    }
+
     private func makeInMemoryContext() throws -> ModelContext {
         let schema = Schema([JournalEntry.self])
         let storeURL = FileManager.default.temporaryDirectory

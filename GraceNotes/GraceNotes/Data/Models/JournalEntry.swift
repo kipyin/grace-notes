@@ -2,12 +2,43 @@ import Foundation
 import SwiftData
 
 /// Chip-section completion status (Gratitudes, Needs, People in Mind only). Reading notes and reflections are excluded.
-enum JournalCompletionLevel: String, Equatable, Hashable, Sendable, Codable {
+enum JournalCompletionLevel: String, Equatable, Hashable, Sendable {
     case empty
     case started
     case growing
     case balanced
     case full
+}
+
+extension JournalCompletionLevel: Codable {
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let raw = try container.decode(String.self)
+        self = Self(decodingLegacyRawValue: raw)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = try encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
+
+    /// Maps persisted raw strings from older app versions (pre–chip-status rename) and unknown values.
+    init(decodingLegacyRawValue raw: String) {
+        switch raw {
+        case "empty", "soil":
+            self = .empty
+        case "started", "seed":
+            self = .started
+        case "growing":
+            self = .growing
+        case "balanced", "ripening":
+            self = .balanced
+        case "full", "harvest", "abundance":
+            self = .full
+        default:
+            self = .empty
+        }
+    }
 }
 
 @Model
@@ -156,8 +187,15 @@ final class JournalEntry {
         return .started
     }
 
+    /// True when chips show progress or the day has reading notes / reflections
+    /// (streaks and review eligibility).
     var hasMeaningfulContent: Bool {
-        completionLevel != .empty
+        if completionLevel != .empty {
+            return true
+        }
+        let notesTrimmed = readingNotes.trimmingCharacters(in: .whitespacesAndNewlines)
+        let reflectionsTrimmed = reflections.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !notesTrimmed.isEmpty || !reflectionsTrimmed.isEmpty
     }
 
     /// True when each chip section has at least one item (milestone “1/1/1”, independent of status name).
