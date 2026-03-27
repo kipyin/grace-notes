@@ -58,8 +58,12 @@ enum AppTheme {
     static let reviewQuickStartBackground = Color.adaptive(lightHex: 0xF5EDE4, darkHex: 0x2A241F)
     static let reviewQuickStartBorder = Color.adaptive(lightHex: 0xD9C7B5, darkHex: 0x8D7A69)
     static let reviewQuickStartText = Color.adaptive(lightHex: 0x6A5646, darkHex: 0xCDB9A6)
-    static let reviewRhythmActive = Color.adaptive(lightHex: 0xAA8E79, darkHex: 0xB69E8E)
-    static let reviewRhythmInactive = Color.adaptive(lightHex: 0xE7DED6, darkHex: 0x413731)
+    /// Day column fill — intentionally offset from ``reviewPaper`` to preserve rhythm structure.
+    static let reviewRhythmColumnFill = reviewStandardBackground
+    /// Day column / pill outline follows the matching standard border token.
+    static let reviewRhythmColumnStroke = reviewStandardBorder
+    /// Rhythm icon tint; dark mode uses near-white so SVG strokes stay visible.
+    static let reviewRhythmIconTint = Color.adaptive(lightHex: 0x5C5346, darkHex: 0xF2E8DE)
 
     // MARK: - Journal Semantic Colors
 
@@ -91,6 +95,45 @@ enum AppTheme {
     static let journalFullText = Color("JournalFullText")
     static let journalFullGlow = Color("JournalFullGlow")
     static let journalError = Color.adaptive(lightHex: 0xA3564A, darkHex: 0xD48C80)
+
+    static func reviewRhythmPillBackground(for level: JournalCompletionLevel) -> Color {
+        switch level {
+        case .empty:
+            return reviewPaper
+        case .started:
+            return reviewQuickStartBackground
+        case .growing, .balanced:
+            return reviewStandardBackground
+        case .full:
+            return reviewCompleteBackground
+        }
+    }
+
+    static func reviewRhythmPillBorder(for level: JournalCompletionLevel) -> Color {
+        switch level {
+        case .empty:
+            return reviewRhythmColumnStroke.opacity(0.9)
+        case .started:
+            return reviewQuickStartBorder
+        case .growing, .balanced:
+            return reviewStandardBorder
+        case .full:
+            return reviewCompleteBorder
+        }
+    }
+
+    static func reviewRhythmPillShadow(for level: JournalCompletionLevel) -> Color {
+        switch level {
+        case .empty:
+            return reviewRhythmColumnStroke.opacity(0.12)
+        case .started:
+            return reviewQuickStartBorder.opacity(0.24)
+        case .growing, .balanced:
+            return reviewStandardBorder.opacity(0.24)
+        case .full:
+            return reviewCompleteBorder.opacity(0.28)
+        }
+    }
 
     /// Alias for accent; kept for backward compatibility.
     static let primaryColor = accent

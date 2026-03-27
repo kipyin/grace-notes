@@ -13,6 +13,7 @@ struct ReviewSummaryCard: View {
     private static let minWeekEntriesToOmitContinueNudge = 4
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @State private var showCloudSkipExplanation = false
     @State private var cloudSkipExplanationMessage = ""
@@ -40,7 +41,6 @@ struct ReviewSummaryCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .fixedSize(horizontal: false, vertical: true)
-        .padding(.horizontal, 16)
         .padding(.vertical, 4)
         .alert(
             String(localized: "On your device this week"),
@@ -129,8 +129,7 @@ struct ReviewSummaryCard: View {
     private func weekRhythmPanel(for insights: ReviewInsights) -> some View {
         ReviewInsightInsetPanel(
             title: String(localized: "Reflection rhythm"),
-            panelChrome: .standard,
-            titleTrailingText: weekRangeText(insights)
+            panelChrome: .standard
         ) {
             rhythmHistoryCurve(for: insights)
         }
@@ -216,18 +215,6 @@ struct ReviewSummaryCard: View {
         case .cloudAI:
             String(localized: "Source: Cloud AI")
         }
-    }
-
-    private func weekRangeText(_ insights: ReviewInsights) -> String {
-        let calendar = Calendar.current
-        let inclusiveEnd = calendar.date(byAdding: .day, value: -1, to: insights.weekEnd) ?? insights.weekEnd
-        let startText = insights.weekStart.formatted(.dateTime.month(.abbreviated).day())
-        let endText = inclusiveEnd.formatted(.dateTime.month(.abbreviated).day())
-        return String(
-            format: String(localized: "%1$@ to %2$@"),
-            startText,
-            endText
-        )
     }
 
     private func shouldShowNarrativeSummary(for insights: ReviewInsights) -> Bool {
@@ -353,77 +340,243 @@ struct ReviewSummaryCard: View {
         let stats = insights.weekStats
         let days = stats.rhythmHistory ?? stats.activity
         let currentWeek = insights.weekStart..<insights.weekEnd
-        let calendar = Calendar.current
+        let metrics = RhythmCurveScaledMetrics(dynamicTypeSize: dynamicTypeSize)
 
         return ScrollViewReader { proxy in
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(alignment: .bottom, spacing: 8) {
-                    ForEach(days, id: \.date) { day in
-                        rhythmColumn(day: day, currentWeek: currentWeek, calendar: calendar)
-                            .id(day.date)
-                    }
-                }
-                .padding(.vertical, 6)
-                .padding(.horizontal, 4)
+            rhythmHistoryScrollSection(
+                proxy: proxy,
+                days: days,
+                currentWeek: currentWeek,
+                metrics: metrics
+            )
+        }
+    }
+
+    @ViewBuilder
+    private func rhythmHistoryScrollSection(
+        proxy: ScrollViewProxy,
+        days: [ReviewDayActivity],
+        currentWeek: Range<Date>,
+        metrics: RhythmCurveScaledMetrics
+    ) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 6) {
+                rhythmChartStrip(days: days, metrics: metrics)
+                rhythmLabelRow(
+                    days: days,
+                    currentWeek: currentWeek,
+                    metrics: metrics
+                )
             }
-            .background {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(AppTheme.reviewPaper.opacity(0.45))
-            }
-            .onAppear {
-                guard let last = days.last else { return }
+            .padding(.vertical, 8)
+        }
+        .frame(minHeight: metrics.horizontalScrollMinHeight)
+        .overlay {
+            rhythmHorizontalFeatherOverlay(daysCount: days.count, metrics: metrics)
+        }
+        .onAppear {
+            guard let last = days.last else { return }
+            DispatchQueue.main.async {
                 proxy.scrollTo(last.date, anchor: .trailing)
             }
         }
     }
 
-    private func rhythmColumn(
-        day: ReviewDayActivity,
-        currentWeek: Range<Date>,
-        calendar: Calendar
-    ) -> some View {
-        let activeRow = levelRowIndexFromTop(for: day)
-        let labelText = rhythmDayLabel(date: day.date, currentWeek: currentWeek, calendar: calendar)
-        return VStack(spacing: 6) {
-            VStack(spacing: 4) {
-                ForEach(0..<5, id: \.self) { rowFromTop in
-                    ZStack {
-                        Circle()
-                            .fill(Color.clear)
-                            .frame(width: 10, height: 10)
-                        if activeRow == rowFromTop {
-                            Circle()
-                                .fill(activityIconTint(for: day))
-                                .frame(width: 10, height: 10)
-                        }
-                    }
-                    .frame(height: 14)
+    @ViewBuilder
+    private func rhythmHorizontalFeatherOverlay(daysCount: Int, metrics: RhythmCurveScaledMetrics) -> some View {
+        GeometryReader { geo in
+            let estimatedContentWidth = metrics.estimatedContentWidth(daysCount: daysCount)
+            if estimatedContentWidth > geo.size.width + 1 {
+                let resolvedWidth = min(metrics.edgeFeatherWidth, geo.size.width * 0.45)
+                HStack(spacing: 0) {
+                    LinearGradient(
+                        colors: [AppTheme.reviewPaper, AppTheme.reviewPaper.opacity(0)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                    .frame(width: resolvedWidth)
+                    Spacer(minLength: 0)
+                    LinearGradient(
+                        colors: [AppTheme.reviewPaper.opacity(0), AppTheme.reviewPaper],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                    .frame(width: resolvedWidth)
                 }
             }
-            .frame(minHeight: 78)
-            Text(labelText)
-                .font(AppTheme.warmPaperMeta)
-                .foregroundStyle(AppTheme.reviewTextMuted)
-                .frame(width: 40)
-                .lineLimit(1)
-                .minimumScaleFactor(0.65)
         }
-        .frame(width: 44)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(activityAccessibilityLabel(for: day))
-        .accessibilityIdentifier(accessibilityRhythmColumnId(for: day))
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+
+    /// Per-day column with rounded fill; spaced from neighbors via ``RhythmCurveScaledMetrics/columnGap``.
+    @ViewBuilder
+    private func rhythmChartStrip(days: [ReviewDayActivity], metrics: RhythmCurveScaledMetrics) -> some View {
+        LazyHStack(alignment: .center, spacing: metrics.columnGap) {
+            Color.clear
+                .frame(width: metrics.chartHorizontalPadding)
+                .accessibilityHidden(true)
+            ForEach(Array(days.enumerated()), id: \.element.date) { index, day in
+                let cornerRadii = rhythmColumnCornerRadii(
+                    index: index,
+                    count: days.count,
+                    radius: metrics.columnCornerRadius
+                )
+                NavigationLink {
+                    JournalScreen(entryDate: day.date)
+                } label: {
+                    rhythmColumnChart(day: day, metrics: metrics)
+                        .frame(width: metrics.columnWidth)
+                        .background {
+                            UnevenRoundedRectangle(cornerRadii: cornerRadii, style: .continuous)
+                                .fill(AppTheme.reviewRhythmColumnFill)
+                        }
+                        .overlay {
+                            UnevenRoundedRectangle(cornerRadii: cornerRadii, style: .continuous)
+                                .stroke(AppTheme.reviewRhythmColumnStroke.opacity(0.58), lineWidth: 0.8)
+                        }
+                }
+                .buttonStyle(.plain)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(activityAccessibilityLabel(for: day))
+                .accessibilityHint(String(localized: "Opens that day's entry."))
+                .accessibilityIdentifier(accessibilityRhythmColumnId(for: day))
+                .id(day.date)
+            }
+            Color.clear
+                .frame(width: metrics.chartHorizontalPadding)
+                .accessibilityHidden(true)
+        }
+        .frame(minHeight: metrics.chartRowMinHeight)
+    }
+
+    /// Weekday / M·d labels aligned under columns (below column fills).
+    @ViewBuilder
+    private func rhythmLabelRow(
+        days: [ReviewDayActivity],
+        currentWeek: Range<Date>,
+        metrics: RhythmCurveScaledMetrics
+    ) -> some View {
+        LazyHStack(alignment: .top, spacing: metrics.columnGap) {
+            Color.clear
+                .frame(width: metrics.chartHorizontalPadding)
+                .accessibilityHidden(true)
+            ForEach(days, id: \.date) { day in
+                rhythmColumnLabel(
+                    date: day.date,
+                    currentWeek: currentWeek
+                )
+                .frame(width: metrics.columnWidth)
+            }
+            Color.clear
+                .frame(width: metrics.chartHorizontalPadding)
+                .accessibilityHidden(true)
+        }
+    }
+
+    private func rhythmColumnCornerRadii(
+        index: Int,
+        count: Int,
+        radius: CGFloat
+    ) -> RectangleCornerRadii {
+        if count <= 1 {
+            return RectangleCornerRadii(
+                topLeading: radius,
+                bottomLeading: radius,
+                bottomTrailing: radius,
+                topTrailing: radius
+            )
+        }
+        if index == 0 {
+            return RectangleCornerRadii(
+                topLeading: radius,
+                bottomLeading: radius,
+                bottomTrailing: 0,
+                topTrailing: 0
+            )
+        }
+        if index == count - 1 {
+            return RectangleCornerRadii(
+                topLeading: 0,
+                bottomLeading: 0,
+                bottomTrailing: radius,
+                topTrailing: radius
+            )
+        }
+        return RectangleCornerRadii(
+            topLeading: 0,
+            bottomLeading: 0,
+            bottomTrailing: 0,
+            topTrailing: 0
+        )
+    }
+
+    /// Five completion rows for one day; weekday labels sit in ``rhythmLabelRow``.
+    private func rhythmColumnChart(day: ReviewDayActivity, metrics: RhythmCurveScaledMetrics) -> some View {
+        let activeRow = levelRowIndexFromTop(for: day)
+        return VStack(spacing: 3) {
+            ForEach(0..<5, id: \.self) { rowFromTop in
+                ZStack {
+                    if activeRow == rowFromTop {
+                        rhythmStatusPill(for: day, metrics: metrics)
+                    } else {
+                        rhythmInactiveRowSlot()
+                    }
+                }
+                .frame(height: metrics.rowHeight)
+            }
+        }
+        .padding(.vertical, metrics.columnEdgeInset)
+        .frame(minHeight: metrics.chartMinHeight)
+    }
+
+    private func rhythmInactiveRowSlot() -> some View {
+        Color.clear
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .accessibilityHidden(true)
+    }
+
+    private func rhythmColumnLabel(
+        date: Date,
+        currentWeek: Range<Date>
+    ) -> some View {
+        Text(ReviewRhythmFormatting.dayLabel(date: date, currentWeek: currentWeek, calendar: .current))
+            .monospacedDigit()
+        .font(AppTheme.warmPaperCaption)
+        .foregroundStyle(AppTheme.reviewTextMuted)
+        .frame(maxWidth: .infinity)
+        .lineLimit(2)
+        .minimumScaleFactor(0.65)
+        .multilineTextAlignment(.center)
+    }
+
+    private func rhythmStatusPill(for day: ReviewDayActivity, metrics: RhythmCurveScaledMetrics) -> some View {
+        let level = effectiveCompletionLevel(for: day)
+        return Image(ReviewRhythmFormatting.assetName(for: level))
+            .renderingMode(.template)
+            .resizable()
+            .scaledToFit()
+            .foregroundStyle(AppTheme.reviewRhythmIconTint)
+            .frame(width: metrics.pillIconSize, height: metrics.pillIconSize)
+            .frame(width: metrics.pillChromeSize, height: metrics.pillChromeSize)
+            .background {
+                Capsule(style: .continuous)
+                    .fill(AppTheme.reviewRhythmPillBackground(for: level))
+            }
+            .overlay {
+                Capsule(style: .continuous)
+                    .stroke(AppTheme.reviewRhythmPillBorder(for: level), lineWidth: 1)
+            }
+            .shadow(color: AppTheme.reviewRhythmPillShadow(for: level), radius: 3, x: 0, y: 1.2)
+            .accessibilityHidden(true)
+    }
+
+    private func effectiveCompletionLevel(for day: ReviewDayActivity) -> JournalCompletionLevel {
+        day.strongestCompletionLevel ?? .empty
     }
 
     private func accessibilityRhythmColumnId(for day: ReviewDayActivity) -> String {
         "ReviewRhythmDay.\(day.date.timeIntervalSince1970)"
-    }
-
-    private func rhythmDayLabel(date: Date, currentWeek: Range<Date>, calendar: Calendar) -> String {
-        let dayStart = calendar.startOfDay(for: date)
-        if currentWeek.contains(dayStart) {
-            return date.formatted(.dateTime.weekday(.narrow))
-        }
-        return date.formatted(.dateTime.month(.defaultDigits).day(.defaultDigits))
     }
 
     private func levelRowIndexFromTop(for day: ReviewDayActivity) -> Int {
@@ -454,24 +607,6 @@ struct ReviewSummaryCard: View {
             String(localized: "Balanced")
         case .full:
             String(localized: "Full")
-        }
-    }
-
-    private func activityIconTint(for day: ReviewDayActivity) -> Color {
-        guard let level = day.strongestCompletionLevel else {
-            return AppTheme.reviewTextMuted.opacity(0.35)
-        }
-        switch level {
-        case .empty:
-            return AppTheme.reviewTextMuted
-        case .started:
-            return AppTheme.reviewQuickStartText
-        case .growing:
-            return AppTheme.reviewStandardText
-        case .balanced:
-            return AppTheme.reviewAccent
-        case .full:
-            return AppTheme.reviewCompleteText
         }
     }
 
@@ -538,6 +673,83 @@ struct ReviewSummaryCard: View {
         let accent: Color
 
         var id: String { title }
+    }
+
+    /// Layout metrics for the reflection rhythm chart, scaled for Dynamic Type.
+    private struct RhythmCurveScaledMetrics {
+        let columnWidth: CGFloat
+        let columnGap: CGFloat
+        let columnCornerRadius: CGFloat
+        let columnEdgeInset: CGFloat
+        let rowHeight: CGFloat
+        let chartMinHeight: CGFloat
+        let chartRowMinHeight: CGFloat
+        let pillIconSize: CGFloat
+        let pillChromeSize: CGFloat
+        let edgeFeatherWidth: CGFloat
+        let chartHorizontalPadding: CGFloat
+
+        init(dynamicTypeSize: DynamicTypeSize) {
+            let scale = Self.scale(for: dynamicTypeSize)
+            columnWidth = (64 * scale).rounded(.toNearestOrAwayFromZero)
+            columnGap = max(2, (3 * scale).rounded(.toNearestOrAwayFromZero))
+            columnCornerRadius = (10 * scale).rounded(.toNearestOrAwayFromZero)
+            columnEdgeInset = max(2, (3 * scale).rounded(.toNearestOrAwayFromZero))
+            rowHeight = (34 * scale).rounded(.toNearestOrAwayFromZero)
+            chartMinHeight = (150 * scale).rounded(.toNearestOrAwayFromZero)
+            let innerRowSpacing: CGFloat = 3
+            let innerStackHeight = 5 * rowHeight + 4 * innerRowSpacing
+            chartRowMinHeight = max(innerStackHeight + (2 * columnEdgeInset), chartMinHeight)
+            pillIconSize = (15 * scale).rounded(.toNearestOrAwayFromZero)
+            pillChromeSize = (28 * scale).rounded(.toNearestOrAwayFromZero)
+            edgeFeatherWidth = max(10, (14 * scale).rounded(.toNearestOrAwayFromZero))
+            chartHorizontalPadding = max(10, (14 * scale).rounded(.toNearestOrAwayFromZero))
+        }
+
+        /// Chart columns + label row + ``ScrollView`` vertical padding.
+        var horizontalScrollMinHeight: CGFloat {
+            let labelRowSpacing: CGFloat = 6
+            let labelRowHeight = max(22, rowHeight * 0.72)
+            let lazyStackVerticalPadding: CGFloat = 16
+            return chartRowMinHeight + labelRowSpacing + labelRowHeight + lazyStackVerticalPadding
+        }
+
+        func estimatedContentWidth(daysCount: Int) -> CGFloat {
+            guard daysCount > 0 else { return 2 * chartHorizontalPadding }
+            let columns = CGFloat(daysCount) * columnWidth
+            let gaps = CGFloat(max(0, daysCount - 1)) * columnGap
+            return columns + gaps + (2 * chartHorizontalPadding)
+        }
+
+        // swiftlint:disable:next cyclomatic_complexity
+        private static func scale(for dynamicTypeSize: DynamicTypeSize) -> CGFloat {
+            switch dynamicTypeSize {
+            case .xSmall:
+                return 0.9
+            case .small:
+                return 0.94
+            case .medium, .large:
+                return 1.0
+            case .xLarge:
+                return 1.05
+            case .xxLarge:
+                return 1.1
+            case .xxxLarge:
+                return 1.15
+            case .accessibility1:
+                return 1.18
+            case .accessibility2:
+                return 1.24
+            case .accessibility3:
+                return 1.3
+            case .accessibility4:
+                return 1.36
+            case .accessibility5:
+                return 1.42
+            @unknown default:
+                return 1.2
+            }
+        }
     }
 }
 // swiftlint:enable type_body_length
@@ -789,4 +1001,5 @@ private struct ReviewCountBadge: View {
             .clipShape(Capsule())
     }
 }
+
 // swiftlint:enable file_length
