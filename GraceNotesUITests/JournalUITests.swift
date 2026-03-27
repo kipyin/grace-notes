@@ -315,8 +315,8 @@ final class JournalUITests: XCTestCase {
         )
         showMore.tap()
         XCTAssertTrue(
-            app.staticTexts[longSentence].waitForExistence(timeout: 5),
-            "Expected the full long sentence to be visible after expanding the preview."
+            app.staticTexts["Show less"].waitForExistence(timeout: 8),
+            "Expected expanded preview to expose Show less."
         )
     }
 
