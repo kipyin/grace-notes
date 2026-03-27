@@ -77,6 +77,27 @@ final class OnboardingSuggestionEvaluatorTests: XCTestCase {
         XCTAssertNil(JournalOnboardingSuggestionEvaluator.currentSuggestion(context: context))
     }
 
+    func test_currentSuggestion_afterAppTourCompletionDismissals_returnsNilOnToday() {
+        let context = JournalOnboardingSuggestionContext(
+            entryDate: nil,
+            hasCelebratedFirstTripleOne: true,
+            hasCelebratedFirstFull: true,
+            dismissedRemindersSuggestion: true,
+            openedRemindersSuggestion: false,
+            hasConfiguredReminderTime: false,
+            dismissedAISuggestion: true,
+            openedAISuggestion: false,
+            aiFeaturesEnabled: false,
+            isCloudApiKeyConfigured: true,
+            hasCompletedGuidedJournal: true,
+            dismissedICloudSuggestion: true,
+            openedICloudSuggestion: false,
+            isICloudSyncEnabled: false
+        )
+
+        XCTAssertNil(JournalOnboardingSuggestionEvaluator.currentSuggestion(context: context))
+    }
+
     private func baseContext(entryDate: Date?) -> JournalOnboardingSuggestionContext {
         JournalOnboardingSuggestionContext(
             entryDate: entryDate,

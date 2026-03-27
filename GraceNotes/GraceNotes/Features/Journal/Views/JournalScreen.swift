@@ -693,7 +693,7 @@ private extension JournalScreen {
         previousPeopleCount = viewModel.people.count
         hasInitializedCompletionTracking = true
         syncGuidedJournalCompletionIfNeeded()
-        evaluatePostSeedJourneyIfNeeded(for: viewModel.completionLevel)
+        evaluatePostSeedJourneyIfNeeded()
     }
 
     private func processJournalProgressUpdate() {
@@ -773,7 +773,7 @@ private extension JournalScreen {
     private func syncGuidedAndPostSeedOnTodayIfNeeded(for newLevel: JournalCompletionLevel) {
         guard entryDate == nil else { return }
         syncGuidedJournalCompletionIfNeeded()
-        evaluatePostSeedJourneyIfNeeded(for: newLevel)
+        evaluatePostSeedJourneyIfNeeded()
     }
 
     private func applyMilestoneUnlockToast(
@@ -786,7 +786,8 @@ private extension JournalScreen {
             isTodayEntry: entryDate == nil,
             newLevel: newLevel,
             hasSeenPostSeedJourney: hasSeenPostSeedJourney,
-            milestoneHighlight: milestoneOutcome.milestoneHighlight
+            milestoneHighlight: milestoneOutcome.milestoneHighlight,
+            hasAtLeastOneInEachChipSection: viewModel.hasAtLeastOneInEachChipSection
         )
         if !suppress {
             presentUnlockToast(for: newLevel, milestoneHighlight: milestoneOutcome.milestoneHighlight)
@@ -799,7 +800,8 @@ private extension JournalScreen {
             isTodayEntry: entryDate == nil,
             newLevel: newLevel,
             hasSeenPostSeedJourney: hasSeenPostSeedJourney,
-            milestoneHighlight: .none
+            milestoneHighlight: .none,
+            hasAtLeastOneInEachChipSection: viewModel.hasAtLeastOneInEachChipSection
         )
         if !suppress {
             presentUnlockToast(for: newLevel, milestoneHighlight: .none)
@@ -836,7 +838,7 @@ private extension JournalScreen {
         hasInitializedCompletionTracking = true
         syncGuidedJournalCompletionIfNeeded()
         focusOnboardingStepIfNeeded(onboardingPresentation.step)
-        evaluatePostSeedJourneyIfNeeded(for: viewModel.completionLevel)
+        evaluatePostSeedJourneyIfNeeded()
         PerformanceTrace.end("JournalScreen.loadTask", startedAt: loadTrace)
     }
 
@@ -918,31 +920,28 @@ private extension JournalScreen {
         hasCompletedGuidedJournal = true
     }
 
-    /// One-time post-Seed journey on Today when at or above Seed and journey C not yet seen.
-    func evaluatePostSeedJourneyIfNeeded(for level: JournalCompletionLevel) {
+    /// One-time post-Seed journey on Today when each chip section has at least one item and journey C not yet seen.
+    func evaluatePostSeedJourneyIfNeeded() {
         guard let outcome = JournalTodayOrientationPolicy.postSeedJourneyOutcome(
-            for: todayOrientationInputs(completionLevel: level)
+            for: todayOrientationInputs()
         ) else { return }
 
         postSeedJourneySkipsCongratulations = outcome.skipsCongratulationsPage
         showPostSeedJourney = true
     }
 
-    func todayOrientationInputs(
-        completionLevel: JournalCompletionLevel
-    ) -> JournalTodayOrientationPolicy.Inputs {
+    func todayOrientationInputs() -> JournalTodayOrientationPolicy.Inputs {
         JournalTodayOrientationPolicy.Inputs(
             isTodayEntry: entryDate == nil,
             isRunningUITests: ProcessInfo.graceNotesIsRunningUITests,
             hasSeenPostSeedJourney: hasSeenPostSeedJourney,
             hasCompletedGuidedJournal: hasCompletedGuidedJournal,
-            completionLevel: completionLevel
+            hasAtLeastOneInEachChipSection: viewModel.hasAtLeastOneInEachChipSection
         )
     }
 
     func completePostSeedJourney() {
-        hasSeenPostSeedJourney = true
-        hasCompletedGuidedJournal = true
+        JournalOnboardingProgress.applyAppTourCompletion(using: .standard)
         showPostSeedJourney = false
     }
 

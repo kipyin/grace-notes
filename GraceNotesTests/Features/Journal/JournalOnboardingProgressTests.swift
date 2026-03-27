@@ -39,6 +39,19 @@ final class JournalOnboardingProgressTests: XCTestCase {
         XCTAssertFalse(reloadedProgress.hasOpenedSuggestion(.aiFeatures))
         XCTAssertFalse(reloadedProgress.hasDismissedSuggestion(.iCloudSync))
     }
+
+    func test_applyAppTourCompletion_setsSeenGuidedAndDismissesAllMilestoneSuggestions() {
+        let defaults = makeIsolatedDefaults()
+        let progress = JournalOnboardingProgress(defaults: defaults)
+
+        JournalOnboardingProgress.applyAppTourCompletion(using: defaults)
+
+        XCTAssertTrue(defaults.bool(forKey: JournalOnboardingStorageKeys.hasSeenPostSeedJourney))
+        XCTAssertTrue(progress.hasCompletedGuidedJournal)
+        XCTAssertTrue(progress.hasDismissedSuggestion(.reminders))
+        XCTAssertTrue(progress.hasDismissedSuggestion(.aiFeatures))
+        XCTAssertTrue(progress.hasDismissedSuggestion(.iCloudSync))
+    }
 }
 
 private extension JournalOnboardingProgressTests {

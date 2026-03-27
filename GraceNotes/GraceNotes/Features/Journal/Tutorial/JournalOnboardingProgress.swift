@@ -70,6 +70,16 @@ final class JournalOnboardingProgress {
         return migratedValue
     }
 
+    /// Finishing the App Tour from Today or Settings: journey seen, guided journal complete, and milestone
+    /// Settings cards (Reminders / AI / iCloud) dismissed so they do not duplicate Tour content.
+    static func applyAppTourCompletion(using defaults: UserDefaults = .standard) {
+        defaults.set(true, forKey: JournalOnboardingStorageKeys.hasSeenPostSeedJourney)
+        defaults.set(true, forKey: JournalOnboardingStorageKeys.completedGuidedJournal)
+        defaults.set(true, forKey: JournalOnboardingStorageKeys.dismissedRemindersSuggestion)
+        defaults.set(true, forKey: JournalOnboardingStorageKeys.dismissedAISuggestion)
+        defaults.set(true, forKey: JournalOnboardingStorageKeys.dismissedICloudSuggestion)
+    }
+
     /// Normalizes legacy `pending051*` state from older builds. Drops the upgrade flag; keeps branch
     /// resolution until Today runs `resolvePending051GuidedJournalBranch`.
     static func migrateLegacyPostSeedOrientationFlagsIfNeeded(using defaults: UserDefaults = .standard) {

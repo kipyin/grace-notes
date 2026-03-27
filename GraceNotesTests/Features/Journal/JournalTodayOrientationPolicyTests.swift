@@ -12,7 +12,7 @@ final class JournalTodayOrientationPolicyTests: XCTestCase {
                 isRunningUITests: false,
                 hasSeenPostSeedJourney: false,
                 hasCompletedGuidedJournal: false,
-                completionLevel: .started
+                hasAtLeastOneInEachChipSection: true
             )
         )
         XCTAssertNil(outcome)
@@ -25,7 +25,7 @@ final class JournalTodayOrientationPolicyTests: XCTestCase {
                 isRunningUITests: true,
                 hasSeenPostSeedJourney: false,
                 hasCompletedGuidedJournal: false,
-                completionLevel: .started
+                hasAtLeastOneInEachChipSection: true
             )
         )
         XCTAssertNil(outcome)
@@ -35,7 +35,7 @@ final class JournalTodayOrientationPolicyTests: XCTestCase {
         let expected = PostSeedJourneyTrigger.evaluate(
             hasSeenPostSeedJourney: false,
             hasCompletedGuidedJournal: true,
-            todayCompletionLevel: .growing
+            hasAtLeastOneInEachChipSection: true
         )
         let actual = JournalTodayOrientationPolicy.postSeedJourneyOutcome(
             for: .init(
@@ -43,21 +43,47 @@ final class JournalTodayOrientationPolicyTests: XCTestCase {
                 isRunningUITests: false,
                 hasSeenPostSeedJourney: false,
                 hasCompletedGuidedJournal: true,
-                completionLevel: .growing
+                hasAtLeastOneInEachChipSection: true
             )
         )
         XCTAssertEqual(actual?.skipsCongratulationsPage, expected?.skipsCongratulationsPage)
     }
 
+    func test_postSeedJourneyOutcome_whenNotTripleOne_returnsNil() {
+        let outcome = JournalTodayOrientationPolicy.postSeedJourneyOutcome(
+            for: .init(
+                isTodayEntry: true,
+                isRunningUITests: false,
+                hasSeenPostSeedJourney: false,
+                hasCompletedGuidedJournal: false,
+                hasAtLeastOneInEachChipSection: false
+            )
+        )
+        XCTAssertNil(outcome)
+    }
+
     // MARK: - shouldSuppressSeedUnlockToast
 
-    func test_shouldSuppressSeedUnlockToast_todayAtStarted_notSeenPostSeed_suppresses() {
+    func test_shouldSuppressSeedUnlockToast_todayAtStarted_tripleOne_notSeenPostSeed_suppresses() {
         XCTAssertTrue(
             JournalTodayOrientationPolicy.shouldSuppressSeedUnlockToast(
                 isTodayEntry: true,
                 newLevel: .started,
                 hasSeenPostSeedJourney: false,
-                milestoneHighlight: .none
+                milestoneHighlight: .none,
+                hasAtLeastOneInEachChipSection: true
+            )
+        )
+    }
+
+    func test_shouldSuppressSeedUnlockToast_todayAtStarted_firstChipOnly_doesNotSuppress() {
+        XCTAssertFalse(
+            JournalTodayOrientationPolicy.shouldSuppressSeedUnlockToast(
+                isTodayEntry: true,
+                newLevel: .started,
+                hasSeenPostSeedJourney: false,
+                milestoneHighlight: .none,
+                hasAtLeastOneInEachChipSection: false
             )
         )
     }
@@ -68,7 +94,8 @@ final class JournalTodayOrientationPolicyTests: XCTestCase {
                 isTodayEntry: false,
                 newLevel: .started,
                 hasSeenPostSeedJourney: false,
-                milestoneHighlight: .none
+                milestoneHighlight: .none,
+                hasAtLeastOneInEachChipSection: true
             )
         )
     }
@@ -79,7 +106,8 @@ final class JournalTodayOrientationPolicyTests: XCTestCase {
                 isTodayEntry: true,
                 newLevel: .growing,
                 hasSeenPostSeedJourney: false,
-                milestoneHighlight: .none
+                milestoneHighlight: .none,
+                hasAtLeastOneInEachChipSection: true
             )
         )
     }
@@ -90,7 +118,8 @@ final class JournalTodayOrientationPolicyTests: XCTestCase {
                 isTodayEntry: true,
                 newLevel: .started,
                 hasSeenPostSeedJourney: true,
-                milestoneHighlight: .none
+                milestoneHighlight: .none,
+                hasAtLeastOneInEachChipSection: true
             )
         )
     }
@@ -101,7 +130,8 @@ final class JournalTodayOrientationPolicyTests: XCTestCase {
                 isTodayEntry: true,
                 newLevel: .started,
                 hasSeenPostSeedJourney: false,
-                milestoneHighlight: .firstOneOneOne
+                milestoneHighlight: .firstOneOneOne,
+                hasAtLeastOneInEachChipSection: true
             )
         )
     }

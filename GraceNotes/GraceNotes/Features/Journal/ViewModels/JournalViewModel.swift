@@ -224,6 +224,15 @@ final class JournalViewModel {
             peopleCount: people.count
         )
     }
+
+    /// True when gratitudes, needs, and people each have at least one chip (milestone 1/1/1 minimum).
+    var hasAtLeastOneInEachChipSection: Bool {
+        JournalEntry.minChipSectionCount(
+            gratitudesCount: gratitudes.count,
+            needsCount: needs.count,
+            peopleCount: people.count
+        ) >= 1
+    }
 }
 
 extension JournalViewModel {
