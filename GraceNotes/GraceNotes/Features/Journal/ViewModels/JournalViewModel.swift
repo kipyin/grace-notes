@@ -190,7 +190,7 @@ final class JournalViewModel {
     }
 
     /// Total chip slots across gratitudes, needs, and people (5 x 3 = 15).
-    var chipsFiveCubedSlotCount: Int {
+    var chipsFullGridSlotCount: Int {
         JournalViewModel.slotCount * 3
     }
 
@@ -200,7 +200,7 @@ final class JournalViewModel {
     }
 
     /// Whether all chip slots are filled, regardless of notes/reflections completion.
-    var isChipsFiveCubedComplete: Bool {
+    var isChipsFullGridComplete: Bool {
         gratitudes.count >= JournalViewModel.slotCount &&
             needs.count >= JournalViewModel.slotCount &&
             people.count >= JournalViewModel.slotCount
@@ -213,7 +213,7 @@ final class JournalViewModel {
             format: formatKey,
             locale: Locale.current,
             chipsFilledCount,
-            chipsFiveCubedSlotCount
+            chipsFullGridSlotCount
         )
     }
 

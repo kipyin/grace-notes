@@ -4,7 +4,7 @@ import SwiftUI
 /// Styled like app onboarding; **Done** (last page) or **Skip** (earlier pages) ends the flow.
 struct PostSeedJourneyView: View {
     let onFinish: () -> Void
-    /// When true, hides the Seed congratulations page (user already completed guided journal before this journey).
+    /// When true, hides the Started congratulations page (user already completed guided journal before this journey).
     let skipsCongratulationsPage: Bool
 
     @Environment(\.openURL) var openURL

@@ -25,6 +25,7 @@ Work tracked toward milestone **0.5.2** (Settings cohesion and insight follow-th
 - Review: weekly **cloud** insights could fall back to on-device digest with the unreadable-response explanation when the model reply was cut off mid-JSON; raised completion **max_tokens** so the full structured payload can finish (#99).
 
 ### Changed
+- **Data export:** JSON share filenames now use the prefix **`grace-notes-export-`** instead of `five-cubed-journal-export-`. Automation or scripts that match the old basename need updating (#133 / #136).
 - Review > Insights: weekly **Reflection rhythm** uses a redesigned column visualization (completion tier per day, horizontal scroll with edge feathering when the week is wider than the card); only days with a **saved journal row** navigate to `JournalScreen`—empty history slots stay visual-only with a distinct VoiceOver hint (#115).
 - Review rhythm day labels format with `DateFormatter` configured from the passed `Calendar` (locale and time zone) (`ReviewRhythmFormatting`).
 - Journal: **Today** sequential sections (**Gratitudes**, **Needs**, **People in mind**) show submitted lines as **sentence strips** with inline edit (full sentence first; chip labels stay secondary for aggregation). Inline empty-space dismiss uses a clearer scroll backdrop; navigation-bar taps use bar-frame hit testing. Chip add/tap orchestration goes through `JournalChipInteractionCoordinator` (#102).
@@ -32,7 +33,7 @@ Work tracked toward milestone **0.5.2** (Settings cohesion and insight follow-th
 - Review > Insights: on-device cloud skip explanations are **more specific** (connection, timeout, service or access limits, unreadable response, quality gate, or generic fallback), mapped from `CloudReviewInsightsError`, HTTP status, and `URLError`, with matching **en** / **zh-Hans** catalog strings.
 - Settings: section headers use authored title case instead of all-caps list header styling (#84).
 - Review > Insights: thin-week **Write today's reflection** control switches to **Today**; flatter insights column (inset panels only, no outer summary shell); **This week** title row shows the week date range; read-only **On your device** / **AI** source pills; unified semibold panel titles; system **Insights** / **Timeline** segmented control (Liquid Glass on iOS 26+) with `ReviewModePicker` id preserved (#85).
-- Review insights engine: weekly **reflection day count** and **narrative summary** now treat non-empty reading notes or reflections as signal (even when the entry is still at **Soil** chip-wise), so sparse-week and narrative behavior match long-form journaling (#85).
+- Review insights engine: weekly **reflection day count** and **narrative summary** now treat non-empty reading notes or reflections as signal (even when chip completion is still **Empty**), so sparse-week and narrative behavior match long-form journaling (#85).
 - Review insights: continue #40 / #80 follow-through in the **0.5.2** milestone lane on GitHub (**#80** may remain open for engine depth).
 
 ### Build 7 — 2026-03-24

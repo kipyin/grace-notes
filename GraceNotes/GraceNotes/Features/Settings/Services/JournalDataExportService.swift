@@ -13,7 +13,7 @@ struct JournalDataExportService {
         let entries = try context.fetch(descriptor)
         let data = try makeArchiveData(from: entries, exportedAt: now)
 
-        let filename = "five-cubed-journal-export-\(timestampString(from: now)).json"
+        let filename = "grace-notes-export-\(timestampString(from: now)).json"
         let fileURL = fileManager.temporaryDirectory.appendingPathComponent(filename, isDirectory: false)
         try data.write(to: fileURL, options: .atomic)
         return fileURL

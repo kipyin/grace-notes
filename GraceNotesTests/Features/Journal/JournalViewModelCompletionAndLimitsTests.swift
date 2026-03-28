@@ -73,7 +73,7 @@ final class JournalViewModelCompletionAndLimitsTests: XCTestCase {
         XCTAssertFalse(viewModel.completedToday)
     }
 
-    func test_isChipsFiveCubedComplete_withFiveByFiveByFive_returnsTrue() async throws {
+    func test_isChipsFullGridComplete_withFiveByFiveByFive_returnsTrue() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
         let viewModel = makeViewModel(now: now)
@@ -85,14 +85,14 @@ final class JournalViewModelCompletionAndLimitsTests: XCTestCase {
             _ = await viewModel.addPerson("Person \(index)")
         }
 
-        XCTAssertTrue(viewModel.isChipsFiveCubedComplete)
+        XCTAssertTrue(viewModel.isChipsFullGridComplete)
         XCTAssertEqual(viewModel.chipsFilledCount, 15)
         XCTAssertEqual(viewModel.chipsProgressText, "15 of 15")
         XCTAssertEqual(viewModel.completionLevel, .full)
         XCTAssertFalse(viewModel.completedToday)
     }
 
-    func test_isChipsFiveCubedComplete_withMissingChip_returnsFalse() async throws {
+    func test_isChipsFullGridComplete_withMissingChip_returnsFalse() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
         let viewModel = makeViewModel(now: now)
@@ -106,7 +106,7 @@ final class JournalViewModelCompletionAndLimitsTests: XCTestCase {
             _ = await viewModel.addPerson("Person \(index)")
         }
 
-        XCTAssertFalse(viewModel.isChipsFiveCubedComplete)
+        XCTAssertFalse(viewModel.isChipsFullGridComplete)
         XCTAssertEqual(viewModel.chipsFilledCount, 14)
         XCTAssertEqual(viewModel.chipsProgressText, "14 of 15")
     }
