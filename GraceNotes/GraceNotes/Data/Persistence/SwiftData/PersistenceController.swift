@@ -200,16 +200,46 @@ final class PersistenceController {
         let today = calendar.startOfDay(for: now)
         let previousDay = calendar.date(byAdding: .day, value: -1, to: today) ?? today
 
-        let seededEntry = JournalEntry(
-            entryDate: previousDay,
-            gratitudes: [JournalItem(fullText: "Seed gratitude for timeline")],
-            needs: [JournalItem(fullText: "Seed need for timeline")],
-            people: [JournalItem(fullText: "Seed person for timeline")],
-            createdAt: now,
-            updatedAt: now
-        )
-        context.insert(seededEntry)
+        if ProcessInfo.graceNotesUITestRequestsWideReviewRhythmSeed {
+            try insertWideReviewRhythmUITestSeed(
+                context: context,
+                calendar: calendar,
+                today: today,
+                now: now
+            )
+        } else {
+            let seededEntry = JournalEntry(
+                entryDate: previousDay,
+                gratitudes: [JournalItem(fullText: "Seed gratitude for timeline")],
+                needs: [JournalItem(fullText: "Seed need for timeline")],
+                people: [JournalItem(fullText: "Seed person for timeline")],
+                createdAt: now,
+                updatedAt: now
+            )
+            context.insert(seededEntry)
+        }
         try context.save()
+    }
+
+    /// One lightweight entry per day so `rhythmHistory` spans dozens of columns (horizontal scrolling in Review).
+    private static func insertWideReviewRhythmUITestSeed(
+        context: ModelContext,
+        calendar: Calendar,
+        today: Date,
+        now: Date
+    ) throws {
+        for dayOffset in 1...36 {
+            guard let day = calendar.date(byAdding: .day, value: -dayOffset, to: today) else { continue }
+            let entry = JournalEntry(
+                entryDate: day,
+                gratitudes: [JournalItem(fullText: "Wide rhythm seed day \(dayOffset)")],
+                needs: [],
+                people: [],
+                createdAt: now,
+                updatedAt: now
+            )
+            context.insert(entry)
+        }
     }
 }
 
