@@ -8,10 +8,6 @@ struct JournalOnboardingSuggestionContext: Equatable {
     var dismissedRemindersSuggestion: Bool
     var openedRemindersSuggestion: Bool
     var hasConfiguredReminderTime: Bool
-    var dismissedAISuggestion: Bool
-    var openedAISuggestion: Bool
-    var aiFeaturesEnabled: Bool
-    var isCloudApiKeyConfigured: Bool
     var hasCompletedGuidedJournal: Bool
     var dismissedICloudSuggestion: Bool
     var openedICloudSuggestion: Bool
@@ -28,15 +24,6 @@ enum JournalOnboardingSuggestionEvaluator {
            !context.openedRemindersSuggestion,
            !context.hasConfiguredReminderTime {
             return .reminders
-        }
-
-        if AppFeatureFlags.cloudAIUserFacingEnabled,
-           context.hasCelebratedFirstFull,
-           !context.dismissedAISuggestion,
-           !context.openedAISuggestion,
-           !context.aiFeaturesEnabled,
-           context.isCloudApiKeyConfigured {
-            return .aiFeatures
         }
 
         if context.hasCompletedGuidedJournal,

@@ -2,20 +2,6 @@ import XCTest
 @testable import GraceNotes
 
 final class OnboardingSuggestionEvaluatorTests: XCTestCase {
-    private var originalCloudAIUserFacingEnabled: Bool!
-
-    override func setUp() {
-        super.setUp()
-        originalCloudAIUserFacingEnabled = AppFeatureFlags.cloudAIUserFacingEnabled
-        AppFeatureFlags.cloudAIUserFacingEnabled = false
-    }
-
-    override func tearDown() {
-        AppFeatureFlags.cloudAIUserFacingEnabled = originalCloudAIUserFacingEnabled
-        originalCloudAIUserFacingEnabled = nil
-        super.tearDown()
-    }
-
     func test_currentSuggestion_nonNilEntryDate_returnsNil() {
         let context = baseContext(entryDate: .now)
 
@@ -33,35 +19,13 @@ final class OnboardingSuggestionEvaluatorTests: XCTestCase {
         var context = baseContext(entryDate: nil)
         context.hasCelebratedFirstTripleOne = true
         context.hasCelebratedFirstFull = true
-        context.isCloudApiKeyConfigured = true
 
         XCTAssertEqual(JournalOnboardingSuggestionEvaluator.currentSuggestion(context: context), .reminders)
     }
 
-    func test_currentSuggestion_remindersSatisfied_aiEligible_returnsNilWhenFeatureFlagOff() {
+    func test_currentSuggestion_remindersSatisfied_iCloudEligible_returnsICloudSync() {
         var context = baseContext(entryDate: nil)
         context.hasConfiguredReminderTime = true
-        context.hasCelebratedFirstFull = true
-        context.isCloudApiKeyConfigured = true
-
-        XCTAssertNil(JournalOnboardingSuggestionEvaluator.currentSuggestion(context: context))
-    }
-
-    func test_currentSuggestion_remindersSatisfied_aiEligible_returnsAIFeaturesWhenFeatureFlagOn() {
-        AppFeatureFlags.cloudAIUserFacingEnabled = true
-
-        var context = baseContext(entryDate: nil)
-        context.hasConfiguredReminderTime = true
-        context.hasCelebratedFirstFull = true
-        context.isCloudApiKeyConfigured = true
-
-        XCTAssertEqual(JournalOnboardingSuggestionEvaluator.currentSuggestion(context: context), .aiFeatures)
-    }
-
-    func test_currentSuggestion_aiSatisfied_iCloudEligible_returnsICloudSync() {
-        var context = baseContext(entryDate: nil)
-        context.hasConfiguredReminderTime = true
-        context.dismissedAISuggestion = true
         context.hasCompletedGuidedJournal = true
 
         XCTAssertEqual(JournalOnboardingSuggestionEvaluator.currentSuggestion(context: context), .iCloudSync)
@@ -70,7 +34,6 @@ final class OnboardingSuggestionEvaluatorTests: XCTestCase {
     func test_currentSuggestion_iCloudEligibleButSyncOn_returnsNil() {
         var context = baseContext(entryDate: nil)
         context.hasConfiguredReminderTime = true
-        context.dismissedAISuggestion = true
         context.hasCompletedGuidedJournal = true
         context.isICloudSyncEnabled = true
 
@@ -85,10 +48,6 @@ final class OnboardingSuggestionEvaluatorTests: XCTestCase {
             dismissedRemindersSuggestion: true,
             openedRemindersSuggestion: false,
             hasConfiguredReminderTime: false,
-            dismissedAISuggestion: true,
-            openedAISuggestion: false,
-            aiFeaturesEnabled: false,
-            isCloudApiKeyConfigured: true,
             hasCompletedGuidedJournal: true,
             dismissedICloudSuggestion: true,
             openedICloudSuggestion: false,
@@ -106,10 +65,6 @@ final class OnboardingSuggestionEvaluatorTests: XCTestCase {
             dismissedRemindersSuggestion: false,
             openedRemindersSuggestion: false,
             hasConfiguredReminderTime: false,
-            dismissedAISuggestion: false,
-            openedAISuggestion: false,
-            aiFeaturesEnabled: false,
-            isCloudApiKeyConfigured: false,
             hasCompletedGuidedJournal: false,
             dismissedICloudSuggestion: false,
             openedICloudSuggestion: false,

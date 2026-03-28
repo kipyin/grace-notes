@@ -191,28 +191,6 @@ extension PostSeedJourneyView {
         }
     }
 
-    var aiPage: some View {
-        journeyPage {
-            Text(String(localized: "AI support"))
-                .font(AppTheme.warmPaperHeader)
-                .foregroundStyle(AppTheme.settingsTextPrimary)
-
-            Text(String(localized: "PostSeedJourney.ai.intro"))
-                .font(AppTheme.warmPaperBody)
-                .foregroundStyle(AppTheme.settingsTextMuted)
-                .fixedSize(horizontal: false, vertical: true)
-
-            journeySettingsCard {
-                aiConnectionControlRow
-            }
-
-            Text(String(localized: "PostSeedJourney.footer.settingsNote"))
-                .font(AppTheme.warmPaperMeta)
-                .foregroundStyle(AppTheme.settingsTextMuted)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-
     var iCloudPage: some View {
         journeyPage {
             Text(String(localized: "Keep entries with you"))

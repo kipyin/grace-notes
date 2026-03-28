@@ -2,8 +2,6 @@ import SwiftUI
 import UIKit
 
 struct SettingsScreen: View {
-    /// Default false keeps AI features on-device until explicitly enabled.
-    @AppStorage(AIFeaturesSettings.enabledUserDefaultsKey) private var useAIFeatures = false
     @AppStorage(PersistenceController.iCloudSyncEnabledKey) private var isICloudSyncEnabled = false
     @EnvironmentObject private var appNavigation: AppNavigationModel
     @Environment(\.openURL) private var openURL
@@ -14,7 +12,6 @@ struct SettingsScreen: View {
 
     @StateObject private var reminderState = ReminderSettingsFlowModel()
     @StateObject private var iCloudAccountState = ICloudAccountStatusModel()
-    @StateObject private var aiCloudStatus = AISettingsCloudStatusModel()
     @State private var isReminderPickerExpanded = false
     @State private var isReminderToggleOn = false
     @State private var highlightedTarget: SettingsScrollTarget?
@@ -26,22 +23,6 @@ struct SettingsScreen: View {
     var body: some View {
         ScrollViewReader { proxy in
             List {
-                if AppFeatureFlags.cloudAIUserFacingEnabled {
-                    Section {
-                        VStack(alignment: .leading, spacing: AppTheme.spacingRegular) {
-                            aiConnectionControlRow
-                        }
-                        .padding(.vertical, AppTheme.spacingTight / 2)
-                        .id(SettingsScrollTarget.aiFeatures)
-                        .settingsTargetHighlight(highlightedTarget == .aiFeatures)
-                    } header: {
-                        Text(String(localized: "Settings.ai.sectionTitle"))
-                            .font(AppTheme.warmPaperHeader)
-                            .foregroundStyle(AppTheme.settingsTextPrimary)
-                            .textCase(nil)
-                    }
-                }
-
                 Section {
                     VStack(alignment: .leading, spacing: AppTheme.spacingRegular) {
                         reminderTimeControlRow
@@ -114,31 +95,15 @@ struct SettingsScreen: View {
                 Color.clear.frame(height: AppTheme.spacingSection + AppTheme.floatingTabBarClearance)
             }
             .navigationTitle(String(localized: "Settings"))
-            .onAppear {
-                guard AppFeatureFlags.cloudAIUserFacingEnabled else { return }
-                clampCloudAIFeaturesIfApiKeyMissing()
-            }
             .task {
-                ReviewInsightsProvider.migrateLegacyAIFeaturesToggleIfNeeded()
-                useAIFeatures = AIFeaturesSettings.isEnabled()
-                if AppFeatureFlags.cloudAIUserFacingEnabled {
-                    clampCloudAIFeaturesIfApiKeyMissing()
-                }
                 await reminderState.refreshStatus()
                 syncReminderControlState(with: reminderState.liveStatus)
                 iCloudAccountState.refresh()
-                if AppFeatureFlags.cloudAIUserFacingEnabled {
-                    syncAICloudStatusModel()
-                    aiCloudStatus.scheduleThrottledAutoCheckIfNeeded()
-                }
                 if let target = appNavigation.settingsScrollTarget {
                     focusSettingsTarget(target, proxy: proxy)
                 }
             }
             .onDisappear {
-                if AppFeatureFlags.cloudAIUserFacingEnabled {
-                    aiCloudStatus.onSettingsDisappear()
-                }
                 settingsHighlightDismissTask?.cancel()
             }
             .onChange(of: scenePhase) { _, newValue in
@@ -147,14 +112,6 @@ struct SettingsScreen: View {
                     await reminderState.refreshStatus()
                 }
                 iCloudAccountState.refresh()
-                if AppFeatureFlags.cloudAIUserFacingEnabled {
-                    aiCloudStatus.sceneDidBecomeActive()
-                    syncAICloudStatusModel()
-                }
-            }
-            .onChange(of: useAIFeatures) { _, _ in
-                guard AppFeatureFlags.cloudAIUserFacingEnabled else { return }
-                syncAICloudStatusModel()
             }
             .onChange(of: reminderState.selectedTime) { _, _ in
                 reminderState.handleSelectedTimeChanged()
@@ -190,124 +147,6 @@ struct SettingsScreen: View {
 }
 
 private extension SettingsScreen {
-    var aiFeaturesOn: Bool {
-        AIFeaturesSettings.isEnabled()
-    }
-
-    var canRunAIConnectivityCheck: Bool {
-        aiFeaturesOn && ApiSecrets.isCloudApiKeyConfigured
-    }
-
-    func syncAICloudStatusModel() {
-        aiCloudStatus.refresh(aiFeaturesEnabled: aiFeaturesOn)
-    }
-
-    /// Cloud AI toggles require a non-placeholder API key; keep AppStorage consistent with that constraint.
-    func clampCloudAIFeaturesIfApiKeyMissing() {
-        guard !ApiSecrets.isCloudApiKeyConfigured, aiFeaturesOn else { return }
-        AIFeaturesSettings.setEnabled(false)
-        syncAICloudStatusModel()
-    }
-
-    /// Inline status under the toggle label (visible in every state: misconfigured, off, or on + connectivity).
-    var aiRowStatusText: String {
-        if !ApiSecrets.isCloudApiKeyConfigured {
-            return String(localized: "Cloud AI isn’t set up on this build.")
-        }
-        if !aiFeaturesOn {
-            return String(localized: "Off")
-        }
-        if let row = aiCloudStatus.statusRow {
-            return aiCloudStatusMessage(row)
-        }
-        return String(localized: "Tap for connection status")
-    }
-
-    var aiConnectionControlRow: some View {
-        HStack(spacing: AppTheme.spacingRegular) {
-            Button {
-                guard canRunAIConnectivityCheck else { return }
-                aiCloudStatus.requestManualConnectivityCheck()
-            } label: {
-                HStack(spacing: AppTheme.spacingRegular) {
-                    VStack(alignment: .leading, spacing: AppTheme.spacingTight / 2) {
-                        Text(String(localized: "Settings.ai.toggleLabel"))
-                            .font(AppTheme.warmPaperBody)
-                            .foregroundStyle(AppTheme.settingsTextPrimary)
-                        Text(aiRowStatusText)
-                            .font(AppTheme.warmPaperMeta)
-                            .foregroundStyle(AppTheme.settingsTextMuted)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-
-                    Spacer(minLength: AppTheme.spacingRegular)
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .disabled(!canRunAIConnectivityCheck)
-            .accessibilityLabel(String(localized: "AI connection status"))
-            .accessibilityValue(aiConnectionAccessibilityValue)
-            .accessibilityHint(aiConnectionAccessibilityHint)
-
-            Toggle("", isOn: aiFeaturesToggleBinding)
-                .labelsHidden()
-                .tint(AppTheme.accent)
-                .disabled(!ApiSecrets.isCloudApiKeyConfigured)
-                .accessibilityLabel(String(localized: "Settings.ai.toggleLabel"))
-                .accessibilityHint(aiToggleAccessibilityHint)
-        }
-        .frame(minHeight: 44)
-    }
-
-    var aiFeaturesToggleBinding: Binding<Bool> {
-        Binding(
-            get: { aiFeaturesOn },
-            set: { enabled in
-                AIFeaturesSettings.setEnabled(enabled)
-                syncAICloudStatusModel()
-            }
-        )
-    }
-
-    var aiConnectionAccessibilityValue: String {
-        aiRowStatusText
-    }
-
-    /// Empty when the default toggle behavior needs no extra VoiceOver context.
-    var aiToggleAccessibilityHint: String {
-        guard !ApiSecrets.isCloudApiKeyConfigured else { return "" }
-        return String(localized: "Cloud AI isn’t set up on this build.")
-    }
-
-    var aiConnectionAccessibilityHint: String {
-        if !ApiSecrets.isCloudApiKeyConfigured {
-            return String(localized: "Cloud AI isn’t set up on this build.")
-        }
-        if canRunAIConnectivityCheck {
-            return String(localized: "Runs a cloud AI reachability check when activated.")
-        }
-        if !aiFeaturesOn {
-            return String(localized: "Settings.ai.a11y.enableForConnectionCheck")
-        }
-        return String(localized: "Cloud AI isn’t set up on this build.")
-    }
-
-    func aiCloudStatusMessage(_ row: AISettingsCloudStatusRow) -> String {
-        switch row {
-        case .misconfigured:
-            return String(localized: "Cloud AI isn’t set up on this build.")
-        case .checking:
-            return String(localized: "Checking…")
-        case .offline:
-            return String(localized: "No internet connection")
-        case .checkFailed:
-            return String(localized: "Couldn’t verify—try again")
-        case .connectionVerified:
-            return String(localized: "Connection looks good.")
-        }
-    }
-
     var shouldUseCompactReminderPicker: Bool {
         dynamicTypeSize >= .accessibility1 || verticalSizeClass == .compact
     }

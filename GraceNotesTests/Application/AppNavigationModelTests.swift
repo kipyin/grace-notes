@@ -16,7 +16,7 @@ final class AppNavigationModelTests: XCTestCase {
         let model = AppNavigationModel()
         model.openSettings(target: .reminders)
 
-        model.clearSettingsTarget(.aiFeatures)
+        model.clearSettingsTarget(.dataPrivacy)
 
         XCTAssertEqual(model.settingsScrollTarget, .reminders)
 

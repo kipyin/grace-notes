@@ -2,7 +2,6 @@ import Foundation
 
 enum JournalOnboardingSuggestion: CaseIterable {
     case reminders
-    case aiFeatures
     case iCloudSync
 }
 
@@ -12,10 +11,8 @@ enum JournalOnboardingStorageKeys {
     static let legacy051GuidedBranchResolution = "journalOnboarding.pending051GuidedJournalBranchResolution"
     static let hasSeenPostSeedJourney = "journalOnboarding.hasSeenPostSeedJourney"
     static let dismissedRemindersSuggestion = "journalOnboarding.dismissedRemindersSuggestion"
-    static let dismissedAISuggestion = "journalOnboarding.dismissedAISuggestion"
     static let dismissedICloudSuggestion = "journalOnboarding.dismissedICloudSuggestion"
     static let openedRemindersSuggestion = "journalOnboarding.openedRemindersSuggestion"
-    static let openedAISuggestion = "journalOnboarding.openedAISuggestion"
     static let openedICloudSuggestion = "journalOnboarding.openedICloudSuggestion"
 }
 
@@ -71,12 +68,11 @@ final class JournalOnboardingProgress {
     }
 
     /// Finishing the App Tour from Today or Settings: journey seen, guided journal complete, and milestone
-    /// Settings cards (Reminders / AI / iCloud) dismissed so they do not duplicate Tour content.
+    /// Settings cards (Reminders / iCloud) dismissed so they do not duplicate Tour content.
     static func applyAppTourCompletion(using defaults: UserDefaults = .standard) {
         defaults.set(true, forKey: JournalOnboardingStorageKeys.hasSeenPostSeedJourney)
         defaults.set(true, forKey: JournalOnboardingStorageKeys.completedGuidedJournal)
         defaults.set(true, forKey: JournalOnboardingStorageKeys.dismissedRemindersSuggestion)
-        defaults.set(true, forKey: JournalOnboardingStorageKeys.dismissedAISuggestion)
         defaults.set(true, forKey: JournalOnboardingStorageKeys.dismissedICloudSuggestion)
     }
 
@@ -123,10 +119,8 @@ final class JournalOnboardingProgress {
             JournalOnboardingStorageKeys.legacy051GuidedBranchResolution,
             JournalOnboardingStorageKeys.hasSeenPostSeedJourney,
             JournalOnboardingStorageKeys.dismissedRemindersSuggestion,
-            JournalOnboardingStorageKeys.dismissedAISuggestion,
             JournalOnboardingStorageKeys.dismissedICloudSuggestion,
             JournalOnboardingStorageKeys.openedRemindersSuggestion,
-            JournalOnboardingStorageKeys.openedAISuggestion,
             JournalOnboardingStorageKeys.openedICloudSuggestion
         ]
         for key in keys {
@@ -159,8 +153,6 @@ final class JournalOnboardingProgress {
         switch suggestion {
         case .reminders:
             return JournalOnboardingStorageKeys.dismissedRemindersSuggestion
-        case .aiFeatures:
-            return JournalOnboardingStorageKeys.dismissedAISuggestion
         case .iCloudSync:
             return JournalOnboardingStorageKeys.dismissedICloudSuggestion
         }
@@ -170,8 +162,6 @@ final class JournalOnboardingProgress {
         switch suggestion {
         case .reminders:
             return JournalOnboardingStorageKeys.openedRemindersSuggestion
-        case .aiFeatures:
-            return JournalOnboardingStorageKeys.openedAISuggestion
         case .iCloudSync:
             return JournalOnboardingStorageKeys.openedICloudSuggestion
         }

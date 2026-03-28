@@ -8,10 +8,6 @@ struct JournalChipLabelSummarizationCoordinator {
         self.summarizerProvider = summarizerProvider
     }
 
-    private var shouldLimitToChipUnits: Bool {
-        !summarizerProvider.effectiveUsesCloudForChips()
-    }
-
     private var deterministicChipLabelSummarizer: DeterministicChipLabelSummarizer {
         DeterministicChipLabelSummarizer()
     }
@@ -19,7 +15,7 @@ struct JournalChipLabelSummarizationCoordinator {
     /// Shared chip-display rules for main actor and `Task.detached` paths.
     private nonisolated static func displayReadySummarizationResult(
         _ result: SummarizationResult,
-        limitToChipUnits: Bool
+        limitToChipUnits: Bool = true
     ) -> SummarizationResult {
         guard limitToChipUnits else {
             return SummarizationResult(label: result.label, isTruncated: false)
@@ -27,30 +23,22 @@ struct JournalChipLabelSummarizationCoordinator {
         return ChipLabelUnitTruncator.displayCappedLabel(from: result.label)
     }
 
-    private func displayReadyChipResult(_ result: SummarizationResult) -> SummarizationResult {
-        Self.displayReadySummarizationResult(result, limitToChipUnits: shouldLimitToChipUnits)
-    }
-
     func summarizeForChip(_ text: String, section: SummarizationSection) async -> SummarizationResult {
-        let limitToChipUnits = shouldLimitToChipUnits
-        if !limitToChipUnits, !ChipLabelUnitTruncator.truncate(text).isTruncated {
-            return ChipLabelUnitTruncator.displayCappedLabel(from: text)
-        }
         let summarizer = summarizerProvider.currentSummarizer()
         return await Task.detached(priority: .utility) {
             do {
                 let result = try await summarizer.summarize(text, section: section)
-                return Self.displayReadySummarizationResult(result, limitToChipUnits: limitToChipUnits)
+                return Self.displayReadySummarizationResult(result)
             } catch {
                 let fallback = DeterministicChipLabelSummarizer().summarizeSync(text, section: section)
-                return Self.displayReadySummarizationResult(fallback, limitToChipUnits: limitToChipUnits)
+                return Self.displayReadySummarizationResult(fallback)
             }
         }.value
     }
 
     func makeInterimResult(for text: String, section: SummarizationSection) -> SummarizationResult {
         let interim = deterministicChipLabelSummarizer.summarizeSync(text, section: section)
-        return displayReadyChipResult(interim)
+        return Self.displayReadySummarizationResult(interim)
     }
 
     func makeInterimItem(fullText: String, section: SummarizationSection, id: UUID = UUID()) -> JournalItem {
@@ -65,6 +53,6 @@ struct JournalChipLabelSummarizationCoordinator {
 
     /// Display-ready label after applying chip unit rules (e.g. manual rename).
     func displayReadyManualLabel(_ result: SummarizationResult) -> SummarizationResult {
-        displayReadyChipResult(result)
+        Self.displayReadySummarizationResult(result)
     }
 }

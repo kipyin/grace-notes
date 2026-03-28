@@ -21,6 +21,7 @@ Work tracked toward milestone **0.5.2** (Settings cohesion and insight follow-th
 - Xcode: shared **GraceNotes** scheme **Run** (**LaunchAction**) uses **Debug** so ⌘R matches typical local debugging; bundle **7** notes still describe **Run** on **Release** at that ship cut (#102 review).
 
 ### Fixed
+- Review: **Reflection rhythm** horizontal strip pins to the trailing edge on first layout when the week is wider than the card, so the current day is not left under the trailing edge fade (`UIScrollView` KVO + `contentOffset`; issue #127).
 - Review: weekly **cloud** insights could fall back to on-device digest with the unreadable-response explanation when the model reply was cut off mid-JSON; raised completion **max_tokens** so the full structured payload can finish (#99).
 
 ### Changed

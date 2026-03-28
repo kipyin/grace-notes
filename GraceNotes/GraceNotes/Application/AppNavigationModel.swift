@@ -8,7 +8,6 @@ enum AppTab: Hashable {
 }
 
 enum SettingsScrollTarget: Hashable {
-    case aiFeatures
     case reminders
     case dataPrivacy
 }

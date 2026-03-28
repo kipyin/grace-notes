@@ -28,7 +28,6 @@ final class JournalOnboardingProgressTests: XCTestCase {
         let progress = JournalOnboardingProgress(defaults: defaults)
         progress.hasCompletedGuidedJournal = true
         progress.setDismissed(true, for: .reminders)
-        progress.setOpened(true, for: .aiFeatures)
         progress.setDismissed(true, for: .iCloudSync)
 
         JournalOnboardingProgress.resetAll(in: defaults)
@@ -36,7 +35,6 @@ final class JournalOnboardingProgressTests: XCTestCase {
         let reloadedProgress = JournalOnboardingProgress(defaults: defaults)
         XCTAssertFalse(reloadedProgress.hasCompletedGuidedJournal)
         XCTAssertFalse(reloadedProgress.hasDismissedSuggestion(.reminders))
-        XCTAssertFalse(reloadedProgress.hasOpenedSuggestion(.aiFeatures))
         XCTAssertFalse(reloadedProgress.hasDismissedSuggestion(.iCloudSync))
     }
 
@@ -49,7 +47,6 @@ final class JournalOnboardingProgressTests: XCTestCase {
         XCTAssertTrue(defaults.bool(forKey: JournalOnboardingStorageKeys.hasSeenPostSeedJourney))
         XCTAssertTrue(progress.hasCompletedGuidedJournal)
         XCTAssertTrue(progress.hasDismissedSuggestion(.reminders))
-        XCTAssertTrue(progress.hasDismissedSuggestion(.aiFeatures))
         XCTAssertTrue(progress.hasDismissedSuggestion(.iCloudSync))
     }
 }

@@ -98,6 +98,7 @@
       }
     },
     "%1$@ and %2$@ sat side by side in what you wrote—thankfulness and needs together." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -114,6 +115,7 @@
       }
     },
     "%1$@ and %2$@ tended to appear together in what you captured." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -146,6 +148,7 @@
       }
     },
     "%1$@ kept showing up alongside %2$@ in what you wrote this week." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -178,6 +181,7 @@
       }
     },
     "%1$@ to %2$@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -496,6 +500,7 @@
       }
     },
     "Across several entries, %@ was a thread you returned to often." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -645,6 +650,7 @@
       }
     },
     "AI connection status" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -661,6 +667,7 @@
       }
     },
     "AI features can help with short labels and Review insights when you want a little more support." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -677,6 +684,7 @@
       }
     },
     "AI support" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1007,6 +1015,7 @@
       }
     },
     "Checking…" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1039,6 +1048,7 @@
       }
     },
     "Cloud AI couldn't complete this request (access or rate limiting). Check your Cloud AI setup in Settings, or try again later." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1055,6 +1065,7 @@
       }
     },
     "Cloud AI is temporarily unavailable. Grace Notes used your on-device summary for now; try again later." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1071,6 +1082,7 @@
       }
     },
     "Cloud AI isn't available in this build (for example, no API key). This digest stayed on your device." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1087,6 +1099,7 @@
       }
     },
     "Cloud AI isn’t set up on this build." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1103,6 +1116,7 @@
       }
     },
     "Cloud AI sent a response Grace Notes couldn't turn into a weekly digest. Your on-device summary is shown instead." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1119,6 +1133,7 @@
       }
     },
     "Cloud insights need at least three meaningful reflections in this review week. With lighter weeks, Grace Notes keeps this digest on your device." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1169,6 +1184,7 @@
       }
     },
     "Connection looks good." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1236,6 +1252,7 @@
       }
     },
     "Couldn’t verify—try again" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2505,6 +2522,7 @@
       }
     },
     "Grace Notes couldn't reach Cloud AI. Check your connection and try again when you're online." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2654,6 +2672,7 @@
       }
     },
     "How can you carry %@ into tomorrow?" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2670,6 +2689,7 @@
       }
     },
     "How could you connect with %@ in a meaningful way this week?" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2686,6 +2706,7 @@
       }
     },
     "How could you connect with %1$@ in a way that also tends to %2$@ tomorrow?" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3084,6 +3105,7 @@
       }
     },
     "Make Review more specific" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3231,6 +3253,7 @@
       }
     },
     "No internet connection" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3426,6 +3449,7 @@
       }
     },
     "On your device this week" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3621,6 +3645,7 @@
       }
     },
     "People in mind most often included %1$@ (%2$lld mentions)." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3702,6 +3727,7 @@
       }
     },
     "PostSeedJourney.ai.intro" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4366,6 +4392,7 @@
       }
     },
     "Runs a cloud AI reachability check when activated." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4514,6 +4541,7 @@
       }
     },
     "Settings.ai.a11y.enableForConnectionCheck" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4530,6 +4558,7 @@
       }
     },
     "Settings.ai.sectionTitle" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4546,6 +4575,7 @@
       }
     },
     "Settings.ai.toggleLabel" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4776,6 +4806,7 @@
       }
     },
     "Shows why Cloud AI wasn't used for this weekly digest." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4893,6 +4924,7 @@
       }
     },
     "Something went wrong with Cloud AI. Grace Notes used your on-device summary instead." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4926,6 +4958,7 @@
       }
     },
     "Source: Cloud AI" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4942,6 +4975,7 @@
       }
     },
     "Source: On your device" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5204,6 +5238,7 @@
       }
     },
     "Tap for connection status" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5253,6 +5288,7 @@
       }
     },
     "That steady attention to %1$@ was the clearest thread this week." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5285,6 +5321,7 @@
       }
     },
     "The Cloud AI request timed out. Grace Notes used your on-device summary; try again in a moment." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5351,6 +5388,7 @@
       }
     },
     "This Week" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5367,6 +5405,7 @@
       }
     },
     "This week had enough to summarize, but not enough repetition for a clear cloud insight. Grace Notes kept this review on your device." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5383,6 +5422,7 @@
       }
     },
     "This week your reflection often returned to %@." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5449,6 +5489,7 @@
       }
     },
     "To keep this digest close to what you wrote, Grace Notes skipped Cloud AI's draft and showed your on-device summary instead." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5497,6 +5538,7 @@
       }
     },
     "Toward the end of the week, %1$@ became a clearer thread in your entries." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5836,6 +5878,7 @@
       }
     },
     "What is one next step you can take tomorrow?" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5852,6 +5895,7 @@
       }
     },
     "What is one small step that could honor %1$@ while still supporting %2$@ tomorrow?" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5885,6 +5929,7 @@
       }
     },
     "What is one small step you can take to support %@ tomorrow?" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5901,6 +5946,7 @@
       }
     },
     "What is one small way to support %1$@ tomorrow without dropping %2$@?" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5934,6 +5980,7 @@
       }
     },
     "What would help you carry %1$@ gently into next week?" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6129,6 +6176,7 @@
       }
     },
     "Why on-device insights this week" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6194,6 +6242,7 @@
       }
     },
     "You are building momentum by returning to reflection this week." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6325,6 +6374,7 @@
       }
     },
     "You kept %1$@ in mind %2$lld times this week." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6374,6 +6424,7 @@
       }
     },
     "You kept a steady reflection rhythm this week." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6424,6 +6475,7 @@
       }
     },
     "You mentioned %1$@ %2$lld times this week." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6440,6 +6492,7 @@
       }
     },
     "You noted %@ across this week's entries." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6456,6 +6509,7 @@
       }
     },
     "You noted %1$@ %2$lld times and %3$@ %4$lld times this week." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6489,6 +6543,7 @@
       }
     },
     "You often returned to %1$@ in gratitudes while naming %2$@ in needs." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6505,6 +6560,7 @@
       }
     },
     "You often wrote about %1$@ alongside %2$@." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6637,6 +6693,7 @@
       }
     },
     "You returned to %1$@ %2$lld times this week." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6704,6 +6761,7 @@
       }
     },
     "You wrote about %1$@ more in the second half of this week." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6986,6 +7044,7 @@
       }
     },
     "Your gratitudes most often returned to %1$@ (%2$lld mentions)." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -7019,6 +7078,7 @@
       }
     },
     "Your needs most often returned to %1$@ (%2$lld mentions)." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

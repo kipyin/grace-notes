@@ -1,43 +1,20 @@
 import Foundation
-import OSLog
 
 struct ReviewInsightsProvider: Sendable {
-    static let aiFeaturesEnabledKey = SummarizerProvider.useCloudUserDefaultsKey
-    /// Legacy key removed by `migrateLegacyAIFeaturesToggleIfNeeded`;
-    /// still consulted for install-continuity heuristics.
+    /// Legacy key from cloud-insight builds; still consulted for install-continuity heuristics.
     static let legacyAIFeaturesUserDefaultsKey = "useAIReviewInsights"
 
-    private static let logger = Logger(subsystem: "com.gracenotes.GraceNotes", category: "ReviewInsights")
-
     private let deterministicGenerator: any ReviewInsightsGenerating
-    private let cloudGenerator: (any ReviewInsightsGenerating)?
     private let aggregatesBuilder = WeeklyReviewAggregatesBuilder()
-    private let userDefaults: UserDefaults
 
     init(
-        deterministicGenerator: any ReviewInsightsGenerating = DeterministicReviewInsightsGenerator(),
-        cloudGenerator: (any ReviewInsightsGenerating)? = nil,
-        apiKey: String = ApiSecrets.cloudApiKey,
-        userDefaults: UserDefaults = .standard
+        deterministicGenerator: any ReviewInsightsGenerating = DeterministicReviewInsightsGenerator()
     ) {
         self.deterministicGenerator = deterministicGenerator
-        self.userDefaults = userDefaults
-
-        if let cloudGenerator {
-            self.cloudGenerator = cloudGenerator
-        } else if ApiSecrets.isUsableCloudApiKey(apiKey) {
-            self.cloudGenerator = CloudReviewInsightsGenerator(apiKey: apiKey)
-        } else {
-            self.cloudGenerator = nil
-        }
     }
 
+    /// Legacy migration no longer needed now that review insights are deterministic-only.
     static func migrateLegacyAIFeaturesToggleIfNeeded(defaults: UserDefaults = .standard) {
-        guard let legacyValue = defaults.object(forKey: legacyAIFeaturesUserDefaultsKey) as? Bool else {
-            return
-        }
-        let currentAIFeaturesValue = defaults.object(forKey: aiFeaturesEnabledKey) as? Bool ?? false
-        defaults.set(currentAIFeaturesValue || legacyValue, forKey: aiFeaturesEnabledKey)
         defaults.removeObject(forKey: legacyAIFeaturesUserDefaultsKey)
     }
 
@@ -46,87 +23,37 @@ struct ReviewInsightsProvider: Sendable {
         referenceDate: Date,
         calendar: Calendar = .current
     ) async -> ReviewInsights {
-        let useAI = AIFeaturesSettings.isEnabled(using: userDefaults)
-
-        let cloudAllowed = ReviewInsightsCloudEligibility.hasMinimumEvidenceForCloudAI(
-            entries: entries,
-            referenceDate: referenceDate,
-            calendar: calendar
-        )
-
-        if useAI, cloudAllowed, let cloudGenerator {
-            do {
-                let cloudInsights = try await cloudGenerator.generateInsights(
-                    from: entries,
-                    referenceDate: referenceDate,
-                    calendar: calendar
-                )
-                if cloudInsights.presentationMode == .statsFirst {
-                    return await deterministicOrSparseInsights(
-                        from: entries,
-                        referenceDate: referenceDate,
-                        calendar: calendar,
-                        cloudSkippedReason: .insufficientPatternSignalThisWeek
-                    )
-                }
-                return cloudInsights
-            } catch {
-                Self.logger.debug("Cloud review insights failed: \(String(describing: error), privacy: .private)")
-                return await deterministicOrSparseInsights(
-                    from: entries,
-                    referenceDate: referenceDate,
-                    calendar: calendar,
-                    cloudSkippedReason: ReviewCloudInsightSkipReason.fromCloudFailure(error)
-                )
-            }
-        }
-
-        let cloudSkippedReason: ReviewCloudInsightSkipReason? = {
-            guard useAI else { return nil }
-            if !cloudAllowed {
-                return .insufficientEvidenceThisWeek
-            }
-            if cloudGenerator == nil {
-                return .cloudMisconfigured
-            }
-            return nil
-        }()
-
         return await deterministicOrSparseInsights(
             from: entries,
             referenceDate: referenceDate,
-            calendar: calendar,
-            cloudSkippedReason: cloudSkippedReason
+            calendar: calendar
         )
     }
 
     private func deterministicOrSparseInsights(
         from entries: [JournalEntry],
         referenceDate: Date,
-        calendar: Calendar,
-        cloudSkippedReason: ReviewCloudInsightSkipReason?
+        calendar: Calendar
     ) async -> ReviewInsights {
         if let deterministicInsights = try? await deterministicGenerator.generateInsights(
             from: entries,
             referenceDate: referenceDate,
             calendar: calendar
         ) {
-            return deterministicInsights.withCloudSkippedReason(cloudSkippedReason)
+            return deterministicInsights
         }
 
         return sparseFallbackInsights(
             from: entries,
             referenceDate: referenceDate,
-            calendar: calendar,
-            cloudSkippedReason: cloudSkippedReason
+            calendar: calendar
         )
     }
 
     private func sparseFallbackInsights(
         from entries: [JournalEntry],
         referenceDate: Date,
-        calendar: Calendar,
-        cloudSkippedReason: ReviewCloudInsightSkipReason?
+        calendar: Calendar
     ) -> ReviewInsights {
         let weekRange = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
         let previousPeriod = ReviewInsightsPeriod.previousPeriod(before: weekRange, calendar: calendar)
@@ -166,8 +93,7 @@ struct ReviewInsightsProvider: Sendable {
                 localized: "What feels most important to carry into next week?"
             ),
             narrativeSummary: nil,
-            weekStats: aggregates.stats,
-            cloudSkippedReason: cloudSkippedReason
+            weekStats: aggregates.stats
         )
     }
 

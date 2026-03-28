@@ -16,11 +16,7 @@ struct ReviewSummaryCard: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
-    @State private var showCloudSkipExplanation = false
-    @State private var cloudSkipExplanationMessage = ""
-
     let insights: ReviewInsights?
-    let aiFeaturesEnabled: Bool
     let isLoading: Bool
     let weekJournalEntryCount: Int
     let onContinueToToday: () -> Void
@@ -43,14 +39,6 @@ struct ReviewSummaryCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .fixedSize(horizontal: false, vertical: true)
         .padding(.vertical, 4)
-        .alert(
-            String(localized: "On your device this week"),
-            isPresented: $showCloudSkipExplanation
-        ) {
-            Button(String(localized: "OK"), role: .cancel) {}
-        } message: {
-            Text(cloudSkipExplanationMessage)
-        }
     }
 
     @ViewBuilder
@@ -68,10 +56,6 @@ struct ReviewSummaryCard: View {
         let bodies = dedupedPanelBodies(for: insights)
         let recurringGroups = recurringThemeGroups(for: insights)
         return VStack(alignment: .leading, spacing: 0) {
-            if AppFeatureFlags.cloudAIUserFacingEnabled {
-                sourceBadgeRow(for: insights)
-                    .padding(.bottom, 8)
-            }
             VStack(alignment: .leading, spacing: 10) {
                 weekRhythmPanel(for: insights)
                 if !recurringGroups.isEmpty {
@@ -159,63 +143,6 @@ struct ReviewSummaryCard: View {
             .foregroundStyle(AppTheme.reviewTextPrimary)
             .lineSpacing(lineSpacing)
             .fixedSize(horizontal: false, vertical: true)
-    }
-
-    private func sourceBadgeRow(for insights: ReviewInsights) -> some View {
-        let badgeLabel = sourceBadgeLabel(for: insights.source)
-        let showCloudSkipInfo = aiFeaturesEnabled
-            && insights.source == .deterministic
-            && insights.cloudSkippedReason != nil
-
-        return HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Text(badgeLabel)
-                .font(AppTheme.warmPaperMeta.weight(.semibold))
-                .foregroundStyle(AppTheme.reviewTextPrimary)
-                .multilineTextAlignment(.leading)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background {
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(AppTheme.reviewAccent.opacity(0.2))
-                }
-                .overlay {
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .stroke(AppTheme.border.opacity(0.45), lineWidth: 1)
-                }
-
-            if showCloudSkipInfo {
-                Button {
-                    if let reason = insights.cloudSkippedReason {
-                        cloudSkipExplanationMessage = reason.localizedExplanation
-                        showCloudSkipExplanation = true
-                    }
-                } label: {
-                    Image(systemName: "info.circle")
-                        .font(AppTheme.warmPaperMeta.weight(.semibold))
-                        .foregroundStyle(AppTheme.reviewAccent)
-                        .imageScale(.small)
-                        .frame(minWidth: 44, minHeight: 44)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(String(localized: "Why on-device insights this week"))
-                .accessibilityHint(String(localized: "Shows why Cloud AI wasn't used for this weekly digest."))
-                .accessibilityIdentifier("ReviewInsightCloudSkipInfoButton")
-            }
-
-            Spacer(minLength: 0)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityElement(children: .contain)
-    }
-
-    private func sourceBadgeLabel(for source: ReviewInsightSource) -> String {
-        switch source {
-        case .deterministic:
-            String(localized: "Source: On your device")
-        case .cloudAI:
-            String(localized: "Source: Cloud AI")
-        }
     }
 
     private func shouldShowNarrativeSummary(for insights: ReviewInsights) -> Bool {
@@ -410,7 +337,7 @@ struct ReviewSummaryCard: View {
     /// Per-day column with rounded fill; spaced from neighbors via ``RhythmCurveScaledMetrics/columnGap``.
     @ViewBuilder
     private func rhythmChartStrip(days: [ReviewDayActivity], metrics: RhythmCurveScaledMetrics) -> some View {
-        LazyHStack(alignment: .center, spacing: metrics.columnGap) {
+        HStack(alignment: .center, spacing: metrics.columnGap) {
             Color.clear
                 .frame(width: metrics.chartHorizontalPadding)
                 .accessibilityHidden(true)
@@ -486,7 +413,7 @@ struct ReviewSummaryCard: View {
         currentWeek: Range<Date>,
         metrics: RhythmCurveScaledMetrics
     ) -> some View {
-        LazyHStack(alignment: .top, spacing: metrics.columnGap) {
+        HStack(alignment: .top, spacing: metrics.columnGap) {
             Color.clear
                 .frame(width: metrics.chartHorizontalPadding)
                 .accessibilityHidden(true)
@@ -789,10 +716,6 @@ private struct InsightsLoadingSkeleton: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            if AppFeatureFlags.cloudAIUserFacingEnabled {
-                sourceSkeletonRow
-                    .padding(.bottom, 8)
-            }
             VStack(alignment: .leading, spacing: 10) {
                 skeletonInsetPanel(
                     title: String(localized: "Reflection rhythm"),
@@ -819,12 +742,6 @@ private struct InsightsLoadingSkeleton: View {
         .modifier(InsightsCalmLoadingBreath(active: !reduceMotion))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(String(localized: "Loading weekly insights."))
-    }
-
-    private var sourceSkeletonRow: some View {
-        InsightsPlaceholderBar(widthFraction: 1, height: 13)
-            .frame(width: 200, alignment: .leading)
-            .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func skeletonInsetPanel(

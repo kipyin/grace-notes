@@ -33,8 +33,7 @@ struct DeterministicReviewInsightsGenerator: ReviewInsightsGenerating {
             resurfacingMessage: analysis.resurfacingMessage,
             continuityPrompt: analysis.continuityPrompt,
             narrativeSummary: analysis.narrativeSummary,
-            weekStats: analysis.weekStats,
-            cloudSkippedReason: nil
+            weekStats: analysis.weekStats
         )
     }
 

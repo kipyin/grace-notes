@@ -23,18 +23,6 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
         XCTAssertFalse(result)
     }
 
-    func test_shouldRefresh_whenAISettingChanges_returnsTrue() {
-        let previous = makeKey(aiFeaturesEnabled: false)
-        let current = makeKey(aiFeaturesEnabled: true)
-        let result = ReviewInsightsRefreshPolicy.shouldRefresh(
-            hasInsights: true,
-            previousKey: previous,
-            currentKey: current
-        )
-
-        XCTAssertTrue(result)
-    }
-
     func test_shouldRefresh_whenEntrySnapshotChanges_returnsTrue() {
         let entryID = UUID(uuidString: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE")!
         let previous = makeKey(
@@ -71,20 +59,17 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
             resurfacingMessage: insights.resurfacingMessage,
             continuityPrompt: insights.continuityPrompt,
             narrativeSummary: insights.narrativeSummary,
-            weekStats: insights.weekStats,
-            cloudSkippedReason: insights.cloudSkippedReason
+            weekStats: insights.weekStats
         )
         XCTAssertFalse(ReviewInsightsRefreshPolicy.isSparseProviderFallback(insights))
     }
 
     private func makeKey(
         weekStart: Date = Date(timeIntervalSince1970: 0),
-        aiFeaturesEnabled: Bool = false,
         snapshots: [ReviewEntrySnapshot] = []
     ) -> ReviewInsightsRefreshKey {
         ReviewInsightsRefreshKey(
             weekStart: weekStart,
-            aiFeaturesEnabled: aiFeaturesEnabled,
             entrySnapshots: snapshots
         )
     }
@@ -112,8 +97,7 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
             resurfacingMessage: fallbackInsight.observation,
             continuityPrompt: fallbackInsight.action ?? "",
             narrativeSummary: nil,
-            weekStats: sampleWeekStats(now),
-            cloudSkippedReason: nil
+            weekStats: sampleWeekStats(now)
         )
     }
 

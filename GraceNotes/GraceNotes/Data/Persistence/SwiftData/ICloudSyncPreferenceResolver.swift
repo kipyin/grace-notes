@@ -15,10 +15,8 @@ enum ICloudSyncPreferenceResolver {
         JournalOnboardingStorageKeys.legacy051GuidedBranchResolution,
         JournalOnboardingStorageKeys.hasSeenPostSeedJourney,
         JournalOnboardingStorageKeys.dismissedRemindersSuggestion,
-        JournalOnboardingStorageKeys.dismissedAISuggestion,
         JournalOnboardingStorageKeys.dismissedICloudSuggestion,
         JournalOnboardingStorageKeys.openedRemindersSuggestion,
-        JournalOnboardingStorageKeys.openedAISuggestion,
         JournalOnboardingStorageKeys.openedICloudSuggestion
     ]
 

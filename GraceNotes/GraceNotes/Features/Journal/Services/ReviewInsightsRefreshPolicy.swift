@@ -2,7 +2,6 @@ import Foundation
 
 struct ReviewInsightsRefreshKey: Hashable {
     let weekStart: Date
-    let aiFeaturesEnabled: Bool
     let entrySnapshots: [ReviewEntrySnapshot]
 }
 
@@ -23,8 +22,8 @@ enum ReviewInsightsRefreshPolicy {
         return previousKey != currentKey
     }
 
-    /// Matches the final fallback `ReviewInsights` in `ReviewInsightsProvider` when cloud and deterministic
-    /// generation both fail.
+    /// Matches the final fallback `ReviewInsights` in `ReviewInsightsProvider` when deterministic
+    /// generation fails.
     static func isSparseProviderFallback(_ insights: ReviewInsights) -> Bool {
         guard insights.source == .deterministic,
               insights.narrativeSummary == nil,

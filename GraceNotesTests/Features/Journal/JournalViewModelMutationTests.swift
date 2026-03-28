@@ -15,14 +15,6 @@ final class JournalViewModelMutationTests: XCTestCase {
         super.setUp()
         calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!
-        UserDefaults.standard.set(false, forKey: AIFeaturesSettings.enabledUserDefaultsKey)
-        UserDefaults.standard.removeObject(forKey: AIFeaturesSettings.legacyAIReviewInsightsKey)
-    }
-
-    override func tearDown() {
-        UserDefaults.standard.removeObject(forKey: AIFeaturesSettings.enabledUserDefaultsKey)
-        UserDefaults.standard.removeObject(forKey: AIFeaturesSettings.legacyAIReviewInsightsKey)
-        super.tearDown()
     }
 
     func test_updateGratitudeRejectsEmptyString_leavesOriginalUnchanged() async throws {
@@ -183,48 +175,6 @@ final class JournalViewModelMutationTests: XCTestCase {
 
         XCTAssertFalse(didRename)
         XCTAssertEqual(viewModel.needs[0].chipLabel, originalLabel)
-    }
-
-    func test_updateGratitudeImmediate_aiFeaturesEnabled_keepsFullLabelWithoutEllipsis() throws {
-        try skipIfKnownHostedSwiftDataCrash()
-        UserDefaults.standard.set(true, forKey: AIFeaturesSettings.enabledUserDefaultsKey)
-        let context = try makeInMemoryContext()
-        let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now })
-        let longText = "A very long gratitude that exceeds twenty characters"
-
-        viewModel.loadEntry(for: now, using: context)
-        viewModel.gratitudes = [JournalItem(fullText: "Old", chipLabel: "Old", isTruncated: false)]
-
-        let result = viewModel.updateGratitudeImmediate(at: 0, fullText: longText)
-
-        XCTAssertEqual(result, 0)
-        XCTAssertEqual(viewModel.gratitudes[0].chipLabel, longText)
-        XCTAssertFalse(viewModel.gratitudes[0].isTruncated)
-    }
-
-    func test_renameGratitudeLabel_aiFeaturesEnabled_keepsFullLabelWithoutEllipsis() async throws {
-        UserDefaults.standard.set(true, forKey: AIFeaturesSettings.enabledUserDefaultsKey)
-        let context = try makeInMemoryContext()
-        let now = Date(timeIntervalSince1970: 1_742_147_200)
-        // Fixed summarizer forces `effectiveUsesCloudForChips` false; override matches cloud chip truncation policy.
-        let viewModel = JournalViewModel(
-            calendar: calendar,
-            nowProvider: { now },
-            summarizerProvider: SummarizerProvider(
-                fixedSummarizer: MockSummarizer(),
-                effectiveUsesCloudForChipsOverride: true
-            )
-        )
-
-        viewModel.loadEntry(for: now, using: context)
-        await viewModel.addGratitude("I am grateful for my family.")
-
-        let didRename = viewModel.renameGratitudeLabel(at: 0, to: "Family support always")
-
-        XCTAssertTrue(didRename)
-        XCTAssertEqual(viewModel.gratitudes[0].chipLabel, "Family support always")
-        XCTAssertFalse(viewModel.gratitudes[0].isTruncated)
     }
 
     func test_renamePersonLabel_whenUnchanged_returnsFalse() async throws {

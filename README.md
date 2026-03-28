@@ -16,6 +16,7 @@ Marketing version stays **0.5.0** across several TestFlight / App Store drops; e
 - **Today sentence strips (#102)** — Gratitudes, Needs, and People in mind show submitted lines as **strips** (sentence-first) with inline edit; chip-style labels remain secondary for weekly aggregation. See CHANGELOG.
 - **Settings (#84)** — Section headers move to authored title case instead of forced all-caps list styling.
 - **Review weekly rhythm (#115)** — **Reflection rhythm** in weekly insights uses a redesigned per-day column chart (horizontal scroll when needed); tap a day to open that day’s journal entry. See CHANGELOG.
+- **Deterministic-only insights (#119)** — Cloud AI summarization and cloud review generation are removed; journal and Review insights now stay on-device (with optional iCloud sync).
 - **Review insights (#40 / #80)** — Tracked on GitHub and in `GraceNotes/docs/07-release-roadmap.md` (**#80** may remain open for engine depth). See CHANGELOG for full bullets.
 
 ### Build 7 (2026-03-24)
@@ -39,8 +40,7 @@ See `GraceNotes/docs/07-release-roadmap.md`.
 
 - **JSON import** — In Settings → Data & Privacy, import a Grace Notes export to merge or restore by calendar day (with a clear confirm step). Export remains available as before.
 - **iCloud trust in Settings** — Storage and attention copy match how the app actually persists (including fallback and preference mismatch); when you need to open iOS Settings to fix the account, that action is easier to spot.
-- **AI row** — When cloud AI is on, you get inline connection status, optional reachability check, and a Reminders-style layout (toggle + tappable status).
-- **On-device chip labels** show a capped prefix of your own text (with ellipsis when needed); cloud summarization is unchanged.
+- **On-device chip labels** show a capped prefix of your own text (with ellipsis when needed).
 
 ## What's new in 0.3.5
 
@@ -55,9 +55,9 @@ See `GraceNotes/docs/07-release-roadmap.md`.
 - **Weekly insights** – Insights-first Review with a scrollable **Reflection rhythm** chart (tap a day that has a saved entry to open that day’s journal).
 - **Shareable cards** – Generate a formatted image of a day's entry and share via the iOS share sheet.
 - **Reminders** – Optional daily notification to complete today's 5³.
-- **Advanced review insights** – Optional AI-generated weekly reflection summary with deterministic on-device fallback.
+- **Advanced review insights** – Deterministic weekly reflection summary generated on-device.
 - **Data trust controls** – private-by-default storage plus JSON export and import for backup and ownership.
-- **First-run onboarding** – A minimal welcome followed by a guided first journal path on Today, with milestone-based opt-in suggestions for reminders, AI, and iCloud.
+- **First-run onboarding** – A minimal welcome followed by a guided first journal path on Today, with milestone-based opt-in suggestions for reminders and iCloud.
 - **Habit support** – Streak plus tiered completion states (Quick, Standard, Full 5³) to reduce all-or-nothing pressure.
 
 ## Requirements
@@ -129,19 +129,11 @@ The **`full-ci`** and **`no-ci`** labels must exist in the GitHub repo (Issues �
 - CloudKit-ready sync configuration for SwiftData
 - MVVM-style architecture
 
-## Cloud Summarization Key Setup (Optional)
-
-Cloud summarization is optional and defaults to off. To enable it safely:
-
-1. Put your key in **gitignored** `GraceNotes/DeveloperSettings.local.xcconfig` (see `DeveloperSettings.local.xcconfig.example`). Committed `DeveloperSettings.xcconfig` supplies `GRACE_NOTES_CLOUD_API_KEY`, which `Info.plist` passes through as `CloudSummarizationAPIKey`.
-
-Keep real keys out of git. A missing or placeholder key causes automatic fallback to on-device summarization.
-
 ## Project Structure
 
 - `GraceNotes/GraceNotes/Application` - App entry point
 - `GraceNotes/GraceNotes/Features/Journal` - Journal UI, view models, and sharing
 - `GraceNotes/GraceNotes/Data` - Models and persistence (SwiftData)
 - `GraceNotes/GraceNotes/DesignSystem` - Theming and shared styling
-- `GraceNotes/GraceNotes/Services` - Summarization (Natural Language + optional cloud API for chip labels)
+- `GraceNotes/GraceNotes/Services` - Summarization and app-level business services
 

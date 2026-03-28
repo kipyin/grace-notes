@@ -50,8 +50,7 @@ extension ReviewInsights {
             resurfacingMessage: "",
             continuityPrompt: "",
             narrativeSummary: nil,
-            weekStats: weekStats,
-            cloudSkippedReason: nil
+            weekStats: weekStats
         )
     }
 }

@@ -60,8 +60,7 @@ final class ReviewInsightsCacheTests: XCTestCase {
                 resurfacingMessage: insights.resurfacingMessage,
                 continuityPrompt: insights.continuityPrompt,
                 narrativeSummary: insights.narrativeSummary,
-                weekStats: insights.weekStats,
-                cloudSkippedReason: insights.cloudSkippedReason
+                weekStats: insights.weekStats
             )
             await cache.storeIfEligible(insights, calendar: calendar)
         }
@@ -82,14 +81,6 @@ final class ReviewInsightsCacheTests: XCTestCase {
         let data = try JSONEncoder().encode(insights)
         let decoded = try JSONDecoder().decode(ReviewInsights.self, from: data)
         XCTAssertEqual(decoded, insights)
-    }
-
-    func test_JSONEncoder_roundTrip_preservesGranularCloudSkippedReason() throws {
-        let insights = sampleInsights(weekStart: date(year: 2026, month: 3, day: 12))
-            .withCloudSkippedReason(.cloudInsightQualityCheckFailed)
-        let data = try JSONEncoder().encode(insights)
-        let decoded = try JSONDecoder().decode(ReviewInsights.self, from: data)
-        XCTAssertEqual(decoded.cloudSkippedReason, .cloudInsightQualityCheckFailed)
     }
 
     func test_ReviewWeekCompletionMix_decodesLegacySoilSeedKeyedPayload() throws {
@@ -154,8 +145,7 @@ final class ReviewInsightsCacheTests: XCTestCase {
             resurfacingMessage: "A thread from your week.",
             continuityPrompt: "One small next step.",
             narrativeSummary: "A gentle arc.",
-            weekStats: sampleWeekStats(weekStart: weekStart),
-            cloudSkippedReason: nil
+            weekStats: sampleWeekStats(weekStart: weekStart)
         )
     }
 
@@ -183,8 +173,7 @@ final class ReviewInsightsCacheTests: XCTestCase {
             resurfacingMessage: "",
             continuityPrompt: "",
             narrativeSummary: nil,
-            weekStats: sampleWeekStats(weekStart: weekStart),
-            cloudSkippedReason: nil
+            weekStats: sampleWeekStats(weekStart: weekStart)
         )
     }
 

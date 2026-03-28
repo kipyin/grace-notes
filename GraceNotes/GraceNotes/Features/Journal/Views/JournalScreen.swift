@@ -183,17 +183,12 @@ struct JournalScreen: View {
     @AppStorage(JournalOnboardingStorageKeys.hasSeenPostSeedJourney) private var hasSeenPostSeedJourney = false
     @AppStorage(JournalOnboardingStorageKeys.dismissedRemindersSuggestion)
     private var dismissedRemindersSuggestion = false
-    @AppStorage(JournalOnboardingStorageKeys.dismissedAISuggestion)
-    private var dismissedAISuggestion = false
     @AppStorage(JournalOnboardingStorageKeys.dismissedICloudSuggestion)
     private var dismissedICloudSuggestion = false
     @AppStorage(JournalOnboardingStorageKeys.openedRemindersSuggestion)
     private var openedRemindersSuggestion = false
-    @AppStorage(JournalOnboardingStorageKeys.openedAISuggestion)
-    private var openedAISuggestion = false
     @AppStorage(JournalOnboardingStorageKeys.openedICloudSuggestion)
     private var openedICloudSuggestion = false
-    @AppStorage(SummarizerProvider.useCloudUserDefaultsKey) private var useCloudSummarization = false
     @AppStorage(PersistenceController.iCloudSyncEnabledKey) private var isICloudSyncEnabled = false
     @AppStorage(JournalTutorialStorageKeys.dismissedSeedGuidance) private var dismissedSeedGuidance = false
     @AppStorage(JournalTutorialStorageKeys.dismissedHarvestGuidance) private var dismissedHarvestGuidance = false
@@ -872,10 +867,6 @@ private extension JournalScreen {
             dismissedRemindersSuggestion: dismissedRemindersSuggestion,
             openedRemindersSuggestion: openedRemindersSuggestion,
             hasConfiguredReminderTime: hasConfiguredReminderTime,
-            dismissedAISuggestion: dismissedAISuggestion,
-            openedAISuggestion: openedAISuggestion,
-            aiFeaturesEnabled: aiFeaturesEnabled,
-            isCloudApiKeyConfigured: ApiSecrets.isCloudApiKeyConfigured,
             hasCompletedGuidedJournal: hasCompletedGuidedJournal,
             dismissedICloudSuggestion: dismissedICloudSuggestion,
             openedICloudSuggestion: openedICloudSuggestion,
@@ -885,10 +876,6 @@ private extension JournalScreen {
 
     var onboardingSuggestion: JournalOnboardingSuggestion? {
         JournalOnboardingSuggestionEvaluator.currentSuggestion(context: onboardingSuggestionContext)
-    }
-
-    var aiFeaturesEnabled: Bool {
-        useCloudSummarization
     }
 
     var hasConfiguredReminderTime: Bool {
@@ -1036,8 +1023,6 @@ private extension JournalScreen {
         switch suggestion {
         case .reminders:
             return String(localized: "Keep the rhythm close")
-        case .aiFeatures:
-            return String(localized: "Make Review more specific")
         case .iCloudSync:
             return String(localized: "Keep Grace Notes with you")
         }
@@ -1047,11 +1032,6 @@ private extension JournalScreen {
         switch suggestion {
         case .reminders:
             return String(localized: "If you'd like, you can turn on a daily reminder in Settings.")
-        case .aiFeatures:
-            return String(
-                // swiftlint:disable:next line_length
-                localized: "AI features can help with short labels and Review insights when you want a little more support."
-            )
         case .iCloudSync:
             return String(localized: "You can turn on iCloud sync in Settings whenever you're ready.")
         }
@@ -1070,8 +1050,6 @@ private extension JournalScreen {
         switch suggestion {
         case .reminders:
             dismissedRemindersSuggestion = true
-        case .aiFeatures:
-            dismissedAISuggestion = true
         case .iCloudSync:
             dismissedICloudSuggestion = true
         }
@@ -1081,8 +1059,6 @@ private extension JournalScreen {
         switch suggestion {
         case .reminders:
             openedRemindersSuggestion = true
-        case .aiFeatures:
-            openedAISuggestion = true
         case .iCloudSync:
             openedICloudSuggestion = true
         }
@@ -1092,8 +1068,6 @@ private extension JournalScreen {
         switch suggestion {
         case .reminders:
             return .reminders
-        case .aiFeatures:
-            return .aiFeatures
         case .iCloudSync:
             return .dataPrivacy
         }

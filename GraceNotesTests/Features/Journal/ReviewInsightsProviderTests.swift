@@ -2,10 +2,9 @@ import XCTest
 @testable import GraceNotes
 
 final class ReviewInsightsProviderTests: XCTestCase {
-    static let legacyAIReviewInsightsKey = "useAIReviewInsights"
     private static let testSuiteName = "ReviewInsightsProviderTests"
-    var calendar: Calendar!
-    var testDefaults: UserDefaults!
+    private var calendar: Calendar!
+    private var testDefaults: UserDefaults!
 
     override func setUp() {
         super.setUp()
@@ -22,111 +21,15 @@ final class ReviewInsightsProviderTests: XCTestCase {
         super.tearDown()
     }
 
-    func test_generateInsights_aiEnabled_skipsCloudWhenFewerThanThreeMeaningfulEntriesInWeek() async {
-        testDefaults.set(true, forKey: ReviewInsightsProvider.aiFeaturesEnabledKey)
-        let cloudInsight = weeklyInsightStub(observation: "Cloud observation", theme: "Rest", days: 3)
-        let deterministicInsight = weeklyInsightStub(
-            observation: "Deterministic observation",
-            theme: "Rest",
-            days: 2
+    func test_generateInsights_usesDeterministicGeneratorWhenAvailable() async {
+        let deterministicInsight = makeInsights(
+            weeklyInsights: [weeklyInsightStub(observation: "Deterministic observation", theme: "Rest", days: 2)]
         )
         let provider = ReviewInsightsProvider(
-            deterministicGenerator: StubReviewInsightsGenerator(
-                result: .success(makeInsights(source: .deterministic, weeklyInsights: [deterministicInsight]))
-            ),
-            cloudGenerator: StubReviewInsightsGenerator(
-                result: .success(makeInsights(source: .cloudAI, weeklyInsights: [cloudInsight]))
-            ),
-            userDefaults: testDefaults
+            deterministicGenerator: StubReviewInsightsGenerator(result: .success(deterministicInsight))
         )
         let reference = date(year: 2026, month: 3, day: 18)
-        let entries = [makeSeedEntry(on: date(year: 2026, month: 3, day: 17)), makeSeedEntry(on: reference)]
 
-        let insights = await provider.generateInsights(from: entries, referenceDate: reference, calendar: calendar)
-
-        XCTAssertEqual(insights.source, .deterministic)
-        XCTAssertEqual(insights.weeklyInsights.first?.observation, "Deterministic observation")
-        XCTAssertEqual(insights.cloudSkippedReason, .insufficientEvidenceThisWeek)
-    }
-
-    func test_generateInsights_aiEnabled_returnsCloudInsightsWhenAvailable() async {
-        testDefaults.set(true, forKey: ReviewInsightsProvider.aiFeaturesEnabledKey)
-        let cloud = StubReviewInsightsGenerator(
-            result: .success(
-                makeInsights(
-                    source: .cloudAI,
-                    weeklyInsights: [
-                        ReviewWeeklyInsight(
-                            pattern: .recurringTheme,
-                            observation: "Cloud observation",
-                            action: "Cloud action",
-                            primaryTheme: "Rest",
-                            mentionCount: 3,
-                            dayCount: 2
-                        )
-                    ]
-                )
-            )
-        )
-        let deterministic = StubReviewInsightsGenerator(result: .success(makeInsights(source: .deterministic)))
-        let provider = ReviewInsightsProvider(
-            deterministicGenerator: deterministic,
-            cloudGenerator: cloud,
-            userDefaults: testDefaults
-        )
-
-        let reference = date(year: 2026, month: 3, day: 18)
-        let insights = await provider.generateInsights(
-            from: threeSeedEntriesInWeek(of: reference),
-            referenceDate: reference,
-            calendar: calendar
-        )
-
-        XCTAssertEqual(insights.source, .cloudAI)
-        XCTAssertEqual(insights.weeklyInsights.first?.observation, "Cloud observation")
-        XCTAssertNil(insights.cloudSkippedReason)
-    }
-
-    func test_generateInsights_cloudStatsFirstFallsBackToDeterministic() async {
-        testDefaults.set(true, forKey: ReviewInsightsProvider.aiFeaturesEnabledKey)
-        let cloud = StubReviewInsightsGenerator(
-            result: .success(
-                makeInsights(
-                    source: .cloudAI,
-                    weeklyInsights: [
-                        ReviewWeeklyInsight(
-                            pattern: .recurringTheme,
-                            observation: "Cloud observation",
-                            action: "Cloud action",
-                            primaryTheme: "Rest",
-                            mentionCount: 1,
-                            dayCount: 1
-                        )
-                    ]
-                ).withPresentationMode(.statsFirst)
-            )
-        )
-        let deterministic = StubReviewInsightsGenerator(
-            result: .success(
-                makeInsights(
-                    source: .deterministic,
-                    weeklyInsights: [
-                        weeklyInsightStub(
-                            observation: "Deterministic observation",
-                            theme: "Rest",
-                            days: 2
-                        )
-                    ]
-                )
-            )
-        )
-        let provider = ReviewInsightsProvider(
-            deterministicGenerator: deterministic,
-            cloudGenerator: cloud,
-            userDefaults: testDefaults
-        )
-
-        let reference = date(year: 2026, month: 3, day: 18)
         let insights = await provider.generateInsights(
             from: threeSeedEntriesInWeek(of: reference),
             referenceDate: reference,
@@ -135,79 +38,13 @@ final class ReviewInsightsProviderTests: XCTestCase {
 
         XCTAssertEqual(insights.source, .deterministic)
         XCTAssertEqual(insights.weeklyInsights.first?.observation, "Deterministic observation")
-        XCTAssertEqual(insights.cloudSkippedReason, .insufficientPatternSignalThisWeek)
     }
 
-    func test_generateInsights_aiDisabled_usesDeterministicInsights() async {
-        testDefaults.set(false, forKey: ReviewInsightsProvider.aiFeaturesEnabledKey)
-        let cloud = StubReviewInsightsGenerator(result: .success(makeInsights(source: .cloudAI)))
-        let deterministic = StubReviewInsightsGenerator(result: .success(makeInsights(source: .deterministic)))
+    func test_generateInsights_whenDeterministicFails_usesSparseFallbackWeekRange() async {
         let provider = ReviewInsightsProvider(
-            deterministicGenerator: deterministic,
-            cloudGenerator: cloud,
-            userDefaults: testDefaults
-        )
-
-        let insights = await provider.generateInsights(
-            from: [],
-            referenceDate: Date(timeIntervalSince1970: 1_742_147_200),
-            calendar: calendar
-        )
-
-        XCTAssertEqual(insights.source, .deterministic)
-        XCTAssertNil(insights.cloudSkippedReason)
-    }
-
-    func test_generateInsights_aiFailure_fallsBackToDeterministicInsights() async {
-        testDefaults.set(true, forKey: ReviewInsightsProvider.aiFeaturesEnabledKey)
-        let cloud = StubReviewInsightsGenerator(result: .failure(StubError.failed))
-        let deterministic = StubReviewInsightsGenerator(
-            result: .success(
-                makeInsights(
-                    source: .deterministic,
-                    weeklyInsights: [
-                        ReviewWeeklyInsight(
-                            pattern: .recurringTheme,
-                            observation: "Deterministic observation",
-                            action: "Deterministic action",
-                            primaryTheme: "Rest",
-                            mentionCount: 2,
-                            dayCount: 2
-                        )
-                    ]
-                )
-            )
-        )
-        let provider = ReviewInsightsProvider(
-            deterministicGenerator: deterministic,
-            cloudGenerator: cloud,
-            userDefaults: testDefaults
-        )
-
-        let reference = date(year: 2026, month: 3, day: 18)
-        let insights = await provider.generateInsights(
-            from: threeSeedEntriesInWeek(of: reference),
-            referenceDate: reference,
-            calendar: calendar
-        )
-
-        XCTAssertEqual(insights.source, .deterministic)
-        XCTAssertEqual(insights.weeklyInsights.first?.observation, "Deterministic observation")
-        XCTAssertEqual(insights.cloudSkippedReason, .cloudGenerationFailed)
-    }
-
-    func test_generateInsights_whenBothGeneratorsFail_usesWeekRangeFallback() async {
-        testDefaults.set(true, forKey: ReviewInsightsProvider.aiFeaturesEnabledKey)
-        let cloud = StubReviewInsightsGenerator(result: .failure(StubError.failed))
-        let deterministic = StubReviewInsightsGenerator(result: .failure(StubError.failed))
-        let provider = ReviewInsightsProvider(
-            deterministicGenerator: deterministic,
-            cloudGenerator: cloud,
-            userDefaults: testDefaults
+            deterministicGenerator: StubReviewInsightsGenerator(result: .failure(StubError.failed))
         )
         let referenceDate = date(year: 2026, month: 3, day: 18)
-        let expectedWeekStart = date(year: 2026, month: 3, day: 12)
-        let expectedWeekEnd = date(year: 2026, month: 3, day: 19)
 
         let insights = await provider.generateInsights(
             from: threeSeedEntriesInWeek(of: referenceDate),
@@ -216,57 +53,29 @@ final class ReviewInsightsProviderTests: XCTestCase {
         )
 
         XCTAssertEqual(insights.source, .deterministic)
-        XCTAssertEqual(insights.weekStart, expectedWeekStart)
-        XCTAssertEqual(insights.weekEnd, expectedWeekEnd)
+        XCTAssertEqual(insights.weekStart, date(year: 2026, month: 3, day: 12))
+        XCTAssertEqual(insights.weekEnd, date(year: 2026, month: 3, day: 19))
         XCTAssertEqual(insights.weeklyInsights.first?.pattern, .sparseFallback)
         XCTAssertEqual(
             insights.weeklyInsights.first?.observation,
             "Start with one reflection today to build your weekly review."
         )
-        XCTAssertEqual(
-            insights.weeklyInsights.first?.action,
-            "What feels most important to carry into next week?"
-        )
-        XCTAssertEqual(insights.cloudSkippedReason, .cloudGenerationFailed)
     }
 
-    func test_generateInsights_aiEnabled_withoutCurrentWeekContent_returnsDeterministicStarterInsight() async {
-        testDefaults.set(true, forKey: ReviewInsightsProvider.aiFeaturesEnabledKey)
-        let cloud = StubReviewInsightsGenerator(result: .failure(StubError.failed))
-        let provider = ReviewInsightsProvider(
-            deterministicGenerator: DeterministicReviewInsightsGenerator(),
-            cloudGenerator: cloud,
-            userDefaults: testDefaults
-        )
-        let previousWeekEntry = JournalEntry(
-            entryDate: date(year: 2026, month: 3, day: 10),
-            gratitudes: [JournalItem(fullText: "Family", chipLabel: "Family")]
-        )
+    func test_migrateLegacyAIFeaturesToggleIfNeeded_removesLegacyKey() {
+        testDefaults.set(true, forKey: ReviewInsightsProvider.legacyAIFeaturesUserDefaultsKey)
 
-        let insights = await provider.generateInsights(
-            from: [previousWeekEntry],
-            referenceDate: date(year: 2026, month: 3, day: 18),
-            calendar: calendar
-        )
+        ReviewInsightsProvider.migrateLegacyAIFeaturesToggleIfNeeded(defaults: testDefaults)
 
-        XCTAssertEqual(insights.source, .deterministic)
-        XCTAssertEqual(insights.weeklyInsights.first?.pattern, .sparseFallback)
-        XCTAssertEqual(
-            insights.weeklyInsights.first?.observation,
-            "Start with one reflection today to build your weekly review."
-        )
-        XCTAssertEqual(insights.cloudSkippedReason, .insufficientEvidenceThisWeek)
+        XCTAssertNil(testDefaults.object(forKey: ReviewInsightsProvider.legacyAIFeaturesUserDefaultsKey))
     }
 }
 
-extension ReviewInsightsProviderTests {
-    func makeInsights(
-        source: ReviewInsightSource,
-        weeklyInsights: [ReviewWeeklyInsight] = []
-    ) -> ReviewInsights {
+private extension ReviewInsightsProviderTests {
+    func makeInsights(weeklyInsights: [ReviewWeeklyInsight] = []) -> ReviewInsights {
         let now = Date(timeIntervalSince1970: 1_742_147_200)
         return ReviewInsights(
-            source: source,
+            source: .deterministic,
             presentationMode: .insight,
             generatedAt: now,
             weekStart: now,
@@ -278,8 +87,7 @@ extension ReviewInsightsProviderTests {
             resurfacingMessage: "message",
             continuityPrompt: "prompt",
             narrativeSummary: nil,
-            weekStats: sampleWeekStats(),
-            cloudSkippedReason: nil
+            weekStats: sampleWeekStats()
         )
     }
 
@@ -295,9 +103,21 @@ extension ReviewInsightsProviderTests {
                 fullDays: 0
             ),
             activity: [
-                ReviewDayActivity(date: Date(timeIntervalSince1970: 1), hasReflectiveActivity: true, hasPersistedEntry: true),
-                ReviewDayActivity(date: Date(timeIntervalSince1970: 2), hasReflectiveActivity: true, hasPersistedEntry: true),
-                ReviewDayActivity(date: Date(timeIntervalSince1970: 3), hasReflectiveActivity: true, hasPersistedEntry: true)
+                ReviewDayActivity(
+                    date: Date(timeIntervalSince1970: 1),
+                    hasReflectiveActivity: true,
+                    hasPersistedEntry: true
+                ),
+                ReviewDayActivity(
+                    date: Date(timeIntervalSince1970: 2),
+                    hasReflectiveActivity: true,
+                    hasPersistedEntry: true
+                ),
+                ReviewDayActivity(
+                    date: Date(timeIntervalSince1970: 3),
+                    hasReflectiveActivity: true,
+                    hasPersistedEntry: true
+                )
             ],
             rhythmHistory: nil,
             sectionTotals: ReviewWeekSectionTotals(
@@ -338,27 +158,23 @@ extension ReviewInsightsProviderTests {
     }
 
     func threeSeedEntriesInWeek(of referenceDate: Date) -> [JournalEntry] {
-        let range = ReviewInsightsCloudEligibility.currentReviewPeriod(
-            containing: referenceDate,
-            calendar: calendar
-        )
+        let range = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
         let start = range.lowerBound
-        let day1 = start
         let day2 = calendar.date(byAdding: .day, value: 1, to: start) ?? start
         let day3 = calendar.date(byAdding: .day, value: 2, to: start) ?? start
         return [
-            makeSeedEntry(on: day1),
+            makeSeedEntry(on: start),
             makeSeedEntry(on: day2),
             makeSeedEntry(on: day3)
         ]
     }
 }
 
-enum StubError: Error {
+private enum StubError: Error {
     case failed
 }
 
-struct StubReviewInsightsGenerator: ReviewInsightsGenerating {
+private struct StubReviewInsightsGenerator: ReviewInsightsGenerating {
     let result: Result<ReviewInsights, Error>
 
     func generateInsights(

@@ -13,7 +13,7 @@ XCODE_TEST_FLAGS := -parallel-testing-enabled NO
 PYTHON ?= python3
 SIMULATOR_HELPER := Scripts/simulator_destination.py
 # iOS 17 hosted runtime can crash in these suites before assertions run.
-LEGACY_RUNTIME_SKIP_FLAGS := -skip-testing:GraceNotesTests/CloudReviewInsightsGeneratorTests -skip-testing:GraceNotesTests/DeterministicReviewInsightsTests -skip-testing:GraceNotesTests/HistoryEntryGroupingTests
+LEGACY_RUNTIME_SKIP_FLAGS := -skip-testing:GraceNotesTests/DeterministicReviewInsightsTests -skip-testing:GraceNotesTests/HistoryEntryGroupingTests
 
 .PHONY: help lint lint-preflight build test test-unit test-ui test-ui-smoke test-isolated test-all test-matrix ci ci-matrix ci-build ci-full ci-merge-queue ci-pr-full-ci reset-simulators list-simulator-destinations validate-destination validate-test-matrix
 
