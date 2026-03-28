@@ -89,7 +89,7 @@ final class JournalViewModelCompletionAndLimitsTests: XCTestCase {
         XCTAssertEqual(viewModel.chipsFilledCount, 15)
         XCTAssertEqual(viewModel.chipsProgressText, "15 of 15")
         XCTAssertEqual(viewModel.completionLevel, .full)
-        XCTAssertFalse(viewModel.completedToday)
+        XCTAssertTrue(viewModel.completedToday)
     }
 
     func test_isChipsFullGridComplete_withMissingChip_returnsFalse() async throws {

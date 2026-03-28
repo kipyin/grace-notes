@@ -102,43 +102,12 @@ final class JournalEntry {
     /// Same as ``hasHarvestChips``. Older call sites use this name for History and persistence.
     var isComplete: Bool { hasHarvestChips }
 
-    /// Chips plus non-empty reading notes and reflections (“full rhythm” for streaks and guided completion).
-    var hasAbundanceRhythm: Bool {
-        Self.criteriaMet(
-            gratitudesCount: (gratitudes ?? []).count,
-            needsCount: (needs ?? []).count,
-            peopleCount: (people ?? []).count,
-            readingNotes: readingNotes,
-            reflections: reflections
-        )
-    }
-
     var completionLevel: JournalCompletionLevel {
         Self.completionLevel(
             gratitudesCount: (gratitudes ?? []).count,
             needsCount: (needs ?? []).count,
             peopleCount: (people ?? []).count
         )
-    }
-
-    /// Shared full-rhythm criteria used by JournalEntry and JournalViewModel.
-    /// A full rhythm requires all chips plus non-empty notes and reflections.
-    static func criteriaMet(
-        gratitudesCount: Int,
-        needsCount: Int,
-        peopleCount: Int,
-        readingNotes: String,
-        reflections: String
-    ) -> Bool {
-        let notesTrimmed = readingNotes.trimmingCharacters(in: .whitespacesAndNewlines)
-        let reflectionsTrimmed = reflections.trimmingCharacters(in: .whitespacesAndNewlines)
-        return hasAllFifteenChips(
-            gratitudesCount: gratitudesCount,
-            needsCount: needsCount,
-            peopleCount: peopleCount
-        ) &&
-            !notesTrimmed.isEmpty &&
-            !reflectionsTrimmed.isEmpty
     }
 
     static func hasAllFifteenChips(

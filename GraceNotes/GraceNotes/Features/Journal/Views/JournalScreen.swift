@@ -844,8 +844,6 @@ private extension JournalScreen {
                 gratitudesCount: viewModel.gratitudes.count,
                 needsCount: viewModel.needs.count,
                 peopleCount: viewModel.people.count,
-                readingNotes: viewModel.readingNotes,
-                reflections: viewModel.reflections,
                 hasCompletedGuidedJournal: hasCompletedGuidedJournal
             )
         )
@@ -957,8 +955,6 @@ private extension JournalScreen {
             focusOnboardingChipStep(.ripening)
         case .harvest:
             focusOnboardingChipStep(.harvest)
-        case .abundance:
-            focusAbundanceInputsIfNeeded()
         case .none:
             break
         }
@@ -990,18 +986,8 @@ private extension JournalScreen {
             focusFirstIncompleteChipSection(targetCount: 3)
         case .harvest:
             focusFirstIncompleteChipSection(targetCount: JournalViewModel.slotCount)
-        case .gratitude, .need, .person, .abundance:
+        case .gratitude, .need, .person:
             break
-        }
-    }
-
-    func focusAbundanceInputsIfNeeded() {
-        let notesTrimmed = viewModel.readingNotes.trimmingCharacters(in: .whitespacesAndNewlines)
-        let reflectionsTrimmed = viewModel.reflections.trimmingCharacters(in: .whitespacesAndNewlines)
-        if notesTrimmed.isEmpty {
-            restoreInputFocus($isReadingNotesFocused)
-        } else if reflectionsTrimmed.isEmpty {
-            restoreInputFocus($isReflectionsFocused)
         }
     }
 

@@ -55,7 +55,7 @@ final class StreakCalculatorTests: XCTestCase {
         XCTAssertEqual(summary.perfectCurrent, 0)
     }
 
-    func test_abundanceEntry_countsAsBasicAndPerfect() throws {
+    func test_fullGridEntry_countsAsBasicAndPerfect() throws {
         let context = try makeInMemoryContext()
         let now = date(year: 2026, month: 3, day: 17, hour: 12)
         let completeToday = makeCompleteEntry(on: date(year: 2026, month: 3, day: 17, hour: 10))
@@ -68,7 +68,7 @@ final class StreakCalculatorTests: XCTestCase {
         XCTAssertTrue(summary.perfectDoneToday)
     }
 
-    func test_harvestOnlyWithoutLongForm_countsAsBasicNotPerfect() throws {
+    func test_harvestOnlyWithoutNotes_countsAsBasicAndPerfect() throws {
         let context = try makeInMemoryContext()
         let now = date(year: 2026, month: 3, day: 17, hour: 12)
         let day = date(year: 2026, month: 3, day: 17, hour: 10)
@@ -83,12 +83,12 @@ final class StreakCalculatorTests: XCTestCase {
         let summary = calculator.summary(from: try persisted(context, harvestOnly), now: now)
 
         XCTAssertTrue(summary.basicDoneToday)
-        XCTAssertFalse(summary.perfectDoneToday)
+        XCTAssertTrue(summary.perfectDoneToday)
         XCTAssertEqual(summary.basicCurrent, 1)
-        XCTAssertEqual(summary.perfectCurrent, 0)
+        XCTAssertEqual(summary.perfectCurrent, 1)
     }
 
-    func test_staleCompletedAt_doesNotInflatePerfectWithoutAbundance() throws {
+    func test_staleCompletedAt_doesNotInflatePerfectWithoutHarvestChips() throws {
         let context = try makeInMemoryContext()
         let now = date(year: 2026, month: 3, day: 17, hour: 12)
         let day = date(year: 2026, month: 3, day: 17, hour: 9)

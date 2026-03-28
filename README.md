@@ -6,47 +6,9 @@ A journaling iOS app for daily gratitude, reflection, and people in mind.
 
 Grace Notes (`感恩记`) guides you through a simple daily rhythm: 5 gratitudes, 5 needs, 5 people in mind, reading notes, and space for what you're thinking and learning. The app offers a quiet, low-friction place for gratitude and reflection, with a gentle framing that feels welcoming rather than pushy.
 
-## What's new in 0.5.0
+## Release notes
 
-Marketing version stays **0.5.0** across several TestFlight / App Store drops; each drop bumps **build** and git tag **`v0.5.0+{build}`**. GitHub milestone **0.5.2** names the scope lane for the work below, not a separate marketing version.
-
-### Build 8 (Unreleased)
-
-- **Past tab (#130 / #132)** — Middle navigation label **Review** → **Past** (en / zh-Hans) with aligned onboarding copy; **Reflection rhythm** shows **Today** for the current calendar day instead of a weekday abbreviation. See CHANGELOG.
-- **Journal onboarding** — Post-Seed journey (**C**) is driven by user state (completion level, `hasSeenPostSeedJourney`, guided journal), not app version gates; legacy `pending051*` keys migrate safely for installs mid-upgrade.
-- **Today sequential entry (#102)** — Gratitudes, Needs, and People in mind take full sentences first, with inline edit on each saved line. See CHANGELOG.
-- **Settings (#84)** — Section headers move to authored title case instead of forced all-caps list styling.
-- **Reflection rhythm (#115)** — **Reflection rhythm** in weekly insights uses a redesigned per-day column chart (horizontal scroll when needed); tap a day to open that day’s journal entry. See CHANGELOG.
-- **Deterministic-only insights (#119)** — Cloud AI summarization and cloud review generation are removed; journal and weekly insights now stay on-device (with optional iCloud sync).
-- **Weekly insights (#40 / #80)** — Tracked on GitHub and in `GraceNotes/docs/07-release-roadmap.md` (**#80** may remain open for engine depth). See CHANGELOG for full bullets.
-
-### Build 7 (2026-03-24)
-
-- **Packaging** — Marketing **0.5.0**, build **7**, tag **`v0.5.0+7`**; Debug **dSYM**; shared **GraceNotes** scheme **Run** was **Release** in that build (later builds use **Debug** for Run; see CHANGELOG).
-- **Onboarding** — Milestone cards that jump to Settings share one eligibility rule with the UI and re-check it when you tap; onboarding/iCloud continuity keys use shared constants (see CHANGELOG **Developer**). Post-Seed orientation sample insights preview matches real Past-tab layout; welcome copy is slightly tighter.
-- **Localization** — String Catalog **zh-Hans** polish and aligned **Save to Photos** permission wording for **感恩记**.
-- **`AppInstructionLocale` + label grounding (#39)** — Instruction locale alignment, low-signal / grounding handling, unit tests (see CHANGELOG).
-- **Product docs** — Roadmap separates **#40** vs **#80**; see `GraceNotes/docs/07-release-roadmap.md`.
-- **UI tests** — Stable identifiers, English locale, relaunch-safe arguments, optional **`-grace-notes-reset-uitest-store`**, UI-test SwiftData session key (see CHANGELOG **Developer**).
-
-### Foundation (2026-03-21)
-
-- **Insight quality** — Weekly insights that better reflect your own entries: **#40**, **#80**, **#39**, **#11**.
-- **First-run tutorial** — Dismissible hints toward **Started** and **Full** on today’s entry (`#60`).
-- **Behavior-first onboarding** — Welcome, then guided first journal (Gratitude → Need → People → …); optional post-Seed journey; milestone suggestions (`#71`–`#75`).
-
-See `GraceNotes/docs/07-release-roadmap.md`.
-
-## What's new in 0.4.0
-
-- **JSON import** — In Settings → Data & Privacy, import a Grace Notes export to merge or restore by calendar day (with a clear confirm step). Export remains available as before.
-- **iCloud trust in Settings** — Storage and attention copy match how the app actually persists (including fallback and preference mismatch); when you need to open iOS Settings to fix the account, that action is easier to spot.
-- **On-device short labels** on each saved line in the entry show a capped prefix of your own text (with ellipsis when needed).
-
-## What's new in 0.3.5
-
-- This patch is a maintenance release focused on release metadata and packaging consistency.
-- Font resources now use deterministic build outputs during app packaging for more reliable release builds.
+Version history, per-build notes, and git tag shape (**`v{marketing}+{build}`**, e.g. **`v0.5.0+8`**) are maintained only in [CHANGELOG.md](CHANGELOG.md). Scope and sequencing: [GraceNotes/docs/07-release-roadmap.md](GraceNotes/docs/07-release-roadmap.md).
 
 ## Features
 
@@ -59,24 +21,30 @@ See `GraceNotes/docs/07-release-roadmap.md`.
 - **Advanced weekly insights** – Deterministic weekly reflection summary generated on-device.
 - **Data trust controls** – private-by-default storage plus JSON export and import for backup and ownership.
 - **First-run onboarding** – A minimal welcome followed by a guided first journal path on Today, with milestone-based opt-in suggestions for reminders and iCloud.
-- **Habit support** – Streak plus tiered completion states (quick check-in, standard reflection, structured entry fully filled) to reduce all-or-nothing pressure.
+- **Habit support** – Streak plus tiered completion on the structured sections; **perfect** streak days match a full fifteen-line grid (optional reading notes and reflections do not gate the perfect count).
 
 ## Terminology (contributors)
 
-Official product language: **entry** / **entries** (what the user writes; one **journal entry** per calendar day on Today, type `JournalEntry` in code). Avoid **chip** and **strip** in new user-facing or contributor-facing copy—legacy code and tests may still use those words in identifiers (e.g. UI-test element names).
+**Product English:** **entry** / **entries** (one calendar day’s journal on Today; type `JournalEntry` in code). The three structured groups are **Gratitudes**, **Needs**, and **People in mind** (each holds up to five **lines**).
 
-- **Completion status** — How complete the *structured* part of an entry is (**Gratitudes**, **Needs**, **People in mind**: up to five **lines** per section). Represented by `JournalCompletionLevel`. Reading notes and reflections are part of the same entry but do not change completion status.
-- **Abundance** / **full rhythm** — User-facing term for when the entry has all fifteen structured lines filled **and** non-empty reading notes and reflections (`hasAbundanceRhythm` in code). Still distinct from **Full** completion status alone (structured sections only—see `completedToday` / `criteriaMet` on `JournalViewModel` / `JournalEntry`).
+**Simplified Chinese (user-facing copy):** Prefer **记录** for day-level entry, **部分** for each structured group, and **条** for one slot/line in a section. Avoid **句子条** in completion or tutorial wording. Do not reintroduce **Abundance** or **满溢** in customer strings.
 
-| Completion status (en) | Swift (`JournalCompletionLevel`) | Legacy raw strings still decoded from storage |
-|------------------------|----------------------------------|-----------------------------------------------|
-| Empty | `.empty` | `empty`, `soil` |
-| Started | `.started` | `started`, `seed` |
-| Growing | `.growing` | `growing` |
-| Balanced | `.balanced` | `balanced`, `ripening` |
-| Full | `.full` | `full`, `harvest`, `abundance` |
+**Code vs UI labels:** Swift uses `JournalCompletionLevel` cases **`empty` … `full`**. On screen, the String Catalog maps those to the growth metaphor (**Soil → Sprout → Twig → Leaf → Bloom** in English; **静待播种 → 初露新芽 → 枝条初成 → 叶茂成形 → 花开有成** in zh-Hans). `String(localized:)` keys in code are still the enum-style words **Empty**, **Started**, **Growing**, **Balanced**, **Full**; localized **values** are the metaphor labels above.
 
-Main tabs: **Today** (journaling), **Past** (history and insights), **Settings**. The full-screen onboarding continuation is **`PostSeedJourney`** / **App tour** in code and settings; eligibility for **Started** is at least one line in each structured section (1/1/1), plus related flags—not the old “five cubed” naming.
+Avoid **chip** and **strip** in new user-facing or contributor prose; identifiers and UI tests may still use them.
+
+- **Completion status** — Derived only from line counts in the three structured sections (`JournalCompletionLevel`). Reading notes and reflections do **not** change the status.
+- **Top tier (`.full`)** — Five lines in each section (fifteen lines total), labeled **Bloom** / **花开有成** in the catalog. This is what **`JournalViewModel.completedToday`**, the **perfect** streak predicate, and first-run guided completion on Today use. Notes and reflections stay optional.
+
+| Swift (`JournalCompletionLevel`) | English UI (localized value) | zh-Hans UI (localized value) | Legacy raw strings decoded from storage |
+|----------------------------------|-----------------------------|------------------------------|----------------------------------------|
+| `.empty` | Soil | 静待播种 | `empty`, `soil` |
+| `.started` | Sprout | 初露新芽 | `started`, `seed` |
+| `.growing` | Twig | 枝条初成 | `growing` |
+| `.balanced` | Leaf | 叶茂成形 | `balanced`, `ripening` |
+| `.full` | Bloom | 花开有成 | `full`, `harvest`, `abundance` |
+
+Main tabs: **Today** (journaling), **Past** (history and insights), **Settings**. Full-screen onboarding continuation: **`PostSeedJourney`** / **App tour** in code and Settings. **Post-Seed** eligibility uses at least one line in each structured section (1/1/1) plus related flags (milestone copy uses **Sprout** / **初露新芽**, not the old “five cubed” naming).
 
 ## Requirements
 

@@ -103,13 +103,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@ and %2$@ sat side by side in what you wrote—thankfulness and needs together."
+            "value" : "%1$@ and %2$@ sat side by side in what you wrote, thankfulness and needs together."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这一周里，「%1$@」和「%2$@」常同时出现——感恩与需要并肩在纸上。"
+            "value" : "这一周里，「%1$@」和「%2$@」常同时出现在纸上，感恩与需要并肩挨着。"
           }
         }
       }
@@ -471,13 +471,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Abundance"
+            "value" : "Bloom"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "满溢"
+            "value" : "花开有成"
           }
         }
       }
@@ -488,13 +488,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Abundance means every spot is filled in Gratitudes, Needs, and People, and you have added reading notes and reflections for today."
+            "value" : "All sections reached five lines. Reading notes and reflections are extra space when you want them."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "感恩的事、需要的事和牵挂的人都写满了，阅读笔记和反思也在——今天这篇记录。"
+            "value" : "三个部分都写到五条了。阅读笔记和反思是额外的空间，想写时再补上就好。"
           }
         }
       }
@@ -638,13 +638,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "AI"
+            "value" : "Summary"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "AI"
+            "value" : "摘要"
           }
         }
       }
@@ -655,13 +655,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "AI connection status"
+            "value" : "Online connection status"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "AI 连接状态"
+            "value" : "联网连接状态"
           }
         }
       }
@@ -672,13 +672,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "AI features can help with short labels and Review insights when you want a little more support."
+            "value" : "Optional online summarization can help with short labels and Review insights when you want a little more support."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "需要多一点帮忙时，AI 可以帮你起短标签、丰富「回顾」里的洞察。"
+            "value" : "需要多一点帮忙时，联网摘要可以帮你起短标签、丰富「回顾」里的洞察。"
           }
         }
       }
@@ -689,13 +689,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "AI support"
+            "value" : "Online summary help"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "AI 辅助"
+            "value" : "联网摘要辅助"
           }
         }
       }
@@ -855,29 +855,29 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Balanced"
+            "value" : "Leaf"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "平衡"
+            "value" : "叶茂成形"
           }
         }
       }
     },
-    "Balanced means each section has at least three items. Keep going until each section has five for Full." : {
+    "All sections are at three lines. Reach five lines in each section to enter Bloom." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Balanced means each section has at least three items. Full is when each section has five."
+            "value" : "All sections are at three lines. Reach five lines in each section to enter Bloom."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「平衡」表示每个分栏都至少三条。每个分栏都达到五条，就是「圆满」。"
+            "value" : "三个部分都已经写了三条了。继续把每个部分写到五条，就会进入「花开有成」。"
           }
         }
       }
@@ -1053,13 +1053,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cloud AI couldn't complete this request (access or rate limiting). Check your Cloud AI setup in Settings, or try again later."
+            "value" : "The online summary service couldn't complete this request (access or rate limiting). Check your network summary settings in Settings, or try again later."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "云端 AI 未能完成这次请求（权限不足或请求过于频繁）。请到设置里查看云端 AI 配置，或稍后再试。"
+            "value" : "联网摘要这次没能完成（权限不足或请求过于频繁）。请到设置里查看联网摘要相关选项，或稍后再试。"
           }
         }
       }
@@ -1070,13 +1070,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cloud AI is temporarily unavailable. Grace Notes used your on-device summary for now; try again later."
+            "value" : "Online summarization is temporarily unavailable. Grace Notes used your on-device summary for now. Try again later."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "云端 AI 暂时不可用，先显示本机摘要。可以稍后再试。"
+            "value" : "联网摘要暂时不可用，先显示本机摘要。可以稍后再试。"
           }
         }
       }
@@ -1087,13 +1087,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cloud AI isn't available in this build (for example, no API key). This digest stayed on your device."
+            "value" : "Online summarization isn't available in this build (for example, no API key). This digest stayed on your device."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前构建未配置可用的云端 AI（例如缺少 API 密钥）。本周摘要保留在本机生成。"
+            "value" : "当前构建未配置可用的联网摘要（例如缺少 API 密钥）。本周摘要保留在本机生成。"
           }
         }
       }
@@ -1104,13 +1104,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cloud AI isn’t set up."
+            "value" : "Online summarization isn’t set up."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此版本尚未配置云端 AI。"
+            "value" : "此版本尚未配置联网摘要。"
           }
         }
       }
@@ -1121,13 +1121,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cloud AI sent a response Grace Notes couldn't turn into a weekly digest. Your on-device summary is shown instead."
+            "value" : "The online summary returned a response Grace Notes couldn't turn into a weekly digest. Your on-device summary is shown instead."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "云端 AI 返回的内容没法整理成每周洞察，已改为显示本机摘要。"
+            "value" : "联网摘要返回的内容没法整理成每周洞察，已改为显示本机摘要。"
           }
         }
       }
@@ -1257,7 +1257,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Couldn’t verify—try again"
+            "value" : "Couldn’t verify. Try again"
           }
         },
         "zh-Hans" : {
@@ -2178,29 +2178,61 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Empty"
+            "value" : "Soil"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "空白"
+            "value" : "静待播种"
           }
         }
       }
     },
-    "Empty means you have not added anything in Gratitudes, Needs, or People in Mind yet." : {
+    "Add one line in each section to move into Sprout." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Empty means you haven't added anything in Gratitudes, Needs, or People in Mind yet."
+            "value" : "Add one line in each section to move into Sprout."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「空白」表示感恩的事、需要的事和牵挂的人这三个分栏还没有任何条目。"
+            "value" : "现在还什么都没有。随便开始写一些，就会进入「初露新芽」。"
+          }
+        }
+      }
+    },
+    "Add one more line in any section. Small steps are easier to keep. Tap the status above anytime if you want a reminder." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add one more line in any section. Small steps are easier to keep. Tap the status above anytime if you want a reminder."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在任一部分多写几条，小步最容易坚持。需要提示时，也可以随时点按上方状态。"
+          }
+        }
+      }
+    },
+    "Write one gratitude line to plant your first seed. Tap the status above anytime if you want a reminder." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Write one gratitude line to plant your first seed. Tap the status above anytime if you want a reminder."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "先写一件感恩的事，把第一颗种子种下去。需要提示时，也可以随时点按上方状态。"
           }
         }
       }
@@ -2262,13 +2294,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Expand to see cloud AI connection details and run a reachability check."
+            "value" : "Expand to see online summary connection details and run a reachability check."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "展开可查看云端 AI 连接详情并检查网络可达性。"
+            "value" : "展开可查看联网摘要连接详情并检查网络可达性。"
           }
         }
       }
@@ -2372,34 +2404,146 @@
         }
       }
     },
+    "First time with one line in each section. Nice work." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "First time with one line in each section. Nice work."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第一次在每个部分都写下了一条。真好。"
+          }
+        }
+      }
+    },
+    "Keep going in each section toward Leaf." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep going in each section toward Leaf."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在任一部分多写几条，小步最容易坚持。"
+          }
+        }
+      }
+    },
+    "Your first Leaf day. Each section has at least three lines. Keep going toward Bloom." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your first Leaf day. Each section has at least three lines. Keep going toward Bloom."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第一次进入「叶茂成形」。每个部分都至少有三条了，继续写向「花开有成」。"
+          }
+        }
+      }
+    },
+    "Your first Bloom day. Each section has five lines. Add reading notes or reflections when you want." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your first Bloom day. Each section has five lines. Add reading notes or reflections when you want."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第一次进入「花开有成」。每个部分都写满五条。想写时再加上阅读笔记或反思就好。"
+          }
+        }
+      }
+    },
+    "You reached Sprout today." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You reached Sprout today."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天已经达到「初露新芽」。"
+          }
+        }
+      }
+    },
+    "You reached Leaf today." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You reached Leaf today."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天已经达到「叶茂成形」。"
+          }
+        }
+      }
+    },
+    "You reached Bloom today. All five lines are filled in each section." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You reached Bloom today. All five lines are filled in each section."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天已经达到「花开有成」。三个部分都写满五条。"
+          }
+        }
+      }
+    },
     "Full" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Full"
+            "value" : "Bloom"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "圆满"
+            "value" : "花开有成"
           }
         }
       }
     },
-    "Full means all five spots are filled in Gratitudes, Needs, and People in Mind. Reading notes and reflections are separate from this status." : {
+    "All sections reached five lines. Today's entry is complete." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Full means all five spots in each section are filled. Reading notes and reflections do not change this status."
+            "value" : "All sections reached five lines. Today's entry is complete."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「圆满」表示三个分栏都已写满五条。阅读笔记和反思不会改变这个状态。"
+            "value" : "三个部分都写到五条了。今天这篇记录已经完整了。"
           }
         }
       }
@@ -2527,13 +2671,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Grace Notes couldn't reach Cloud AI. Check your connection and try again when you're online."
+            "value" : "Grace Notes couldn't reach the online summary service. Check your connection and try again when you're online."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "感恩记暂时连不上云端 AI。请检查网络，联网后再试。"
+            "value" : "感恩记暂时连不上联网摘要服务。请检查网络，联网后再试。"
           }
         }
       }
@@ -2610,29 +2754,29 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Growing"
+            "value" : "Twig"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "成长"
+            "value" : "枝条初成"
           }
         }
       }
     },
-    "Growing means at least one section has three or more items and at least one section still has room to grow." : {
+    "At least one section has three lines. Reach three in all sections to enter Leaf." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Growing means at least one section has reached three, and at least one section is still under three."
+            "value" : "At least one section has three lines. Reach three in all sections to enter Leaf."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「成长」表示至少有一个分栏已经达到三条，也至少有一个分栏还不到三条。"
+            "value" : "至少有一个部分已经写到三条了。等三个部分都写上三条以后，就会进入「叶茂成形」。"
           }
         }
       }
@@ -2660,13 +2804,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Full means every spot is filled—five gratitudes, five needs, and five people. Add reading notes and reflections to reach Abundance."
+            "value" : "Bloom means every line slot is filled: five in Gratitudes, five in Needs, and five in People in Mind."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "十五个格子都写满了，也就是「圆满」。若想走到「满溢」，不妨给今天补上阅读笔记和反思。"
+            "value" : "「花开有成」表示三个部分都写满五条：感恩的事、需要的事和牵挂的人各五条。"
           }
         }
       }
@@ -2863,13 +3007,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "If it helps, you can turn on a daily reminder in Settings—optional, and easy to change anytime."
+            "value" : "If it helps, you can turn on a daily reminder in Settings. Optional, and easy to change anytime."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "如果需要，可以在设置里打开每日提醒——完全可选，也随时能改。"
+            "value" : "如果需要，可以在设置里打开每日提醒。完全可选，也随时能改。"
           }
         }
       }
@@ -3308,13 +3452,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No saved journal entry for this day."
+            "value" : "No saved reflection for this day."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "该日尚无已保存的日记条目。"
+            "value" : "这一天还没有已保存的记录。"
           }
         }
       }
@@ -3567,13 +3711,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Opens the journal entry for that day."
+            "value" : "Opens that day's reflection."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打开该日的感恩记。"
+            "value" : "打开这一天的记录。"
           }
         }
       }
@@ -3748,13 +3892,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "When you need it, cloud AI can help you generate clearer short labels and deeper insights in Review."
+            "value" : "When you need it, optional online summarization can help with clearer short labels and deeper insights in Review."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "需要时，你可以借助云端 AI 帮你生成更贴切的短标签、为你带来更深入的「洞察」。"
+            "value" : "需要时，可以打开可选的联网摘要，帮你生成更贴切的短标签，并在「回顾」里带来更深入的洞察。"
           }
         }
       }
@@ -3780,13 +3924,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Started"
+            "value" : "Sprout"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "起步"
+            "value" : "初露新芽"
           }
         }
       }
@@ -3828,13 +3972,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Open the Past tab for this week’s digest: your reflection rhythm, patterns across your sentence strips, one observation grounded in what you wrote, and a practical next step. The more specific you write each day, the closer these insights stay to you—it may take a little time."
+            "value" : "Open the Past tab for this week’s digest: days you wrote, patterns across your lines in each section, one observation grounded in what you wrote, and a practical next step. The more specific you write each day, the closer these insights stay to you. It may take a little time."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打开「过去」，可以查看本周摘要：反思节奏、你在各个句子条里的规律、一条基于你所写内容的观察，以及一个可执行的下一步。每天写得越具体，这些洞察就越贴近你——不过这可能需要一点时间。"
+            "value" : "打开「过去」可以查看本周摘要：你写过的日子、各个部分里反复出现的主题、一条贴着你原文的观察，以及一个可执行的下一步。每天写得越具体，这些洞察就越贴近你，不过这可能需要一点时间。"
           }
         }
       }
@@ -3876,13 +4020,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No sentence strips yet in Gratitudes, Needs, or People in Mind."
+            "value" : "No lines yet in Gratitudes, Needs, or People in Mind."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "感恩的事、需要的事和牵挂的人里都还没有句子条。"
+            "value" : "感恩的事、需要的事和牵挂的人这三个部分里都还没有写下条。"
           }
         }
       }
@@ -3940,13 +4084,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Empty, Started, Growing, Balanced, and Full track how full your sentence strips are in Gratitudes, Needs, and People in Mind. Reading notes and reflections do not change status."
+            "value" : "Soil, Sprout, Twig, Leaf, and Bloom show how many lines you have in Gratitudes, Needs, and People in Mind. They help you pace without pressure. Reading notes and reflections do not change status."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「空白、起步、成长、平衡、圆满」反映感恩的事、需要的事和牵挂的人里句子条的充实程度。阅读笔记和反思不会改变状态。"
+            "value" : "「静待播种、初露新芽、枝条初成、叶茂成形、花开有成」只看感恩的事、需要的事和牵挂的人里写了多少条，帮你掌握节奏、少点压力。阅读笔记和反思不会改变状态。"
           }
         }
       }
@@ -3988,13 +4132,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sample only. Your real Review card may include more sections when Cloud AI is on. Gray lines in the live card are follow-up prompts—answer in Reflections on Today, or in your next entry."
+            "value" : "Sample only. Your real Review card may include more sections when online summarization is on. Gray lines in the live card are follow-up prompts. Answer in Reflections on Today, or in your next entry."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅为示例。开启云端 AI 时，真实的「回顾」卡片可能还有更多栏目。实卡里的灰色小字是跟进提示，想写时可以在「今天」的反思里接几句，或在下一篇记录里回应。"
+            "value" : "仅为示例。开启联网摘要时，真实的「回顾」卡片可能还有更多栏目。实卡里的灰色小字是跟进提示，想写时可以在「今天」的反思里接几句，或在下一篇记录里回应。"
           }
         }
       }
@@ -4118,13 +4262,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reflection rhythm"
+            "value" : "Days you wrote"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「回顾」节奏"
+            "value" : "你写过的"
           }
         }
       }
@@ -4397,13 +4541,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Runs a cloud AI reachability check when activated."
+            "value" : "Runs an online summary reachability check when activated."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "开启时会检查云端 AI 是否可用。"
+            "value" : "开启时会检查联网摘要是否可用。"
           }
         }
       }
@@ -4563,13 +4707,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cloud AI"
+            "value" : "Online summary"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "云端 AI"
+            "value" : "联网摘要"
           }
         }
       }
@@ -4693,13 +4837,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Shows what Abundance means for today."
+            "value" : "Shows what Bloom means for today's entry."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打开今天「满溢」阶段的说明。"
+            "value" : "打开今天「花开有成」阶段的说明。"
           }
         }
       }
@@ -4710,13 +4854,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Shows what Full means for today."
+            "value" : "Shows what Bloom means for today."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打开今天「圆满」阶段的说明。"
+            "value" : "打开今天「花开有成」阶段的说明。"
           }
         }
       }
@@ -4744,13 +4888,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Shows what Balanced means for today."
+            "value" : "Shows what Leaf means for today."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打开今天「平衡」阶段的说明。"
+            "value" : "打开今天「叶茂成形」阶段的说明。"
           }
         }
       }
@@ -4761,13 +4905,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Shows what Started means for today."
+            "value" : "Shows what Sprout means for today."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打开今天「起步」阶段的说明。"
+            "value" : "打开今天「初露新芽」阶段的说明。"
           }
         }
       }
@@ -4778,13 +4922,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Shows what Empty means for today."
+            "value" : "Shows what Soil means for today."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打开今天「空白」阶段的说明。"
+            "value" : "打开今天「静待播种」阶段的说明。"
           }
         }
       }
@@ -4811,13 +4955,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Shows why Cloud AI wasn't used for this weekly digest."
+            "value" : "Shows why online summarization wasn't used for this weekly digest."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "说明为何本周未使用云端 AI 生成本周回顾摘要。"
+            "value" : "说明为何本周未使用联网摘要生成本周回顾摘要。"
           }
         }
       }
@@ -4878,13 +5022,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Empty"
+            "value" : "Soil"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "空白"
+            "value" : "静待播种"
           }
         }
       }
@@ -4912,13 +5056,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Empty, Started, Growing, Balanced, Full, and Abundance mark how full your entry becomes—not a race, just a map."
+            "value" : "Soil, Sprout, Twig, Leaf, and Bloom mark how full today's entry is. Not a race, just a map."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "空白、起步、成长、平衡、圆满与满溢，标记的是这篇记录有多饱满——不是比赛，只是一张地图。"
+            "value" : "静待播种、初露新芽、枝条初成、叶茂成形、花开有成，标记的是今天这篇记录写得有多饱满。不是比赛，只是一张地图。"
           }
         }
       }
@@ -4929,13 +5073,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Something went wrong with Cloud AI. Grace Notes used your on-device summary instead."
+            "value" : "Something went wrong with online summarization. Grace Notes used your on-device summary instead."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "云端 AI 出了点问题，已改用本机摘要。"
+            "value" : "联网摘要出了点问题，已改用本机摘要。"
           }
         }
       }
@@ -4963,13 +5107,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Source: Cloud AI"
+            "value" : "Source: Online summary"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "来源：云端 AI"
+            "value" : "来源：联网摘要"
           }
         }
       }
@@ -5110,29 +5254,29 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Started"
+            "value" : "Sprout"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "起步"
+            "value" : "初露新芽"
           }
         }
       }
     },
-    "Started means you have begun filling the three sections, and each section still has fewer than three items." : {
+    "You have started. Reach three lines in each section to enter Twig." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Started means you've added at least one item, and all three sections are still under three."
+            "value" : "You have started. Reach three lines in each section to enter Twig."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「起步」表示你已经写下至少一条，而且三个分栏都还不到三条。"
+            "value" : "今天的记录里至少写了一条。把每个部分写到三条，就会进入「枝条初成」。"
           }
         }
       }
@@ -5326,13 +5470,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The Cloud AI request timed out. Grace Notes used your on-device summary; try again in a moment."
+            "value" : "The online summary request timed out. Grace Notes used your on-device summary. Try again in a moment."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "云端 AI 请求超时，已为你保留本机摘要。可以稍后再试。"
+            "value" : "联网摘要请求超时，已为你保留本机摘要。可以稍后再试。"
           }
         }
       }
@@ -5410,7 +5554,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This week had enough to summarize, but not enough repetition for a clear cloud insight. Grace Notes kept this review on your device."
+            "value" : "This week had enough to summarize, but not enough repetition for a clear online insight. Grace Notes kept this review on your device."
           }
         },
         "zh-Hans" : {
@@ -5494,13 +5638,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "To keep this digest close to what you wrote, Grace Notes skipped Cloud AI's draft and showed your on-device summary instead."
+            "value" : "To keep this digest close to what you wrote, Grace Notes skipped the online summary draft and showed your on-device summary instead."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "为了让摘要更贴近你自己写下的内容，感恩记没有采用云端 AI 的草稿，仍显示本机摘要。"
+            "value" : "为了让摘要更贴近你自己写下的内容，感恩记没有采用联网摘要的草稿，仍显示本机摘要。"
           }
         }
       }
@@ -5737,13 +5881,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verifies reachability of the cloud AI service."
+            "value" : "Verifies reachability of the online summary service."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "检查是否能连接到云端 AI 服务。"
+            "value" : "检查是否能连接到联网摘要服务。"
           }
         }
       }
@@ -5872,7 +6016,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "是什么帮助你保持这样的稳定，好把这份状态带到下周？"
+            "value" : "你是怎么把这份稳定保持下来的？下周也许还能用得上。"
           }
         }
       }
@@ -6084,13 +6228,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "When you want a little help with short labels or Review, you can explore AI options in Settings."
+            "value" : "When you want a little help with short labels or Review, you can explore summarization options in Settings."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "若想为短标签或「回顾」多要一点帮助，可以到「设置」里看看 AI 相关选项。"
+            "value" : "若想为短标签或「回顾」多要一点帮助，可以到「设置」里看看联网摘要相关选项。"
           }
         }
       }
@@ -6269,7 +6413,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你正在成长。继续把三个分栏都写下去吧。"
+            "value" : "你正在成长。继续把三个部分都写下去吧。"
           }
         }
       }
@@ -6429,13 +6573,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You kept a steady reflection rhythm this week."
+            "value" : "You wrote on several days this week."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本周你的「回顾」节奏很稳定。"
+            "value" : "本周你有几天都在坚持写下记录。"
           }
         }
       }
@@ -6582,13 +6726,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You reached Started today."
+            "value" : "You reached Sprout today."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "今天你已达到「起步」。"
+            "value" : "今天已经达到「初露新芽」。"
           }
         }
       }
@@ -6599,13 +6743,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You reached Started"
+            "value" : "You reached Sprout"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "今天的记录里，感恩、需要和牵挂各有一条——这就是「起步」。"
+            "value" : "今天的记录里，感恩、需要和牵挂各部分都至少有一条，也就是「初露新芽」。"
           }
         }
       }
@@ -6632,13 +6776,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You reached Abundance today."
+            "value" : "You reached Bloom today."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "今天写到了「满溢」。"
+            "value" : "今天已经达到「花开有成」。"
           }
         }
       }
@@ -6648,13 +6792,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You reached Balanced today."
+            "value" : "You reached Leaf today."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你今天达到了「平衡」。"
+            "value" : "今天已经达到「叶茂成形」。"
           }
         }
       }
@@ -6664,13 +6808,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You reached Full today. All fifteen sentence stripes are filled."
+            "value" : "You reached Bloom today. Each section has five lines."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你今天达到了「圆满」。十五个句子条都已写满。"
+            "value" : "今天已经达到「花开有成」。三个部分都写满五条。"
           }
         }
       }
@@ -6681,13 +6825,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You reached Full."
+            "value" : "You reached Bloom."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "今天你已经达到「圆满」。"
+            "value" : "今天你已经达到「花开有成」。"
           }
         }
       }
@@ -6799,13 +6943,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You're growing—at least three in each section. Keep going toward Full."
+            "value" : "You're growing. At least three lines in each section. Keep going toward Bloom."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你在成长：每个栏目都至少有三条了。继续写，向「圆满」前进。"
+            "value" : "你在成长：每个部分都至少有三条了。继续写，向「花开有成」前进。"
           }
         }
       }
@@ -6815,13 +6959,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nice work. Two more in each section gets you to Full."
+            "value" : "Nice work. Two more lines in each section gets you to Bloom."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "很棒！每个栏目再写两条，就可以达到「圆满」。"
+            "value" : "很棒！每个部分再写两条，就可以到「花开有成」。"
           }
         }
       }
@@ -6881,13 +7025,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You've reached Started for the first time—one gratitude, one need, and someone on your mind. Lovely."
+            "value" : "You've reached Sprout for the first time: one gratitude, one need, and someone on your mind. Lovely."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这是你第一次达到「起步」——你已经写下 1 件感恩的事、1 件需要的事和 1 位牵挂的人，真好。"
+            "value" : "这是你第一次到「初露新芽」：你已经写下 1 件感恩的事、1 件需要的事和 1 位牵挂的人，真好。"
           }
         }
       }
@@ -6915,13 +7059,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You've taken the first full step on Today. Keep writing in Grace Notes at your own pace—there's more room when you're ready."
+            "value" : "You've taken the first full step on Today. Keep writing in Grace Notes at your own pace. There is more room when you're ready."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你已经在「今天」迈出了完整的第一步。按自己的节奏在感恩记里写就好——想多写的时候，自然会有更多空间。"
+            "value" : "你已经在「今天」迈出了完整的第一步。按自己的节奏在感恩记里写就好。想多写的时候，自然会有更多空间。"
           }
         }
       }
@@ -6931,13 +7075,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your first Balanced day. Each section has at least three."
+            "value" : "Your first Leaf day. Each section has at least three lines."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "第一次达到「平衡」。每个分栏都至少三条。"
+            "value" : "第一次到「叶茂成形」。每个部分都至少有三条。"
           }
         }
       }
@@ -6947,13 +7091,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your first Full day. All fifteen sentence stripes are filled."
+            "value" : "Your first Bloom day. All fifteen line slots are filled."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "第一次达到「圆满」。十五个句子条都已写满。"
+            "value" : "第一次到「花开有成」。十五个格子都写满了。"
           }
         }
       }
@@ -6964,13 +7108,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your first Full—you filled all fifteen spots today. Add reading notes and reflections when you're ready for Abundance."
+            "value" : "Your first Bloom day. You filled every line slot today. Add reading notes or reflections when you want."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这是你第一次达到「圆满」——十五个格子都填满了。想继续的话，补上阅读笔记和反思，就能到「满溢」。"
+            "value" : "这是你第一次到「花开有成」：十五个格子都填满了。想写时再加上阅读笔记或反思就好。"
           }
         }
       }
@@ -6981,13 +7125,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your first Full, and you've added reading notes and reflections—a full rhythm for today."
+            "value" : "Your first Bloom day, and you added reading notes and reflections. A full rhythm for today."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这是你第一次达到「圆满」，也写好了阅读笔记和反思。今天这一篇已经很完整了。"
+            "value" : "这是你第一次到「花开有成」，也写好了阅读笔记和反思。今天这一篇已经很完整了。"
           }
         }
       }

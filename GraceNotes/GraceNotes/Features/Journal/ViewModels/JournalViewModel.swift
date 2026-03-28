@@ -177,16 +177,10 @@ final class JournalViewModel {
         autosaveTrigger.send(())
     }
 
-    /// True when today's entry meets **Abundance** (full rhythm), not harvest-only.
+    /// True when today's entry has all fifteen chips filled (Harvest / full grid).
     var completedToday: Bool {
         guard journalEntry != nil else { return false }
-        return JournalEntry.criteriaMet(
-            gratitudesCount: gratitudes.count,
-            needsCount: needs.count,
-            peopleCount: people.count,
-            readingNotes: readingNotes,
-            reflections: reflections
-        )
+        return isChipsFullGridComplete
     }
 
     /// Total chip slots across gratitudes, needs, and people (5 x 3 = 15).

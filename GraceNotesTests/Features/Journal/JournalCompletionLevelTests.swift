@@ -113,7 +113,7 @@ final class JournalCompletionLevelTests: XCTestCase {
         XCTAssertEqual(level, .full)
     }
 
-    func test_hasHarvestChips_and_hasAbundanceRhythm_alignWithLevels() throws {
+    func test_hasHarvestChips_alignsWithFullLevel_withOrWithoutNotes() throws {
         let context = try makeInMemoryContext()
         let items = (1...JournalEntry.slotCount).map { JournalItem(fullText: "x\($0)", chipLabel: nil) }
         let harvestOnly = JournalEntry(
@@ -123,7 +123,7 @@ final class JournalCompletionLevelTests: XCTestCase {
             readingNotes: "",
             reflections: ""
         )
-        let abundance = JournalEntry(
+        let harvestWithNotes = JournalEntry(
             gratitudes: items,
             needs: items,
             people: items,
@@ -131,16 +131,15 @@ final class JournalCompletionLevelTests: XCTestCase {
             reflections: "Reflections"
         )
         context.insert(harvestOnly)
-        context.insert(abundance)
+        context.insert(harvestWithNotes)
         try context.save()
 
         XCTAssertTrue(harvestOnly.hasHarvestChips)
         XCTAssertTrue(harvestOnly.isComplete)
-        XCTAssertFalse(harvestOnly.hasAbundanceRhythm)
         XCTAssertEqual(harvestOnly.completionLevel, .full)
 
-        XCTAssertTrue(abundance.hasAbundanceRhythm)
-        XCTAssertEqual(abundance.completionLevel, .full)
+        XCTAssertTrue(harvestWithNotes.hasHarvestChips)
+        XCTAssertEqual(harvestWithNotes.completionLevel, .full)
     }
 
     func test_tutorialCompletionRank_isMonotonic() {

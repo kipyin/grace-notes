@@ -41,8 +41,9 @@ final class JournalReviewRhythmScrollUITests: XCTestCase {
         let app = launchAppWithWideReviewRhythm()
         app.tabBars.buttons["Past"].tap()
 
+        // Catalog key is "Reflection rhythm"; en value is "Days you wrote" (UI tests force English).
         XCTAssertTrue(
-            app.staticTexts["Reflection rhythm"].waitForExistence(timeout: 25),
+            app.staticTexts["Days you wrote"].waitForExistence(timeout: 25),
             "Expected Past tab insights with wide rhythm seed."
         )
 

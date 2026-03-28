@@ -139,9 +139,10 @@ final class JournalUITests: XCTestCase {
 
         app.tabBars.buttons["Past"].tap()
 
+        // Catalog key is "Reflection rhythm"; en value is "Days you wrote" (UI tests force English).
         XCTAssertTrue(
-            app.staticTexts["Reflection rhythm"].waitForExistence(timeout: 20),
-            "Expected Past tab insights to finish loading (reflection rhythm section)."
+            app.staticTexts["Days you wrote"].waitForExistence(timeout: 20),
+            "Expected Past tab insights to finish loading (rhythm section title)."
         )
 
         let dayStart = Calendar.current.startOfDay(for: Date())

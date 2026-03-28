@@ -63,11 +63,11 @@ struct JournalTutorialHintView: View {
         switch kind {
         case .seed:
             return String(
-                localized: "When you're ready, keep writing—a line in Gratitudes, Needs, and People in Mind is enough to begin. Tap the status above anytime if you want a reminder."
+                localized: "Write one gratitude line to plant your first seed. Tap the status above anytime if you want a reminder."
             )
         case .harvest:
             return String(
-                localized: "You can keep writing in Gratitudes, Needs, and People in Mind if you'd like a fuller reflection. Tap the status above anytime to read what Full means."
+                localized: "Add one more line in any section. Small steps are easier to keep. Tap the status above anytime if you want a reminder."
             )
         }
     }

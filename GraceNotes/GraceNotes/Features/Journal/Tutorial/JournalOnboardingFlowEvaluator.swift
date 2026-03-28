@@ -6,7 +6,6 @@ enum JournalOnboardingStep: Equatable {
     case person
     case ripening
     case harvest
-    case abundance
 }
 
 enum JournalOnboardingSection: Hashable {
@@ -60,7 +59,6 @@ struct JournalOnboardingPresentation: Equatable {
     }
 
     /// Per-section placement: linear steps use the active row; multi-active chips use Gratitudes.
-    /// Abundance uses Reading Notes.
     func sectionGuidance(for section: JournalOnboardingSection) -> JournalOnboardingSectionGuidance? {
         guard let title, let message, let step else { return nil }
         let bannerSection: JournalOnboardingSection = switch step {
@@ -72,14 +70,12 @@ struct JournalOnboardingPresentation: Equatable {
             .person
         case .ripening, .harvest:
             .gratitude
-        case .abundance:
-            .readingNotes
         }
         guard section == bannerSection else { return nil }
         let secondary: String? = switch step {
         case .gratitude:
             String(localized: "When you're finished, press Return or Enter on your keyboard.")
-        case .need, .person, .ripening, .harvest, .abundance:
+        case .need, .person, .ripening, .harvest:
             nil
         }
         return JournalOnboardingSectionGuidance(title: title, message: message, messageSecondary: secondary)
@@ -91,17 +87,7 @@ struct JournalOnboardingContext: Equatable {
     let gratitudesCount: Int
     let needsCount: Int
     let peopleCount: Int
-    let readingNotes: String
-    let reflections: String
     let hasCompletedGuidedJournal: Bool
-
-    var notesTrimmed: String {
-        readingNotes.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    var reflectionsTrimmed: String {
-        reflections.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
 
     var hasRipening: Bool {
         JournalEntry.minChipSectionCount(
@@ -144,10 +130,6 @@ enum JournalOnboardingFlowEvaluator {
 
         if !context.hasHarvest {
             return harvestPresentation()
-        }
-
-        if context.notesTrimmed.isEmpty || context.reflectionsTrimmed.isEmpty {
-            return abundancePresentation()
         }
 
         return .inactive
@@ -260,22 +242,6 @@ private extension JournalOnboardingFlowEvaluator {
             ),
             states: chipSectionPresentation(
                 chipState: .active,
-                notesState: .active,
-                reflectionsState: .active
-            )
-        )
-    }
-
-    static func abundancePresentation() -> JournalOnboardingPresentation {
-        presentation(
-            step: .abundance,
-            title: String(localized: "Full"),
-            message: String(
-                // swiftlint:disable:next line_length
-                localized: "You've filled Gratitudes, Needs, and People. Add reading notes and reflections when you're ready."
-            ),
-            states: chipSectionPresentation(
-                chipState: .available,
                 notesState: .active,
                 reflectionsState: .active
             )

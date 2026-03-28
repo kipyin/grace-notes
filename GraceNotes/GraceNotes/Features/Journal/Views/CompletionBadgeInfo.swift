@@ -26,23 +26,15 @@ enum CompletionBadgeInfo: Equatable {
     var description: String {
         switch self {
         case .empty:
-            return String(localized: "Empty means you have not added anything in Gratitudes, Needs, or People in Mind yet.")
+            return String(localized: "Add one line in each section to move into Sprout.")
         case .started:
-            return String(
-                localized: "Started means you have begun filling the three sections, and each section still has fewer than three items."
-            )
+            return String(localized: "You have started. Reach three lines in each section to enter Twig.")
         case .growing:
-            return String(
-                localized: "Growing means at least one section has three or more items and at least one section still has room to grow."
-            )
+            return String(localized: "At least one section has three lines. Reach three in all sections to enter Leaf.")
         case .balanced:
-            return String(
-                localized: "Balanced means each section has at least three items. Keep going until each section has five for Full."
-            )
+            return String(localized: "All sections are at three lines. Reach five lines in each section to enter Bloom.")
         case .full:
-            return String(
-                localized: "Full means all five spots are filled in Gratitudes, Needs, and People in Mind. Reading notes and reflections are separate from this status."
-            )
+            return String(localized: "All sections reached five lines. Today's entry is complete.")
         }
     }
     // swiftlint:enable line_length

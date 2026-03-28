@@ -8,7 +8,7 @@ import Foundation
 ///   post-Seed journey once. Skip the congratulations page when `completedGuidedJournal` is already true.
 /// - **Dated entry** (`entryDate != nil`), **UI tests:** No post-Seed presentation from this policy.
 ///
-/// **Dual completion:** Guided first entry can end by reaching **Abundance** on Today
+/// **Dual completion:** Guided first entry can end by filling all fifteen chips on Today
 /// (`JournalScreen.syncGuidedJournalCompletionIfNeeded`) or by finishing the post-Seed journey
 /// (`JournalScreen.completePostSeedJourney`). Both set `completedGuidedJournal`.
 enum JournalTodayOrientationPolicy {

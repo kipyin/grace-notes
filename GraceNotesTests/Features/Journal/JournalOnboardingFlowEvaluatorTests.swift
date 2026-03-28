@@ -67,23 +67,8 @@ final class JournalOnboardingFlowEvaluatorTests: XCTestCase {
         XCTAssertEqual(presentation.state(for: .reflections), .active)
     }
 
-    func test_presentation_afterHarvest_targetsAbundance() {
+    func test_presentation_afterHarvest_isInactive() {
         let presentation = makePresentation(gratitudes: 5, needs: 5, people: 5)
-
-        XCTAssertEqual(presentation.step, .abundance)
-        XCTAssertEqual(presentation.state(for: .gratitude), .available)
-        XCTAssertEqual(presentation.state(for: .readingNotes), .active)
-        XCTAssertEqual(presentation.state(for: .reflections), .active)
-    }
-
-    func test_presentation_afterAbundance_isInactive() {
-        let presentation = makePresentation(
-            gratitudes: 5,
-            needs: 5,
-            people: 5,
-            readingNotes: "Psalm 23",
-            reflections: "A steady day"
-        )
 
         XCTAssertFalse(presentation.isGuidanceActive)
     }
@@ -110,11 +95,11 @@ final class JournalOnboardingFlowEvaluatorTests: XCTestCase {
         XCTAssertNil(presentation.sectionGuidance(for: .person))
     }
 
-    func test_sectionGuidance_abundance_onlyOnReadingNotes() {
-        let presentation = makePresentation(gratitudes: 5, needs: 5, people: 5)
-        XCTAssertEqual(presentation.step, .abundance)
-        XCTAssertNotNil(presentation.sectionGuidance(for: .readingNotes))
-        XCTAssertNil(presentation.sectionGuidance(for: .reflections))
+    func test_sectionGuidance_harvest_onlyOnGratitude() {
+        let presentation = makePresentation(gratitudes: 3, needs: 3, people: 3)
+        XCTAssertEqual(presentation.step, .harvest)
+        XCTAssertNotNil(presentation.sectionGuidance(for: .gratitude))
+        XCTAssertNil(presentation.sectionGuidance(for: .readingNotes))
     }
 }
 
@@ -122,18 +107,14 @@ private extension JournalOnboardingFlowEvaluatorTests {
     func makePresentation(
         gratitudes: Int,
         needs: Int,
-        people: Int,
-        readingNotes: String = "",
-        reflections: String = ""
+        people: Int
     ) -> JournalOnboardingPresentation {
         JournalOnboardingFlowEvaluator.presentation(
             for: makeContext(
                 entryDate: nil,
                 gratitudes: gratitudes,
                 needs: needs,
-                people: people,
-                readingNotes: readingNotes,
-                reflections: reflections
+                people: people
             )
         )
     }
@@ -143,8 +124,6 @@ private extension JournalOnboardingFlowEvaluatorTests {
         gratitudes: Int,
         needs: Int,
         people: Int,
-        readingNotes: String = "",
-        reflections: String = "",
         hasCompletedGuidedJournal: Bool = false
     ) -> JournalOnboardingContext {
         JournalOnboardingContext(
@@ -152,8 +131,6 @@ private extension JournalOnboardingFlowEvaluatorTests {
             gratitudesCount: gratitudes,
             needsCount: needs,
             peopleCount: people,
-            readingNotes: readingNotes,
-            reflections: reflections,
             hasCompletedGuidedJournal: hasCompletedGuidedJournal
         )
     }
