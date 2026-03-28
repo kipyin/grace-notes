@@ -1,14 +1,12 @@
 # User-facing copy catalog (zh-Hans, then English)
 
-> **Delete this file before merging the PR to `main`.** Working copy for reviewing en / zh-Hans. Regenerated from `Localizable.xcstrings` (+ InfoPlist block below) on 2026-03-28 for issue 128 copy reset.
+> **Delete this file before merging the PR to `main`.** Working copy regenerated from `Localizable.xcstrings` (+ InfoPlist below). Removed legacy Cloud/AI-only strings; insights are on-device only.
 
-**Do not merge this file to `main`.** Drop it in a final commit on this branch (or exclude from squash) once review is done.
+**Do not merge this file to `main`.**
 
-Placeholders use example values: **Tuesday** (`%@`), **family dinner** / **call Mom** for positional `%n$@`, small integers for counts.
+**Order:** Alphabetically by English development string (catalog key).
 
-**Order:** Alphabetically by English development string (catalog key), except InfoPlist at top.
-
-
+---
 
 ## App name & photo permission (InfoPlist.xcstrings)
 
@@ -19,8 +17,6 @@ Grace Notes
 将感恩记的分享图保存到相册。
 
 Save your Grace Notes share image to your photo library.
-
----
 
 ---
 
@@ -177,30 +173,6 @@ A next step
 规律
 
 A pattern
-
----
-
-摘要
-
-Summary
-
----
-
-联网连接状态
-
-Online connection status
-
----
-
-需要多一点帮忙时，联网摘要可以帮你起短标签、丰富「回顾」里的洞察。
-
-Optional online summarization can help with short labels and Review insights when you want a little more support.
-
----
-
-联网摘要辅助
-
-Online summary help
 
 ---
 
@@ -411,36 +383,6 @@ Checking…
 选择提醒时间。
 
 Choose a reminder time.
-
----
-
-联网摘要这次没能完成（权限不足或请求过于频繁）。请到设置里查看联网摘要相关选项，或稍后再试。
-
-The online summary service couldn't complete this request (access or rate limiting). Check your network summary settings in Settings, or try again later.
-
----
-
-联网摘要暂时不可用，先显示本机摘要。可以稍后再试。
-
-Online summarization is temporarily unavailable. Grace Notes used your on-device summary for now. Try again later.
-
----
-
-当前构建未配置可用的联网摘要（例如缺少 API 密钥）。本周摘要保留在本机生成。
-
-Online summarization isn't available in this build (for example, no API key). This digest stayed on your device.
-
----
-
-此版本尚未配置联网摘要。
-
-Online summarization isn’t set up.
-
----
-
-联网摘要返回的内容没法整理成每周洞察，已改为显示本机摘要。
-
-The online summary returned a response Grace Notes couldn't turn into a weekly digest. Your on-device summary is shown instead.
 
 ---
 
@@ -840,12 +782,6 @@ Even one small start can still shape the week.
 
 ---
 
-展开可查看联网摘要连接详情并检查网络可达性。
-
-Expand to see online summary connection details and run a reachability check.
-
----
-
 已展开
 
 Expanded
@@ -933,12 +869,6 @@ Got it
 感恩记
 
 Grace Notes
-
----
-
-感恩记暂时连不上联网摘要服务。请检查网络，联网后再试。
-
-Grace Notes couldn't reach the online summary service. Check your connection and try again when you're online.
 
 ---
 
@@ -1338,12 +1268,6 @@ Please try again.
 
 ---
 
-需要时，可以打开可选的联网摘要，帮你生成更贴切的短标签，并在「回顾」里带来更深入的洞察。
-
-When you need it, optional online summarization can help with clearer short labels and deeper insights in Review.
-
----
-
 你已经开始写今天这篇感恩记了。
 
 You've started today's entry in Grace Notes.
@@ -1428,9 +1352,9 @@ Review sample preview
 
 ---
 
-仅为示例。开启联网摘要时，真实的「回顾」卡片可能还有更多栏目。实卡里的灰色小字是跟进提示，想写时可以在「今天」的反思里接几句，或在下一篇记录里回应。
+仅为示例。你写得越多，真实的「回顾」卡片可能出现更多栏目。实卡里的灰色小字是跟进提示，想写时可以在「今天」的反思里接几句，或在下一篇记录里回应。
 
-Sample only. Your real Review card may include more sections when online summarization is on. Gray lines in the live card are follow-up prompts. Answer in Reflections on Today, or in your next entry.
+Sample only. Your real Review card may show more as you keep writing. Gray lines in the live card are follow-up prompts. Answer in Reflections on Today, or in your next entry.
 
 ---
 
@@ -1578,12 +1502,6 @@ Balanced means you have at least three items in each section. Keep going to fill
 
 ---
 
-开启时会检查联网摘要是否可用。
-
-Runs an online summary reachability check when activated.
-
----
-
 保存
 
 Save
@@ -1629,24 +1547,6 @@ Selected
 设置
 
 Settings
-
----
-
-请先开启摘要与洞察，以检查连接状态。
-
-Turn on Summarize and Insights to check connection status.
-
----
-
-联网摘要
-
-Online summary
-
----
-
-摘要与洞察
-
-Summarize and Insights
 
 ---
 
@@ -1728,12 +1628,6 @@ Shows what this status means today.
 
 ---
 
-说明为何本周未使用联网摘要生成本周回顾摘要。
-
-Shows why online summarization wasn't used for this weekly digest.
-
----
-
 跳过
 
 Skip
@@ -1764,21 +1658,9 @@ Soil, Sprout, Twig, Leaf, and Bloom mark how full today's entry is. Not a race, 
 
 ---
 
-联网摘要出了点问题，已改用本机摘要。
-
-Something went wrong with online summarization. Grace Notes used your on-device summary instead.
-
----
-
 洞察来源
 
 Insight source
-
----
-
-来源：联网摘要
-
-Source: Online summary
 
 ---
 
@@ -1902,12 +1784,6 @@ That thread around %@ showed up across more than one day this week.
 
 ---
 
-联网摘要请求超时，已为你保留本机摘要。可以稍后再试。
-
-The online summary request timed out. Grace Notes used your on-device summary. Try again in a moment.
-
----
-
 你写得越具体，回顾里的洞察也会越容易扎根、贴近真实。
 
 The more you capture in your entry, the more specific and grounded Review insights can feel over time.
@@ -1932,12 +1808,6 @@ This week
 
 ---
 
-这周有足够内容可供总结，但还没有形成足够清晰的重复线索，所以感恩记仍使用本机回顾。
-
-This week had enough to summarize, but not enough repetition for a clear online insight. Grace Notes kept this review on your device.
-
----
-
 本周你的反思常常回到 %@ 这个主题。
 
 This week your reflection often returned to %@.
@@ -1959,12 +1829,6 @@ This week's themes
 时间线
 
 Timeline
-
----
-
-为了让摘要更贴近你自己写下的内容，感恩记没有采用联网摘要的草稿，仍显示本机摘要。
-
-To keep this digest close to what you wrote, Grace Notes skipped the online summary draft and showed your on-device summary instead.
 
 ---
 
@@ -2049,12 +1913,6 @@ Updating…
 当脑中一片空白时可使用提示
 
 Use prompts when your mind is blank
-
----
-
-检查是否能连接到联网摘要服务。
-
-Verifies reachability of the online summary service.
 
 ---
 
@@ -2178,12 +2036,6 @@ When iCloud is available, fully close the app and reopen to retry storage or app
 
 ---
 
-若想为短标签或「回顾」多要一点帮助，可以到「设置」里看看联网摘要相关选项。
-
-When you want a little help with short labels or Review, you can explore summarization options in Settings.
-
----
-
 写完后，在键盘上轻按换行保存。
 
 When you're done, tap Return on your keyboard to save.
@@ -2211,12 +2063,6 @@ Who are you thinking of today?
 今天你在惦记谁？
 
 Who is on your mind today?
-
----
-
-为何本周是设备端洞察
-
-Why on-device insights this week
 
 ---
 
