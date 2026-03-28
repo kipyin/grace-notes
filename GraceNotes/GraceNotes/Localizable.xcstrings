@@ -3594,6 +3594,22 @@
         }
       }
     },
+    "Past" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Past"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "过去"
+          }
+        }
+      }
+    },
     "Past seven days" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4303,22 +4319,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重新尝试安排每日提醒。"
-          }
-        }
-      }
-    },
-    "Past" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Past"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "过去"
           }
         }
       }
@@ -7094,22 +7094,6 @@
         }
       }
     },
-    "Your path" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your path"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你的节奏"
-          }
-        }
-      }
-    },
     "Your Past tab helps you spot themes later. Today, focus on one honest moment and call it complete." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -7123,6 +7107,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "「过去」会在之后帮助你发现主题。今天先专注记录一个真实瞬间，完成就好。"
+          }
+        }
+      }
+    },
+    "Your path" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your path"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的节奏"
           }
         }
       }
