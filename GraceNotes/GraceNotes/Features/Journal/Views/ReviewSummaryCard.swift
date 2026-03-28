@@ -269,11 +269,7 @@ struct ReviewSummaryCard: View {
         let days = stats.rhythmHistory ?? stats.activity
         let currentWeek = insights.weekStart..<insights.weekEnd
         let metrics = RhythmCurveScaledMetrics(dynamicTypeSize: dynamicTypeSize)
-        let pinIdentity = ReviewRhythmScrollPinIdentity(
-            weekStart: insights.weekStart,
-            generatedAt: insights.generatedAt,
-            days: days
-        )
+        let pinIdentity = ReviewRhythmScrollPinIdentity(weekStart: insights.weekStart, days: days)
         return rhythmHistoryScrollSection(
             days: days,
             currentWeek: currentWeek,
@@ -854,10 +850,9 @@ private struct ReviewCountBadge: View {
     }
 }
 
-/// Stable rhythm payload identity so we re-allow trailing pin after insights change but not after user scroll (#131).
+/// Identity for when visible rhythm data changes (not every insights regeneration — avoids #131 snap-back on refresh).
 private struct ReviewRhythmScrollPinIdentity: Equatable {
     let weekStart: Date
-    let generatedAt: Date
     let days: [ReviewDayActivity]
 }
 
