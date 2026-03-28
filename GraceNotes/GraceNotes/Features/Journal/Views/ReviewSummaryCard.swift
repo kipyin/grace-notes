@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 private struct ReviewInsightPanelBodies {
     let observation: String
@@ -341,23 +342,25 @@ struct ReviewSummaryCard: View {
         let days = stats.rhythmHistory ?? stats.activity
         let currentWeek = insights.weekStart..<insights.weekEnd
         let metrics = RhythmCurveScaledMetrics(dynamicTypeSize: dynamicTypeSize)
-
-        return ScrollViewReader { proxy in
-            rhythmHistoryScrollSection(
-                proxy: proxy,
-                days: days,
-                currentWeek: currentWeek,
-                metrics: metrics
-            )
-        }
+        let pinIdentity = ReviewRhythmScrollPinIdentity(
+            weekStart: insights.weekStart,
+            generatedAt: insights.generatedAt,
+            days: days
+        )
+        return rhythmHistoryScrollSection(
+            days: days,
+            currentWeek: currentWeek,
+            metrics: metrics,
+            pinIdentity: pinIdentity
+        )
     }
 
     @ViewBuilder
     private func rhythmHistoryScrollSection(
-        proxy: ScrollViewProxy,
         days: [ReviewDayActivity],
         currentWeek: Range<Date>,
-        metrics: RhythmCurveScaledMetrics
+        metrics: RhythmCurveScaledMetrics,
+        pinIdentity: ReviewRhythmScrollPinIdentity
     ) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 6) {
@@ -369,16 +372,11 @@ struct ReviewSummaryCard: View {
                 )
             }
             .padding(.vertical, 8)
+            .background(ReviewRhythmHorizontalScrollEndPin(pinIdentity: pinIdentity))
         }
         .frame(minHeight: metrics.horizontalScrollMinHeight)
         .overlay {
             rhythmHorizontalFeatherOverlay(daysCount: days.count, metrics: metrics)
-        }
-        .onAppear {
-            guard let last = days.last else { return }
-            DispatchQueue.main.async {
-                proxy.scrollTo(last.date, anchor: .trailing)
-            }
         }
     }
 
@@ -936,6 +934,136 @@ private struct ReviewCountBadge: View {
             .padding(.vertical, 5)
             .background(accent.opacity(0.16))
             .clipShape(Capsule())
+    }
+}
+
+/// Stable rhythm payload identity so we re-allow trailing pin after insights change but not after user scroll (#131).
+private struct ReviewRhythmScrollPinIdentity: Equatable {
+    let weekStart: Date
+    let generatedAt: Date
+    let days: [ReviewDayActivity]
+}
+
+/// Pins the backing `UIScrollView` to the trailing edge when content is wider than the viewport (issue #127).
+/// `ScrollViewReader` / `GeometryReader` on scroll content can run before layout or break intrinsic width.
+private struct ReviewRhythmHorizontalScrollEndPin: UIViewRepresentable {
+    var pinIdentity: ReviewRhythmScrollPinIdentity
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    func makeUIView(context: Context) -> UIView {
+        let view = ReviewRhythmScrollLayoutProbeView(frame: .zero)
+        view.isUserInteractionEnabled = false
+        context.coordinator.probeView = view
+        view.onLayout = { [weak coordinator = context.coordinator] in
+            coordinator?.attachIfNeeded()
+        }
+        return view
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {
+        context.coordinator.syncPinIdentity(pinIdentity)
+        context.coordinator.attachIfNeeded()
+    }
+
+    final class Coordinator {
+        weak var probeView: UIView?
+        weak var observedScrollView: UIScrollView?
+        var contentSizeObservation: NSKeyValueObservation?
+        var boundsObservation: NSKeyValueObservation?
+        var contentOffsetObservation: NSKeyValueObservation?
+        private var appliedPinIdentity: ReviewRhythmScrollPinIdentity?
+        private var userDidAdjustHorizontalScroll = false
+
+        deinit {
+            contentSizeObservation = nil
+            boundsObservation = nil
+            contentOffsetObservation = nil
+        }
+
+        func syncPinIdentity(_ newIdentity: ReviewRhythmScrollPinIdentity) {
+            if appliedPinIdentity != newIdentity {
+                appliedPinIdentity = newIdentity
+                userDidAdjustHorizontalScroll = false
+            }
+        }
+
+        func attachIfNeeded() {
+            guard let probeView else { return }
+            guard let scrollView = findAncestorScrollView(from: probeView) else { return }
+            if observedScrollView === scrollView {
+                pinToTrailingIfNeeded(scrollView)
+                return
+            }
+            contentSizeObservation = nil
+            boundsObservation = nil
+            contentOffsetObservation = nil
+            observedScrollView = scrollView
+            contentSizeObservation = scrollView.observe(\.contentSize, options: [.new]) { [weak self] _, _ in
+                guard let self, let observed = self.observedScrollView else { return }
+                self.pinToTrailingIfNeeded(observed)
+            }
+            boundsObservation = scrollView.observe(\.bounds, options: [.new]) { [weak self] _, _ in
+                guard let self, let observed = self.observedScrollView else { return }
+                self.pinToTrailingIfNeeded(observed)
+            }
+            contentOffsetObservation = scrollView.observe(\.contentOffset, options: [.new]) { [weak self] observed, _ in
+                guard let self else { return }
+                if observed.isDragging || observed.isDecelerating {
+                    self.userDidAdjustHorizontalScroll = true
+                }
+            }
+            pinToTrailingIfNeeded(scrollView)
+        }
+
+        private func pinToTrailingIfNeeded(_ scrollView: UIScrollView) {
+            guard !userDidAdjustHorizontalScroll else { return }
+            let contentWidth = scrollView.contentSize.width
+            let viewportWidth = scrollView.bounds.width
+            guard contentWidth > viewportWidth + 0.5 else { return }
+            guard scrollView.contentOffset.x < 8 else { return }
+            DispatchQueue.main.async { [weak self, weak scrollView] in
+                guard let self, let scrollView else { return }
+                guard !self.userDidAdjustHorizontalScroll else { return }
+                let contentWidth = scrollView.contentSize.width
+                let viewportWidth = scrollView.bounds.width
+                guard contentWidth > viewportWidth + 0.5 else { return }
+                let target = max(0, contentWidth - viewportWidth)
+                scrollView.setContentOffset(CGPoint(x: target, y: scrollView.contentOffset.y), animated: false)
+            }
+        }
+
+        private func findAncestorScrollView(from view: UIView) -> UIScrollView? {
+            var currentView: UIView? = view
+            while let candidate = currentView?.superview {
+                if let scrollView = candidate as? UIScrollView {
+                    return scrollView
+                }
+                currentView = candidate
+            }
+            return nil
+        }
+    }
+}
+
+private final class ReviewRhythmScrollLayoutProbeView: UIView {
+    var onLayout: (() -> Void)?
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        onLayout?()
+    }
+
+    override func didMoveToSuperview() {
+        super.didMoveToSuperview()
+        onLayout?()
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        onLayout?()
     }
 }
 

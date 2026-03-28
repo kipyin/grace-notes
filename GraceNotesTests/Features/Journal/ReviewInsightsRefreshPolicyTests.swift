@@ -2,20 +2,8 @@ import XCTest
 @testable import GraceNotes
 
 final class ReviewInsightsRefreshPolicyTests: XCTestCase {
-    func test_shouldRefresh_whenForceTrue_returnsTrue() {
-        let result = ReviewInsightsRefreshPolicy.shouldRefresh(
-            force: true,
-            hasInsights: true,
-            previousKey: makeKey(),
-            currentKey: makeKey()
-        )
-
-        XCTAssertTrue(result)
-    }
-
     func test_shouldRefresh_whenNoInsights_returnsTrue() {
         let result = ReviewInsightsRefreshPolicy.shouldRefresh(
-            force: false,
             hasInsights: false,
             previousKey: makeKey(),
             currentKey: makeKey()
@@ -27,7 +15,6 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
     func test_shouldRefresh_whenKeyUnchanged_returnsFalse() {
         let key = makeKey()
         let result = ReviewInsightsRefreshPolicy.shouldRefresh(
-            force: false,
             hasInsights: true,
             previousKey: key,
             currentKey: key
@@ -40,7 +27,6 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
         let previous = makeKey(aiFeaturesEnabled: false)
         let current = makeKey(aiFeaturesEnabled: true)
         let result = ReviewInsightsRefreshPolicy.shouldRefresh(
-            force: false,
             hasInsights: true,
             previousKey: previous,
             currentKey: current
@@ -58,7 +44,6 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
             snapshots: [ReviewEntrySnapshot(id: entryID, updatedAt: Date(timeIntervalSince1970: 200))]
         )
         let result = ReviewInsightsRefreshPolicy.shouldRefresh(
-            force: false,
             hasInsights: true,
             previousKey: previous,
             currentKey: current
@@ -90,29 +75,6 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
             cloudSkippedReason: insights.cloudSkippedReason
         )
         XCTAssertFalse(ReviewInsightsRefreshPolicy.isSparseProviderFallback(insights))
-    }
-
-    func test_forcedRefreshOutcome_nilPrevious_appliesGenerated() {
-        let generated = makeSparseProviderFallbackInsights()
-        let outcome = ReviewInsightsRefreshPolicy.forcedRefreshOutcome(previous: nil, generated: generated)
-        XCTAssertEqual(outcome.insights, generated)
-        XCTAssertTrue(outcome.shouldUpdateCachedRefreshKey)
-    }
-
-    func test_forcedRefreshOutcome_preservesRichWhenGeneratedIsSparseFallback() {
-        let previous = makeRichInsights()
-        let generated = makeSparseProviderFallbackInsights()
-        let outcome = ReviewInsightsRefreshPolicy.forcedRefreshOutcome(previous: previous, generated: generated)
-        XCTAssertEqual(outcome.insights, previous)
-        XCTAssertFalse(outcome.shouldUpdateCachedRefreshKey)
-    }
-
-    func test_forcedRefreshOutcome_replacesWhenBothRich() {
-        let previous = makeRichInsights()
-        let generated = makeRichInsights(observation: "Updated observation")
-        let outcome = ReviewInsightsRefreshPolicy.forcedRefreshOutcome(previous: previous, generated: generated)
-        XCTAssertEqual(outcome.insights, generated)
-        XCTAssertTrue(outcome.shouldUpdateCachedRefreshKey)
     }
 
     private func makeKey(
@@ -149,34 +111,6 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
             recurringPeople: [],
             resurfacingMessage: fallbackInsight.observation,
             continuityPrompt: fallbackInsight.action ?? "",
-            narrativeSummary: nil,
-            weekStats: sampleWeekStats(now),
-            cloudSkippedReason: nil
-        )
-    }
-
-    private func makeRichInsights(observation: String = "You noted rest often this week.") -> ReviewInsights {
-        let now = Date(timeIntervalSince1970: 1_742_147_200)
-        let insight = ReviewWeeklyInsight(
-            pattern: .recurringTheme,
-            observation: observation,
-            action: "Try a short walk.",
-            primaryTheme: "Rest",
-            mentionCount: 3,
-            dayCount: 2
-        )
-        return ReviewInsights(
-            source: .cloudAI,
-            presentationMode: .insight,
-            generatedAt: now,
-            weekStart: now,
-            weekEnd: now,
-            weeklyInsights: [insight],
-            recurringGratitudes: [],
-            recurringNeeds: [],
-            recurringPeople: [],
-            resurfacingMessage: "Resurfacing",
-            continuityPrompt: "Continuity",
             narrativeSummary: nil,
             weekStats: sampleWeekStats(now),
             cloudSkippedReason: nil
