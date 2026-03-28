@@ -2643,13 +2643,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Harvest"
+            "value" : "Full"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "丰收"
+            "value" : "圆满"
           }
         }
       }
@@ -2660,13 +2660,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Harvest means every spot is filled—five gratitudes, five needs, and five people. Add reading notes and reflections to reach Abundance."
+            "value" : "Full means every spot is filled—five gratitudes, five needs, and five people. Add reading notes and reflections to reach Abundance."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "十五个格子都写满了。若想走到「满溢」，不妨给今天补上阅读笔记和反思。"
+            "value" : "十五个格子都写满了，也就是「圆满」。若想走到「满溢」，不妨给今天补上阅读笔记和反思。"
           }
         }
       }
@@ -2963,13 +2963,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "In Progress means you can reach Seed by completing 1 gratitude, 1 need, and 1 person."
+            "value" : "In Progress means you can reach Started by completing 1 gratitude, 1 need, and 1 person."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "再记下一件感恩的事、一件需要的事和一位牵挂的人，今天的记录就能「撒种」。"
+            "value" : "再记下一件感恩的事、一件需要的事和一位牵挂的人，今天的记录就能达到「起步」。"
           }
         }
       }
@@ -4363,13 +4363,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ripening"
+            "value" : "Balanced"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "成长"
+            "value" : "平衡"
           }
         }
       }
@@ -4380,13 +4380,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ripening means you have at least three items in each section. Keep going to fill all five slots in each section to reach Harvest."
+            "value" : "Balanced means you have at least three items in each section. Keep going to fill all five slots in each section to reach Full."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "每个栏目至少都有三条了。把格子一行行填到五条，就走向「丰收」吧。"
+            "value" : "每个栏目至少都有三条了，也就是「平衡」。把格子填到五条，就能达到「圆满」。"
           }
         }
       }
@@ -4479,13 +4479,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Seed"
+            "value" : "Started"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "撒种"
+            "value" : "起步"
           }
         }
       }
@@ -4496,13 +4496,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Seed means each section has at least one item, and you are still building toward three in each section."
+            "value" : "Started means each section has at least one item, and you are still building toward three in each section."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "三个栏目里都已经有了字。再多写几条，让今天这篇记录慢慢「成长」起来。"
+            "value" : "三个栏目里都已经有了字，也就是「起步」。再多写几条，让今天这篇记录慢慢「成长」起来。"
           }
         }
       }
@@ -4710,13 +4710,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Shows what Harvest means for today."
+            "value" : "Shows what Full means for today."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打开今天「丰收」阶段的说明。"
+            "value" : "打开今天「圆满」阶段的说明。"
           }
         }
       }
@@ -4744,13 +4744,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Shows what Ripening means for today."
+            "value" : "Shows what Balanced means for today."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打开今天「成长」阶段的说明。"
+            "value" : "打开今天「平衡」阶段的说明。"
           }
         }
       }
@@ -4761,13 +4761,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Shows what Seed means for today."
+            "value" : "Shows what Started means for today."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打开今天「撒种」阶段的说明。"
+            "value" : "打开今天「起步」阶段的说明。"
           }
         }
       }
@@ -4778,13 +4778,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Shows what Soil means for today."
+            "value" : "Shows what Empty means for today."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打开今天「土壤」阶段的说明。"
+            "value" : "打开今天「空白」阶段的说明。"
           }
         }
       }
@@ -4878,13 +4878,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Soil"
+            "value" : "Empty"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "土壤"
+            "value" : "空白"
           }
         }
       }
@@ -4895,13 +4895,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Soil means you have not yet added at least one gratitude, one need, and one person."
+            "value" : "Empty means you have not yet added at least one gratitude, one need, and one person."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "今天的记录里，感恩的事、需要的事和牵挂的人，还有哪一栏是空的？随便从一处写下第一条，就当松一松土。"
+            "value" : "今天的记录里，感恩的事、需要的事和牵挂的人，还有哪一栏是空的？随便从一处写下第一条就好。"
           }
         }
       }
@@ -4912,13 +4912,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Soil, Seed, Ripening, Harvest, and Abundance mark how full your entry becomes—not a race, just a map."
+            "value" : "Empty, Started, Growing, Balanced, Full, and Abundance mark how full your entry becomes—not a race, just a map."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "土壤、撒种、成长、丰收与满溢，标记的是这篇记录有多饱满——不是比赛，只是一张地图。"
+            "value" : "空白、起步、成长、平衡、圆满与满溢，标记的是这篇记录有多饱满——不是比赛，只是一张地图。"
           }
         }
       }
@@ -6280,13 +6280,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You can keep writing in Gratitudes, Needs, and People in Mind if you'd like a fuller reflection. Tap the status above anytime to read about Harvest."
+            "value" : "You can keep writing in Gratitudes, Needs, and People in Mind if you'd like a fuller reflection. Tap the status above anytime to read what Full means."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "如果你想写得更完整一些，也可以继续写下去，把感恩的事、需要的事和牵挂的人再多记几条。想进一步了解「丰收」时，随时点按上方状态即可。"
+            "value" : "如果你想写得更完整一些，也可以继续写下去，把感恩的事、需要的事和牵挂的人再多记几条。想进一步了解「圆满」时，随时点按上方状态即可。"
           }
         }
       }
@@ -6582,13 +6582,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You planted a seed today."
+            "value" : "You reached Started today."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "今天你已经「撒种」了。"
+            "value" : "今天你已达到「起步」。"
           }
         }
       }
@@ -6599,13 +6599,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You planted Seed"
+            "value" : "You reached Started"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "今天的记录里，感恩、需要和牵挂各有一条——这就是「撒种」。"
+            "value" : "今天的记录里，感恩、需要和牵挂各有一条——这就是「起步」。"
           }
         }
       }
@@ -6681,13 +6681,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You reached Harvest."
+            "value" : "You reached Full."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "今天你已经达到「丰收」。"
+            "value" : "今天你已经达到「圆满」。"
           }
         }
       }
@@ -6799,13 +6799,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You're growing—at least three in each section. Keep going toward Harvest."
+            "value" : "You're growing—at least three in each section. Keep going toward Full."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你在成长：每个栏目都至少有三条了。继续写，向「丰收」前进。"
+            "value" : "你在成长：每个栏目都至少有三条了。继续写，向「圆满」前进。"
           }
         }
       }
@@ -6815,13 +6815,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nice work. Two more in each section gets you to Harvest."
+            "value" : "Nice work. Two more in each section gets you to Full."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "很棒！每个栏目再写两条，就可以达到「丰收」。"
+            "value" : "很棒！每个栏目再写两条，就可以达到「圆满」。"
           }
         }
       }
@@ -6881,13 +6881,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You've planted Seed for the first time—one gratitude, one need, and someone on your mind. Lovely."
+            "value" : "You've reached Started for the first time—one gratitude, one need, and someone on your mind. Lovely."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这是你第一次「撒种」——你已经写下 1 件感恩的事、1 件需要的事和 1 位牵挂的人，真好。"
+            "value" : "这是你第一次达到「起步」——你已经写下 1 件感恩的事、1 件需要的事和 1 位牵挂的人，真好。"
           }
         }
       }
@@ -6898,13 +6898,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You’ve planted a Seed in today’s entry. Keep writing until each section has three."
+            "value" : "You’ve reached Started in today’s entry. Keep writing until each section has three."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你已经在今天的感恩记中撒下了一颗种子。可以继续写，直到每个栏目都有三条。"
+            "value" : "你已经在今天的感恩记中达到「起步」。可以继续写，直到每个栏目都有三条。"
           }
         }
       }
@@ -6964,13 +6964,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your first Harvest—you filled all fifteen spots today. Add reading notes and reflections when you're ready for Abundance."
+            "value" : "Your first Full—you filled all fifteen spots today. Add reading notes and reflections when you're ready for Abundance."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这是你第一次达到「丰收」——十五个格子都填满了。想继续的话，补上阅读笔记和反思，就能到「满溢」。"
+            "value" : "这是你第一次达到「圆满」——十五个格子都填满了。想继续的话，补上阅读笔记和反思，就能到「满溢」。"
           }
         }
       }
@@ -6981,13 +6981,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your first Harvest, and you've added reading notes and reflections—a full rhythm for today."
+            "value" : "Your first Full, and you've added reading notes and reflections—a full rhythm for today."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这是你第一次达到「丰收」，也写好了阅读笔记和反思。今天这一篇已经很完整了。"
+            "value" : "这是你第一次达到「圆满」，也写好了阅读笔记和反思。今天这一篇已经很完整了。"
           }
         }
       }

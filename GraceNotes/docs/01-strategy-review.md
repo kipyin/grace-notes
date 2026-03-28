@@ -374,7 +374,7 @@ The current structure is differentiated, but can feel demanding.
 
 2. **Lighter completion states**
    - redefine "success" for low-energy days
-   - preserve 5 cubed as an aspirational full session
+   - preserve the full chip grid (five in each section) as an aspirational session
 
 3. **First-week coaching**
    - simple educational messages
@@ -400,7 +400,7 @@ Broaden usefulness without losing the calm, structured core.
 
 1. **Optional modes**
    - quick reset
-   - full 5 cubed
+   - full chip grid (all fifteen spots)
    - weekly reflection
 
 2. **Prompt packs**
@@ -704,7 +704,7 @@ Experiment with:
 
 - 1-1-1 quick mode
 - 3-3-3 medium mode
-- full 5 cubed mode
+- full chip-grid mode (all fifteen spots)
 
 The point is not to abandon the brand idea. The point is to reduce intimidation and increase habit continuity.
 

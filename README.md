@@ -31,7 +31,7 @@ Marketing version stays **0.5.0** across several TestFlight / App Store drops; e
 ### Foundation (2026-03-21)
 
 - **Insight quality** — Review and weekly insights that better reflect your own entries: **#40**, **#80**, **#39**, **#11**.
-- **First-run tutorial** — Dismissible hints toward Seed and Harvest (`#60`).
+- **First-run tutorial** — Dismissible hints toward **Started** and **Full** chip milestones (`#60`).
 - **Behavior-first onboarding** — Welcome, then guided first journal (Gratitude → Need → People → …); optional post-Seed journey; milestone suggestions (`#71`–`#75`).
 
 See `GraceNotes/docs/07-release-roadmap.md`.
@@ -54,11 +54,25 @@ See `GraceNotes/docs/07-release-roadmap.md`.
 - **Review** – Browse past entries by month with weekly recurring-theme insights and continuity prompts.
 - **Weekly insights** – Insights-first Review with a scrollable **Reflection rhythm** chart (tap a day that has a saved entry to open that day’s journal).
 - **Shareable cards** – Generate a formatted image of a day's entry and share via the iOS share sheet.
-- **Reminders** – Optional daily notification to complete today's 5³.
+- **Reminders** – Optional daily notification to complete today’s entry (full chip grid when you want it).
 - **Advanced review insights** – Deterministic weekly reflection summary generated on-device.
 - **Data trust controls** – private-by-default storage plus JSON export and import for backup and ownership.
 - **First-run onboarding** – A minimal welcome followed by a guided first journal path on Today, with milestone-based opt-in suggestions for reminders and iCloud.
-- **Habit support** – Streak plus tiered completion states (Quick, Standard, Full 5³) to reduce all-or-nothing pressure.
+- **Habit support** – Streak plus tiered completion states (quick check-in, standard reflection, full chip grid) to reduce all-or-nothing pressure.
+
+## Terminology (contributors)
+
+User-facing copy and code use the same chip-status names below. **Abundance** is separate: it describes a *full rhythm* for the day (all chip spots filled **plus** non-empty reading notes and reflections), not the chip-only `JournalCompletionLevel`.
+
+| User-facing (en) | Swift (`JournalCompletionLevel`) | Legacy raw strings still decoded from storage |
+|------------------|----------------------------------|-----------------------------------------------|
+| Empty | `.empty` | `empty`, `soil` |
+| Started | `.started` | `started`, `seed` |
+| Growing | `.growing` | `growing` |
+| Balanced | `.balanced` | `balanced`, `ripening` |
+| Full | `.full` | `full`, `harvest`, `abundance` |
+
+Main tabs: **Today** (journaling), **Review** (history and insights), **Settings**. The full-screen onboarding continuation is **`PostSeedJourney`** / **App tour** in code and settings; eligibility is **Started** (1/1/1 across the three chip sections) and related flags, not the old “five cubed” naming.
 
 ## Requirements
 

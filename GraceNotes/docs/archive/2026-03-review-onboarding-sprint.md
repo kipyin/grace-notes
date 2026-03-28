@@ -52,7 +52,7 @@ As a user, I want weekly insights to be concise and scannable.
 ### Story B1: Add first-run onboarding flow
 
 **User story**
-As a new user, I want a short guided intro so the 5³ structure feels approachable.
+As a new user, I want a short guided intro so the daily structure (gratitudes, needs, people in mind) feels approachable.
 
 **Tasks**
 - Add onboarding shown on first launch only.
@@ -77,7 +77,7 @@ As a user on low-energy days, I want partial progress to count so I can maintain
   - `none`
   - `quickCheckIn`
   - `standardReflection`
-  - `fullFiveCubed`
+  - `full` (all fifteen chip spots filled; naming in historical docs only)
 - Keep existing full completion criteria unchanged for top tier.
 - Expose current completion tier in UI (date header + history row status).
 

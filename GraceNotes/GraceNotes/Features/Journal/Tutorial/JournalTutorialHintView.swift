@@ -27,7 +27,7 @@ enum JournalTutorialHintPresentation {
     }
 }
 
-/// Dismissible nudge to keep writing toward Seed or fuller Harvest (issue #60).
+/// Dismissible nudge to keep writing toward Started or Full chip milestones (issue #60).
 struct JournalTutorialHintView: View {
     let kind: JournalTutorialHintKind
     let onDismiss: () -> Void
