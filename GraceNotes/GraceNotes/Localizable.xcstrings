@@ -3308,13 +3308,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No saved journal entry for this day."
+            "value" : "No saved reflection for this day."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "该日尚无已保存的日记条目。"
+            "value" : "这一天还没有已保存的记录。"
           }
         }
       }
@@ -3567,13 +3567,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Opens the journal entry for that day."
+            "value" : "Opens that day's reflection."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打开该日的感恩记。"
+            "value" : "打开这一天的记录。"
           }
         }
       }
