@@ -13,7 +13,7 @@ Marketing version stays **0.5.0** across several TestFlight / App Store drops; e
 ### Build 8 (Unreleased)
 
 - **Journal onboarding** — Post-Seed journey (**C**) is driven by user state (completion level, `hasSeenPostSeedJourney`, guided journal), not app version gates; legacy `pending051*` keys migrate safely for installs mid-upgrade.
-- **Today sequential entry (#102)** — Gratitudes, Needs, and People in mind take full sentences first, with inline edit on each saved line; shorter **labels** derived from each line stay secondary for weekly aggregation. See CHANGELOG.
+- **Today sequential entry (#102)** — Gratitudes, Needs, and People in mind take full sentences first, with inline edit on each saved line. See CHANGELOG.
 - **Settings (#84)** — Section headers move to authored title case instead of forced all-caps list styling.
 - **Review weekly rhythm (#115)** — **Reflection rhythm** in weekly insights uses a redesigned per-day column chart (horizontal scroll when needed); tap a day to open that day’s journal entry. See CHANGELOG.
 - **Deterministic-only insights (#119)** — Cloud AI summarization and cloud review generation are removed; journal and Review insights now stay on-device (with optional iCloud sync).
@@ -24,7 +24,7 @@ Marketing version stays **0.5.0** across several TestFlight / App Store drops; e
 - **Packaging** — Marketing **0.5.0**, build **7**, tag **`v0.5.0+7`**; Debug **dSYM**; shared **GraceNotes** scheme **Run** was **Release** in that build (later builds use **Debug** for Run; see CHANGELOG).
 - **Onboarding** — Milestone cards that jump to Settings share one eligibility rule with the UI and re-check it when you tap; onboarding/iCloud continuity keys use shared constants (see CHANGELOG **Developer**). Post-Seed orientation sample Review preview matches real insights layout; welcome copy is slightly tighter.
 - **Localization** — String Catalog **zh-Hans** polish and aligned **Save to Photos** permission wording for **感恩记**.
-- **Cloud summarization for on-entry labels (#39)** — `AppInstructionLocale`, low-signal / grounding handling, unit tests (see CHANGELOG).
+- **`AppInstructionLocale` + label grounding (#39)** — Instruction locale alignment, low-signal / grounding handling, unit tests (see CHANGELOG).
 - **Product docs** — Roadmap separates **#40** vs **#80**; see `GraceNotes/docs/07-release-roadmap.md`.
 - **UI tests** — Stable identifiers, English locale, relaunch-safe arguments, optional **`-grace-notes-reset-uitest-store`**, UI-test SwiftData session key (see CHANGELOG **Developer**).
 
@@ -50,7 +50,7 @@ See `GraceNotes/docs/07-release-roadmap.md`.
 ## Features
 
 - **Daily journaling** - Today's entry with five gratitudes, five needs, five people in mind, reading notes, and reflections. Entries auto-create and save as you type.
-  - **Sequential input** – Type a full sentence, press Enter; the app summarizes it to a short label for aggregation while your full line stays easy to read on Today. Tap a line to edit inline. Each section holds up to five lines (5 gratitudes, 5 needs, 5 people).
+  - **Sequential input** – Type a full sentence, press Enter; your full line stays easy to read on Today. Tap a line to edit inline. Each section holds up to five lines (5 gratitudes, 5 needs, 5 people).
 - **Review** – Browse past entries by month with weekly recurring-theme insights and continuity prompts.
 - **Weekly insights** – Insights-first Review with a scrollable **Reflection rhythm** chart (tap a day that has a saved entry to open that day’s journal).
 - **Shareable cards** – Generate a formatted image of a day's entry and share via the iOS share sheet.
