@@ -14,7 +14,7 @@ import Foundation
 enum JournalTodayOrientationPolicy {
 
     struct Inputs: Equatable {
-        /// `true` when `JournalScreen` shows Today's entry (`entryDate == nil`).
+        /// `true` when `JournalScreen` shows Today (`entryDate == nil`).
         var isTodayEntry: Bool
         var isRunningUITests: Bool
         var hasSeenPostSeedJourney: Bool

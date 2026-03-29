@@ -24,6 +24,8 @@ struct SettingsScreen: View {
     @AppStorage(JournalTutorialStorageKeys.celebratedFirstHarvest) private var hasCelebratedFirstHarvest = false
     @AppStorage(JournalAppearanceStorageKeys.todayMode)
     private var journalTodayAppearanceRaw = JournalAppearanceMode.standard.rawValue
+    @AppStorage(JournalAppearanceStorageKeys.summerLeavesRenderer)
+    private var summerLeavesRendererRaw = JournalSummerLeavesRenderer.video.rawValue
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -69,11 +71,27 @@ struct SettingsScreen: View {
                         }
                         .tint(AppTheme.accent)
                         .accessibilityHint(String(localized: "Settings.todayJournalAppearance.bloomToggleA11yHint"))
+
+                        if settingsJournalTodayAppearance == .summer {
+                            Picker(
+                                String(localized: "Settings.todayJournalAppearance.leavesRendererLabel"),
+                                selection: summerLeavesRendererBinding
+                            ) {
+                                Text(String(localized: "Settings.todayJournalAppearance.leavesVideo"))
+                                    .tag(JournalSummerLeavesRenderer.video)
+                                Text(String(localized: "Settings.todayJournalAppearance.leavesNative"))
+                                    .tag(JournalSummerLeavesRenderer.native)
+                            }
+                            .pickerStyle(.segmented)
+                        }
                     } header: {
                         Text(String(localized: "Settings.todayJournalAppearance.sectionTitle"))
                             .font(AppTheme.warmPaperHeader)
                             .foregroundStyle(AppTheme.settingsTextPrimary)
                             .textCase(nil)
+                    } footer: {
+                        Text(String(localized: "Settings.todayJournalAppearance.footer"))
+                            .font(AppTheme.warmPaperMeta)
                     }
                 }
 
@@ -118,7 +136,7 @@ struct SettingsScreen: View {
             }
             .navigationTitle(String(localized: "Settings"))
             .task {
-                backfillBloomUnlockIfNeeded()
+                backfillSummerAppearanceUnlockIfNeeded()
                 await reminderState.refreshStatus()
                 syncReminderControlState(with: reminderState.liveStatus)
                 iCloudAccountState.refresh()
@@ -186,6 +204,13 @@ private extension SettingsScreen {
                     ? JournalAppearanceMode.summer.rawValue
                     : JournalAppearanceMode.standard.rawValue
             }
+        )
+    }
+
+    var summerLeavesRendererBinding: Binding<JournalSummerLeavesRenderer> {
+        Binding(
+            get: { JournalSummerLeavesRenderer(rawValue: summerLeavesRendererRaw) ?? .video },
+            set: { summerLeavesRendererRaw = $0.rawValue }
         )
     }
 
@@ -375,7 +400,8 @@ private extension SettingsScreen {
         openURL(url)
     }
 
-    func backfillBloomUnlockIfNeeded() {
+    /// Unlocks the Summer appearance controls when a Full/Harvest day exists but celebration storage was not set.
+    func backfillSummerAppearanceUnlockIfNeeded() {
         guard !hasCelebratedFirstHarvest else { return }
         let repository = JournalRepository()
         guard (try? repository.hasUserReachedFullHarvest(context: modelContext)) == true else { return }

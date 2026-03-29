@@ -19,8 +19,6 @@ struct GraceNotesApp: App {
     @State private var uiTestPersistenceController: PersistenceController?
     @State private var hasRunDeferredStartupTasks = false
     @AppStorage(FirstRunOnboardingStorageKeys.completed) private var hasCompletedOnboarding = false
-    @AppStorage(JournalAppearanceStorageKeys.todayMode)
-    private var journalTodayAppearanceRaw = JournalAppearanceMode.standard.rawValue
 
     init() {
         let startupTrace = PerformanceTrace.begin("App.init")
@@ -150,44 +148,27 @@ struct GraceNotesApp: App {
     }
 
     private var mainTabView: some View {
-        let isSummerAtmosphereGlobal =
-            (JournalAppearanceMode(rawValue: journalTodayAppearanceRaw) ?? .standard) == .summer
-
-        // App-wide Summer paper, leaves, and forced light scheme are intentional (#125):
-        // Past/Settings stay visually cohesive with Today.
-        return ZStack {
-            if isSummerAtmosphereGlobal {
-                SummerPaperBackgroundView()
-            }
-
-            TabView(selection: $appNavigation.selectedTab) {
-                TodayTabRoot()
-                    .tabItem {
-                        Label(String(localized: "Today"), systemImage: "doc.text")
-                    }
-                    .tag(AppTab.today)
-                NavigationStack {
-                    DeferredReviewRoot(isSelected: appNavigation.selectedTab == .history)
-                }
+        TabView(selection: $appNavigation.selectedTab) {
+            TodayTabRoot()
                 .tabItem {
-                    Label(String(localized: "Past"), systemImage: "clock.arrow.circlepath")
+                    Label(String(localized: "Today"), systemImage: "doc.text")
                 }
-                .tag(AppTab.history)
-                NavigationStack {
-                    SettingsScreen()
-                }
-                .tabItem {
-                    Label(String(localized: "Settings"), systemImage: "gearshape")
-                }
-                .tag(AppTab.settings)
+                .tag(AppTab.today)
+            NavigationStack {
+                DeferredReviewRoot(isSelected: appNavigation.selectedTab == .history)
             }
-
-            if isSummerAtmosphereGlobal {
-                GlobalSummerLeavesOverlayLayer()
+            .tabItem {
+                Label(String(localized: "Past"), systemImage: "clock.arrow.circlepath")
             }
+            .tag(AppTab.history)
+            NavigationStack {
+                SettingsScreen()
+            }
+            .tabItem {
+                Label(String(localized: "Settings"), systemImage: "gearshape")
+            }
+            .tag(AppTab.settings)
         }
-        .environment(\.journalSummerAtmosphereHosted, isSummerAtmosphereGlobal)
-        .preferredColorScheme(isSummerAtmosphereGlobal ? .light : nil)
     }
 
     @MainActor
@@ -227,13 +208,5 @@ private struct DeferredReviewRoot: View {
             hasOpenedReviewTab = true
             PerformanceTrace.instant("ReviewScreen.deferredUntilSelected")
         }
-    }
-}
-
-private struct GlobalSummerLeavesOverlayLayer: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    var body: some View {
-        SummerLeavesOverlaySeam(reduceMotion: reduceMotion)
     }
 }

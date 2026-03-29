@@ -195,6 +195,8 @@ struct JournalScreen: View {
     @AppStorage(JournalTutorialStorageKeys.dismissedHarvestGuidance) private var dismissedHarvestGuidance = false
     @AppStorage(JournalAppearanceStorageKeys.todayMode)
     private var journalTodayAppearanceRaw = JournalAppearanceMode.standard.rawValue
+    @AppStorage(JournalAppearanceStorageKeys.summerLeavesRenderer)
+    private var summerLeavesRendererRaw = JournalSummerLeavesRenderer.video.rawValue
 
     @State private var gratitudeInput = ""
     @State private var needInput = ""
@@ -222,7 +224,10 @@ struct JournalScreen: View {
                 SummerPaperBackgroundView()
             }
             if effectiveTodayAppearance == .summer, !journalSummerAtmosphereHosted {
-                SummerLeavesOverlaySeam(reduceMotion: reduceMotion)
+                SummerLeavesOverlaySeam(
+                    renderer: JournalSummerLeavesRenderer(rawValue: summerLeavesRendererRaw) ?? .video,
+                    reduceMotion: reduceMotion
+                )
             }
             journalScrollContent
         }
@@ -1397,7 +1402,7 @@ private extension JournalScreen {
         if let date = entryDate {
             return date.formatted(date: .abbreviated, time: .omitted)
         }
-        return String(localized: "Today's entry")
+        return String(localized: "Today")
     }
 
     func unlockToastTransition(for level: JournalCompletionLevel) -> AnyTransition {

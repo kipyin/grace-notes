@@ -2,8 +2,9 @@ import SwiftUI
 import UIKit
 import AVFoundation
 
-/// Shared seam: looping bundled video leaves above the paper field, below interactive content.
+/// Shared seam: video or native leaves above the paper field, below interactive content.
 struct SummerLeavesOverlaySeam: View {
+    let renderer: JournalSummerLeavesRenderer
     let reduceMotion: Bool
 
     var body: some View {
@@ -11,7 +12,12 @@ struct SummerLeavesOverlaySeam: View {
             if reduceMotion {
                 Color.clear
             } else {
-                SummerLeavesVideoOverlay()
+                switch renderer {
+                case .video:
+                    SummerLeavesVideoOverlay()
+                case .native:
+                    SummerLeavesNativeOverlay()
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -57,7 +63,7 @@ struct SummerLeavesVideoOverlay: View {
                 .blendMode(.multiply)
                 .opacity(0.82)
             } else {
-                Color.clear
+                SummerLeavesNativeOverlay()
             }
         }
     }
@@ -130,5 +136,62 @@ private struct LoopingVideoPlayerView: UIViewRepresentable {
             playerLayer?.removeFromSuperlayer()
             playerLayer = nil
         }
+    }
+}
+
+// MARK: - Native
+
+struct SummerLeavesNativeOverlay: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: reduceMotion)) { timeline in
+            Canvas { context, size in
+                let t = timeline.date.timeIntervalSinceReferenceDate
+                drawLeaves(context: context, size: size, time: t)
+            }
+        }
+        .compositingGroup()
+        .blendMode(.multiply)
+        .opacity(0.82)
+    }
+
+    private func drawLeaves(context: GraphicsContext, size: CGSize, time: Double) {
+        let palette = [
+            Color(red: 0.45, green: 0.58, blue: 0.38),
+            Color(red: 0.52, green: 0.62, blue: 0.40),
+            Color(red: 0.38, green: 0.50, blue: 0.34)
+        ]
+        for i in 0..<14 {
+            let phase = Double(i) * 0.73
+            let baseX = size.width * (0.08 + CGFloat(i % 5) * 0.19)
+            let baseY = size.height * (0.12 + CGFloat((i * 3) % 7) * 0.13)
+            let driftX = sin(time * 0.35 + phase) * size.width * 0.04
+            let driftY = cos(time * 0.28 + phase * 1.1) * size.height * 0.06 + CGFloat(i) * 12
+            let rotation = time * 0.15 + phase
+            let scale = 0.85 + 0.08 * sin(time * 0.5 + phase)
+            var leaf = leafPath(in: CGSize(width: 28 * scale, height: 16 * scale))
+            let transform = CGAffineTransform(rotationAngle: CGFloat(rotation))
+                .translatedBy(x: baseX + driftX, y: baseY + driftY)
+            leaf = leaf.applying(transform)
+            context.fill(leaf, with: .color(palette[i % palette.count].opacity(0.55)))
+        }
+    }
+
+    private func leafPath(in size: CGSize) -> Path {
+        var p = Path()
+        let w = size.width
+        let h = size.height
+        p.move(to: CGPoint(x: 0, y: h * 0.5))
+        p.addQuadCurve(
+            to: CGPoint(x: w, y: h * 0.5),
+            control: CGPoint(x: w * 0.5, y: 0)
+        )
+        p.addQuadCurve(
+            to: CGPoint(x: 0, y: h * 0.5),
+            control: CGPoint(x: w * 0.5, y: h)
+        )
+        p.closeSubpath()
+        return p
     }
 }

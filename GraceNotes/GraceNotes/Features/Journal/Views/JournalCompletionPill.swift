@@ -6,6 +6,7 @@ struct JournalCompletionPill: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.todayJournalPalette) private var palette
+    @ScaledMetric(relativeTo: .body) private var completionTierIconLength: CGFloat = 17
 
     let completionLevel: JournalCompletionLevel
     let celebratingLevel: JournalCompletionLevel?
@@ -16,10 +17,7 @@ struct JournalCompletionPill: View {
 
     var body: some View {
         pillLabel
-            .font(AppTheme.warmPaperMetaEmphasis)
-            .lineLimit(dynamicTypeSize.isAccessibilitySize ? 3 : 2)
             .fixedSize(horizontal: false, vertical: true)
-            .multilineTextAlignment(.leading)
             .padding(.horizontal, AppTheme.spacingRegular)
             .padding(.vertical, AppTheme.spacingTight)
             .frame(minHeight: 44)
@@ -57,24 +55,47 @@ struct JournalCompletionPill: View {
         celebratingLevel == completionLevel && completionLevel != .empty
     }
 
-    @ViewBuilder
     private var pillLabel: some View {
+        HStack(alignment: .center, spacing: AppTheme.spacingTight) {
+            Image(ReviewRhythmFormatting.assetName(for: completionLevel))
+                .renderingMode(.template)
+                .resizable()
+                .scaledToFit()
+                .frame(width: completionTierIconLength, height: completionTierIconLength)
+                .accessibilityHidden(true)
+            Text(localizedCompletionTitle)
+                .font(AppTheme.warmPaperMetaEmphasis)
+                .lineLimit(dynamicTypeSize.isAccessibilitySize ? 3 : 2)
+                .multilineTextAlignment(.leading)
+        }
+        .foregroundStyle(completionLabelForeground)
+    }
+
+    private var localizedCompletionTitle: String {
         switch completionLevel {
         case .empty:
-            Text(String(localized: "Empty"))
-                .foregroundStyle(palette.textMuted)
+            String(localized: "Empty")
         case .started:
-            Text(String(localized: "Started"))
-                .foregroundStyle(palette.quickCheckInText)
+            String(localized: "Started")
         case .growing:
-            Text(String(localized: "Growing"))
-                .foregroundStyle(palette.standardText)
+            String(localized: "Growing")
         case .balanced:
-            Text(String(localized: "Balanced"))
-                .foregroundStyle(palette.standardText)
+            String(localized: "Balanced")
         case .full:
-            Text(String(localized: "Full"))
-                .foregroundStyle(palette.fullText)
+            String(localized: "Full")
+        }
+    }
+
+    private var completionLabelForeground: AnyShapeStyle {
+        switch completionLevel {
+        case .empty:
+            AnyShapeStyle(palette.textMuted)
+        case .started:
+            AnyShapeStyle(palette.quickCheckInText)
+        case .growing, .balanced:
+            AnyShapeStyle(palette.standardText)
+        case .full:
+            AnyShapeStyle(palette.fullText)
         }
     }
 

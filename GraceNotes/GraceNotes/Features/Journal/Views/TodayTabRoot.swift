@@ -1,11 +1,19 @@
 import SwiftUI
 
-/// Shell for the Today tab’s navigation. When Bloom (Summer) appearance is on, paper and leaves are layered
-/// in ``GraceNotesApp`` above the whole ``TabView`` so they stay visible behind system chrome.
+/// Shell for the Today tab’s navigation. Summer appearance (warm paper, leaves, light color scheme)
+/// is scoped here so Past and Settings keep the system appearance.
 struct TodayTabRoot: View {
+    @AppStorage(JournalAppearanceStorageKeys.todayMode)
+    private var journalTodayAppearanceRaw = JournalAppearanceMode.standard.rawValue
+
+    private var isSummerToday: Bool {
+        (JournalAppearanceMode(rawValue: journalTodayAppearanceRaw) ?? .standard) == .summer
+    }
+
     var body: some View {
         NavigationStack {
             JournalScreen()
         }
+        .preferredColorScheme(isSummerToday ? .light : nil)
     }
 }
