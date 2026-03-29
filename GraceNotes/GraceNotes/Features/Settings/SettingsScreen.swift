@@ -4,6 +4,7 @@ import UIKit
 struct SettingsScreen: View {
     @AppStorage(PersistenceController.iCloudSyncEnabledKey) private var isICloudSyncEnabled = false
     @EnvironmentObject private var appNavigation: AppNavigationModel
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.openURL) private var openURL
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.verticalSizeClass) private var verticalSizeClass
@@ -19,10 +20,9 @@ struct SettingsScreen: View {
     @State private var showAppTourFromSettings = false
     @AppStorage(JournalOnboardingStorageKeys.hasSeenPostSeedJourney) private var hasSeenPostSeedJourney = false
     @AppStorage(JournalOnboardingStorageKeys.completedGuidedJournal) private var hasCompletedGuidedJournal = false
+    @AppStorage(JournalTutorialStorageKeys.celebratedFirstHarvest) private var hasReachedBloomAtLeastOnce = false
     @AppStorage(JournalAppearanceStorageKeys.todayMode)
     private var journalTodayAppearanceRaw = JournalAppearanceMode.standard.rawValue
-    @AppStorage(JournalAppearanceStorageKeys.summerLeavesRenderer)
-    private var journalSummerLeavesRendererRaw = JournalSummerLeavesRenderer.video.rawValue
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -59,34 +59,20 @@ struct SettingsScreen: View {
                         .textCase(nil)
                 }
 
-                Section {
-                    Picker(selection: $journalTodayAppearanceRaw) {
-                        Text(String(localized: "Settings.todayJournalAppearance.standard"))
-                            .tag(JournalAppearanceMode.standard.rawValue)
-                        Text(String(localized: "Settings.todayJournalAppearance.summer"))
-                            .tag(JournalAppearanceMode.summer.rawValue)
-                    } label: {
-                        Text(String(localized: "Settings.todayJournalAppearance.modeLabel"))
-                    }
-                    if settingsJournalTodayAppearance == .summer {
-                        Picker(selection: $journalSummerLeavesRendererRaw) {
-                            Text(String(localized: "Settings.summerLeaves.video"))
-                                .tag(JournalSummerLeavesRenderer.video.rawValue)
-                            Text(String(localized: "Settings.summerLeaves.native"))
-                                .tag(JournalSummerLeavesRenderer.native.rawValue)
-                        } label: {
-                            Text(String(localized: "Settings.summerLeaves.sectionTitle"))
+                if hasReachedBloomAtLeastOnce {
+                    Section {
+                        Toggle(isOn: summerModeBinding) {
+                            Text(String(localized: "Settings.todayJournalAppearance.modeLabel"))
+                                .font(AppTheme.warmPaperBody)
+                                .foregroundStyle(AppTheme.settingsTextPrimary)
                         }
+                        .tint(AppTheme.accent)
+                    } header: {
+                        Text(String(localized: "Settings.todayJournalAppearance.sectionTitle"))
+                            .font(AppTheme.warmPaperHeader)
+                            .foregroundStyle(AppTheme.settingsTextPrimary)
+                            .textCase(nil)
                     }
-                } header: {
-                    Text(String(localized: "Settings.todayJournalAppearance.sectionTitle"))
-                        .font(AppTheme.warmPaperHeader)
-                        .foregroundStyle(AppTheme.settingsTextPrimary)
-                        .textCase(nil)
-                } footer: {
-                    Text(String(localized: "Settings.todayJournalAppearance.footer"))
-                        .font(AppTheme.warmPaperCaption)
-                        .foregroundStyle(AppTheme.settingsTextMuted)
                 }
 
                 DataPrivacySettingsSection(
@@ -130,6 +116,7 @@ struct SettingsScreen: View {
             }
             .navigationTitle(String(localized: "Settings"))
             .task {
+                backfillBloomUnlockIfNeeded()
                 await reminderState.refreshStatus()
                 syncReminderControlState(with: reminderState.liveStatus)
                 iCloudAccountState.refresh()
@@ -187,6 +174,17 @@ private extension SettingsScreen {
 
     var shouldUseCompactReminderPicker: Bool {
         dynamicTypeSize >= .accessibility1 || verticalSizeClass == .compact
+    }
+
+    var summerModeBinding: Binding<Bool> {
+        Binding(
+            get: { settingsJournalTodayAppearance == .summer },
+            set: { isEnabled in
+                journalTodayAppearanceRaw = isEnabled
+                    ? JournalAppearanceMode.summer.rawValue
+                    : JournalAppearanceMode.standard.rawValue
+            }
+        )
     }
 
     var reminderToggleBinding: Binding<Bool> {
@@ -373,5 +371,14 @@ private extension SettingsScreen {
             return
         }
         openURL(url)
+    }
+
+    func backfillBloomUnlockIfNeeded() {
+        guard !hasReachedBloomAtLeastOnce else { return }
+        let repository = JournalRepository()
+        guard let entries = try? repository.fetchAllEntries(context: modelContext) else { return }
+        if entries.contains(where: { $0.completionLevel == .full }) {
+            hasReachedBloomAtLeastOnce = true
+        }
     }
 }

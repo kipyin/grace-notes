@@ -615,6 +615,38 @@
         }
       }
     },
+    "Add one line in each section to move into Sprout." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add one line in each section to move into Sprout."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "现在还什么都没有。随便开始写一些，就会进入「初露新芽」。"
+          }
+        }
+      }
+    },
+    "Add one more line in any section. Small steps are easier to keep. Tap the status above anytime if you want a reminder." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add one more line in any section. Small steps are easier to keep. Tap the status above anytime if you want a reminder."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在任一部分多写几条，小步最容易坚持。需要提示时，也可以随时点按上方状态。"
+          }
+        }
+      }
+    },
     "Adds another item in %@" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -734,6 +766,38 @@
         }
       }
     },
+    "All sections are at three lines. Reach five lines in each section to enter Bloom." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All sections are at three lines. Reach five lines in each section to enter Bloom."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "三个部分都已经写了三条了。继续把每个部分写到五条，就会进入「花开有成」。"
+          }
+        }
+      }
+    },
+    "All sections reached five lines. Today's entry is complete." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All sections reached five lines. Today's entry is complete."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "三个部分都写到五条了。今天这篇记录已经完整了。"
+          }
+        }
+      }
+    },
     "All three sections were growing on those days." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -833,6 +897,22 @@
         }
       }
     },
+    "At least one section has three lines. Reach three in all sections to enter Leaf." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At least one section has three lines. Reach three in all sections to enter Leaf."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "至少有一个部分已经写到三条了。等三个部分都写上三条以后，就会进入「叶茂成形」。"
+          }
+        }
+      }
+    },
     "Available for iCloud." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -862,22 +942,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "叶茂成形"
-          }
-        }
-      }
-    },
-    "All sections are at three lines. Reach five lines in each section to enter Bloom." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "All sections are at three lines. Reach five lines in each section to enter Bloom."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "三个部分都已经写了三条了。继续把每个部分写到五条，就会进入「花开有成」。"
           }
         }
       }
@@ -2189,54 +2253,6 @@
         }
       }
     },
-    "Add one line in each section to move into Sprout." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add one line in each section to move into Sprout."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "现在还什么都没有。随便开始写一些，就会进入「初露新芽」。"
-          }
-        }
-      }
-    },
-    "Add one more line in any section. Small steps are easier to keep. Tap the status above anytime if you want a reminder." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add one more line in any section. Small steps are easier to keep. Tap the status above anytime if you want a reminder."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在任一部分多写几条，小步最容易坚持。需要提示时，也可以随时点按上方状态。"
-          }
-        }
-      }
-    },
-    "Write one gratitude line to plant your first seed. Tap the status above anytime if you want a reminder." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Write one gratitude line to plant your first seed. Tap the status above anytime if you want a reminder."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "先写一件感恩的事，把第一颗种子种下去。需要提示时，也可以随时点按上方状态。"
-          }
-        }
-      }
-    },
     "Entries stay private to your devices and account. Export creates a full JSON backup." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2389,6 +2405,7 @@
       }
     },
     "First time with one gratitude, one need, and someone in mind—nice work." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2420,102 +2437,6 @@
         }
       }
     },
-    "Keep going in each section toward Leaf." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keep going in each section toward Leaf."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在任一部分多写几条，小步最容易坚持。"
-          }
-        }
-      }
-    },
-    "Your first Leaf day. Each section has at least three lines. Keep going toward Bloom." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your first Leaf day. Each section has at least three lines. Keep going toward Bloom."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "第一次进入「叶茂成形」。每个部分都至少有三条了，继续写向「花开有成」。"
-          }
-        }
-      }
-    },
-    "Your first Bloom day. Each section has five lines. Add reading notes or reflections when you want." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your first Bloom day. Each section has five lines. Add reading notes or reflections when you want."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "第一次进入「花开有成」。每个部分都写满五条。想写时再加上阅读笔记或反思就好。"
-          }
-        }
-      }
-    },
-    "You reached Sprout today." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You reached Sprout today."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "今天已经达到「初露新芽」。"
-          }
-        }
-      }
-    },
-    "You reached Leaf today." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You reached Leaf today."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "今天已经达到「叶茂成形」。"
-          }
-        }
-      }
-    },
-    "You reached Bloom today. All five lines are filled in each section." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You reached Bloom today. All five lines are filled in each section."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "今天已经达到「花开有成」。三个部分都写满五条。"
-          }
-        }
-      }
-    },
     "Full" : {
       "localizations" : {
         "en" : {
@@ -2528,22 +2449,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "花开有成"
-          }
-        }
-      }
-    },
-    "All sections reached five lines. Today's entry is complete." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "All sections reached five lines. Today's entry is complete."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "三个部分都写到五条了。今天这篇记录已经完整了。"
           }
         }
       }
@@ -2761,22 +2666,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "枝条初成"
-          }
-        }
-      }
-    },
-    "At least one section has three lines. Reach three in all sections to enter Leaf." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "At least one section has three lines. Reach three in all sections to enter Leaf."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "至少有一个部分已经写到三条了。等三个部分都写上三条以后，就会进入「叶茂成形」。"
           }
         }
       }
@@ -3180,6 +3069,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "继续写下去"
+          }
+        }
+      }
+    },
+    "Keep going in each section toward Leaf." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep going in each section toward Leaf."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在任一部分多写几条，小步最容易坚持。"
           }
         }
       }
@@ -4751,134 +4656,6 @@
         }
       }
     },
-    "Settings.summerLeaves.native" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Animated leaves (on-device)"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "动画叶片（设备内绘制）"
-          }
-        }
-      }
-    },
-    "Settings.summerLeaves.sectionTitle" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Summer leaves overlay"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "夏日叶片叠加"
-          }
-        }
-      }
-    },
-    "Settings.summerLeaves.video" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Looping video (bundled)"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "循环视频（内置）"
-          }
-        }
-      }
-    },
-    "Settings.todayJournalAppearance.modeLabel" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mode"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "模式"
-          }
-        }
-      }
-    },
-    "Settings.todayJournalAppearance.footer" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Applies to the Today tab only. Past entries and Settings keep the standard look."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "仅用于「今天」标签。往日记录与设置界面仍为标准样式。"
-          }
-        }
-      }
-    },
-    "Settings.todayJournalAppearance.sectionTitle" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Today journal appearance"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "今天记录外观"
-          }
-        }
-      }
-    },
-    "Settings.todayJournalAppearance.standard" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Standard"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "标准"
-          }
-        }
-      }
-    },
-    "Settings.todayJournalAppearance.summer" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Summer"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "夏日"
-          }
-        }
-      }
-    },
     "Settings.showAppTour" : {
       "localizations" : {
         "en" : {
@@ -4907,6 +4684,140 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "查看关于记录路径、回顾、提醒、云端功能与 iCloud 的说明页面。"
+          }
+        }
+      }
+    },
+    "Settings.summerLeaves.native" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Animated leaves (on-device)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "动画叶片（设备内绘制）"
+          }
+        }
+      }
+    },
+    "Settings.summerLeaves.sectionTitle" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Summer leaves overlay"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "夏日叶片叠加"
+          }
+        }
+      }
+    },
+    "Settings.summerLeaves.video" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Looping video (bundled)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "循环视频（内置）"
+          }
+        }
+      }
+    },
+    "Settings.todayJournalAppearance.footer" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When Summer mode is on, Grace Notes keeps the Summer look and ignores your device Light/Dark appearance."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开启夏日模式后，Grace Notes 会保持夏日外观，不受设备浅色/深色模式影响。"
+          }
+        }
+      }
+    },
+    "Settings.todayJournalAppearance.modeLabel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bloom"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bloom"
+          }
+        }
+      }
+    },
+    "Settings.todayJournalAppearance.sectionTitle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appearance"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外观"
+          }
+        }
+      }
+    },
+    "Settings.todayJournalAppearance.standard" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "标准"
+          }
+        }
+      }
+    },
+    "Settings.todayJournalAppearance.summer" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Summer"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "夏日"
           }
         }
       }
@@ -5389,22 +5300,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "初露新芽"
-          }
-        }
-      }
-    },
-    "You have started. Reach three lines in each section to enter Twig." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You have started. Reach three lines in each section to enter Twig."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "今天的记录里至少写了一条。把每个部分写到三条，就会进入「枝条初成」。"
           }
         }
       }
@@ -6400,6 +6295,7 @@
       }
     },
     "When you're ready, keep writing—a line in Gratitudes, Needs, and People in Mind is enough to begin. Tap the status above anytime if you want a reminder." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6481,6 +6377,22 @@
         }
       }
     },
+    "Write one gratitude line to plant your first seed. Tap the status above anytime if you want a reminder." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Write one gratitude line to plant your first seed. Tap the status above anytime if you want a reminder."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "先写一件感恩的事，把第一颗种子种下去。需要提示时，也可以随时点按上方状态。"
+          }
+        }
+      }
+    },
     "Write today's reflection" : {
       "localizations" : {
         "en" : {
@@ -6531,6 +6443,7 @@
       }
     },
     "You are growing—keep going across the three sections." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6564,6 +6477,7 @@
       }
     },
     "You can keep writing in Gratitudes, Needs, and People in Mind if you'd like a fuller reflection. Tap the status above anytime to read what Full means." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6630,6 +6544,7 @@
       }
     },
     "You have started filling in today." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6641,6 +6556,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你已经开始写今天这篇了。"
+          }
+        }
+      }
+    },
+    "You have started. Reach three lines in each section to enter Twig." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You have started. Reach three lines in each section to enter Twig."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天的记录里至少写了一条。把每个部分写到三条，就会进入「枝条初成」。"
           }
         }
       }
@@ -6916,6 +6847,7 @@
       }
     },
     "You reached Balanced today." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6931,7 +6863,24 @@
         }
       }
     },
+    "You reached Bloom today. All five lines are filled in each section." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You reached Bloom today. All five lines are filled in each section."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天已经达到「花开有成」。三个部分都写满五条。"
+          }
+        }
+      }
+    },
     "You reached Full today—all chip spots filled." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6960,6 +6909,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "今天你已经达到「花开有成」。"
+          }
+        }
+      }
+    },
+    "You reached Leaf today." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You reached Leaf today."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天已经达到「叶茂成形」。"
+          }
+        }
+      }
+    },
+    "You reached Sprout today." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You reached Sprout today."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天已经达到「初露新芽」。"
           }
         }
       }
@@ -7132,6 +7113,7 @@
       }
     },
     "You've filled Gratitudes, Needs, and People. Add reading notes and reflections when you're ready." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -7199,6 +7181,7 @@
       }
     },
     "Your first Balanced day—at least three in each section. Keep going toward Full." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -7214,7 +7197,24 @@
         }
       }
     },
+    "Your first Bloom day. Each section has five lines. Add reading notes or reflections when you want." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your first Bloom day. Each section has five lines. Add reading notes or reflections when you want."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第一次进入「花开有成」。每个部分都写满五条。想写时再加上阅读笔记或反思就好。"
+          }
+        }
+      }
+    },
     "Your first Full—all fifteen chip spots filled. Add notes when you want." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -7260,6 +7260,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "这是你第一次到「花开有成」，也写好了阅读笔记和反思。今天这一篇已经很完整了。"
+          }
+        }
+      }
+    },
+    "Your first Leaf day. Each section has at least three lines. Keep going toward Bloom." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your first Leaf day. Each section has at least three lines. Keep going toward Bloom."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第一次进入「叶茂成形」。每个部分都至少有三条了，继续写向「花开有成」。"
           }
         }
       }

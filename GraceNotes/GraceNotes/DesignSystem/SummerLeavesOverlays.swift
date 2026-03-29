@@ -17,9 +17,14 @@ struct SummerLeavesOverlaySeam: View {
                     SummerLeavesVideoOverlay()
                 case .native:
                     SummerLeavesNativeOverlay()
+                        .compositingGroup()
+                        .blendMode(.multiply)
+                        .opacity(0.62)
                 }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .ignoresSafeArea()
         .allowsHitTesting(false)
         .accessibilityHidden(true)
     }
@@ -27,15 +32,44 @@ struct SummerLeavesOverlaySeam: View {
 
 // MARK: - Video
 
+/// Host view that forwards final Auto Layout bounds into `AVPlayerLayer` (SwiftUI often calls `makeUIView` at 0×0).
+private final class LeavesVideoHostView: UIView {
+    var onBoundsChange: ((CGRect) -> Void)?
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        onBoundsChange?(bounds)
+    }
+}
+
 struct SummerLeavesVideoOverlay: View {
     var body: some View {
         Group {
             if let url = Bundle.main.url(forResource: "SummerLeavesLoop", withExtension: "mp4") {
-                LoopingVideoPlayerView(url: url)
-                    .opacity(0.2)
+                ZStack {
+                    LoopingVideoPlayerView(url: url)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    // Warm side light: stays subtle so multiply still reads as shadow, not a flat tint.
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.98, green: 0.92, blue: 0.82).opacity(0.22),
+                            Color.clear
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                    .blendMode(.softLight)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+                }
+                .compositingGroup()
+                .blendMode(.multiply)
+                .opacity(0.82)
             } else {
                 SummerLeavesNativeOverlay()
-                    .opacity(0.18)
+                    .compositingGroup()
+                    .blendMode(.multiply)
+                    .opacity(0.58)
             }
         }
     }
@@ -48,14 +82,18 @@ private struct LoopingVideoPlayerView: UIViewRepresentable {
         Coordinator(url: url)
     }
 
-    func makeUIView(context: Context) -> UIView {
-        let view = UIView(frame: .zero)
+    func makeUIView(context: Context) -> LeavesVideoHostView {
+        let view = LeavesVideoHostView()
         view.backgroundColor = .clear
-        context.coordinator.attach(to: view)
+        let coordinator = context.coordinator
+        view.onBoundsChange = { [weak coordinator] bounds in
+            coordinator?.updateBounds(bounds)
+        }
+        coordinator.attach(to: view)
         return view
     }
 
-    func updateUIView(_ uiView: UIView, context: Context) {
+    func updateUIView(_ uiView: LeavesVideoHostView, context: Context) {
         context.coordinator.updateBounds(uiView.bounds)
     }
 
@@ -63,7 +101,6 @@ private struct LoopingVideoPlayerView: UIViewRepresentable {
         private let url: URL
         private var player: AVQueuePlayer?
         private var looper: AVPlayerLooper?
-        private weak var hostView: UIView?
         private var playerLayer: AVPlayerLayer?
 
         init(url: URL) {
@@ -71,7 +108,6 @@ private struct LoopingVideoPlayerView: UIViewRepresentable {
         }
 
         func attach(to view: UIView) {
-            hostView = view
             guard playerLayer == nil else {
                 updateBounds(view.bounds)
                 return
@@ -101,7 +137,6 @@ private struct LoopingVideoPlayerView: UIViewRepresentable {
             player = nil
             playerLayer?.removeFromSuperlayer()
             playerLayer = nil
-            hostView = nil
         }
     }
 }
@@ -118,7 +153,6 @@ struct SummerLeavesNativeOverlay: View {
                 drawLeaves(context: context, size: size, time: t)
             }
         }
-        .opacity(0.22)
     }
 
     private func drawLeaves(context: GraphicsContext, size: CGSize, time: Double) {
@@ -139,7 +173,7 @@ struct SummerLeavesNativeOverlay: View {
             let transform = CGAffineTransform(translationX: baseX + driftX, y: baseY + driftY)
                 .rotated(by: CGFloat(rotation))
             leaf = leaf.applying(transform)
-            context.fill(leaf, with: .color(palette[i % palette.count].opacity(0.55)))
+            context.fill(leaf, with: .color(palette[i % palette.count].opacity(0.78)))
         }
     }
 

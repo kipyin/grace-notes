@@ -153,6 +153,7 @@ private extension View {
 struct JournalScreen: View {
     @EnvironmentObject private var appNavigation: AppNavigationModel
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.journalSummerAtmosphereHosted) private var journalSummerAtmosphereHosted
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.verticalSizeClass) private var verticalSizeClass
@@ -219,10 +220,10 @@ struct JournalScreen: View {
     var body: some View {
         let palette = TodayJournalPalette.resolve(mode: effectiveTodayAppearance)
         ZStack {
-            if effectiveTodayAppearance == .summer {
+            if effectiveTodayAppearance == .summer, !journalSummerAtmosphereHosted {
                 SummerPaperBackgroundView()
             }
-            if effectiveTodayAppearance == .summer {
+            if effectiveTodayAppearance == .summer, !journalSummerAtmosphereHosted {
                 SummerLeavesOverlaySeam(
                     renderer: summerLeavesRendererResolved,
                     reduceMotion: reduceMotion
@@ -245,6 +246,10 @@ struct JournalScreen: View {
                 .accessibilityIdentifier("Share")
             }
         }
+        .toolbarBackground(
+            effectiveTodayAppearance == .summer ? .hidden : .automatic,
+            for: .navigationBar
+        )
         .sheet(item: $shareableImage) { item in
             ShareSheet(
                 activityItems: [item.image],
