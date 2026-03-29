@@ -15,6 +15,7 @@ struct ReviewSummaryCard: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @State private var selectedMostRecurringTheme: ReviewMostRecurringTheme?
 
     let insights: ReviewInsights?
     let isLoading: Bool
@@ -39,6 +40,9 @@ struct ReviewSummaryCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .fixedSize(horizontal: false, vertical: true)
         .padding(.vertical, 4)
+        .sheet(item: $selectedMostRecurringTheme) { theme in
+            MostRecurringThemeDetailSheet(theme: theme)
+        }
     }
 
     @ViewBuilder
@@ -54,12 +58,12 @@ struct ReviewSummaryCard: View {
 
     private func insightsContent(for insights: ReviewInsights) -> some View {
         let bodies = dedupedPanelBodies(for: insights)
-        let recurringGroups = recurringThemeGroups(for: insights)
+        let mostRecurringThemes = insights.weekStats.mostRecurringThemes
         return VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 10) {
                 weekRhythmPanel(for: insights)
-                if !recurringGroups.isEmpty {
-                    recurringThemesPanel(groups: recurringGroups)
+                if !mostRecurringThemes.isEmpty {
+                    mostRecurringThemesPanel(themes: mostRecurringThemes)
                 }
                 observationPanel(body: bodies.observation)
                 // Intentional product choice: keep the middle "Thinking"/narrative layer hidden for now.
@@ -120,21 +124,62 @@ struct ReviewSummaryCard: View {
         }
     }
 
-    private func recurringThemesPanel(groups: [RecurringThemeGroup]) -> some View {
+    private func mostRecurringThemesPanel(themes: [ReviewMostRecurringTheme]) -> some View {
         ReviewInsightInsetPanel(
             title: String(localized: "Most recurring"),
             panelChrome: .standard
         ) {
-            VStack(alignment: .leading, spacing: 12) {
-                ForEach(groups) { group in
-                    ReviewRecurringThemeGroup(
-                        title: group.title,
-                        items: group.items,
-                        accent: group.accent
-                    )
+            ScrollView(.vertical, showsIndicators: true) {
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(themes) { theme in
+                        mostRecurringThemeRow(theme)
+                    }
                 }
+                .padding(.vertical, 2)
             }
+            .frame(maxHeight: 356)
+            .accessibilityIdentifier("MostRecurringThemesScroll")
         }
+    }
+
+    private func mostRecurringThemeRow(_ theme: ReviewMostRecurringTheme) -> some View {
+        Button {
+            selectedMostRecurringTheme = theme
+        } label: {
+            HStack(alignment: .center, spacing: 10) {
+                Text(theme.label)
+                    .font(AppTheme.warmPaperMeta)
+                    .foregroundStyle(AppTheme.reviewTextPrimary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                Spacer(minLength: 8)
+                ReviewTrendBadge(trend: theme.trend)
+                ReviewCountBadge(value: theme.totalCount.formatted(), accent: AppTheme.reviewAccent)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("MostRecurringThemeRow.\(sanitizedThemeId(theme.id))")
+        .accessibilityLabel(
+            String(
+                format: String(localized: "%1$@, %2$@, %3$lld"),
+                theme.label,
+                localizedTrendLabel(theme.trend),
+                Int64(theme.totalCount)
+            )
+        )
+    }
+
+    private func sanitizedThemeId(_ value: String) -> String {
+        let cleaned = value
+            .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+            .replacingOccurrences(of: "[^a-zA-Z0-9]+", with: "-", options: .regularExpression)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "-"))
+        if cleaned.isEmpty {
+            return "theme"
+        }
+        return cleaned
     }
 
     private func panelParagraph(_ text: String, lineSpacing: CGFloat) -> some View {
@@ -218,49 +263,16 @@ struct ReviewSummaryCard: View {
         return ReviewInsightPanelBodies(observation: observation, thread: thread, action: action)
     }
 
-    private func recurringThemeGroups(for insights: ReviewInsights) -> [RecurringThemeGroup] {
-        var groups: [RecurringThemeGroup] = []
-        let recurringGratitudes = insights.recurringGratitudes.filter { $0.count > 1 }
-        let recurringNeeds = insights.recurringNeeds.filter { $0.count > 1 }
-        let recurringPeople = insights.recurringPeople.filter { $0.count > 1 }
-        if !recurringGratitudes.isEmpty {
-            groups.append(
-                RecurringThemeGroup(
-                    title: localizedSectionName(for: .gratitudes),
-                    items: recurringGratitudes,
-                    accent: AppTheme.reviewAccent
-                )
-            )
-        }
-        if !recurringNeeds.isEmpty {
-            groups.append(
-                RecurringThemeGroup(
-                    title: localizedSectionName(for: .needs),
-                    items: recurringNeeds,
-                    accent: AppTheme.reviewStandardBorder
-                )
-            )
-        }
-        if !recurringPeople.isEmpty {
-            groups.append(
-                RecurringThemeGroup(
-                    title: String(localized: "People in Mind"),
-                    items: recurringPeople,
-                    accent: AppTheme.reviewCompleteBorder
-                )
-            )
-        }
-        return groups
-    }
-
-    private func localizedSectionName(for section: ReviewStatsSectionKind) -> String {
-        switch section {
-        case .gratitudes:
-            String(localized: "Gratitudes")
-        case .needs:
-            String(localized: "Needs")
-        case .people:
-            String(localized: "People in Mind")
+    private func localizedTrendLabel(_ trend: ReviewThemeTrend) -> String {
+        switch trend {
+        case .new:
+            return String(localized: "New")
+        case .rising:
+            return String(localized: "Up")
+        case .down:
+            return String(localized: "Down")
+        case .stable:
+            return String(localized: "Stable")
         }
     }
 
@@ -621,14 +633,6 @@ struct ReviewSummaryCard: View {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    private struct RecurringThemeGroup: Identifiable {
-        let title: String
-        let items: [ReviewInsightTheme]
-        let accent: Color
-
-        var id: String { title }
-    }
-
     /// Layout metrics for the reflection rhythm chart, scaled for Dynamic Type.
     private struct RhythmCurveScaledMetrics {
         let columnWidth: CGFloat
@@ -796,42 +800,109 @@ private struct InsightsCalmLoadingBreath: ViewModifier {
     }
 }
 
-private struct ReviewRecurringThemeGroup: View {
-    let title: String
-    let items: [ReviewInsightTheme]
-    let accent: Color
+private struct ReviewTrendBadge: View {
+    let trend: ReviewThemeTrend
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) {
-                Circle()
-                    .fill(accent)
-                    .frame(width: 6, height: 6)
-                Text(title)
-                    .font(AppTheme.warmPaperMeta.weight(.semibold))
-                    .foregroundStyle(AppTheme.reviewTextPrimary)
-            }
+        Text(label)
+            .font(AppTheme.warmPaperMetaEmphasis.weight(.semibold))
+            .foregroundStyle(AppTheme.reviewTextPrimary)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(AppTheme.reviewStandardBorder.opacity(0.22))
+            .clipShape(Capsule())
+    }
 
-            VStack(alignment: .leading, spacing: 8) {
-                ForEach(items, id: \.self) { item in
-                    HStack(alignment: .firstTextBaseline, spacing: 8) {
-                        Text(item.label)
+    private var label: String {
+        switch trend {
+        case .new:
+            return String(localized: "New")
+        case .rising:
+            return String(localized: "Up")
+        case .down:
+            return String(localized: "Down")
+        case .stable:
+            return String(localized: "Stable")
+        }
+    }
+}
+
+private struct MostRecurringThemeDetailSheet: View {
+    let theme: ReviewMostRecurringTheme
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(theme.label)
+                            .font(AppTheme.warmPaperHeader)
+                            .foregroundStyle(AppTheme.reviewTextPrimary)
+                            .accessibilityIdentifier("MostRecurringThemeDetailTitle")
+                        Text(
+                            String(
+                                format: String(localized: "Showed up %1$lld times."),
+                                Int64(theme.totalCount)
+                            )
+                        )
+                        .font(AppTheme.warmPaperBody)
+                        .foregroundStyle(AppTheme.reviewTextMuted)
+                    }
+                    .padding(.vertical, 2)
+                } header: {
+                    Text(String(localized: "Summary"))
+                        .font(AppTheme.warmPaperMeta)
+                        .foregroundStyle(AppTheme.reviewTextMuted)
+                        .textCase(nil)
+                }
+
+                Section {
+                    ForEach(Array(theme.evidence.enumerated()), id: \.offset) { _, evidence in
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(evidence.date.formatted(date: .abbreviated, time: .omitted))
+                                .font(AppTheme.warmPaperBody.weight(.semibold))
+                                .foregroundStyle(AppTheme.reviewTextPrimary)
+                            Text(
+                                evidence.sources.map(localizedSourceLabel).joined(separator: ", ")
+                            )
                             .font(AppTheme.warmPaperMeta)
                             .foregroundStyle(AppTheme.reviewTextMuted)
-                            .lineSpacing(2)
-                        Spacer(minLength: 8)
-                        ReviewCountBadge(value: item.count.formatted(), accent: accent)
+                        }
+                        .padding(.vertical, 2)
                     }
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(
-                        String(
-                            format: String(localized: "%1$@ (%2$lld)"),
-                            item.label,
-                            Int64(item.count)
-                        )
-                    )
+                } header: {
+                    Text(String(localized: "Entries and categories"))
+                        .font(AppTheme.warmPaperMeta)
+                        .foregroundStyle(AppTheme.reviewTextMuted)
+                        .textCase(nil)
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(AppTheme.reviewBackground)
+            .navigationTitle(String(localized: "Theme details"))
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(String(localized: "Done")) {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+
+    private func localizedSourceLabel(_ source: ReviewThemeSourceCategory) -> String {
+        switch source {
+        case .gratitudes:
+            return String(localized: "Gratitudes")
+        case .needs:
+            return String(localized: "Needs")
+        case .people:
+            return String(localized: "People in Mind")
+        case .readingNotes:
+            return String(localized: "Reading notes")
+        case .reflections:
+            return String(localized: "Reflections")
         }
     }
 }

@@ -3,6 +3,8 @@ import UIKit
 
 struct SettingsScreen: View {
     @AppStorage(PersistenceController.iCloudSyncEnabledKey) private var isICloudSyncEnabled = false
+    @AppStorage(ReviewWeekBoundaryPreference.userDefaultsKey)
+    private var reviewWeekBoundaryRawValue = ReviewWeekBoundaryPreference.defaultValue.rawValue
     @EnvironmentObject private var appNavigation: AppNavigationModel
     @Environment(\.openURL) private var openURL
     @Environment(\.scenePhase) private var scenePhase
@@ -50,6 +52,27 @@ struct SettingsScreen: View {
                     }
                 } header: {
                     Text(String(localized: "Reminders"))
+                        .font(AppTheme.warmPaperHeader)
+                        .foregroundStyle(AppTheme.settingsTextPrimary)
+                        .textCase(nil)
+                }
+
+                Section {
+                    Picker(
+                        String(localized: "Week boundary"),
+                        selection: reviewWeekBoundaryBinding
+                    ) {
+                        ForEach(ReviewWeekBoundaryPreference.allCases, id: \.self) { option in
+                            Text(option.localizedLabel).tag(option)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .font(AppTheme.warmPaperBody)
+                    .foregroundStyle(AppTheme.settingsTextPrimary)
+                    .accessibilityIdentifier("SettingsReviewWeekBoundaryPicker")
+                    .frame(minHeight: 44)
+                } header: {
+                    Text(String(localized: "Review"))
                         .font(AppTheme.warmPaperHeader)
                         .foregroundStyle(AppTheme.settingsTextPrimary)
                         .textCase(nil)
@@ -147,6 +170,17 @@ struct SettingsScreen: View {
 }
 
 private extension SettingsScreen {
+    var reviewWeekBoundaryBinding: Binding<ReviewWeekBoundaryPreference> {
+        Binding(
+            get: {
+                ReviewWeekBoundaryPreference.resolve(from: reviewWeekBoundaryRawValue)
+            },
+            set: { newValue in
+                reviewWeekBoundaryRawValue = newValue.rawValue
+            }
+        )
+    }
+
     var shouldUseCompactReminderPicker: Bool {
         dynamicTypeSize >= .accessibility1 || verticalSizeClass == .compact
     }

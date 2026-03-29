@@ -313,14 +313,180 @@ private extension WeeklyReviewAggregatesBuilder {
             needMentions: entries.reduce(0) { $0 + ($1.needs ?? []).count },
             peopleMentions: entries.reduce(0) { $0 + ($1.people ?? []).count }
         )
+        let mostRecurringThemes = buildMostRecurringThemes(
+            from: sortedEntries(allEntries),
+            currentPeriod: currentPeriod,
+            calendar: calendar
+        )
         return ReviewWeekStats(
             reflectionDays: reflectionDays,
             meaningfulEntryCount: meaningfulEntryCount,
             completionMix: completionMix,
             activity: activity,
             rhythmHistory: rhythmHistory,
-            sectionTotals: sectionTotals
+            sectionTotals: sectionTotals,
+            mostRecurringThemes: mostRecurringThemes
         )
+    }
+
+    private func buildMostRecurringThemes(
+        from entries: [JournalEntry],
+        currentPeriod: Range<Date>,
+        calendar: Calendar
+    ) -> [ReviewMostRecurringTheme] {
+        guard !entries.isEmpty else { return [] }
+        let trendRanges = trendWeekRanges(currentPeriod: currentPeriod, calendar: calendar)
+        var map: [String: MostRecurringAccumulator] = [:]
+        var sequence = 0
+
+        for entry in entries {
+            let day = calendar.startOfDay(for: entry.entryDate)
+            accumulateMostRecurring(
+                from: entry,
+                day: day,
+                trendRanges: trendRanges,
+                sequence: &sequence,
+                map: &map
+            )
+        }
+
+        return map.values
+            .map { value in
+                let trend = themeTrend(
+                    currentWeekCount: value.currentWeekCount,
+                    previousWeekCount: value.previousWeekCount
+                )
+                let evidence = value.evidenceByDay
+                    .map { date, sources in
+                        ReviewThemeEvidence(
+                            date: date,
+                            sources: sources.sorted { $0.rawValue < $1.rawValue }
+                        )
+                    }
+                    .sorted { $0.date > $1.date }
+                return ReviewMostRecurringTheme(
+                    label: value.displayLabel,
+                    totalCount: value.totalCount,
+                    dayCount: value.days.count,
+                    currentWeekCount: value.currentWeekCount,
+                    previousWeekCount: value.previousWeekCount,
+                    trend: trend,
+                    evidence: evidence
+                )
+            }
+            .sorted {
+                if $0.totalCount != $1.totalCount {
+                    return $0.totalCount > $1.totalCount
+                }
+                if $0.dayCount != $1.dayCount {
+                    return $0.dayCount > $1.dayCount
+                }
+                let lhsOrder =
+                    map[textNormalizer.normalizeThemeLabel($0.label)]?.firstSeenOrder ?? .max
+                let rhsOrder =
+                    map[textNormalizer.normalizeThemeLabel($1.label)]?.firstSeenOrder ?? .max
+                if lhsOrder != rhsOrder {
+                    return lhsOrder < rhsOrder
+                }
+                return $0.label.localizedCaseInsensitiveCompare($1.label) == .orderedAscending
+            }
+    }
+
+    private func trendWeekRanges(
+        currentPeriod: Range<Date>,
+        calendar: Calendar
+    ) -> (current: Range<Date>, previous: Range<Date>) {
+        let referenceDay =
+            calendar.date(byAdding: .day, value: -1, to: currentPeriod.upperBound) ?? currentPeriod.lowerBound
+        let fallbackCurrent = currentPeriod
+        guard let currentWeek = calendar.dateInterval(of: .weekOfYear, for: referenceDay),
+              let previousWeekAnchor = calendar.date(byAdding: .weekOfYear, value: -1, to: currentWeek.start),
+              let previousWeek = calendar.dateInterval(of: .weekOfYear, for: previousWeekAnchor) else {
+            return (fallbackCurrent, fallbackCurrent)
+        }
+        return (
+            currentWeek.start..<currentWeek.end,
+            previousWeek.start..<previousWeek.end
+        )
+    }
+
+    private func themeTrend(currentWeekCount: Int, previousWeekCount: Int) -> ReviewThemeTrend {
+        if previousWeekCount == 0, currentWeekCount > 0 {
+            return .new
+        }
+        if currentWeekCount > previousWeekCount {
+            return .rising
+        }
+        if currentWeekCount < previousWeekCount {
+            return .down
+        }
+        return .stable
+    }
+
+    private func accumulateMostRecurring(
+        from entry: JournalEntry,
+        day: Date,
+        trendRanges: (current: Range<Date>, previous: Range<Date>),
+        sequence: inout Int,
+        map: inout [String: MostRecurringAccumulator]
+    ) {
+        let groupedLabels: [(labels: [String], source: ReviewThemeSourceCategory)] = [
+            ((entry.gratitudes ?? []).map(preferredItemLabel), .gratitudes),
+            ((entry.needs ?? []).map(preferredItemLabel), .needs),
+            ((entry.people ?? []).map(preferredItemLabel), .people),
+            (textNormalizer.extractThemesFromText(entry.readingNotes), .readingNotes),
+            (textNormalizer.extractThemesFromText(entry.reflections), .reflections)
+        ]
+
+        for group in groupedLabels {
+            for label in group.labels {
+                accumulateMostRecurring(
+                    label: label,
+                    day: day,
+                    source: group.source,
+                    trendRanges: trendRanges,
+                    sequence: sequence,
+                    map: &map
+                )
+                sequence += 1
+            }
+        }
+    }
+
+    private func accumulateMostRecurring(
+        label: String,
+        day: Date,
+        source: ReviewThemeSourceCategory,
+        trendRanges: (current: Range<Date>, previous: Range<Date>),
+        sequence: Int,
+        map: inout [String: MostRecurringAccumulator]
+    ) {
+        let trimmedLabel = textNormalizer.trimmed(label)
+        guard !trimmedLabel.isEmpty else { return }
+        let normalized = textNormalizer.normalizeThemeLabel(trimmedLabel)
+        guard !normalized.isEmpty else { return }
+
+        var value = map[normalized] ?? MostRecurringAccumulator(
+            normalizedLabel: normalized,
+            displayLabel: trimmedLabel,
+            totalCount: 0,
+            days: [],
+            evidenceByDay: [:],
+            currentWeekCount: 0,
+            previousWeekCount: 0,
+            firstSeenOrder: sequence
+        )
+        value.totalCount += 1
+        value.days.insert(day)
+        var sources = value.evidenceByDay[day, default: []]
+        sources.insert(source)
+        value.evidenceByDay[day] = sources
+        if trendRanges.current.contains(day) {
+            value.currentWeekCount += 1
+        } else if trendRanges.previous.contains(day) {
+            value.previousWeekCount += 1
+        }
+        map[normalized] = value
     }
 
     /// Builds a longer oldest-to-newest activity sequence ending on the last day of `currentPeriod`,
@@ -437,5 +603,16 @@ private struct ThemeAccumulator {
     var mentionCount: Int
     var weightedScore: Int
     var days: Set<Date>
+    let firstSeenOrder: Int
+}
+
+private struct MostRecurringAccumulator {
+    let normalizedLabel: String
+    let displayLabel: String
+    var totalCount: Int
+    var days: Set<Date>
+    var evidenceByDay: [Date: Set<ReviewThemeSourceCategory>]
+    var currentWeekCount: Int
+    var previousWeekCount: Int
     let firstSeenOrder: Int
 }

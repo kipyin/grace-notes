@@ -3,12 +3,13 @@ import SwiftData
 
 struct ReviewScreen: View {
     @Query(sort: \JournalEntry.entryDate, order: .reverse) private var entries: [JournalEntry]
+    @AppStorage(ReviewWeekBoundaryPreference.userDefaultsKey)
+    private var reviewWeekBoundaryRawValue = ReviewWeekBoundaryPreference.defaultValue.rawValue
     @State private var reviewInsights: ReviewInsights?
     @State private var isLoadingInsights = false
     @State private var lastInsightsRefreshKey: ReviewInsightsRefreshKey?
     @EnvironmentObject private var appNavigation: AppNavigationModel
 
-    private let calendar = Calendar.current
     private let reviewInsightsProvider = ReviewInsightsProvider.shared
     private let reviewInsightsCache = ReviewInsightsCache.shared
     /// When true, keep Review list chrome even with zero entries so UI tests can navigate.
@@ -24,12 +25,18 @@ struct ReviewScreen: View {
             weekStart: currentReviewPeriod.lowerBound,
             entrySnapshots: weeklyEntriesForRefresh.map {
                 ReviewEntrySnapshot(id: $0.id, updatedAt: $0.updatedAt)
-            }
+            },
+            weekBoundaryPreferenceRawValue: reviewWeekBoundaryRawValue
         )
     }
 
     private var currentReviewPeriod: Range<Date> {
         ReviewInsightsPeriod.currentPeriod(containing: Date(), calendar: calendar)
+    }
+
+    private var calendar: Calendar {
+        ReviewWeekBoundaryPreference.resolve(from: reviewWeekBoundaryRawValue)
+            .configuredCalendar()
     }
 
     private var weeklyEntriesForRefresh: [JournalEntry] {

@@ -31,6 +31,38 @@ enum ReviewStatsSectionKind: String, CaseIterable, Equatable, Sendable, Codable 
     case people
 }
 
+enum ReviewThemeSourceCategory: String, CaseIterable, Equatable, Hashable, Sendable, Codable {
+    case gratitudes
+    case needs
+    case people
+    case readingNotes
+    case reflections
+}
+
+enum ReviewThemeTrend: String, Equatable, Hashable, Sendable, Codable {
+    case new
+    case rising
+    case down
+    case stable
+}
+
+struct ReviewThemeEvidence: Equatable, Hashable, Sendable, Codable {
+    let date: Date
+    let sources: [ReviewThemeSourceCategory]
+}
+
+struct ReviewMostRecurringTheme: Equatable, Hashable, Sendable, Codable, Identifiable {
+    let label: String
+    let totalCount: Int
+    let dayCount: Int
+    let currentWeekCount: Int
+    let previousWeekCount: Int
+    let trend: ReviewThemeTrend
+    let evidence: [ReviewThemeEvidence]
+
+    var id: String { label }
+}
+
 struct ReviewDayActivity: Equatable, Hashable, Sendable, Codable {
     let date: Date
     let hasReflectiveActivity: Bool
@@ -171,6 +203,58 @@ struct ReviewWeekStats: Equatable, Sendable, Codable {
     /// Longer chronological slice for the scrollable rhythm curve; `nil` when absent from cached payloads.
     let rhythmHistory: [ReviewDayActivity]?
     let sectionTotals: ReviewWeekSectionTotals
+    let mostRecurringThemes: [ReviewMostRecurringTheme]
+
+    init(
+        reflectionDays: Int,
+        meaningfulEntryCount: Int,
+        completionMix: ReviewWeekCompletionMix,
+        activity: [ReviewDayActivity],
+        rhythmHistory: [ReviewDayActivity]?,
+        sectionTotals: ReviewWeekSectionTotals,
+        mostRecurringThemes: [ReviewMostRecurringTheme] = []
+    ) {
+        self.reflectionDays = reflectionDays
+        self.meaningfulEntryCount = meaningfulEntryCount
+        self.completionMix = completionMix
+        self.activity = activity
+        self.rhythmHistory = rhythmHistory
+        self.sectionTotals = sectionTotals
+        self.mostRecurringThemes = mostRecurringThemes
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case reflectionDays
+        case meaningfulEntryCount
+        case completionMix
+        case activity
+        case rhythmHistory
+        case sectionTotals
+        case mostRecurringThemes
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        reflectionDays = try container.decode(Int.self, forKey: .reflectionDays)
+        meaningfulEntryCount = try container.decode(Int.self, forKey: .meaningfulEntryCount)
+        completionMix = try container.decode(ReviewWeekCompletionMix.self, forKey: .completionMix)
+        activity = try container.decode([ReviewDayActivity].self, forKey: .activity)
+        rhythmHistory = try container.decodeIfPresent([ReviewDayActivity].self, forKey: .rhythmHistory)
+        sectionTotals = try container.decode(ReviewWeekSectionTotals.self, forKey: .sectionTotals)
+        mostRecurringThemes =
+            try container.decodeIfPresent([ReviewMostRecurringTheme].self, forKey: .mostRecurringThemes) ?? []
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(reflectionDays, forKey: .reflectionDays)
+        try container.encode(meaningfulEntryCount, forKey: .meaningfulEntryCount)
+        try container.encode(completionMix, forKey: .completionMix)
+        try container.encode(activity, forKey: .activity)
+        try container.encodeIfPresent(rhythmHistory, forKey: .rhythmHistory)
+        try container.encode(sectionTotals, forKey: .sectionTotals)
+        try container.encode(mostRecurringThemes, forKey: .mostRecurringThemes)
+    }
 }
 
 enum ReviewWeeklyInsightPattern: String, Sendable, Codable {
