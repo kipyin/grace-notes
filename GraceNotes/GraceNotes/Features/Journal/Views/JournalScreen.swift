@@ -195,8 +195,6 @@ struct JournalScreen: View {
     @AppStorage(JournalTutorialStorageKeys.dismissedHarvestGuidance) private var dismissedHarvestGuidance = false
     @AppStorage(JournalAppearanceStorageKeys.todayMode)
     private var journalTodayAppearanceRaw = JournalAppearanceMode.standard.rawValue
-    @AppStorage(JournalAppearanceStorageKeys.summerLeavesRenderer)
-    private var summerLeavesRendererRaw = JournalSummerLeavesRenderer.video.rawValue
 
     @State private var gratitudeInput = ""
     @State private var needInput = ""
@@ -224,10 +222,7 @@ struct JournalScreen: View {
                 SummerPaperBackgroundView()
             }
             if effectiveTodayAppearance == .summer, !journalSummerAtmosphereHosted {
-                SummerLeavesOverlaySeam(
-                    renderer: JournalSummerLeavesRenderer(rawValue: summerLeavesRendererRaw) ?? .video,
-                    reduceMotion: reduceMotion
-                )
+                SummerLeavesOverlaySeam(reduceMotion: reduceMotion)
             }
             journalScrollContent
         }

@@ -4689,17 +4689,18 @@
       }
     },
     "Settings.todayJournalAppearance.footer" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Summer appearance applies to the Today journal only. Past entries and Settings keep your normal Light/Dark appearance."
+            "value" : "When Summer mode is on, Grace Notes keeps the Summer look and ignores your device Light/Dark appearance."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "夏日外观仅用于「今日」日记；过往记录与设置仍跟随系统的浅色/深色外观。"
+            "value" : "开启夏日模式后，Grace Notes 会保持夏日外观，不受设备浅色/深色模式影响。"
           }
         }
       }
@@ -4725,61 +4726,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Summer appearance"
+            "value" : "Bloom"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "夏日模式"
-          }
-        }
-      }
-    },
-    "Settings.todayJournalAppearance.leavesRendererLabel" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Leaves overlay"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "树叶叠加效果"
-          }
-        }
-      }
-    },
-    "Settings.todayJournalAppearance.leavesVideo" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Video"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "视频"
-          }
-        }
-      }
-    },
-    "Settings.todayJournalAppearance.leavesNative" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Animated"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "动画绘制"
+            "value" : "Bloom"
           }
         }
       }

@@ -126,12 +126,12 @@ extension EnvironmentValues {
 }
 
 private struct JournalSummerAtmosphereHostedKey: EnvironmentKey {
-    /// Default: `JournalScreen` draws Summer paper and leaves when the resolved appearance is Summer.
+    /// Default: journal draws summer paper + leaves inside `JournalScreen` (e.g. embedded routes).
     static let defaultValue = false
 }
 
 extension EnvironmentValues {
-    /// When `true`, a parent already composes Summer paper/leaves; `JournalScreen` skips duplicating them.
+    /// When `true`, summer paper and leaves are provided by `TodayTabRoot`; `JournalScreen` must not duplicate them.
     var journalSummerAtmosphereHosted: Bool {
         get { self[JournalSummerAtmosphereHostedKey.self] }
         set { self[JournalSummerAtmosphereHostedKey.self] = newValue }
