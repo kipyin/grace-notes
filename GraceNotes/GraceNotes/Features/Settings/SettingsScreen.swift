@@ -3,6 +3,8 @@ import UIKit
 
 struct SettingsScreen: View {
     @AppStorage(PersistenceController.iCloudSyncEnabledKey) private var isICloudSyncEnabled = false
+    @AppStorage(ReviewWeekBoundaryPreference.userDefaultsKey)
+    private var reviewWeekBoundaryRawValue = ReviewWeekBoundaryPreference.defaultValue.rawValue
     @EnvironmentObject private var appNavigation: AppNavigationModel
     @Environment(\.modelContext) private var modelContext
     @Environment(\.openURL) private var openURL
@@ -55,6 +57,27 @@ struct SettingsScreen: View {
                     }
                 } header: {
                     Text(String(localized: "Reminders"))
+                        .font(AppTheme.warmPaperHeader)
+                        .foregroundStyle(AppTheme.settingsTextPrimary)
+                        .textCase(nil)
+                }
+
+                Section {
+                    Picker(
+                        String(localized: "Week starts"),
+                        selection: reviewWeekBoundaryBinding
+                    ) {
+                        ForEach(ReviewWeekBoundaryPreference.allCases, id: \.self) { option in
+                            Text(option.localizedLabel).tag(option)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .font(AppTheme.warmPaperBody)
+                    .foregroundStyle(AppTheme.settingsTextPrimary)
+                    .accessibilityIdentifier("SettingsReviewWeekBoundaryPicker")
+                    .frame(minHeight: 44)
+                } header: {
+                    Text(String(localized: "Past"))
                         .font(AppTheme.warmPaperHeader)
                         .foregroundStyle(AppTheme.settingsTextPrimary)
                         .textCase(nil)
@@ -170,6 +193,17 @@ struct SettingsScreen: View {
 }
 
 private extension SettingsScreen {
+    var reviewWeekBoundaryBinding: Binding<ReviewWeekBoundaryPreference> {
+        Binding(
+            get: {
+                ReviewWeekBoundaryPreference.resolve(from: reviewWeekBoundaryRawValue)
+            },
+            set: { newValue in
+                reviewWeekBoundaryRawValue = newValue.rawValue
+            }
+        )
+    }
+
     var settingsJournalTodayAppearance: JournalAppearanceMode {
         JournalAppearanceMode(rawValue: journalTodayAppearanceRaw) ?? .standard
     }

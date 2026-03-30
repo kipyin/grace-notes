@@ -17,8 +17,9 @@ final class WeeklyInsightRuleEngineTests: XCTestCase {
     }
 
     func test_analyze_emptyWeek_returnsSparseFallbackInsight() {
+        let referenceDate = date(year: 2026, month: 3, day: 18)
         let currentPeriod = ReviewInsightsPeriod.currentPeriod(
-            containing: date(year: 2026, month: 3, day: 18),
+            containing: referenceDate,
             calendar: calendar
         )
         let analysis = ruleEngine.analyze(
@@ -26,7 +27,8 @@ final class WeeklyInsightRuleEngineTests: XCTestCase {
             currentWeekEntries: [],
             previousWeekEntries: [],
             allEntries: [],
-            calendar: calendar
+            calendar: calendar,
+            referenceDate: referenceDate
         )
 
         XCTAssertEqual(analysis.weeklyInsights.count, 1)
@@ -66,15 +68,17 @@ final class WeeklyInsightRuleEngineTests: XCTestCase {
             }
             try context.save()
 
+            let referenceDate = date(year: 2026, month: 3, day: 19)
             let analysis = ruleEngine.analyze(
                 currentPeriod: ReviewInsightsPeriod.currentPeriod(
-                    containing: date(year: 2026, month: 3, day: 19),
+                    containing: referenceDate,
                     calendar: calendar
                 ),
                 currentWeekEntries: currentEntries,
                 previousWeekEntries: [],
                 allEntries: currentEntries,
-                calendar: calendar
+                calendar: calendar,
+                referenceDate: referenceDate
             )
             XCTAssertLessThanOrEqual(analysis.weeklyInsights.count, 2)
         }
@@ -97,15 +101,17 @@ final class WeeklyInsightRuleEngineTests: XCTestCase {
             }
             try context.save()
 
+            let referenceDate = date(year: 2026, month: 3, day: 19)
             let analysis = ruleEngine.analyze(
                 currentPeriod: ReviewInsightsPeriod.currentPeriod(
-                    containing: date(year: 2026, month: 3, day: 19),
+                    containing: referenceDate,
                     calendar: calendar
                 ),
                 currentWeekEntries: currentEntries,
                 previousWeekEntries: previousEntries,
                 allEntries: previousEntries + currentEntries,
-                calendar: calendar
+                calendar: calendar,
+                referenceDate: referenceDate
             )
 
             let shift = analysis.weeklyInsights.first { $0.pattern == .continuityShift }
@@ -125,15 +131,17 @@ final class WeeklyInsightRuleEngineTests: XCTestCase {
             }
             try context.save()
 
+            let referenceDate = date(year: 2026, month: 3, day: 18)
             let analysis = ruleEngine.analyze(
                 currentPeriod: ReviewInsightsPeriod.currentPeriod(
-                    containing: date(year: 2026, month: 3, day: 18),
+                    containing: referenceDate,
                     calendar: calendar
                 ),
                 currentWeekEntries: currentEntries,
                 previousWeekEntries: [],
                 allEntries: currentEntries,
-                calendar: calendar
+                calendar: calendar,
+                referenceDate: referenceDate
             )
 
             let completion = analysis.weeklyInsights.first { $0.pattern == .fullCompletion }
@@ -156,15 +164,17 @@ final class WeeklyInsightRuleEngineTests: XCTestCase {
             }
             try context.save()
 
+            let referenceDate = date(year: 2026, month: 3, day: 18)
             let analysis = ruleEngine.analyze(
                 currentPeriod: ReviewInsightsPeriod.currentPeriod(
-                    containing: date(year: 2026, month: 3, day: 18),
+                    containing: referenceDate,
                     calendar: calendar
                 ),
                 currentWeekEntries: entries,
                 previousWeekEntries: [],
                 allEntries: entries,
-                calendar: calendar
+                calendar: calendar,
+                referenceDate: referenceDate
             )
 
             XCTAssertEqual(analysis.weeklyInsights.count, 1)

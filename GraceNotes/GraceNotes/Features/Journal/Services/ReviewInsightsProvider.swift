@@ -64,7 +64,8 @@ struct ReviewInsightsProvider: Sendable {
             currentWeekEntries: currentWeekEntries,
             previousWeekEntries: previousWeekEntries,
             allEntries: entries,
-            calendar: calendar
+            calendar: calendar,
+            referenceDate: referenceDate
         )
         let fallbackInsight = ReviewWeeklyInsight(
             pattern: .sparseFallback,

@@ -48,7 +48,7 @@ Main tabs: **Today** (journaling), **Past** (history and insights), **Settings**
 
 ## Requirements
 
-- Xcode 26 or later (default `make` destinations use iPhone 17 Pro @ iOS 26.3 and iPhone XR @ iOS 17.5; use an older Xcode only if you override `DESTINATION` and `TEST_DESTINATION_MATRIX` to match what that Xcode installs)
+- Xcode 26 or later (default `make` destinations use iPhone 17 Pro @ `OS=latest`—the newest installed iOS runtime for that device—and the default test matrix includes iPhone SE (3rd generation) @ 18.5; use an older Xcode only if you override `DESTINATION` and `TEST_DESTINATION_MATRIX` to match what that Xcode installs)
 - iOS 17+ (app deployment target; see the Xcode project)
 
 ## Getting Started
@@ -66,7 +66,7 @@ Use the root `Makefile` for common local workflows (tests use the **GraceNotes**
 - `make build` – Build the app (requires macOS + Xcode).
 - `make test` – Run unit + UI tests for **GraceNotes** on `DESTINATION` (resolved via `Scripts/simulator_destination.py`).
 - `make test-all` – Reset simulators, then `make test` (reduces flaky simulator state).
-- `make test-matrix` – Run **GraceNotes** tests across `TEST_DESTINATION_MATRIX` (default: iPhone XR @ iOS 17.5 and iPhone 17 Pro @ iOS 26.3).
+- `make test-matrix` – Run **GraceNotes** tests across `TEST_DESTINATION_MATRIX` (default: iPhone SE (3rd generation) @ 18.5 and iPhone 17 Pro @ `latest`).
 - `make validate-destination` / `make validate-test-matrix` – Check that simulator names and OS versions exist before running tests.
 - `make list-simulator-destinations` – List installed `platform=iOS Simulator,...` strings.
 - `make ci` – Lint + `test-all`.
@@ -75,8 +75,8 @@ Use the root `Makefile` for common local workflows (tests use the **GraceNotes**
 Examples:
 
 ```bash
-make test DESTINATION='platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2'
-make test-matrix TEST_DESTINATION_MATRIX='iPhone SE (3rd generation)@18.5;iPhone 17 Pro@26.2'
+make test DESTINATION='platform=iOS Simulator,name=iPhone 17 Pro,OS=latest'
+make test-matrix TEST_DESTINATION_MATRIX='iPhone SE (3rd generation)@18.5;iPhone 17 Pro@latest'
 ```
 
 On iOS 17 simulators, `make` applies targeted `-skip-testing` flags for a few hosted SwiftData suites that crash before assertions; see `Makefile` (`LEGACY_RUNTIME_SKIP_FLAGS`).
@@ -99,7 +99,7 @@ Workflows: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (lint, build, 
 
 | When | What runs |
 |------|-----------|
-| **Pull request → `main`** | **Lint & build (iPhone 17 Pro)** — `make lint` then `make ci-build`. **`CI_SIMULATOR_PRO`** is **iPhone 17 Pro @ iOS 26.2** (hosted-runner compromise; SE (3rd generation) smoke remains iOS 18.5). |
+| **Pull request → `main`** | **Lint & build (iPhone 17 Pro)** — `make lint` then `make ci-build`. **`CI_SIMULATOR_PRO`** is **iPhone 17 Pro @ `OS=latest`** (newest installed runtime for that device on the runner; SE (3rd generation) smoke remains iOS 18.5). |
 | **Push → `main`** | **Main push — lint, test, UI smoke** — `make ci-full`: `make lint`, `make test` on **iPhone 17 Pro** (`CI_SIMULATOR_PRO`), then `make test-ui-smoke` on **iPhone SE (3rd generation)** (`CI_SIMULATOR_XR`). Smoke: `GraceNotesSmokeUITests.testSmokeLaunch`. Skipped when the push SHA is the **`merge_commit_sha`** of a PR merged into **`main`** and that PR is labeled **`no-ci`** (avoids unrelated PRs on the same commit). |
 | **Pull request + label `full-ci`** | **PR full-ci — lint, test, UI smoke** — `make ci-pr-full-ci` (same as `ci-full`). Re-runs on new commits while the label is present. |
 

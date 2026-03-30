@@ -31,6 +31,162 @@ enum ReviewStatsSectionKind: String, CaseIterable, Equatable, Sendable, Codable 
     case people
 }
 
+enum ReviewThemeSourceCategory: String, CaseIterable, Equatable, Hashable, Sendable, Codable {
+    case gratitudes
+    case needs
+    case people
+    case readingNotes
+    case reflections
+}
+
+enum ReviewThemeTrend: String, Equatable, Hashable, Sendable, Codable {
+    case new
+    case rising
+    case down
+    case stable
+}
+
+/// Backward-compatibility payload for previously cached evidence rows.
+struct ReviewThemeEvidence: Equatable, Hashable, Sendable, Codable {
+    let date: Date
+    let sources: [ReviewThemeSourceCategory]
+}
+
+struct ReviewThemeSurfaceEvidence: Equatable, Hashable, Sendable, Codable, Identifiable {
+    let entryDate: Date
+    let source: ReviewThemeSourceCategory
+    let content: String
+
+    var id: String {
+        "\(Int(entryDate.timeIntervalSince1970))|\(source.rawValue)|\(content)"
+    }
+}
+
+struct ReviewMostRecurringTheme: Equatable, Hashable, Sendable, Codable, Identifiable {
+    let label: String
+    let totalCount: Int
+    let dayCount: Int
+    let currentWeekCount: Int
+    let previousWeekCount: Int
+    let evidence: [ReviewThemeSurfaceEvidence]
+
+    var id: String { label }
+
+    private enum CodingKeys: String, CodingKey {
+        case label
+        case totalCount
+        case dayCount
+        case currentWeekCount
+        case previousWeekCount
+        case evidence
+    }
+
+    init(
+        label: String,
+        totalCount: Int,
+        dayCount: Int,
+        currentWeekCount: Int,
+        previousWeekCount: Int,
+        evidence: [ReviewThemeSurfaceEvidence]
+    ) {
+        self.label = label
+        self.totalCount = totalCount
+        self.dayCount = dayCount
+        self.currentWeekCount = currentWeekCount
+        self.previousWeekCount = previousWeekCount
+        self.evidence = evidence
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        label = try container.decode(String.self, forKey: .label)
+        totalCount = try container.decode(Int.self, forKey: .totalCount)
+        dayCount = try container.decode(Int.self, forKey: .dayCount)
+        currentWeekCount = try container.decode(Int.self, forKey: .currentWeekCount)
+        previousWeekCount = try container.decode(Int.self, forKey: .previousWeekCount)
+        if let structuredEvidence = try container.decodeIfPresent(
+            [ReviewThemeSurfaceEvidence].self,
+            forKey: .evidence
+        ) {
+            evidence = structuredEvidence
+        } else if let legacyEvidence = try container.decodeIfPresent([ReviewThemeEvidence].self, forKey: .evidence) {
+            evidence = legacyEvidence.flatMap { row in
+                row.sources.map { source in
+                    ReviewThemeSurfaceEvidence(entryDate: row.date, source: source, content: "")
+                }
+            }
+        } else {
+            evidence = []
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(label, forKey: .label)
+        try container.encode(totalCount, forKey: .totalCount)
+        try container.encode(dayCount, forKey: .dayCount)
+        try container.encode(currentWeekCount, forKey: .currentWeekCount)
+        try container.encode(previousWeekCount, forKey: .previousWeekCount)
+        try container.encode(evidence, forKey: .evidence)
+    }
+}
+
+struct ReviewMovementTheme: Equatable, Hashable, Sendable, Codable, Identifiable {
+    let label: String
+    let currentWeekCount: Int
+    let previousWeekCount: Int
+    let trend: ReviewThemeTrend
+    let totalCount: Int
+    let evidence: [ReviewThemeSurfaceEvidence]
+
+    var id: String { label }
+
+    /// Ordering for trending rows: largest week-over-week change first, then current count and label.
+    static func trendingSort(lhs: ReviewMovementTheme, rhs: ReviewMovementTheme) -> Bool {
+        let lhsDelta = abs(lhs.currentWeekCount - lhs.previousWeekCount)
+        let rhsDelta = abs(rhs.currentWeekCount - rhs.previousWeekCount)
+        if lhsDelta != rhsDelta {
+            return lhsDelta > rhsDelta
+        }
+        if lhs.currentWeekCount != rhs.currentWeekCount {
+            return lhs.currentWeekCount > rhs.currentWeekCount
+        }
+        if lhs.totalCount != rhs.totalCount {
+            return lhs.totalCount > rhs.totalCount
+        }
+        return lhs.label.localizedCaseInsensitiveCompare(rhs.label) == .orderedAscending
+    }
+}
+
+/// Trending themes grouped for browse UI: new, rising, and down buckets.
+struct ReviewTrendingBuckets: Equatable, Sendable, Codable {
+    let newThemes: [ReviewMovementTheme]
+    let upThemes: [ReviewMovementTheme]
+    let downThemes: [ReviewMovementTheme]
+
+    var flattened: [ReviewMovementTheme] {
+        newThemes + upThemes + downThemes
+    }
+
+    init(newThemes: [ReviewMovementTheme], upThemes: [ReviewMovementTheme], downThemes: [ReviewMovementTheme]) {
+        self.newThemes = newThemes
+        self.upThemes = upThemes
+        self.downThemes = downThemes
+    }
+
+    init(bucketing flat: [ReviewMovementTheme]) {
+        newThemes = flat.filter { $0.trend == .new }.sorted(by: ReviewMovementTheme.trendingSort)
+        upThemes = flat.filter { $0.trend == .rising }.sorted(by: ReviewMovementTheme.trendingSort)
+        downThemes = flat.filter { $0.trend == .down }.sorted(by: ReviewMovementTheme.trendingSort)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case newThemes = "new"
+        case upThemes = "up"
+        case downThemes = "down"
+    }
+}
+
 struct ReviewDayActivity: Equatable, Hashable, Sendable, Codable {
     let date: Date
     let hasReflectiveActivity: Bool
@@ -171,6 +327,83 @@ struct ReviewWeekStats: Equatable, Sendable, Codable {
     /// Longer chronological slice for the scrollable rhythm curve; `nil` when absent from cached payloads.
     let rhythmHistory: [ReviewDayActivity]?
     let sectionTotals: ReviewWeekSectionTotals
+    let mostRecurringThemes: [ReviewMostRecurringTheme]
+    let movementThemes: [ReviewMovementTheme]
+    /// Grouped trending rows (same models as ``movementThemes``, which is ``trendingBuckets.flattened``).
+    let trendingBuckets: ReviewTrendingBuckets
+
+    init(
+        reflectionDays: Int,
+        meaningfulEntryCount: Int,
+        completionMix: ReviewWeekCompletionMix,
+        activity: [ReviewDayActivity],
+        rhythmHistory: [ReviewDayActivity]?,
+        sectionTotals: ReviewWeekSectionTotals,
+        mostRecurringThemes: [ReviewMostRecurringTheme] = [],
+        movementThemes: [ReviewMovementTheme] = [],
+        trendingBuckets: ReviewTrendingBuckets? = nil
+    ) {
+        self.reflectionDays = reflectionDays
+        self.meaningfulEntryCount = meaningfulEntryCount
+        self.completionMix = completionMix
+        self.activity = activity
+        self.rhythmHistory = rhythmHistory
+        self.sectionTotals = sectionTotals
+        self.mostRecurringThemes = mostRecurringThemes
+        if let buckets = trendingBuckets {
+            self.trendingBuckets = buckets
+            self.movementThemes = buckets.flattened
+        } else {
+            self.movementThemes = movementThemes
+            self.trendingBuckets = ReviewTrendingBuckets(bucketing: movementThemes)
+        }
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case reflectionDays
+        case meaningfulEntryCount
+        case completionMix
+        case activity
+        case rhythmHistory
+        case sectionTotals
+        case mostRecurringThemes
+        case movementThemes
+        case trendingBuckets
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        reflectionDays = try container.decode(Int.self, forKey: .reflectionDays)
+        meaningfulEntryCount = try container.decode(Int.self, forKey: .meaningfulEntryCount)
+        completionMix = try container.decode(ReviewWeekCompletionMix.self, forKey: .completionMix)
+        activity = try container.decode([ReviewDayActivity].self, forKey: .activity)
+        rhythmHistory = try container.decodeIfPresent([ReviewDayActivity].self, forKey: .rhythmHistory)
+        sectionTotals = try container.decode(ReviewWeekSectionTotals.self, forKey: .sectionTotals)
+        mostRecurringThemes =
+            try container.decodeIfPresent([ReviewMostRecurringTheme].self, forKey: .mostRecurringThemes) ?? []
+        let decodedMovement =
+            try container.decodeIfPresent([ReviewMovementTheme].self, forKey: .movementThemes) ?? []
+        if let buckets = try container.decodeIfPresent(ReviewTrendingBuckets.self, forKey: .trendingBuckets) {
+            trendingBuckets = buckets
+            movementThemes = buckets.flattened
+        } else {
+            movementThemes = decodedMovement
+            trendingBuckets = ReviewTrendingBuckets(bucketing: decodedMovement)
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(reflectionDays, forKey: .reflectionDays)
+        try container.encode(meaningfulEntryCount, forKey: .meaningfulEntryCount)
+        try container.encode(completionMix, forKey: .completionMix)
+        try container.encode(activity, forKey: .activity)
+        try container.encodeIfPresent(rhythmHistory, forKey: .rhythmHistory)
+        try container.encode(sectionTotals, forKey: .sectionTotals)
+        try container.encode(mostRecurringThemes, forKey: .mostRecurringThemes)
+        try container.encode(movementThemes, forKey: .movementThemes)
+        try container.encode(trendingBuckets, forKey: .trendingBuckets)
+    }
 }
 
 enum ReviewWeeklyInsightPattern: String, Sendable, Codable {
@@ -202,7 +435,7 @@ struct ReviewInsights: Equatable, Sendable, Codable {
     let generatedAt: Date
     /// Start of the review period (`ReviewInsightsPeriod`), inclusive (start of local day).
     let weekStart: Date
-    /// End of the review period, exclusive (start of the day after the reference day).
+    /// End of the review period, exclusive (start of the day after the last day of the calendar week).
     let weekEnd: Date
     let weeklyInsights: [ReviewWeeklyInsight]
     let recurringGratitudes: [ReviewInsightTheme]

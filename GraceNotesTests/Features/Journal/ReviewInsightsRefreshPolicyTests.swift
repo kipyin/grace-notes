@@ -40,6 +40,18 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
         XCTAssertTrue(result)
     }
 
+    func test_shouldRefresh_whenWeekBoundaryPreferenceChanges_returnsTrue() {
+        let previous = makeKey(weekBoundaryPreferenceRawValue: ReviewWeekBoundaryPreference.sundayStart.rawValue)
+        let current = makeKey(weekBoundaryPreferenceRawValue: ReviewWeekBoundaryPreference.mondayStart.rawValue)
+        let result = ReviewInsightsRefreshPolicy.shouldRefresh(
+            hasInsights: true,
+            previousKey: previous,
+            currentKey: current
+        )
+
+        XCTAssertTrue(result)
+    }
+
     func test_isSparseProviderFallback_matchesProviderFallbackShape() {
         XCTAssertTrue(ReviewInsightsRefreshPolicy.isSparseProviderFallback(makeSparseProviderFallbackInsights()))
     }
@@ -66,11 +78,13 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
 
     private func makeKey(
         weekStart: Date = Date(timeIntervalSince1970: 0),
-        snapshots: [ReviewEntrySnapshot] = []
+        snapshots: [ReviewEntrySnapshot] = [],
+        weekBoundaryPreferenceRawValue: String = ReviewWeekBoundaryPreference.defaultValue.rawValue
     ) -> ReviewInsightsRefreshKey {
         ReviewInsightsRefreshKey(
             weekStart: weekStart,
-            entrySnapshots: snapshots
+            entrySnapshots: snapshots,
+            weekBoundaryPreferenceRawValue: weekBoundaryPreferenceRawValue
         )
     }
 

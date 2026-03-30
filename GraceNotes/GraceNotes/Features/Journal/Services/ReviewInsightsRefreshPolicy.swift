@@ -3,6 +3,17 @@ import Foundation
 struct ReviewInsightsRefreshKey: Hashable {
     let weekStart: Date
     let entrySnapshots: [ReviewEntrySnapshot]
+    let weekBoundaryPreferenceRawValue: String
+
+    init(
+        weekStart: Date,
+        entrySnapshots: [ReviewEntrySnapshot],
+        weekBoundaryPreferenceRawValue: String = ReviewWeekBoundaryPreference.defaultValue.rawValue
+    ) {
+        self.weekStart = weekStart
+        self.entrySnapshots = entrySnapshots
+        self.weekBoundaryPreferenceRawValue = weekBoundaryPreferenceRawValue
+    }
 }
 
 struct ReviewEntrySnapshot: Hashable {

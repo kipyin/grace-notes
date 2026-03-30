@@ -2,60 +2,28 @@ import Foundation
 import NaturalLanguage
 
 struct WeeklyInsightTextNormalizer {
+    private let conceptEngine = ReviewThemeConceptEngine(map: .v1)
+
     func extractThemesFromText(_ text: String) -> [String] {
-        let source = trimmed(text)
-        guard !source.isEmpty else { return [] }
+        distillConcepts(from: text, source: .reflections).map(\.displayLabel)
+    }
 
-        let textRange = source.startIndex..<source.endIndex
-        let tagger = NLTagger(tagSchemes: [.nameTypeOrLexicalClass])
-        tagger.string = source
-        if let language = NLLanguageRecognizer.dominantLanguage(for: source) {
-            tagger.setLanguage(language, range: textRange)
-        }
+    func distillConcepts(
+        from text: String,
+        source: ReviewThemeSourceCategory,
+        maximumCount: Int = 3,
+        highConfidenceOnly: Bool = true
+    ) -> [ReviewDistilledConcept] {
+        conceptEngine.distillConcepts(
+            from: text,
+            source: source,
+            maximumCount: maximumCount,
+            highConfidenceOnly: highConfidenceOnly
+        )
+    }
 
-        var extracted: [String: Int] = [:]
-        var displayLabels: [String: String] = [:]
-        var sequence = 0
-        var firstSeenOrder: [String: Int] = [:]
-
-        let options: NLTagger.Options = [.joinNames, .omitWhitespace, .omitPunctuation]
-        tagger.enumerateTags(
-            in: textRange,
-            unit: .word,
-            scheme: .nameTypeOrLexicalClass,
-            options: options
-        ) { tag, tokenRange in
-            let token = String(source[tokenRange])
-            guard shouldIncludeTextToken(token, tag: tag) else { return true }
-            let normalized = normalizeThemeLabel(token)
-            guard !normalized.isEmpty else { return true }
-            guard !isStopWord(normalized) else { return true }
-
-            extracted[normalized, default: 0] += 1
-            if displayLabels[normalized] == nil {
-                displayLabels[normalized] = trimmed(token)
-            }
-            if firstSeenOrder[normalized] == nil {
-                firstSeenOrder[normalized] = sequence
-            }
-            sequence += 1
-            return true
-        }
-
-        return extracted
-            .sorted {
-                if $0.value != $1.value {
-                    return $0.value > $1.value
-                }
-                let lhsOrder = firstSeenOrder[$0.key] ?? .max
-                let rhsOrder = firstSeenOrder[$1.key] ?? .max
-                if lhsOrder != rhsOrder {
-                    return lhsOrder < rhsOrder
-                }
-                return $0.key < $1.key
-            }
-            .prefix(3)
-            .compactMap { displayLabels[$0.key] }
+    func displayLabel(for canonicalConcept: String, source: ReviewThemeSourceCategory) -> String {
+        conceptEngine.displayLabel(for: canonicalConcept, source: source)
     }
 
     func themesMatch(_ needKey: String, against gratitudeKeys: Set<String>) -> Bool {
@@ -90,21 +58,523 @@ struct WeeklyInsightTextNormalizer {
         value.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    private func shouldIncludeTextToken(_ token: String, tag: NLTag?) -> Bool {
-        let clean = trimmed(token)
-        guard !clean.isEmpty else { return false }
-
-        let hasHan = containsHanCharacters(clean)
-        let minimumLength = hasHan ? 1 : 3
-        guard clean.count >= minimumLength else { return false }
-
-        guard let tag else { return false }
-        switch tag {
-        case .personalName, .placeName, .organizationName, .noun:
-            return true
-        default:
-            return false
+    fileprivate func containsHanCharacters(_ text: String) -> Bool {
+        text.unicodeScalars.contains { scalar in
+            switch scalar.value {
+            case 0x3400...0x4DBF,
+                 0x4E00...0x9FFF,
+                 0xF900...0xFAFF,
+                 0x20000...0x2A6DF,
+                 0x2A700...0x2B73F,
+                 0x2B740...0x2B81F,
+                 0x2B820...0x2CEAF,
+                 0x2CEB0...0x2EBEF,
+                 0x2F800...0x2FA1F:
+                return true
+            default:
+                return false
+            }
         }
+    }
+
+    fileprivate func isStopWord(_ normalizedToken: String) -> Bool {
+        ReviewThemeConceptEngine.stopWords.contains(normalizedToken)
+    }
+
+    fileprivate func overlapScore(between lhs: String, and rhs: String) -> Int {
+        let lhsTokens = Set(lhs.split(separator: " ").map(String.init).filter { $0.count >= 3 })
+        let rhsTokens = Set(rhs.split(separator: " ").map(String.init).filter { $0.count >= 3 })
+        if lhsTokens.isEmpty || rhsTokens.isEmpty {
+            return 0
+        }
+        return lhsTokens.intersection(rhsTokens).count
+    }
+}
+
+struct ReviewDistilledConcept: Equatable, Hashable, Sendable {
+    let canonicalConcept: String
+    let displayLabel: String
+    let score: Int
+}
+
+private struct ReviewCuratedThemeMap {
+    let globalAliases: [String: String]
+    let sectionOverrides: [ReviewThemeSourceCategory: [String: String]]
+    let hardBannedConcepts: Set<String>
+    let penalizedConcepts: Set<String>
+    let crossLanguageAliases: [String: String]
+    let canonicalDisplayLabels: [String: String]
+
+    static let v1 = ReviewCuratedThemeMap(
+        globalAliases: [
+            "sleep": "sleep",
+            "better sleep": "sleep",
+            "slept": "sleep",
+            "rest": "rest",
+            "recover": "rest",
+            "recovery": "rest",
+            "downtime": "rest",
+            "quiet": "quiet time",
+            "quiet time": "quiet time",
+            "stillness": "quiet time",
+            "calm": "calm",
+            "peace": "calm",
+            "focused": "focus",
+            "focus": "focus",
+            "concentration": "focus",
+            "boundaries": "boundaries",
+            "boundary": "boundaries",
+            "time boundaries": "boundaries",
+            "exercise": "movement",
+            "workout": "movement",
+            "training": "movement",
+            "walk": "walking",
+            "walking": "walking",
+            "morning walk": "walking",
+            "walks": "walking",
+            "run": "movement",
+            "running": "movement",
+            "stretching": "movement",
+            "scripture": "scripture",
+            "bible": "scripture",
+            "devotional": "scripture",
+            "family dinner": "family connection",
+            "family time": "family connection",
+            "time with family": "family connection",
+            "friends": "friendship",
+            "friend": "friendship",
+            "friendship": "friendship",
+            "partner": "partner connection",
+            "husband": "partner connection",
+            "wife": "partner connection",
+            "spouse": "partner connection",
+            "parenting": "parenting",
+            "kids": "parenting",
+            "children": "parenting",
+            "work stress": "work pressure",
+            "work pressure": "work pressure",
+            "busy at work": "work pressure",
+            "finances": "financial pressure",
+            "money stress": "financial pressure",
+            "budget": "financial pressure",
+            "home chores": "home care",
+            "house chores": "home care",
+            "cleaning": "home care",
+            "meal prep": "home care",
+            "therapy": "therapy",
+            "counseling": "therapy",
+            "nature": "nature",
+            "sunlight": "nature",
+            "outside": "nature",
+            "reading": "learning",
+            "study": "learning",
+            "learning": "learning",
+            "creative work": "creativity",
+            "writing": "creativity",
+            "drawing": "creativity"
+        ],
+        sectionOverrides: [
+            .needs: [
+                "time alone": "personal time",
+                "alone time": "personal time",
+                "quiet morning": "quiet time",
+                "less pressure": "work pressure",
+                "space to breathe": "calm",
+                "clear priorities": "focus"
+            ],
+            .gratitudes: [
+                "good weather": "nature",
+                "sunny weather": "nature",
+                "warm sunlight": "nature",
+                "my routine": "daily rhythm",
+                "morning routine": "daily rhythm"
+            ],
+            .people: [
+                "mom": "mom",
+                "mother": "mom",
+                "mama": "mom",
+                "dad": "dad",
+                "father": "dad",
+                "爸": "dad",
+                "妈妈": "mom",
+                "爸爸": "dad"
+            ]
+        ],
+        hardBannedConcepts: [
+            "today", "this week", "week", "thing", "things", "stuff", "something", "anything",
+            "nothing", "life", "moment", "moments", "reflection", "reflections", "entry",
+            "journal", "note", "notes", "feeling", "feelings",
+            "need", "needs", "needed",
+            "gratitude", "grateful", "thankful", "thankfulness", "thanks", "gratitude practice",
+            "pray", "prayer", "praying", "prayed",
+            "感恩", "祷告"
+        ],
+        penalizedConcepts: [
+            "work", "family", "health", "relationship", "home", "time", "people"
+        ],
+        crossLanguageAliases: [
+            "睡眠": "sleep",
+            "休息": "rest",
+            "安静": "quiet time",
+            "平静": "calm",
+            "专注": "focus",
+            "边界": "boundaries",
+            "散步": "walking",
+            "运动": "movement",
+            "圣经": "scripture",
+            "家人": "family connection",
+            "朋友": "friendship",
+            "伴侣": "partner connection",
+            "育儿": "parenting",
+            "工作压力": "work pressure",
+            "财务压力": "financial pressure",
+            "家务": "home care",
+            "大自然": "nature",
+            "学习": "learning",
+            "创造": "creativity"
+        ],
+        canonicalDisplayLabels: [
+            "sleep": "Sleep",
+            "rest": "Rest",
+            "quiet time": "Quiet time",
+            "calm": "Calm",
+            "focus": "Focus",
+            "boundaries": "Boundaries",
+            "movement": "Exercise",
+            "walking": "Walking",
+            "scripture": "Scripture",
+            "family connection": "Family connection",
+            "friendship": "Friendship",
+            "partner connection": "Partner connection",
+            "parenting": "Parenting",
+            "work pressure": "Work pressure",
+            "financial pressure": "Financial pressure",
+            "home care": "Home care",
+            "therapy": "Therapy",
+            "nature": "Nature",
+            "learning": "Learning",
+            "creativity": "Creativity",
+            "personal time": "Personal time",
+            "daily rhythm": "Daily rhythm",
+            "mom": "Mom",
+            "dad": "Dad"
+        ]
+    )
+}
+
+private struct ReviewThemeConceptEngine {
+    /// Caps phrase n-gram mining so long chip text does not emit sentence-sized “themes.”
+    private static let maxWordsForPhraseMining = 20
+
+    static let stopWords: Set<String> = [
+        "with", "from", "that", "this", "your", "have", "will", "about", "into", "after", "before",
+        "today", "week", "really", "just", "very", "more", "need", "needs", "gratitude", "grateful",
+        "thankful", "thanks", "thank", "prayer", "pray", "praying", "felt", "feeling", "feel", "make", "made",
+        "good", "better", "best",
+        "今天", "这个", "那个", "我们", "你们", "他们", "自己", "需要", "感恩", "感谢", "一些", "很多", "祷告"
+    ]
+
+    private let map: ReviewCuratedThemeMap
+
+    init(map: ReviewCuratedThemeMap) {
+        self.map = map
+    }
+
+    func distillConcepts(
+        from text: String,
+        source: ReviewThemeSourceCategory,
+        maximumCount: Int,
+        highConfidenceOnly: Bool
+    ) -> [ReviewDistilledConcept] {
+        let trimmedText = trimmed(text)
+        guard !trimmedText.isEmpty else { return [] }
+
+        let normalizedSurface = normalizeThemeLabel(trimmedText)
+        guard !normalizedSurface.isEmpty else { return [] }
+
+        var candidates: [String: Int] = [:]
+        var canonicalOrder: [String: Int] = [:]
+        var sequence = 0
+
+        let curatedCandidates = curatedMatches(in: normalizedSurface, source: source)
+        for candidate in curatedCandidates {
+            let canonical = canonicalConcept(for: candidate, source: source)
+            guard !isHardBanned(canonical) else { continue }
+            let score = scoredCandidate(
+                candidate: candidate,
+                canonical: canonical,
+                source: source,
+                baseScore: 9
+            )
+            if score <= 0 { continue }
+            candidates[canonical] = max(candidates[canonical] ?? 0, score)
+            if canonicalOrder[canonical] == nil {
+                canonicalOrder[canonical] = sequence
+                sequence += 1
+            }
+        }
+
+        let deterministicCandidates = deterministicCandidates(from: trimmedText, normalizedSurface: normalizedSurface)
+        for candidate in deterministicCandidates {
+            let canonical = canonicalConcept(for: candidate.token, source: source)
+            guard !isHardBanned(canonical) else { continue }
+            let score = scoredCandidate(
+                candidate: candidate.token,
+                canonical: canonical,
+                source: source,
+                baseScore: candidate.baseScore
+            )
+            if score <= 0 { continue }
+            candidates[canonical] = max(candidates[canonical] ?? 0, score)
+            if canonicalOrder[canonical] == nil {
+                canonicalOrder[canonical] = sequence
+                sequence += 1
+            }
+        }
+
+        let threshold = highConfidenceOnly ? confidenceThreshold(for: source) : 3
+        return candidates
+            .compactMap { canonical, score -> ReviewDistilledConcept? in
+                guard score >= threshold else { return nil }
+                return ReviewDistilledConcept(
+                    canonicalConcept: canonical,
+                    displayLabel: displayLabel(for: canonical, source: source),
+                    score: score
+                )
+            }
+            .sorted { lhs, rhs in
+                if lhs.score != rhs.score {
+                    return lhs.score > rhs.score
+                }
+                let lhsOrder = canonicalOrder[lhs.canonicalConcept] ?? .max
+                let rhsOrder = canonicalOrder[rhs.canonicalConcept] ?? .max
+                if lhsOrder != rhsOrder {
+                    return lhsOrder < rhsOrder
+                }
+                return lhs.canonicalConcept.localizedCaseInsensitiveCompare(rhs.canonicalConcept) == .orderedAscending
+            }
+            .prefix(maximumCount)
+            .map { $0 }
+    }
+
+    func displayLabel(for canonicalConcept: String, source: ReviewThemeSourceCategory) -> String {
+        if source == .people {
+            return personDisplayLabel(from: canonicalConcept)
+        }
+        if let authored = map.canonicalDisplayLabels[canonicalConcept] {
+            return authored
+        }
+        if containsHanCharacters(canonicalConcept) {
+            return canonicalConcept
+        }
+        return canonicalConcept
+            .split(separator: " ")
+            .map { word in
+                guard let first = word.first else { return String(word) }
+                return String(first).uppercased() + String(word.dropFirst())
+            }
+            .joined(separator: " ")
+    }
+
+    private func confidenceThreshold(for source: ReviewThemeSourceCategory) -> Int {
+        switch source {
+        case .people:
+            return 4
+        case .gratitudes, .needs, .readingNotes, .reflections:
+            return 5
+        }
+    }
+
+    private func deterministicCandidates(
+        from text: String,
+        normalizedSurface: String
+    ) -> [(token: String, baseScore: Int)] {
+        var candidates: [(token: String, baseScore: Int)] = []
+
+        let textRange = text.startIndex..<text.endIndex
+        let tagger = NLTagger(tagSchemes: [.nameTypeOrLexicalClass])
+        tagger.string = text
+        if let language = NLLanguageRecognizer.dominantLanguage(for: text) {
+            tagger.setLanguage(language, range: textRange)
+        }
+
+        let options: NLTagger.Options = [.joinNames, .omitWhitespace, .omitPunctuation]
+        tagger.enumerateTags(
+            in: textRange,
+            unit: .word,
+            scheme: .nameTypeOrLexicalClass,
+            options: options
+        ) { tag, tokenRange in
+            guard let tag else { return true }
+            switch tag {
+            case .personalName:
+                let token = normalizeThemeLabel(String(text[tokenRange]))
+                if !token.isEmpty {
+                    candidates.append((token: token, baseScore: 8))
+                }
+            case .noun, .organizationName, .placeName:
+                let token = normalizeThemeLabel(String(text[tokenRange]))
+                if shouldKeepDeterministicToken(token) {
+                    candidates.append((token: token, baseScore: 6))
+                }
+            default:
+                break
+            }
+            return true
+        }
+
+        let phraseTokens = normalizedSurface
+            .split(separator: " ")
+            .map(String.init)
+            .prefix(Self.maxWordsForPhraseMining)
+            .filter { shouldKeepDeterministicToken($0) }
+        if !phraseTokens.isEmpty {
+            for token in phraseTokens {
+                candidates.append((token: token, baseScore: 4))
+            }
+
+            if phraseTokens.count > 1 {
+                for size in 2...min(3, phraseTokens.count) {
+                    for start in 0...(phraseTokens.count - size) {
+                        let phrase = phraseTokens[start..<(start + size)].joined(separator: " ")
+                        candidates.append((token: phrase, baseScore: 5 + size))
+                    }
+                }
+            }
+        }
+
+        return candidates
+    }
+
+    private func shouldKeepDeterministicToken(_ token: String) -> Bool {
+        guard !token.isEmpty else { return false }
+        guard !isStopWord(token) else { return false }
+        if containsHanCharacters(token) {
+            return token.count >= 1
+        }
+        return token.count >= 3
+    }
+
+    private func curatedMatches(in normalizedSurface: String, source: ReviewThemeSourceCategory) -> [String] {
+        var matches: [String] = []
+        for alias in map.globalAliases.keys where containsAlias(alias, in: normalizedSurface) {
+            matches.append(alias)
+        }
+        if let overrides = map.sectionOverrides[source] {
+            for alias in overrides.keys where containsAlias(alias, in: normalizedSurface) {
+                matches.append(alias)
+            }
+        }
+        for alias in map.crossLanguageAliases.keys where containsAlias(alias, in: normalizedSurface) {
+            matches.append(alias)
+        }
+        return matches
+    }
+
+    private func containsAlias(_ alias: String, in normalizedSurface: String) -> Bool {
+        if containsHanCharacters(alias) {
+            return normalizedSurface.contains(alias)
+        }
+        let paddedSurface = " \(normalizedSurface) "
+        let paddedAlias = " \(alias) "
+        return paddedSurface.contains(paddedAlias)
+    }
+
+    private func canonicalConcept(for candidate: String, source: ReviewThemeSourceCategory) -> String {
+        let normalized = normalizeThemeLabel(candidate)
+        guard !normalized.isEmpty else { return "" }
+
+        if source == .people {
+            if let personOverride = map.sectionOverrides[.people]?[normalized] {
+                return personOverride
+            }
+            return normalizePersonLiteral(normalized)
+        }
+
+        if let override = map.sectionOverrides[source]?[normalized] {
+            return override
+        }
+        if let mapped = map.globalAliases[normalized] {
+            return mapped
+        }
+        if let mapped = map.crossLanguageAliases[normalized] {
+            return mapped
+        }
+        return normalized
+    }
+
+    private func scoredCandidate(
+        candidate: String,
+        canonical: String,
+        source: ReviewThemeSourceCategory,
+        baseScore: Int
+    ) -> Int {
+        var score = baseScore
+        let isMultiWord = canonical.split(separator: " ").count > 1 || containsHanCharacters(canonical)
+        if isMultiWord {
+            score += 2
+        }
+        if map.globalAliases[candidate] != nil
+            || map.sectionOverrides[source]?[candidate] != nil
+            || map.crossLanguageAliases[candidate] != nil {
+            score += 4
+        }
+        if map.penalizedConcepts.contains(canonical) {
+            score -= 3
+        }
+        if canonical.count < 3 && !containsHanCharacters(canonical) {
+            score -= 3
+        }
+        if !isMultiWord && isStopWord(canonical) {
+            score -= 4
+        }
+        return score
+    }
+
+    private func isHardBanned(_ canonical: String) -> Bool {
+        map.hardBannedConcepts.contains(canonical)
+    }
+
+    private func normalizePersonLiteral(_ value: String) -> String {
+        let collapsed = value.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+        return trimmed(collapsed)
+    }
+
+    private func personDisplayLabel(from canonical: String) -> String {
+        if let authored = map.canonicalDisplayLabels[canonical] {
+            return authored
+        }
+        if containsHanCharacters(canonical) {
+            return canonical
+        }
+        return canonical
+            .split(separator: " ")
+            .map { token in
+                guard let first = token.first else { return String(token) }
+                return String(first).uppercased() + String(token.dropFirst())
+            }
+            .joined(separator: " ")
+    }
+
+    private func normalizeThemeLabel(_ value: String) -> String {
+        let folded = value
+            .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+            .lowercased()
+        let withoutSymbols = folded.replacingOccurrences(
+            of: "[\\p{P}\\p{S}]+",
+            with: " ",
+            options: .regularExpression
+        )
+        let collapsedSpaces = withoutSymbols.replacingOccurrences(
+            of: "\\s+",
+            with: " ",
+            options: .regularExpression
+        )
+        return trimmed(collapsedSpaces)
+    }
+
+    private func trimmed(_ value: String) -> String {
+        value.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private func containsHanCharacters(_ text: String) -> Bool {
@@ -127,23 +597,6 @@ struct WeeklyInsightTextNormalizer {
     }
 
     private func isStopWord(_ normalizedToken: String) -> Bool {
-        let englishStopWords: Set<String> = [
-            "with", "from", "that", "this", "your", "have", "will", "about", "into",
-            "today", "week", "really", "just", "very", "more", "need", "needs", "gratitude",
-            "grateful", "thankful"
-        ]
-        let chineseStopWords: Set<String> = [
-            "今天", "这个", "那个", "我们", "你们", "他们", "自己", "需要", "感恩", "感谢"
-        ]
-        return englishStopWords.contains(normalizedToken) || chineseStopWords.contains(normalizedToken)
-    }
-
-    private func overlapScore(between lhs: String, and rhs: String) -> Int {
-        let lhsTokens = Set(lhs.split(separator: " ").map(String.init).filter { $0.count >= 3 })
-        let rhsTokens = Set(rhs.split(separator: " ").map(String.init).filter { $0.count >= 3 })
-        if lhsTokens.isEmpty || rhsTokens.isEmpty {
-            return 0
-        }
-        return lhsTokens.intersection(rhsTokens).count
+        Self.stopWords.contains(normalizedToken)
     }
 }

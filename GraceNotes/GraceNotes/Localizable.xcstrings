@@ -82,6 +82,7 @@
       }
     },
     "%1$@ (%2$lld)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -214,6 +215,38 @@
         }
       }
     },
+    "%1$@, %2$@, %3$lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$@, %3$lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@，%2$@，%3$lld"
+          }
+        }
+      }
+    },
+    "%1$@, %2$@, %3$lld, %4$lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$@, %3$lld, %4$lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@，%2$@，%3$lld，%4$lld"
+          }
+        }
+      }
+    },
     "%1$@. Gratitudes %2$d, Needs %3$d, People in Mind %4$d." : {
       "localizations" : {
         "en" : {
@@ -243,6 +276,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$lld / %2$lld"
+          }
+        }
+      }
+    },
+    "%1$lld → %2$lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld → %2$lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld → %2$lld"
           }
         }
       }
@@ -411,6 +460,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "1 条记录"
+          }
+        }
+      }
+    },
+    "2 weeks" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2 weeks"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2 周"
+          }
+        }
+      }
+    },
+    "4 weeks" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "4 weeks"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "4 周"
+          }
+        }
+      }
+    },
+    "8 weeks" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "8 weeks"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "8 周"
           }
         }
       }
@@ -978,6 +1075,38 @@
         }
       }
     },
+    "Browse all recurring themes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show more"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更多"
+          }
+        }
+      }
+    },
+    "Browse all trending themes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show more"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更多"
+          }
+        }
+      }
+    },
     "Came up most" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1332,6 +1461,22 @@
         }
       }
     },
+    "Count" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Count"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "次数"
+          }
+        }
+      }
+    },
     "Counts show how often each theme came up." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1345,6 +1490,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "数字表示这一周里这些内容出现了几次。"
+          }
+        }
+      }
+    },
+    "Current week %1$lld, previous week %2$lld." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Current week %1$lld, previous week %2$lld."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本周 %1$lld 次，上周 %2$lld 次。"
           }
         }
       }
@@ -2217,6 +2378,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "连点两下即可编辑这句话。如需查看全文，可轻点“展开”。"
+          }
+        }
+      }
+    },
+    "Down" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Down"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下降"
           }
         }
       }
@@ -3170,6 +3347,25 @@
         }
       }
     },
+    "Matching writing surfaces" : {
+
+    },
+    "Monday" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monday"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "周一"
+          }
+        }
+      }
+    },
     "Most often: %@" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3248,6 +3444,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "写下第一件感恩的事之后，「需要的事」就会打开。"
+          }
+        }
+      }
+    },
+    "New" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新增"
           }
         }
       }
@@ -3562,6 +3774,9 @@
           }
         }
       }
+    },
+    "Open journal entry" : {
+
     },
     "Open Settings" : {
       "localizations" : {
@@ -4096,6 +4311,9 @@
         }
       }
     },
+    "Reading notes" : {
+
+    },
     "Reading Notes" : {
       "localizations" : {
         "en" : {
@@ -4368,6 +4586,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重新尝试安排每日提醒。"
+          }
+        }
+      }
+    },
+    "Review" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Review"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回顾"
           }
         }
       }
@@ -4835,6 +5069,38 @@
         }
       }
     },
+    "Showed up %1$lld times in the last %2$lld weeks." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Showed up %1$lld times in the last %2$lld weeks."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近 %2$lld 周内出现了 %1$lld 次。"
+          }
+        }
+      }
+    },
+    "Showed up %1$lld times in the last 4 weeks." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Showed up %1$lld times in the last 4 weeks."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近 4 周内出现了 %1$lld 次。"
+          }
+        }
+      }
+    },
     "Shows what Abundance means for today." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -5139,6 +5405,22 @@
         }
       }
     },
+    "Stable" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stable"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "稳定"
+          }
+        }
+      }
+    },
     "Start with one gratitude, and the rest will follow." : {
       "localizations" : {
         "en" : {
@@ -5253,6 +5535,22 @@
         }
       }
     },
+    "Keep writing to see trends for this calendar week." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep writing to see trends for this calendar week."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续记录，才能看到这一周的趋势。"
+          }
+        }
+      }
+    },
     "Started" : {
       "localizations" : {
         "en" : {
@@ -5315,6 +5613,25 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "仅保存在本设备。App 打开时，iCloud 不可用，"
+          }
+        }
+      }
+    },
+    "Summary" : {
+
+    },
+    "Sunday" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sunday"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "周日"
           }
         }
       }
@@ -5485,6 +5802,9 @@
           }
         }
       }
+    },
+    "Theme details" : {
+
     },
     "This only changes the short label." : {
       "localizations" : {
@@ -5670,6 +5990,22 @@
         }
       }
     },
+    "Trending" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trending"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "趋势"
+          }
+        }
+      }
+    },
     "Try again" : {
       "localizations" : {
         "en" : {
@@ -5798,6 +6134,22 @@
         }
       }
     },
+    "Up" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rising"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上升"
+          }
+        }
+      }
+    },
     "Updated insights appear when ready." : {
       "localizations" : {
         "en" : {
@@ -5864,6 +6216,22 @@
         }
       }
     },
+    "Viewing window" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Viewing window"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查看范围"
+          }
+        }
+      }
+    },
     "We are setting up your private Grace Notes space..." : {
       "localizations" : {
         "en" : {
@@ -5908,6 +6276,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "我们未能完成你的感恩记空间设置。请重试。"
+          }
+        }
+      }
+    },
+    "Week starts" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Week starts"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "周起始日"
           }
         }
       }
@@ -6923,7 +7307,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本周你在 %lld 天完成了反思。"
+            "value" : "本周你已经坚持记录了 %lld 天"
           }
         }
       }
