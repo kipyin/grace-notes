@@ -33,7 +33,7 @@ Reduce “implementation of the wrong thing” by forcing clarification until yo
 ## Mandatory workflow
 
 1. **Name uncertainties** briefly (what you would guess vs what you need to know).
-2. Use the **AskUserQuestion** tool (structured multiple-choice plus optional free-text follow-up in chat) to surface at least:
+2. Use the **AskQuestion** tool (structured multiple-choice plus optional free-text follow-up in chat) to surface at least:
    - **Success criteria** and **explicitly out-of-scope** items
    - **UX**, **performance**, and **compatibility** constraints that matter for this change
    - **Preferred tradeoffs** (e.g. speed vs cleanliness, scope vs polish)
