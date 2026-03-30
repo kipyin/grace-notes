@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Background and stroke only; panel titles share one typographic style (matches ``ReviewSummaryCard``).
+/// Background and stroke only; panel titles share one typographic style (matches Past review inset panels).
 enum ReviewInsightPanelChrome {
     case lead
     case standard

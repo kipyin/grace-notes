@@ -209,11 +209,13 @@ final class PersistenceController {
                 now: now
             )
         } else {
+            // Short, distinct lines so NL distillation does not emit overlapping concepts that
+            // sum to trending floors from a single entry (see `WeeklyReviewAggregatesMostRecurringTests`).
             let seededEntry = JournalEntry(
                 entryDate: previousDay,
-                gratitudes: [JournalItem(fullText: "Seed gratitude for timeline")],
-                needs: [JournalItem(fullText: "Seed need for timeline")],
-                people: [JournalItem(fullText: "Seed person for timeline")],
+                gratitudes: [JournalItem(fullText: "sunlight")],
+                needs: [JournalItem(fullText: "stretching")],
+                people: [JournalItem(fullText: "Jordan")],
                 createdAt: now,
                 updatedAt: now
             )

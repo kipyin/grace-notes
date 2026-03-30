@@ -64,20 +64,20 @@ struct SettingsScreen: View {
 
                 Section {
                     Picker(
-                        String(localized: "Week boundary"),
+                        String(localized: "Week starts"),
                         selection: reviewWeekBoundaryBinding
                     ) {
                         ForEach(ReviewWeekBoundaryPreference.allCases, id: \.self) { option in
                             Text(option.localizedLabel).tag(option)
                         }
                     }
-                    .pickerStyle(.menu)
+                    .pickerStyle(.segmented)
                     .font(AppTheme.warmPaperBody)
                     .foregroundStyle(AppTheme.settingsTextPrimary)
                     .accessibilityIdentifier("SettingsReviewWeekBoundaryPicker")
                     .frame(minHeight: 44)
                 } header: {
-                    Text(String(localized: "Review"))
+                    Text(String(localized: "Past"))
                         .font(AppTheme.warmPaperHeader)
                         .foregroundStyle(AppTheme.settingsTextPrimary)
                         .textCase(nil)

@@ -17,7 +17,8 @@ struct DeterministicReviewInsightsGenerator: ReviewInsightsGenerating {
             currentWeekEntries: currentWeekEntries,
             previousWeekEntries: previousWeekEntries,
             allEntries: entries,
-            calendar: calendar
+            calendar: calendar,
+            referenceDate: referenceDate
         )
 
         return ReviewInsights(

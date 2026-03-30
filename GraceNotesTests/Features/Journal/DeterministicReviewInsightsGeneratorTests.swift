@@ -114,7 +114,7 @@ final class DeterministicReviewInsightsTests: XCTestCase {
     func test_generateInsights_generatesFullCompletionInsight_forSevenFullDays() async throws {
         let reference = date(year: 2026, month: 3, day: 18)
         let fullWeekEntries = (0...6).map { offset in
-            makeFullEntry(on: date(year: 2026, month: 3, day: 12 + offset))
+            makeFullEntry(on: date(year: 2026, month: 3, day: 16 + offset))
         }
 
         let insights = try await generator.generateInsights(

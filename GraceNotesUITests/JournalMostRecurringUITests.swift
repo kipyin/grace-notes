@@ -46,8 +46,23 @@ final class JournalMostRecurringUITests: XCTestCase {
             app.staticTexts["Most recurring"].waitForExistence(timeout: 25),
             "Expected Most recurring panel in Past tab."
         )
+    }
+
+    /// With separate list rows for summary, recurring, and trending, the Trending title may need a small scroll.
+    @MainActor
+    private func scrollPastReviewUntilTrendingVisible(_ app: XCUIApplication) {
+        let trendingTitle = app.staticTexts["Trending"]
+        if trendingTitle.waitForExistence(timeout: 2) {
+            return
+        }
+        for _ in 0..<8 {
+            app.swipeUp()
+            if trendingTitle.waitForExistence(timeout: 1) {
+                return
+            }
+        }
         XCTAssertTrue(
-            app.staticTexts["Trending"].waitForExistence(timeout: 10),
+            trendingTitle.waitForExistence(timeout: 10),
             "Expected Trending panel in Past tab."
         )
     }
@@ -73,26 +88,46 @@ final class JournalMostRecurringUITests: XCTestCase {
         )
         app.buttons["Done"].tap()
 
-        XCTAssertTrue(
-            app.staticTexts["Browse all trending themes"].waitForExistence(timeout: 8),
-            "Expected trending browse link."
-        )
-        app.staticTexts["Browse all trending themes"].tap()
+        scrollPastReviewUntilTrendingVisible(app)
+        let trendingBrowseLink = app.buttons["BrowseAllTrendingThemesLink"]
+        var openedTrendingViaBrowse = false
+        if trendingBrowseLink.waitForExistence(timeout: 4) {
+            var linkScrolls = 0
+            while linkScrolls < 10, trendingBrowseLink.exists, !trendingBrowseLink.isHittable {
+                app.swipeUp()
+                linkScrolls += 1
+            }
+            if trendingBrowseLink.isHittable {
+                trendingBrowseLink.tap()
+                XCTAssertTrue(
+                    app.navigationBars["Trending"].waitForExistence(timeout: 8),
+                    "Expected dedicated trending browse screen."
+                )
+                let browseRows = browseTrendingRows(in: app)
+                XCTAssertGreaterThan(browseRows.count, 0, "Expected browse screen to show trending themes.")
+                let firstBrowseRow = browseRows.element(boundBy: 0)
+                XCTAssertTrue(firstBrowseRow.waitForExistence(timeout: 8))
+                firstBrowseRow.tap()
+                openedTrendingViaBrowse = true
+            }
+        }
 
-        XCTAssertTrue(
-            app.navigationBars["Trending"].waitForExistence(timeout: 8),
-            "Expected dedicated trending browse screen."
-        )
-
-        let browseRows = browseTrendingRows(in: app)
-        XCTAssertGreaterThan(browseRows.count, 0, "Expected browse screen to show trending themes.")
-        let firstBrowseRow = browseRows.element(boundBy: 0)
-        XCTAssertTrue(firstBrowseRow.waitForExistence(timeout: 8))
-        firstBrowseRow.tap()
+        if !openedTrendingViaBrowse {
+            let trendingRows = mainTrendingRows(in: app)
+            XCTAssertGreaterThan(trendingRows.count, 0, "Expected at least one Trending row when browse link is hidden.")
+            let firstTrendRow = trendingRows.element(boundBy: 0)
+            XCTAssertTrue(firstTrendRow.waitForExistence(timeout: 8))
+            var scrollAttempts = 0
+            while !firstTrendRow.isHittable && scrollAttempts < 12 {
+                app.swipeUp()
+                scrollAttempts += 1
+            }
+            firstTrendRow.tap()
+        }
 
         XCTAssertTrue(
             app.navigationBars["Theme details"].waitForExistence(timeout: 8),
-            "Expected drilldown destination from browse screen."
+            "Expected drilldown destination from trending browse or main Trending row."
         )
         XCTAssertTrue(
             app.staticTexts["Matching writing surfaces"].waitForExistence(timeout: 5),
@@ -108,6 +143,7 @@ final class JournalMostRecurringUITests: XCTestCase {
     func test_reviewScreen_mostRecurringAndTrending_cappedAtThreeOnMainPastCard() {
         let app = launchAppWithWideReviewSeed()
         openPastReviewPanels(app)
+        scrollPastReviewUntilTrendingVisible(app)
 
         let recurringVisible = mainMostRecurringRows(in: app).count
         let trendingVisible = mainTrendingRows(in: app).count
@@ -122,16 +158,16 @@ final class JournalMostRecurringUITests: XCTestCase {
         let app = launchAppWithWideReviewSeed()
         openPastReviewPanels(app)
 
-        let browseLabel = app.staticTexts["Browse all recurring themes"]
-        guard browseLabel.waitForExistence(timeout: 12) else {
+        let browseButton = app.buttons["BrowseAllRecurringThemesLink"]
+        guard browseButton.waitForExistence(timeout: 12) else {
             throw XCTSkip("Wide review seed did not yield enough recurring themes to show browse link.")
         }
         var scrollAttempts = 0
-        while !browseLabel.isHittable && scrollAttempts < 12 {
+        while !browseButton.isHittable && scrollAttempts < 12 {
             app.swipeUp()
             scrollAttempts += 1
         }
-        browseLabel.tap()
+        browseButton.tap()
 
         let browseRows = browseMostRecurringRows(in: app)
         XCTAssertTrue(
@@ -150,7 +186,7 @@ final class JournalMostRecurringUITests: XCTestCase {
         let app = launchAppWithWideReviewSeed()
         openPastReviewPanels(app)
 
-        let recurringLink = app.staticTexts["Browse all recurring themes"]
+        let recurringLink = app.buttons["BrowseAllRecurringThemesLink"]
         guard recurringLink.waitForExistence(timeout: 12) else {
             throw XCTSkip("Wide review seed did not yield enough recurring themes to show recurring browse link.")
         }
@@ -170,9 +206,10 @@ final class JournalMostRecurringUITests: XCTestCase {
         recurringDone.tap()
         XCTAssertTrue(recurringLink.waitForExistence(timeout: 8), "Expected to return to the Past review card.")
 
-        let trendingLink = app.staticTexts["Browse all trending themes"]
+        scrollPastReviewUntilTrendingVisible(app)
+        let trendingLink = app.buttons["BrowseAllTrendingThemesLink"]
         guard trendingLink.waitForExistence(timeout: 12) else {
-            throw XCTSkip("Wide review seed did not yield enough trending themes to show trending browse link.")
+            throw XCTSkip("Trending browse link is hidden when the Past tab shows at most three trending rows.")
         }
         scrollAttempts = 0
         while !trendingLink.isHittable && scrollAttempts < 12 {
@@ -191,25 +228,31 @@ final class JournalMostRecurringUITests: XCTestCase {
         let app = launchAppWithWideReviewSeed()
         openPastReviewPanels(app)
 
-        let browseLabel = app.staticTexts["Browse all recurring themes"]
-        guard browseLabel.waitForExistence(timeout: 12) else {
+        let browseButton = app.buttons["BrowseAllRecurringThemesLink"]
+        guard browseButton.waitForExistence(timeout: 12) else {
             throw XCTSkip("Wide review seed did not yield enough recurring themes to show browse link.")
         }
         var scrollAttempts = 0
-        while !browseLabel.isHittable && scrollAttempts < 12 {
+        while !browseButton.isHittable && scrollAttempts < 12 {
             app.swipeUp()
             scrollAttempts += 1
         }
-        browseLabel.tap()
+        browseButton.tap()
 
         XCTAssertTrue(app.navigationBars["Most recurring"].waitForExistence(timeout: 10))
         XCTAssertTrue(
-            mostRecurringBrowseSection("gratitudes", in: app).waitForExistence(timeout: 8),
+            mostRecurringBrowseSection("gratitudes", in: app).waitForExistence(timeout: 10),
             "Browse list should section gratitudes."
         )
+
+        let needsHeader = mostRecurringBrowseSection("needs", in: app)
+        let deadline = Date().addingTimeInterval(20)
+        while Date() < deadline, !needsHeader.exists {
+            app.swipeUp()
+        }
         XCTAssertTrue(
-            mostRecurringBrowseSection("needs", in: app).waitForExistence(timeout: 8),
-            "Browse list should section needs."
+            needsHeader.waitForExistence(timeout: 2),
+            "Browse list should section needs (scroll if the list is long)."
         )
     }
 
@@ -217,10 +260,11 @@ final class JournalMostRecurringUITests: XCTestCase {
     func test_reviewScreen_trendingBrowse_showsNewUpOrDownSection() throws {
         let app = launchAppWithWideReviewSeed()
         openPastReviewPanels(app)
+        scrollPastReviewUntilTrendingVisible(app)
 
-        let trendingLink = app.staticTexts["Browse all trending themes"]
+        let trendingLink = app.buttons["BrowseAllTrendingThemesLink"]
         guard trendingLink.waitForExistence(timeout: 12) else {
-            throw XCTSkip("Wide review seed did not yield enough trending themes to show trending browse link.")
+            throw XCTSkip("Trending browse link is hidden when the Past tab shows at most three trending rows.")
         }
         var scrollAttempts = 0
         while !trendingLink.isHittable && scrollAttempts < 12 {
@@ -247,5 +291,50 @@ final class JournalMostRecurringUITests: XCTestCase {
             "Trending browse should group rows under at least one of New, Up, or Down."
         )
         XCTAssertGreaterThan(browseTrendingRows(in: app).count, 0, "Expected at least one trending browse row.")
+    }
+
+    /// Default seed is one prior-day entry; Trending floors are not met, so the card shows fallback copy.
+    @MainActor
+    func test_reviewScreen_trendingEmptyFallback_showsGuidanceCopy() {
+        let app = XCUIApplication()
+        app.configureGraceNotesUITestLaunch(resetUITestStore: true, wideReviewRhythm: false)
+        app.launch()
+        XCTAssertTrue(
+            app.staticTexts["Gratitudes"].waitForExistence(timeout: 5),
+            "Expected UI test launch to bypass onboarding and open Today screen."
+        )
+        app.tabBars.buttons["Past"].tap()
+
+        let trendingTitle = app.staticTexts["Trending"]
+        for _ in 0..<20 {
+            if trendingTitle.waitForExistence(timeout: 2) {
+                break
+            }
+            app.swipeUp()
+        }
+        XCTAssertTrue(trendingTitle.waitForExistence(timeout: 10), "Expected Trending section on Past review.")
+
+        let fallback = app.staticTexts["Keep writing to see trends for this calendar week."]
+        let emptyId = app.descendants(matching: .any)["ReviewTrendingEmptyState"]
+        for _ in 0..<12 {
+            if fallback.waitForExistence(timeout: 1) || emptyId.waitForExistence(timeout: 1) {
+                break
+            }
+            app.swipeUp()
+        }
+        XCTAssertTrue(
+            fallback.exists || emptyId.exists,
+            "Expected empty Trending fallback when no themes pass the trend policy."
+        )
+    }
+
+    @MainActor
+    func test_reviewScreen_mostRecurringAndTrending_areSeparateTopLevelSections() {
+        let app = launchAppWithWideReviewSeed()
+        openPastReviewPanels(app)
+        scrollPastReviewUntilTrendingVisible(app)
+
+        XCTAssertTrue(app.staticTexts["Most recurring"].exists)
+        XCTAssertTrue(app.staticTexts["Trending"].exists)
     }
 }

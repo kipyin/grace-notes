@@ -19,9 +19,9 @@ enum ReviewWeekBoundaryPreference: String, CaseIterable, Equatable, Sendable {
     var localizedLabel: String {
         switch self {
         case .sundayStart:
-            return String(localized: "Sunday-Saturday")
+            return String(localized: "Sunday")
         case .mondayStart:
-            return String(localized: "Monday-Sunday")
+            return String(localized: "Monday")
         }
     }
 

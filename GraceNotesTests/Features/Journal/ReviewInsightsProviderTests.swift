@@ -53,8 +53,8 @@ final class ReviewInsightsProviderTests: XCTestCase {
         )
 
         XCTAssertEqual(insights.source, .deterministic)
-        XCTAssertEqual(insights.weekStart, date(year: 2026, month: 3, day: 12))
-        XCTAssertEqual(insights.weekEnd, date(year: 2026, month: 3, day: 19))
+        XCTAssertEqual(insights.weekStart, date(year: 2026, month: 3, day: 16))
+        XCTAssertEqual(insights.weekEnd, date(year: 2026, month: 3, day: 23))
         XCTAssertEqual(insights.weeklyInsights.first?.pattern, .sparseFallback)
         XCTAssertEqual(
             insights.weeklyInsights.first?.observation,

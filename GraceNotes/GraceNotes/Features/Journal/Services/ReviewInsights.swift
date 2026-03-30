@@ -68,7 +68,6 @@ struct ReviewMostRecurringTheme: Equatable, Hashable, Sendable, Codable, Identif
     let dayCount: Int
     let currentWeekCount: Int
     let previousWeekCount: Int
-    let trend: ReviewThemeTrend
     let evidence: [ReviewThemeSurfaceEvidence]
 
     var id: String { label }
@@ -79,7 +78,6 @@ struct ReviewMostRecurringTheme: Equatable, Hashable, Sendable, Codable, Identif
         case dayCount
         case currentWeekCount
         case previousWeekCount
-        case trend
         case evidence
     }
 
@@ -89,7 +87,6 @@ struct ReviewMostRecurringTheme: Equatable, Hashable, Sendable, Codable, Identif
         dayCount: Int,
         currentWeekCount: Int,
         previousWeekCount: Int,
-        trend: ReviewThemeTrend,
         evidence: [ReviewThemeSurfaceEvidence]
     ) {
         self.label = label
@@ -97,7 +94,6 @@ struct ReviewMostRecurringTheme: Equatable, Hashable, Sendable, Codable, Identif
         self.dayCount = dayCount
         self.currentWeekCount = currentWeekCount
         self.previousWeekCount = previousWeekCount
-        self.trend = trend
         self.evidence = evidence
     }
 
@@ -108,8 +104,6 @@ struct ReviewMostRecurringTheme: Equatable, Hashable, Sendable, Codable, Identif
         dayCount = try container.decode(Int.self, forKey: .dayCount)
         currentWeekCount = try container.decode(Int.self, forKey: .currentWeekCount)
         previousWeekCount = try container.decode(Int.self, forKey: .previousWeekCount)
-        trend = try container.decodeIfPresent(ReviewThemeTrend.self, forKey: .trend)
-            ?? Self.resolveTrend(currentWeekCount: currentWeekCount, previousWeekCount: previousWeekCount)
         if let structuredEvidence = try container.decodeIfPresent(
             [ReviewThemeSurfaceEvidence].self,
             forKey: .evidence
@@ -133,21 +127,7 @@ struct ReviewMostRecurringTheme: Equatable, Hashable, Sendable, Codable, Identif
         try container.encode(dayCount, forKey: .dayCount)
         try container.encode(currentWeekCount, forKey: .currentWeekCount)
         try container.encode(previousWeekCount, forKey: .previousWeekCount)
-        try container.encode(trend, forKey: .trend)
         try container.encode(evidence, forKey: .evidence)
-    }
-
-    private static func resolveTrend(currentWeekCount: Int, previousWeekCount: Int) -> ReviewThemeTrend {
-        if previousWeekCount == 0, currentWeekCount > 0 {
-            return .new
-        }
-        if currentWeekCount > previousWeekCount {
-            return .rising
-        }
-        if currentWeekCount < previousWeekCount {
-            return .down
-        }
-        return .stable
     }
 }
 
@@ -178,7 +158,7 @@ struct ReviewMovementTheme: Equatable, Hashable, Sendable, Codable, Identifiable
     }
 }
 
-/// Trending themes grouped for browse UI: **New**, **Up** (rising), **Down**.
+/// Trending themes grouped for browse UI: new, rising, and down buckets.
 struct ReviewTrendingBuckets: Equatable, Sendable, Codable {
     let newThemes: [ReviewMovementTheme]
     let upThemes: [ReviewMovementTheme]
@@ -455,7 +435,7 @@ struct ReviewInsights: Equatable, Sendable, Codable {
     let generatedAt: Date
     /// Start of the review period (`ReviewInsightsPeriod`), inclusive (start of local day).
     let weekStart: Date
-    /// End of the review period, exclusive (start of the day after the reference day).
+    /// End of the review period, exclusive (start of the day after the last day of the calendar week).
     let weekEnd: Date
     let weeklyInsights: [ReviewWeeklyInsight]
     let recurringGratitudes: [ReviewInsightTheme]

@@ -8,6 +8,10 @@ struct ReviewScreen: View {
     @State private var reviewInsights: ReviewInsights?
     @State private var isLoadingInsights = false
     @State private var lastInsightsRefreshKey: ReviewInsightsRefreshKey?
+    @State private var mostRecurringThemeDrilldown: ReviewThemeDrilldownPayload?
+    @State private var mostRecurringBrowsePayload: MostRecurringBrowsePayload?
+    @State private var trendingThemeDrilldown: ReviewThemeDrilldownPayload?
+    @State private var trendingBrowsePayload: TrendingBrowsePayload?
     @EnvironmentObject private var appNavigation: AppNavigationModel
 
     private let reviewInsightsProvider = ReviewInsightsProvider.shared
@@ -60,6 +64,22 @@ struct ReviewScreen: View {
             await hydrateReviewInsightsFromCacheIfNeeded()
             await refreshReviewInsights()
         }
+        .sheet(item: $mostRecurringThemeDrilldown) { payload in
+            ThemeDrilldownSheet(payload: payload)
+        }
+        .sheet(item: $mostRecurringBrowsePayload) { payload in
+            MostRecurringBrowseSheetContainer(
+                themes: payload.themes,
+                reviewWeekEnd: payload.reviewWeekEnd,
+                calendar: payload.calendar
+            )
+        }
+        .sheet(item: $trendingThemeDrilldown) { payload in
+            ThemeDrilldownSheet(payload: payload)
+        }
+        .sheet(item: $trendingBrowsePayload) { payload in
+            TrendingBrowseSheetContainer(buckets: payload.buckets)
+        }
     }
 
     private var emptyState: some View {
@@ -86,7 +106,34 @@ struct ReviewScreen: View {
 
     private var insightsSection: some View {
         Section {
-            ReviewSummaryCard(
+            if reviewInsights != nil || isLoadingInsights {
+                ReviewDaysYouWrotePanel(
+                    insights: reviewInsights,
+                    isLoading: isLoadingInsights
+                )
+                .listRowInsets(EdgeInsets(top: 2, leading: 0, bottom: 6, trailing: 0))
+                .listRowBackground(AppTheme.reviewBackground)
+            }
+
+            ReviewMostRecurringCard(
+                themeDrilldown: $mostRecurringThemeDrilldown,
+                browseAllPayload: $mostRecurringBrowsePayload,
+                insights: reviewInsights,
+                isLoading: isLoadingInsights
+            )
+            .listRowInsets(EdgeInsets(top: 2, leading: 0, bottom: 6, trailing: 0))
+            .listRowBackground(AppTheme.reviewBackground)
+
+            ReviewTrendingCard(
+                themeDrilldown: $trendingThemeDrilldown,
+                browseAllPayload: $trendingBrowsePayload,
+                insights: reviewInsights,
+                isLoading: isLoadingInsights
+            )
+            .listRowInsets(EdgeInsets(top: 2, leading: 0, bottom: 6, trailing: 0))
+            .listRowBackground(AppTheme.reviewBackground)
+
+            ReviewNarrativeSummaryCard(
                 insights: reviewInsights,
                 isLoading: isLoadingInsights,
                 weekJournalEntryCount: weeklyEntriesForRefresh.count,
@@ -130,7 +177,11 @@ struct ReviewScreen: View {
         }
 
         reviewInsights = generatedInsights
-        await reviewInsightsCache.storeIfEligible(generatedInsights, calendar: calendar)
+        await reviewInsightsCache.storeIfEligible(
+            generatedInsights,
+            calendar: calendar,
+            weekBoundaryPreferenceRawValue: reviewWeekBoundaryRawValue
+        )
         lastInsightsRefreshKey = refreshKey
         isLoadingInsights = false
     }
@@ -140,7 +191,8 @@ struct ReviewScreen: View {
         guard reviewInsights == nil else { return }
         reviewInsights = await reviewInsightsCache.insights(
             forWeekStart: currentReviewPeriod.lowerBound,
-            calendar: calendar
+            calendar: calendar,
+            weekBoundaryPreferenceRawValue: reviewWeekBoundaryRawValue
         )
     }
 }

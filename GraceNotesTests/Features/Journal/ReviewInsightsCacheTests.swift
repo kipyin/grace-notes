@@ -6,6 +6,10 @@ final class ReviewInsightsCacheTests: XCTestCase {
     private var userDefaults: UserDefaults!
     private var cache: ReviewInsightsCache!
 
+    private var defaultWeekBoundaryRaw: String {
+        ReviewWeekBoundaryPreference.defaultValue.rawValue
+    }
+
     override func setUp() {
         super.setUp()
         calendar = Calendar(identifier: .gregorian)
@@ -20,8 +24,16 @@ final class ReviewInsightsCacheTests: XCTestCase {
         let weekStart = date(year: 2026, month: 3, day: 12)
         let insights = sampleInsights(weekStart: weekStart)
 
-        await cache.storeIfEligible(insights, calendar: calendar)
-        let loaded = await cache.insights(forWeekStart: weekStart, calendar: calendar)
+        await cache.storeIfEligible(
+            insights,
+            calendar: calendar,
+            weekBoundaryPreferenceRawValue: defaultWeekBoundaryRaw
+        )
+        let loaded = await cache.insights(
+            forWeekStart: weekStart,
+            calendar: calendar,
+            weekBoundaryPreferenceRawValue: defaultWeekBoundaryRaw
+        )
 
         XCTAssertEqual(loaded, insights)
     }
@@ -30,8 +42,16 @@ final class ReviewInsightsCacheTests: XCTestCase {
         let weekStart = date(year: 2026, month: 3, day: 12)
         let sparse = sparseFallbackInsights(weekStart: weekStart)
 
-        await cache.storeIfEligible(sparse, calendar: calendar)
-        let loaded = await cache.insights(forWeekStart: weekStart, calendar: calendar)
+        await cache.storeIfEligible(
+            sparse,
+            calendar: calendar,
+            weekBoundaryPreferenceRawValue: defaultWeekBoundaryRaw
+        )
+        let loaded = await cache.insights(
+            forWeekStart: weekStart,
+            calendar: calendar,
+            weekBoundaryPreferenceRawValue: defaultWeekBoundaryRaw
+        )
 
         XCTAssertNil(loaded)
     }
@@ -62,18 +82,54 @@ final class ReviewInsightsCacheTests: XCTestCase {
                 narrativeSummary: insights.narrativeSummary,
                 weekStats: insights.weekStats
             )
-            await cache.storeIfEligible(insights, calendar: calendar)
+            await cache.storeIfEligible(
+                insights,
+                calendar: calendar,
+                weekBoundaryPreferenceRawValue: defaultWeekBoundaryRaw
+            )
         }
 
         let oldest = weekStarts[0]
         let newestEight = Array(weekStarts.suffix(8))
 
-        let oldestLoaded = await cache.insights(forWeekStart: oldest, calendar: calendar)
+        let oldestLoaded = await cache.insights(
+            forWeekStart: oldest,
+            calendar: calendar,
+            weekBoundaryPreferenceRawValue: defaultWeekBoundaryRaw
+        )
         XCTAssertNil(oldestLoaded)
         for weekStart in newestEight {
-            let loaded = await cache.insights(forWeekStart: weekStart, calendar: calendar)
+            let loaded = await cache.insights(
+                forWeekStart: weekStart,
+                calendar: calendar,
+                weekBoundaryPreferenceRawValue: defaultWeekBoundaryRaw
+            )
             XCTAssertNotNil(loaded)
         }
+    }
+
+    func test_load_doesNotCrossReadWhenWeekBoundaryPreferenceDiffers() async {
+        let weekStart = date(year: 2026, month: 3, day: 12)
+        let insights = sampleInsights(weekStart: weekStart)
+
+        await cache.storeIfEligible(
+            insights,
+            calendar: calendar,
+            weekBoundaryPreferenceRawValue: ReviewWeekBoundaryPreference.sundayStart.rawValue
+        )
+        let loadedOtherBoundary = await cache.insights(
+            forWeekStart: weekStart,
+            calendar: calendar,
+            weekBoundaryPreferenceRawValue: ReviewWeekBoundaryPreference.mondayStart.rawValue
+        )
+        XCTAssertNil(loadedOtherBoundary)
+
+        let loadedSameBoundary = await cache.insights(
+            forWeekStart: weekStart,
+            calendar: calendar,
+            weekBoundaryPreferenceRawValue: ReviewWeekBoundaryPreference.sundayStart.rawValue
+        )
+        XCTAssertEqual(loadedSameBoundary, insights)
     }
 
     func test_JSONEncoder_roundTripReviewInsights() throws {
@@ -96,18 +152,51 @@ final class ReviewInsightsCacheTests: XCTestCase {
         XCTAssertEqual(mix.fullDays, 9)
     }
 
+    func test_ReviewMostRecurringTheme_decodesIgnoringLegacyTrendKey() throws {
+        let json = """
+        {
+          "label": "Rest",
+          "totalCount": 4,
+          "dayCount": 2,
+          "currentWeekCount": 3,
+          "previousWeekCount": 1,
+          "trend": "rising",
+          "evidence": []
+        }
+        """
+        let data = try XCTUnwrap(json.data(using: .utf8))
+        let theme = try JSONDecoder().decode(ReviewMostRecurringTheme.self, from: data)
+        XCTAssertEqual(theme.label, "Rest")
+        XCTAssertEqual(theme.totalCount, 4)
+        XCTAssertEqual(theme.currentWeekCount, 3)
+        XCTAssertEqual(theme.previousWeekCount, 1)
+        XCTAssertTrue(theme.evidence.isEmpty)
+    }
+
     func test_corruptedPayload_clearsAndAllowsStore() async {
-        // Must stay aligned with `ReviewInsightsCache.payloadKey`.
-        let payloadKey = "GraceNotes.reviewInsightsByWeek.v1"
+        // Must stay aligned with `ReviewInsightsCache` persisted payload key (v2).
+        let payloadKey = "GraceNotes.reviewInsightsByWeek.v2"
         userDefaults.set(Data([0xFF, 0xFE, 0xFD]), forKey: payloadKey)
 
         let weekStart = date(year: 2026, month: 3, day: 12)
-        let beforeHeal = await cache.insights(forWeekStart: weekStart, calendar: calendar)
+        let beforeHeal = await cache.insights(
+            forWeekStart: weekStart,
+            calendar: calendar,
+            weekBoundaryPreferenceRawValue: defaultWeekBoundaryRaw
+        )
         XCTAssertNil(beforeHeal)
 
         let insights = sampleInsights(weekStart: weekStart)
-        await cache.storeIfEligible(insights, calendar: calendar)
-        let afterStore = await cache.insights(forWeekStart: weekStart, calendar: calendar)
+        await cache.storeIfEligible(
+            insights,
+            calendar: calendar,
+            weekBoundaryPreferenceRawValue: defaultWeekBoundaryRaw
+        )
+        let afterStore = await cache.insights(
+            forWeekStart: weekStart,
+            calendar: calendar,
+            weekBoundaryPreferenceRawValue: defaultWeekBoundaryRaw
+        )
         XCTAssertEqual(afterStore, insights)
     }
 

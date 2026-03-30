@@ -337,11 +337,9 @@ struct PostSeedJourneyInsightsPreview: View {
     }
 
     var body: some View {
-        ReviewSummaryCard(
+        ReviewDaysYouWrotePanel(
             insights: sampleInsights,
-            isLoading: false,
-            weekJournalEntryCount: 8,
-            onContinueToToday: {}
+            isLoading: false
         )
         .frame(maxWidth: .infinity, alignment: .leading)
         .allowsHitTesting(false)

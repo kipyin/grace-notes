@@ -65,12 +65,14 @@ struct WeeklyReviewAggregatesBuilder {
     private let minimumMostRecurringSignalCount = 2
     private let textNormalizer = WeeklyInsightTextNormalizer()
 
+    // swiftlint:disable:next function_parameter_count
     func build(
         currentPeriod: Range<Date>,
         currentWeekEntries: [JournalEntry],
         previousWeekEntries: [JournalEntry],
         allEntries: [JournalEntry],
-        calendar: Calendar
+        calendar: Calendar,
+        referenceDate: Date
     ) -> WeeklyReviewAggregates {
         let sortedCurrentEntries = sortedEntries(currentWeekEntries)
         let sortedPreviousEntries = sortedEntries(previousWeekEntries)
@@ -113,7 +115,8 @@ struct WeeklyReviewAggregatesBuilder {
                 entries: sortedCurrentEntries,
                 allEntries: allEntries,
                 reflectionDays: reflectionDays,
-                calendar: calendar
+                calendar: calendar,
+                referenceDate: referenceDate
             )
         )
     }
@@ -289,12 +292,14 @@ private extension WeeklyReviewAggregatesBuilder {
             }
     }
 
+    // swiftlint:disable:next function_parameter_count
     private func buildWeekStats(
         currentPeriod: Range<Date>,
         entries: [JournalEntry],
         allEntries: [JournalEntry],
         reflectionDays: Int,
-        calendar: Calendar
+        calendar: Calendar,
+        referenceDate: Date
     ) -> ReviewWeekStats {
         let meaningfulEntryCount = meaningfulEntryCount(from: entries)
         let strongestCompletionByDay = strongestCompletionByDay(from: entries, calendar: calendar)
@@ -318,7 +323,8 @@ private extension WeeklyReviewAggregatesBuilder {
         let sections = buildThemeSections(
             from: sortedEntries(allEntries),
             currentPeriod: currentPeriod,
-            calendar: calendar
+            calendar: calendar,
+            referenceDate: referenceDate
         )
         return ReviewWeekStats(
             reflectionDays: reflectionDays,
@@ -336,12 +342,18 @@ private extension WeeklyReviewAggregatesBuilder {
     private func buildThemeSections(
         from entries: [JournalEntry],
         currentPeriod: Range<Date>,
-        calendar: Calendar
+        calendar: Calendar,
+        referenceDate: Date
     ) -> (mostRecurring: [ReviewMostRecurringTheme], trending: ReviewTrendingBuckets) {
+        let isWarmUpPhase = ReviewWeekTrendPolicy.isWarmUpPhase(
+            currentPeriod: currentPeriod,
+            referenceDate: referenceDate,
+            calendar: calendar
+        )
         guard !entries.isEmpty else {
             return ([], ReviewTrendingBuckets(newThemes: [], upThemes: [], downThemes: []))
         }
-        let trendRanges = rollingTrendPeriods(currentPeriod: currentPeriod, calendar: calendar)
+        let trendRanges = calendarWeekComparisonPeriods(currentPeriod: currentPeriod, calendar: calendar)
         let mostRecurringWindow = mostRecurringRange(currentPeriod: currentPeriod, calendar: calendar)
         var map: [String: DistilledThemeAccumulator] = [:]
         var sequence = 0
@@ -414,10 +426,6 @@ private extension WeeklyReviewAggregatesBuilder {
                     dayCount: value.days.count,
                     currentWeekCount: value.currentWeekCount,
                     previousWeekCount: value.previousWeekCount,
-                    trend: themeTrend(
-                        currentWeekCount: value.currentWeekCount,
-                        previousWeekCount: value.previousWeekCount
-                    ),
                     evidence: sortedEvidence(value.evidence)
                 )
             }
@@ -438,9 +446,10 @@ private extension WeeklyReviewAggregatesBuilder {
 
         let movementCandidates = map.values
             .compactMap { value -> ReviewMovementTheme? in
-                let trend = themeTrend(
-                    currentWeekCount: value.currentWeekCount,
-                    previousWeekCount: value.previousWeekCount
+                let trend = ReviewWeekTrendPolicy.trendingSurfacingTrend(
+                    current: value.currentWeekCount,
+                    previous: value.previousWeekCount,
+                    isWarmUpPhase: isWarmUpPhase
                 )
                 guard trend != .stable else { return nil }
                 guard value.currentWeekCount > 0 || value.previousWeekCount > 0 else { return nil }
@@ -514,26 +523,13 @@ private extension WeeklyReviewAggregatesBuilder {
         return lower..<currentPeriod.upperBound
     }
 
-    /// Last 7 days of the review window vs the 7 days before that (``ReviewInsightsPeriod``), not calendar weeks.
-    private func rollingTrendPeriods(
+    /// The current calendar week vs the immediately preceding calendar week (``ReviewInsightsPeriod``).
+    private func calendarWeekComparisonPeriods(
         currentPeriod: Range<Date>,
         calendar: Calendar
     ) -> (current: Range<Date>, previous: Range<Date>) {
         let previous = ReviewInsightsPeriod.previousPeriod(before: currentPeriod, calendar: calendar)
         return (currentPeriod, previous)
-    }
-
-    private func themeTrend(currentWeekCount: Int, previousWeekCount: Int) -> ReviewThemeTrend {
-        if previousWeekCount == 0, currentWeekCount > 0 {
-            return .new
-        }
-        if currentWeekCount > previousWeekCount {
-            return .rising
-        }
-        if currentWeekCount < previousWeekCount {
-            return .down
-        }
-        return .stable
     }
 
     private func structuredSurfaces(for entry: JournalEntry) -> [ThemeSurface] {

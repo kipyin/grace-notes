@@ -1,9 +1,9 @@
 import Foundation
 
 extension ReviewInsights {
-    /// Sample payload for the post-Seed App tour so ``ReviewSummaryCard`` matches the live Review tab layout.
+    /// Sample payload for the post-Seed App tour so ``ReviewDaysYouWrotePanel`` matches the live Past tab layout.
     static func postSeedJourneyTutorialPreview(
-        calendar: Calendar = .current,
+        calendar: Calendar = ReviewWeekBoundaryPreference.defaultValue.configuredCalendar(),
         referenceDate: Date = .now
     ) -> ReviewInsights {
         let period = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)

@@ -1080,13 +1080,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Browse all recurring themes"
+            "value" : "Show more"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "浏览全部常现主题"
+            "value" : "更多"
           }
         }
       }
@@ -1096,13 +1096,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Browse all trending themes"
+            "value" : "Show more"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "浏览全部趋势主题"
+            "value" : "更多"
           }
         }
       }
@@ -1495,7 +1495,6 @@
       }
     },
     "Current week %1$lld, previous week %2$lld." : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3315,22 +3314,6 @@
         }
       }
     },
-    "Last 7 days %1$lld, prior 7 days %2$lld." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Last 7 days %1$lld, prior 7 days %2$lld."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "近 7 天 %1$lld 次，前 7 天 %2$lld 次。"
-          }
-        }
-      }
-    },
     "Loading weekly insights." : {
       "localizations" : {
         "en" : {
@@ -3367,8 +3350,21 @@
     "Matching writing surfaces" : {
 
     },
-    "Monday-Sunday" : {
-
+    "Monday" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monday"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "周一"
+          }
+        }
+      }
     },
     "Most often: %@" : {
       "extractionState" : "stale",
@@ -4595,7 +4591,20 @@
       }
     },
     "Review" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Review"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回顾"
+          }
+        }
+      }
     },
     "Review mode" : {
       "extractionState" : "stale",
@@ -5526,6 +5535,22 @@
         }
       }
     },
+    "Keep writing to see trends for this calendar week." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep writing to see trends for this calendar week."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续记录，才能看到这一周的趋势。"
+          }
+        }
+      }
+    },
     "Started" : {
       "localizations" : {
         "en" : {
@@ -5595,8 +5620,21 @@
     "Summary" : {
 
     },
-    "Sunday-Saturday" : {
-
+    "Sunday" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sunday"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "周日"
+          }
+        }
+      }
     },
     "Switch between Insights and Timeline." : {
       "extractionState" : "stale",
@@ -6101,7 +6139,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Up"
+            "value" : "Rising"
           }
         },
         "zh-Hans" : {
@@ -6242,8 +6280,21 @@
         }
       }
     },
-    "Week boundary" : {
-
+    "Week starts" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Week starts"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "周起始日"
+          }
+        }
+      }
     },
     "Week rhythm" : {
       "extractionState" : "stale",
@@ -7256,7 +7307,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本周你在 %lld 天完成了反思。"
+            "value" : "本周你已经坚持记录了 %lld 天"
           }
         }
       }

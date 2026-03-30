@@ -21,7 +21,8 @@ struct WeeklyInsightRuleEngine {
         currentWeekEntries: [JournalEntry],
         previousWeekEntries: [JournalEntry],
         allEntries: [JournalEntry],
-        calendar: Calendar
+        calendar: Calendar,
+        referenceDate: Date
     ) -> WeeklyInsightAnalysis {
         let candidateBuilder = WeeklyInsightCandidateBuilder(textNormalizer: textNormalizer)
         let aggregates = aggregatesBuilder.build(
@@ -29,7 +30,8 @@ struct WeeklyInsightRuleEngine {
             currentWeekEntries: currentWeekEntries,
             previousWeekEntries: previousWeekEntries,
             allEntries: allEntries,
-            calendar: calendar
+            calendar: calendar,
+            referenceDate: referenceDate
         )
 
         let candidates = candidateBuilder.buildCandidates(inputs: aggregates.candidateInputs)
