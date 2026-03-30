@@ -15,12 +15,20 @@ struct ReviewSummaryCard: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @State private var selectedMostRecurringTheme: ReviewMostRecurringTheme?
+    @AppStorage(ReviewWeekBoundaryPreference.userDefaultsKey)
+    private var reviewWeekBoundaryRawValue = ReviewWeekBoundaryPreference.defaultValue.rawValue
+    @State private var selectedThemeDrilldown: ReviewThemeDrilldownPayload?
+    @State private var mostRecurringBrowsePayload: MostRecurringBrowsePayload?
+    @State private var trendingBrowsePayload: TrendingBrowsePayload?
 
     let insights: ReviewInsights?
     let isLoading: Bool
     let weekJournalEntryCount: Int
     let onContinueToToday: () -> Void
+
+    private var reviewCalendar: Calendar {
+        ReviewWeekBoundaryPreference.resolve(from: reviewWeekBoundaryRawValue).configuredCalendar()
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -40,8 +48,18 @@ struct ReviewSummaryCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .fixedSize(horizontal: false, vertical: true)
         .padding(.vertical, 4)
-        .sheet(item: $selectedMostRecurringTheme) { theme in
-            MostRecurringThemeDetailSheet(theme: theme)
+        .sheet(item: $selectedThemeDrilldown) { payload in
+            ThemeDrilldownSheet(payload: payload)
+        }
+        .sheet(item: $mostRecurringBrowsePayload) { payload in
+            MostRecurringBrowseSheetContainer(
+                themes: payload.themes,
+                reviewWeekEnd: payload.reviewWeekEnd,
+                calendar: payload.calendar
+            )
+        }
+        .sheet(item: $trendingBrowsePayload) { payload in
+            TrendingBrowseSheetContainer(buckets: payload.buckets)
         }
     }
 
@@ -59,11 +77,20 @@ struct ReviewSummaryCard: View {
     private func insightsContent(for insights: ReviewInsights) -> some View {
         let bodies = dedupedPanelBodies(for: insights)
         let mostRecurringThemes = insights.weekStats.mostRecurringThemes
+        let trendingBuckets = insights.weekStats.trendingBuckets
+        let movementThemes = insights.weekStats.movementThemes
         return VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 10) {
                 weekRhythmPanel(for: insights)
                 if !mostRecurringThemes.isEmpty {
-                    mostRecurringThemesPanel(themes: mostRecurringThemes)
+                    mostRecurringThemesPanel(
+                        themes: mostRecurringThemes,
+                        reviewWeekEnd: insights.weekEnd,
+                        calendar: reviewCalendar
+                    )
+                }
+                if !movementThemes.isEmpty {
+                    trendingThemesPanel(buckets: trendingBuckets)
                 }
                 observationPanel(body: bodies.observation)
                 // Intentional product choice: keep the middle "Thinking"/narrative layer hidden for now.
@@ -124,27 +151,41 @@ struct ReviewSummaryCard: View {
         }
     }
 
-    private func mostRecurringThemesPanel(themes: [ReviewMostRecurringTheme]) -> some View {
+    private func mostRecurringThemesPanel(
+        themes: [ReviewMostRecurringTheme],
+        reviewWeekEnd: Date,
+        calendar: Calendar
+    ) -> some View {
         ReviewInsightInsetPanel(
             title: String(localized: "Most recurring"),
             panelChrome: .standard
         ) {
-            ScrollView(.vertical, showsIndicators: true) {
+            VStack(alignment: .leading, spacing: 10) {
                 VStack(alignment: .leading, spacing: 8) {
-                    ForEach(themes) { theme in
+                    ForEach(Array(themes.prefix(3))) { theme in
                         mostRecurringThemeRow(theme)
                     }
                 }
-                .padding(.vertical, 2)
+                if themes.count > 3 {
+                    Button {
+                        mostRecurringBrowsePayload = MostRecurringBrowsePayload(
+                            themes: themes,
+                            reviewWeekEnd: reviewWeekEnd,
+                            calendar: calendar
+                        )
+                    } label: {
+                        browseAllLabel(title: String(localized: "Browse all recurring themes"))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("BrowseAllRecurringThemesLink")
+                }
             }
-            .frame(maxHeight: 356)
-            .accessibilityIdentifier("MostRecurringThemesScroll")
         }
     }
 
     private func mostRecurringThemeRow(_ theme: ReviewMostRecurringTheme) -> some View {
         Button {
-            selectedMostRecurringTheme = theme
+            selectedThemeDrilldown = drilldownPayload(for: theme)
         } label: {
             HStack(alignment: .center, spacing: 10) {
                 Text(theme.label)
@@ -153,7 +194,6 @@ struct ReviewSummaryCard: View {
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
                 Spacer(minLength: 8)
-                ReviewTrendBadge(trend: theme.trend)
                 ReviewCountBadge(value: theme.totalCount.formatted(), accent: AppTheme.reviewAccent)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -165,9 +205,110 @@ struct ReviewSummaryCard: View {
             String(
                 format: String(localized: "%1$@, %2$@, %3$lld"),
                 theme.label,
-                localizedTrendLabel(theme.trend),
+                String(localized: "Count"),
                 Int64(theme.totalCount)
             )
+        )
+    }
+
+    private func trendingThemesPanel(buckets: ReviewTrendingBuckets) -> some View {
+        let themes = buckets.flattened
+        return ReviewInsightInsetPanel(
+            title: String(localized: "Trending"),
+            panelChrome: .standard
+        ) {
+            VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(Array(themes.prefix(3))) { theme in
+                        trendingThemeRow(theme)
+                    }
+                }
+                if themes.count > 3 {
+                    Button {
+                        trendingBrowsePayload = TrendingBrowsePayload(buckets: buckets)
+                    } label: {
+                        browseAllLabel(title: String(localized: "Browse all trending themes"))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("BrowseAllTrendingThemesLink")
+                }
+            }
+        }
+    }
+
+    private func trendingThemeRow(_ theme: ReviewMovementTheme) -> some View {
+        Button {
+            selectedThemeDrilldown = drilldownPayload(for: theme)
+        } label: {
+            HStack(alignment: .center, spacing: 10) {
+                Text(theme.label)
+                    .font(AppTheme.warmPaperMeta)
+                    .foregroundStyle(AppTheme.reviewTextPrimary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                Spacer(minLength: 8)
+                ReviewTrendBadge(trend: theme.trend)
+                ReviewTrendCountCapsule(
+                    previous: theme.previousWeekCount,
+                    current: theme.currentWeekCount,
+                    accent: trendColor(theme.trend)
+                )
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("TrendingThemeRow.\(sanitizedThemeId(theme.id))")
+        .accessibilityLabel(
+            String(
+                format: String(localized: "%1$@, %2$@, %3$lld, %4$lld"),
+                theme.label,
+                localizedTrendLabel(theme.trend),
+                Int64(theme.previousWeekCount),
+                Int64(theme.currentWeekCount)
+            )
+        )
+    }
+
+    private func browseAllLabel(title: String) -> some View {
+        HStack(spacing: 6) {
+            Text(title)
+                .font(AppTheme.warmPaperMetaEmphasis.weight(.semibold))
+            Image(systemName: "chevron.right")
+                .font(.caption.weight(.semibold))
+        }
+        .foregroundStyle(AppTheme.reviewAccent)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func drilldownPayload(for theme: ReviewMostRecurringTheme) -> ReviewThemeDrilldownPayload {
+        ReviewThemeDrilldownPayload(
+            label: theme.label,
+            sectionTitle: String(localized: "Most recurring"),
+            subtitle: String(
+                format: String(localized: "Showed up %1$lld times in the last 4 weeks."),
+                Int64(theme.totalCount)
+            ),
+            trend: nil,
+            evidence: theme.evidence
+        )
+    }
+
+    private func drilldownPayload(for theme: ReviewMovementTheme) -> ReviewThemeDrilldownPayload {
+        let trendText = localizedTrendLabel(theme.trend)
+        let subtitle = String(
+            format: String(
+                localized: "Last 7 days %1$lld, prior 7 days %2$lld."
+            ),
+            Int64(theme.currentWeekCount),
+            Int64(theme.previousWeekCount)
+        )
+        return ReviewThemeDrilldownPayload(
+            label: theme.label,
+            sectionTitle: String(localized: "Trending"),
+            subtitle: "\(trendText). \(subtitle)",
+            trend: theme.trend,
+            evidence: theme.evidence
         )
     }
 
@@ -273,6 +414,19 @@ struct ReviewSummaryCard: View {
             return String(localized: "Down")
         case .stable:
             return String(localized: "Stable")
+        }
+    }
+
+    private func trendColor(_ trend: ReviewThemeTrend) -> Color {
+        switch trend {
+        case .new:
+            return .blue
+        case .rising:
+            return .green
+        case .down:
+            return .orange
+        case .stable:
+            return AppTheme.reviewStandardBorder
         }
     }
 
@@ -729,6 +883,11 @@ private struct InsightsLoadingSkeleton: View {
                     lineSpecs: [(1.0, 11), (0.78, 11), (0.66, 11)]
                 )
                 skeletonInsetPanel(
+                    title: String(localized: "Trending"),
+                    panelChrome: .standard,
+                    lineSpecs: [(1.0, 11), (0.82, 11), (0.7, 11)]
+                )
+                skeletonInsetPanel(
                     title: String(localized: "Observation"),
                     panelChrome: .lead,
                     lineSpecs: [(1.0, 12), (1.0, 12), (0.72, 12)]
@@ -804,13 +963,56 @@ private struct ReviewTrendBadge: View {
     let trend: ReviewThemeTrend
 
     var body: some View {
-        Text(label)
-            .font(AppTheme.warmPaperMetaEmphasis.weight(.semibold))
-            .foregroundStyle(AppTheme.reviewTextPrimary)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(AppTheme.reviewStandardBorder.opacity(0.22))
-            .clipShape(Capsule())
+        HStack(spacing: 4) {
+            Image(systemName: symbol)
+                .font(.caption.weight(.semibold))
+            Text(label)
+                .font(AppTheme.warmPaperMetaEmphasis.weight(.semibold))
+        }
+        .foregroundStyle(foregroundColor)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(backgroundColor)
+        .clipShape(Capsule())
+    }
+
+    private var symbol: String {
+        switch trend {
+        case .new:
+            return "sparkles"
+        case .rising:
+            return "arrow.up.right"
+        case .down:
+            return "arrow.down.right"
+        case .stable:
+            return "equal"
+        }
+    }
+
+    private var backgroundColor: Color {
+        switch trend {
+        case .new:
+            return .blue.opacity(0.15)
+        case .rising:
+            return .green.opacity(0.16)
+        case .down:
+            return .orange.opacity(0.16)
+        case .stable:
+            return AppTheme.reviewStandardBorder.opacity(0.22)
+        }
+    }
+
+    private var foregroundColor: Color {
+        switch trend {
+        case .new:
+            return .blue
+        case .rising:
+            return .green
+        case .down:
+            return .orange
+        case .stable:
+            return AppTheme.reviewTextPrimary
+        }
     }
 
     private var label: String {
@@ -827,8 +1029,368 @@ private struct ReviewTrendBadge: View {
     }
 }
 
-private struct MostRecurringThemeDetailSheet: View {
-    let theme: ReviewMostRecurringTheme
+/// Compact `previous → current` counts for rolling 7-day trending rows.
+private struct ReviewTrendCountCapsule: View {
+    let previous: Int
+    let current: Int
+    let accent: Color
+
+    var body: some View {
+        Text(
+            String(
+                format: String(localized: "%1$lld → %2$lld"),
+                Int64(previous),
+                Int64(current)
+            )
+        )
+        .font(AppTheme.warmPaperMetaEmphasis.weight(.semibold))
+        .foregroundStyle(AppTheme.reviewTextPrimary)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(accent.opacity(0.16))
+        .clipShape(Capsule())
+    }
+}
+
+private struct ReviewThemeDrilldownPayload: Identifiable {
+    let label: String
+    let sectionTitle: String
+    let subtitle: String
+    let trend: ReviewThemeTrend?
+    let evidence: [ReviewThemeSurfaceEvidence]
+
+    var id: String {
+        "\(sectionTitle)|\(label)"
+    }
+}
+
+private struct MostRecurringBrowsePayload: Identifiable {
+    let id = UUID()
+    let themes: [ReviewMostRecurringTheme]
+    let reviewWeekEnd: Date
+    let calendar: Calendar
+}
+
+private struct TrendingBrowsePayload: Identifiable {
+    let id = UUID()
+    let buckets: ReviewTrendingBuckets
+}
+
+private struct MostRecurringBrowseSheetContainer: View {
+    let themes: [ReviewMostRecurringTheme]
+    let reviewWeekEnd: Date
+    let calendar: Calendar
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            MostRecurringThemesBrowseView(themes: themes, reviewWeekEnd: reviewWeekEnd, calendar: calendar)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button(String(localized: "Done")) {
+                            dismiss()
+                        }
+                        .accessibilityIdentifier("MostRecurringBrowseSheetDone")
+                    }
+                }
+        }
+    }
+}
+
+private struct TrendingBrowseSheetContainer: View {
+    let buckets: ReviewTrendingBuckets
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            TrendingThemesBrowseView(buckets: buckets)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button(String(localized: "Done")) {
+                            dismiss()
+                        }
+                        .accessibilityIdentifier("TrendingBrowseSheetDone")
+                    }
+                }
+        }
+    }
+}
+
+private struct MostRecurringThemesBrowseView: View {
+    let themes: [ReviewMostRecurringTheme]
+    let reviewWeekEnd: Date
+    let calendar: Calendar
+    @State private var viewingWindow: MostRecurringBrowseWindow = .fourWeeks
+
+    var body: some View {
+        List {
+            Section {
+                Picker(String(localized: "Viewing window"), selection: $viewingWindow) {
+                    ForEach(MostRecurringBrowseWindow.allCases) { option in
+                        Text(option.title).tag(option)
+                    }
+                }
+                .pickerStyle(.menu)
+                .accessibilityIdentifier("MostRecurringBrowseWindowPicker")
+            }
+
+            if !gratitudeRows.isEmpty {
+                recurringSection(
+                    section: .gratitudes,
+                    title: String(localized: "Gratitudes"),
+                    rows: gratitudeRows
+                )
+            }
+            if !needsRows.isEmpty {
+                recurringSection(
+                    section: .needs,
+                    title: String(localized: "Needs"),
+                    rows: needsRows
+                )
+            }
+            if !peopleRows.isEmpty {
+                recurringSection(
+                    section: .people,
+                    title: String(localized: "People in Mind"),
+                    rows: peopleRows
+                )
+            }
+        }
+        .scrollContentBackground(.hidden)
+        .background(AppTheme.reviewBackground)
+        .navigationTitle(String(localized: "Most recurring"))
+    }
+
+    private func recurringSection(
+        section: ReviewThemeSourceCategory,
+        title: String,
+        rows: [MostRecurringBrowseRowModel]
+    ) -> some View {
+        Section {
+            ForEach(rows) { row in
+                NavigationLink {
+                    ThemeDrilldownView(
+                        payload: drilldownPayload(for: row),
+                        includeDoneButton: false
+                    )
+                } label: {
+                    HStack(alignment: .center, spacing: 10) {
+                        Text(row.label)
+                            .font(AppTheme.warmPaperMeta)
+                            .foregroundStyle(AppTheme.reviewTextPrimary)
+                            .lineLimit(2)
+                        Spacer(minLength: 8)
+                        ReviewCountBadge(
+                            value: row.mentionCount.formatted(),
+                            accent: AppTheme.reviewAccent
+                        )
+                    }
+                }
+                .accessibilityIdentifier("MostRecurringThemeBrowseRow.\(row.accessibilityId)")
+            }
+        } header: {
+            Text(title)
+                .textCase(nil)
+                .accessibilityIdentifier("MostRecurringBrowseSection.\(section.rawValue)")
+        }
+    }
+
+    private var viewingDateRange: Range<Date> {
+        let daysBack = viewingWindow.weeks * 7
+        let rawLower = calendar.date(byAdding: .day, value: -daysBack, to: reviewWeekEnd) ?? reviewWeekEnd
+        let lowerBound = calendar.startOfDay(for: rawLower)
+        return lowerBound..<reviewWeekEnd
+    }
+
+    private var gratitudeRows: [MostRecurringBrowseRowModel] {
+        rows(for: .gratitudes)
+    }
+
+    private var needsRows: [MostRecurringBrowseRowModel] {
+        rows(for: .needs)
+    }
+
+    private var peopleRows: [MostRecurringBrowseRowModel] {
+        rows(for: .people)
+    }
+
+    private func rows(for section: ReviewThemeSourceCategory) -> [MostRecurringBrowseRowModel] {
+        themes.compactMap { theme in
+            let windowed = theme.evidence.filter { evidence in
+                evidence.source == section
+                    && viewingDateRange.contains(calendar.startOfDay(for: evidence.entryDate))
+            }
+            guard !windowed.isEmpty else { return nil }
+            let sortedEvidence = windowed.sorted { lhs, rhs in
+                if lhs.entryDate != rhs.entryDate {
+                    return lhs.entryDate > rhs.entryDate
+                }
+                return lhs.content.localizedCaseInsensitiveCompare(rhs.content) == .orderedAscending
+            }
+            return MostRecurringBrowseRowModel(
+                label: theme.label,
+                themeId: theme.id,
+                section: section,
+                mentionCount: windowed.count,
+                evidence: sortedEvidence
+            )
+        }
+        .sorted {
+            if $0.mentionCount != $1.mentionCount {
+                return $0.mentionCount > $1.mentionCount
+            }
+            return $0.label.localizedCaseInsensitiveCompare($1.label) == .orderedAscending
+        }
+    }
+
+    private func drilldownPayload(for row: MostRecurringBrowseRowModel) -> ReviewThemeDrilldownPayload {
+        ReviewThemeDrilldownPayload(
+            label: row.label,
+            sectionTitle: String(localized: "Most recurring"),
+            subtitle: String(
+                format: String(localized: "Showed up %1$lld times in the last %2$lld weeks."),
+                Int64(row.mentionCount),
+                Int64(viewingWindow.weeks)
+            ),
+            trend: nil,
+            evidence: row.evidence
+        )
+    }
+}
+
+private struct MostRecurringBrowseRowModel: Identifiable {
+    let label: String
+    let themeId: String
+    let section: ReviewThemeSourceCategory
+    let mentionCount: Int
+    let evidence: [ReviewThemeSurfaceEvidence]
+
+    var id: String { "\(themeId)|\(section.rawValue)" }
+
+    var accessibilityId: String {
+        "\(sanitizedThemeId(themeId)).\(section.rawValue)"
+    }
+
+    private func sanitizedThemeId(_ value: String) -> String {
+        let cleaned = value
+            .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+            .replacingOccurrences(of: "[^a-zA-Z0-9]+", with: "-", options: .regularExpression)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "-"))
+        if cleaned.isEmpty {
+            return "theme"
+        }
+        return cleaned
+    }
+}
+
+private enum MostRecurringBrowseWindow: Int, CaseIterable, Identifiable {
+    case twoWeeks = 2
+    case fourWeeks = 4
+    case eightWeeks = 8
+
+    var id: Int { rawValue }
+
+    var weeks: Int { rawValue }
+
+    var title: String {
+        switch self {
+        case .twoWeeks:
+            return String(localized: "2 weeks")
+        case .fourWeeks:
+            return String(localized: "4 weeks")
+        case .eightWeeks:
+            return String(localized: "8 weeks")
+        }
+    }
+}
+
+private struct TrendingThemesBrowseView: View {
+    let buckets: ReviewTrendingBuckets
+
+    var body: some View {
+        List {
+            if !buckets.newThemes.isEmpty {
+                trendingSection(title: String(localized: "New"), themes: buckets.newThemes)
+            }
+            if !buckets.upThemes.isEmpty {
+                trendingSection(title: String(localized: "Up"), themes: buckets.upThemes)
+            }
+            if !buckets.downThemes.isEmpty {
+                trendingSection(title: String(localized: "Down"), themes: buckets.downThemes)
+            }
+        }
+        .scrollContentBackground(.hidden)
+        .background(AppTheme.reviewBackground)
+        .navigationTitle(String(localized: "Trending"))
+    }
+
+    private func trendingSection(title: String, themes: [ReviewMovementTheme]) -> some View {
+        Section {
+            ForEach(themes) { theme in
+                NavigationLink {
+                    ThemeDrilldownView(payload: drilldownPayload(for: theme), includeDoneButton: false)
+                } label: {
+                    HStack(alignment: .center, spacing: 10) {
+                        Text(theme.label)
+                            .font(AppTheme.warmPaperMeta)
+                            .foregroundStyle(AppTheme.reviewTextPrimary)
+                            .lineLimit(2)
+                        Spacer(minLength: 8)
+                        ReviewTrendBadge(trend: theme.trend)
+                        ReviewTrendCountCapsule(
+                            previous: theme.previousWeekCount,
+                            current: theme.currentWeekCount,
+                            accent: movementAccent(theme.trend)
+                        )
+                    }
+                }
+                .accessibilityIdentifier("TrendingThemeBrowseRow.\(theme.id)")
+            }
+        } header: {
+            Text(title)
+                .textCase(nil)
+        }
+    }
+
+    private func movementAccent(_ trend: ReviewThemeTrend) -> Color {
+        switch trend {
+        case .new:
+            return .blue
+        case .rising:
+            return .green
+        case .down:
+            return .orange
+        case .stable:
+            return AppTheme.reviewStandardBorder
+        }
+    }
+
+    private func drilldownPayload(for theme: ReviewMovementTheme) -> ReviewThemeDrilldownPayload {
+        ReviewThemeDrilldownPayload(
+            label: theme.label,
+            sectionTitle: String(localized: "Trending"),
+            subtitle: String(
+                format: String(localized: "Last 7 days %1$lld, prior 7 days %2$lld."),
+                Int64(theme.currentWeekCount),
+                Int64(theme.previousWeekCount)
+            ),
+            trend: theme.trend,
+            evidence: theme.evidence
+        )
+    }
+}
+
+private struct ThemeDrilldownSheet: View {
+    let payload: ReviewThemeDrilldownPayload
+
+    var body: some View {
+        ThemeDrilldownView(payload: payload, includeDoneButton: true)
+    }
+}
+
+private struct ThemeDrilldownView: View {
+    let payload: ReviewThemeDrilldownPayload
+    let includeDoneButton: Bool
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -836,18 +1398,16 @@ private struct MostRecurringThemeDetailSheet: View {
             List {
                 Section {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(theme.label)
+                        Text(payload.label)
                             .font(AppTheme.warmPaperHeader)
                             .foregroundStyle(AppTheme.reviewTextPrimary)
-                            .accessibilityIdentifier("MostRecurringThemeDetailTitle")
-                        Text(
-                            String(
-                                format: String(localized: "Showed up %1$lld times."),
-                                Int64(theme.totalCount)
-                            )
-                        )
-                        .font(AppTheme.warmPaperBody)
-                        .foregroundStyle(AppTheme.reviewTextMuted)
+                            .accessibilityIdentifier("ThemeDrilldownTitle")
+                        if let trend = payload.trend {
+                            ReviewTrendBadge(trend: trend)
+                        }
+                        Text(payload.subtitle)
+                            .font(AppTheme.warmPaperBody)
+                            .foregroundStyle(AppTheme.reviewTextMuted)
                     }
                     .padding(.vertical, 2)
                 } header: {
@@ -858,21 +1418,34 @@ private struct MostRecurringThemeDetailSheet: View {
                 }
 
                 Section {
-                    ForEach(Array(theme.evidence.enumerated()), id: \.offset) { _, evidence in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(evidence.date.formatted(date: .abbreviated, time: .omitted))
-                                .font(AppTheme.warmPaperBody.weight(.semibold))
+                    ForEach(payload.evidence) { evidence in
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                                Text(localizedSourceLabel(evidence.source))
+                                    .font(AppTheme.warmPaperMetaEmphasis.weight(.semibold))
+                                    .foregroundStyle(AppTheme.reviewTextPrimary)
+                                Spacer(minLength: 6)
+                                Text(evidence.entryDate.formatted(date: .abbreviated, time: .omitted))
+                                    .font(AppTheme.warmPaperMeta)
+                                    .foregroundStyle(AppTheme.reviewTextMuted)
+                            }
+                            Text(evidence.content)
+                                .font(AppTheme.warmPaperBody)
                                 .foregroundStyle(AppTheme.reviewTextPrimary)
-                            Text(
-                                evidence.sources.map(localizedSourceLabel).joined(separator: ", ")
-                            )
-                            .font(AppTheme.warmPaperMeta)
-                            .foregroundStyle(AppTheme.reviewTextMuted)
+                                .fixedSize(horizontal: false, vertical: true)
+                            NavigationLink {
+                                JournalScreen(entryDate: evidence.entryDate)
+                            } label: {
+                                Text(String(localized: "Open journal entry"))
+                                    .font(AppTheme.warmPaperMetaEmphasis.weight(.semibold))
+                                    .foregroundStyle(AppTheme.reviewAccent)
+                            }
+                            .buttonStyle(.plain)
                         }
                         .padding(.vertical, 2)
                     }
                 } header: {
-                    Text(String(localized: "Entries and categories"))
+                    Text(String(localized: "Matching writing surfaces"))
                         .font(AppTheme.warmPaperMeta)
                         .foregroundStyle(AppTheme.reviewTextMuted)
                         .textCase(nil)
@@ -882,9 +1455,11 @@ private struct MostRecurringThemeDetailSheet: View {
             .background(AppTheme.reviewBackground)
             .navigationTitle(String(localized: "Theme details"))
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(String(localized: "Done")) {
-                        dismiss()
+                if includeDoneButton {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button(String(localized: "Done")) {
+                            dismiss()
+                        }
                     }
                 }
             }
