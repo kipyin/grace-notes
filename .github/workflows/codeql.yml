@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  CI_SIMULATOR_PRO: platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2
+  CI_SIMULATOR_PRO: platform=iOS Simulator,name=iPhone 17 Pro,OS=latest
 
 jobs:
   gate:

@@ -27,7 +27,7 @@ This project **requires macOS + Xcode 26+** to build, run, and test with the **d
 
 Prefer **`make`** from the repo root so destinations and flags stay aligned with `Makefile` (`make ci`, `make test`, `make test-matrix`). Destinations are validated/resolved by `Scripts/simulator_destination.py` (Python 3). For copy-paste `platform=…` strings, run `make list-simulator-destinations`.
 
-CI uses **GitHub Actions** with **`make lint`** + **`make ci-build`** on PRs to **`main`**, **`make ci-full`** on **`full-ci`**-labeled PRs and on pushes to **`main`** (that post-merge job is skipped when the push is the merge commit of a PR merged to **`main`** with label **`no-ci`**). Runners select **Xcode 26.3** and use **iPhone 17 Pro @ iOS 26.2** plus **iPhone SE (3rd generation) @ iOS 18.5** (`CI_SIMULATOR_PRO` / `CI_SIMULATOR_XR`) without downloading simulator platforms in workflow steps. See **CI (GitHub Actions)** in [`README.md`](README.md).
+CI uses **GitHub Actions** with **`make lint`** + **`make ci-build`** on PRs to **`main`**, **`make ci-full`** on **`full-ci`**-labeled PRs and on pushes to **`main`** (that post-merge job is skipped when the push is the merge commit of a PR merged to **`main`** with label **`no-ci`**). Runners select **Xcode 26.3** and use **iPhone 17 Pro @ `OS=latest`** plus **iPhone SE (3rd generation) @ iOS 18.5** (`CI_SIMULATOR_PRO` / `CI_SIMULATOR_XR`) without downloading simulator platforms in workflow steps. See **CI (GitHub Actions)** in [`README.md`](README.md).
 
 ```bash
 make ci
