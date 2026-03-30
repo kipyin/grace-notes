@@ -43,6 +43,15 @@ When work spans sessions, end with a **short** summary: what you concluded, what
 
 Prefer capturing anything load-bearing in the **GitHub PR or linked issue** so the next contributor does not depend on chat history.
 
+## Optional process skills
+
+These are **not** named handoff roles like Strategist or QA Reviewer; they are optional workflows for intent capture and post-delivery structure review:
+
+- **`interview`** — `.agents/skills/interview/SKILL.md` — clarify requirements before large or ambiguous work.
+- **`simplify`** — `.agents/skills/simplify/SKILL.md` — assess implementation shape after delivery (PR diff or git range); does not block merge.
+
+Use the same spirit of clear outputs and handoffs as the sections above, without duplicating the full role contract when a skill file already defines its workflow.
+
 ## Release Quality Gates
 
 - No merge recommendation without an explicit pass/fail checklist.

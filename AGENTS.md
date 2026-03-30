@@ -65,6 +65,8 @@ brew install swiftlint
 
 **Specialist skills:** `.agents/skills/` holds optional roles (Strategist, Architect, Builder, and others). Attach or follow them **only** when work is ambiguous, high-risk, or you explicitly want that lens — not as a default pipeline. For **plain-language explanations** of code or fixes with **user-visible impact** first (not diff walkthroughs), use `.agents/skills/explain/SKILL.md`.
 
+**Process skills (optional, high-signal):** Lock requirements before a large or ambiguous change with `.agents/skills/interview/SKILL.md` (user-invokable; agents may also use it when a task is non-trivial). After implementation is verified, review code shape and optional follow-ups with `.agents/skills/simplify/SKILL.md`. Neither is required for small, obvious edits.
+
 **Handoffs:** Put anything the next person needs in the **PR** or **linked issue** (description or comments). This repo does not use a separate handoff folder.
 
 ## Role index (optional specialists)
@@ -82,6 +84,11 @@ Behavior for each role lives in `.agents/skills/`. Shared vocabulary and quality
 | Release Manager | `.agents/skills/vc/SKILL.md` |
 | QA Reviewer | `.agents/skills/qa-review/SKILL.md` |
 | Test Lead | `.agents/skills/test/SKILL.md` |
+
+| Process | Skill file |
+|---------|------------|
+| Interview (pre-implementation gate) | `.agents/skills/interview/SKILL.md` |
+| Simplify (post-implementation code shape) | `.agents/skills/simplify/SKILL.md` |
 
 `housekeep` is **deprecated** (see `.agents/skills/housekeep/SKILL.md`).
 
