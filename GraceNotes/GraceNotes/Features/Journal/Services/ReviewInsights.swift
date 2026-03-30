@@ -46,9 +46,20 @@ enum ReviewThemeTrend: String, Equatable, Hashable, Sendable, Codable {
     case stable
 }
 
+/// Backward-compatibility payload for previously cached evidence rows.
 struct ReviewThemeEvidence: Equatable, Hashable, Sendable, Codable {
     let date: Date
     let sources: [ReviewThemeSourceCategory]
+}
+
+struct ReviewThemeSurfaceEvidence: Equatable, Hashable, Sendable, Codable, Identifiable {
+    let entryDate: Date
+    let source: ReviewThemeSourceCategory
+    let content: String
+
+    var id: String {
+        "\(Int(entryDate.timeIntervalSince1970))|\(source.rawValue)|\(content)"
+    }
 }
 
 struct ReviewMostRecurringTheme: Equatable, Hashable, Sendable, Codable, Identifiable {
@@ -58,9 +69,142 @@ struct ReviewMostRecurringTheme: Equatable, Hashable, Sendable, Codable, Identif
     let currentWeekCount: Int
     let previousWeekCount: Int
     let trend: ReviewThemeTrend
-    let evidence: [ReviewThemeEvidence]
+    let evidence: [ReviewThemeSurfaceEvidence]
 
     var id: String { label }
+
+    private enum CodingKeys: String, CodingKey {
+        case label
+        case totalCount
+        case dayCount
+        case currentWeekCount
+        case previousWeekCount
+        case trend
+        case evidence
+    }
+
+    init(
+        label: String,
+        totalCount: Int,
+        dayCount: Int,
+        currentWeekCount: Int,
+        previousWeekCount: Int,
+        trend: ReviewThemeTrend,
+        evidence: [ReviewThemeSurfaceEvidence]
+    ) {
+        self.label = label
+        self.totalCount = totalCount
+        self.dayCount = dayCount
+        self.currentWeekCount = currentWeekCount
+        self.previousWeekCount = previousWeekCount
+        self.trend = trend
+        self.evidence = evidence
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        label = try container.decode(String.self, forKey: .label)
+        totalCount = try container.decode(Int.self, forKey: .totalCount)
+        dayCount = try container.decode(Int.self, forKey: .dayCount)
+        currentWeekCount = try container.decode(Int.self, forKey: .currentWeekCount)
+        previousWeekCount = try container.decode(Int.self, forKey: .previousWeekCount)
+        trend = try container.decodeIfPresent(ReviewThemeTrend.self, forKey: .trend)
+            ?? Self.resolveTrend(currentWeekCount: currentWeekCount, previousWeekCount: previousWeekCount)
+        if let structuredEvidence = try container.decodeIfPresent(
+            [ReviewThemeSurfaceEvidence].self,
+            forKey: .evidence
+        ) {
+            evidence = structuredEvidence
+        } else if let legacyEvidence = try container.decodeIfPresent([ReviewThemeEvidence].self, forKey: .evidence) {
+            evidence = legacyEvidence.flatMap { row in
+                row.sources.map { source in
+                    ReviewThemeSurfaceEvidence(entryDate: row.date, source: source, content: "")
+                }
+            }
+        } else {
+            evidence = []
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(label, forKey: .label)
+        try container.encode(totalCount, forKey: .totalCount)
+        try container.encode(dayCount, forKey: .dayCount)
+        try container.encode(currentWeekCount, forKey: .currentWeekCount)
+        try container.encode(previousWeekCount, forKey: .previousWeekCount)
+        try container.encode(trend, forKey: .trend)
+        try container.encode(evidence, forKey: .evidence)
+    }
+
+    private static func resolveTrend(currentWeekCount: Int, previousWeekCount: Int) -> ReviewThemeTrend {
+        if previousWeekCount == 0, currentWeekCount > 0 {
+            return .new
+        }
+        if currentWeekCount > previousWeekCount {
+            return .rising
+        }
+        if currentWeekCount < previousWeekCount {
+            return .down
+        }
+        return .stable
+    }
+}
+
+struct ReviewMovementTheme: Equatable, Hashable, Sendable, Codable, Identifiable {
+    let label: String
+    let currentWeekCount: Int
+    let previousWeekCount: Int
+    let trend: ReviewThemeTrend
+    let totalCount: Int
+    let evidence: [ReviewThemeSurfaceEvidence]
+
+    var id: String { label }
+
+    /// Ordering for trending rows: largest week-over-week change first, then current count and label.
+    static func trendingSort(lhs: ReviewMovementTheme, rhs: ReviewMovementTheme) -> Bool {
+        let lhsDelta = abs(lhs.currentWeekCount - lhs.previousWeekCount)
+        let rhsDelta = abs(rhs.currentWeekCount - rhs.previousWeekCount)
+        if lhsDelta != rhsDelta {
+            return lhsDelta > rhsDelta
+        }
+        if lhs.currentWeekCount != rhs.currentWeekCount {
+            return lhs.currentWeekCount > rhs.currentWeekCount
+        }
+        if lhs.totalCount != rhs.totalCount {
+            return lhs.totalCount > rhs.totalCount
+        }
+        return lhs.label.localizedCaseInsensitiveCompare(rhs.label) == .orderedAscending
+    }
+}
+
+/// Trending themes grouped for browse UI: **New**, **Up** (rising), **Down**.
+struct ReviewTrendingBuckets: Equatable, Sendable, Codable {
+    let newThemes: [ReviewMovementTheme]
+    let upThemes: [ReviewMovementTheme]
+    let downThemes: [ReviewMovementTheme]
+
+    var flattened: [ReviewMovementTheme] {
+        newThemes + upThemes + downThemes
+    }
+
+    init(newThemes: [ReviewMovementTheme], upThemes: [ReviewMovementTheme], downThemes: [ReviewMovementTheme]) {
+        self.newThemes = newThemes
+        self.upThemes = upThemes
+        self.downThemes = downThemes
+    }
+
+    init(bucketing flat: [ReviewMovementTheme]) {
+        newThemes = flat.filter { $0.trend == .new }.sorted(by: ReviewMovementTheme.trendingSort)
+        upThemes = flat.filter { $0.trend == .rising }.sorted(by: ReviewMovementTheme.trendingSort)
+        downThemes = flat.filter { $0.trend == .down }.sorted(by: ReviewMovementTheme.trendingSort)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case newThemes = "new"
+        case upThemes = "up"
+        case downThemes = "down"
+    }
 }
 
 struct ReviewDayActivity: Equatable, Hashable, Sendable, Codable {
@@ -204,6 +348,9 @@ struct ReviewWeekStats: Equatable, Sendable, Codable {
     let rhythmHistory: [ReviewDayActivity]?
     let sectionTotals: ReviewWeekSectionTotals
     let mostRecurringThemes: [ReviewMostRecurringTheme]
+    let movementThemes: [ReviewMovementTheme]
+    /// Grouped trending rows (same models as ``movementThemes``, which is ``trendingBuckets.flattened``).
+    let trendingBuckets: ReviewTrendingBuckets
 
     init(
         reflectionDays: Int,
@@ -212,7 +359,9 @@ struct ReviewWeekStats: Equatable, Sendable, Codable {
         activity: [ReviewDayActivity],
         rhythmHistory: [ReviewDayActivity]?,
         sectionTotals: ReviewWeekSectionTotals,
-        mostRecurringThemes: [ReviewMostRecurringTheme] = []
+        mostRecurringThemes: [ReviewMostRecurringTheme] = [],
+        movementThemes: [ReviewMovementTheme] = [],
+        trendingBuckets: ReviewTrendingBuckets? = nil
     ) {
         self.reflectionDays = reflectionDays
         self.meaningfulEntryCount = meaningfulEntryCount
@@ -221,6 +370,13 @@ struct ReviewWeekStats: Equatable, Sendable, Codable {
         self.rhythmHistory = rhythmHistory
         self.sectionTotals = sectionTotals
         self.mostRecurringThemes = mostRecurringThemes
+        if let buckets = trendingBuckets {
+            self.trendingBuckets = buckets
+            self.movementThemes = buckets.flattened
+        } else {
+            self.movementThemes = movementThemes
+            self.trendingBuckets = ReviewTrendingBuckets(bucketing: movementThemes)
+        }
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -231,6 +387,8 @@ struct ReviewWeekStats: Equatable, Sendable, Codable {
         case rhythmHistory
         case sectionTotals
         case mostRecurringThemes
+        case movementThemes
+        case trendingBuckets
     }
 
     init(from decoder: Decoder) throws {
@@ -243,6 +401,15 @@ struct ReviewWeekStats: Equatable, Sendable, Codable {
         sectionTotals = try container.decode(ReviewWeekSectionTotals.self, forKey: .sectionTotals)
         mostRecurringThemes =
             try container.decodeIfPresent([ReviewMostRecurringTheme].self, forKey: .mostRecurringThemes) ?? []
+        let decodedMovement =
+            try container.decodeIfPresent([ReviewMovementTheme].self, forKey: .movementThemes) ?? []
+        if let buckets = try container.decodeIfPresent(ReviewTrendingBuckets.self, forKey: .trendingBuckets) {
+            trendingBuckets = buckets
+            movementThemes = buckets.flattened
+        } else {
+            movementThemes = decodedMovement
+            trendingBuckets = ReviewTrendingBuckets(bucketing: decodedMovement)
+        }
     }
 
     func encode(to encoder: Encoder) throws {
@@ -254,6 +421,8 @@ struct ReviewWeekStats: Equatable, Sendable, Codable {
         try container.encodeIfPresent(rhythmHistory, forKey: .rhythmHistory)
         try container.encode(sectionTotals, forKey: .sectionTotals)
         try container.encode(mostRecurringThemes, forKey: .mostRecurringThemes)
+        try container.encode(movementThemes, forKey: .movementThemes)
+        try container.encode(trendingBuckets, forKey: .trendingBuckets)
     }
 }
 
