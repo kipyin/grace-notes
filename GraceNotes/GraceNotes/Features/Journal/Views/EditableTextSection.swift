@@ -11,6 +11,8 @@ struct EditableTextSection: View {
     let minHeight: CGFloat
     let onboardingState: JournalOnboardingSectionState
     let inputFocus: FocusState<Bool>.Binding?
+    /// Called when a newline is inserted (Return) so the parent can scroll multiline editors above the keyboard.
+    let onMultilineLineAdded: (() -> Void)?
 
     init(
         title: String,
@@ -20,7 +22,8 @@ struct EditableTextSection: View {
         text: Binding<String>,
         minHeight: CGFloat = 120,
         onboardingState: JournalOnboardingSectionState = .standard,
-        inputFocus: FocusState<Bool>.Binding? = nil
+        inputFocus: FocusState<Bool>.Binding? = nil,
+        onMultilineLineAdded: (() -> Void)? = nil
     ) {
         self.title = title
         self.guidanceTitle = guidanceTitle
@@ -30,6 +33,7 @@ struct EditableTextSection: View {
         self.minHeight = minHeight
         self.onboardingState = onboardingState
         self.inputFocus = inputFocus
+        self.onMultilineLineAdded = onMultilineLineAdded
     }
 
     var body: some View {
@@ -65,6 +69,14 @@ struct EditableTextSection: View {
                 .font(AppTheme.warmPaperHeader)
                 .foregroundStyle(onboardingState.titleColor(palette: palette))
             textEditor
+                .onChange(of: text) { oldValue, newValue in
+                    guard let onMultilineLineAdded else { return }
+                    let oldCount = oldValue.filter { $0 == "\n" }.count
+                    let newCount = newValue.filter { $0 == "\n" }.count
+                    if newCount > oldCount {
+                        onMultilineLineAdded()
+                    }
+                }
         }
         .journalOnboardingSectionStyle(onboardingState)
     }
