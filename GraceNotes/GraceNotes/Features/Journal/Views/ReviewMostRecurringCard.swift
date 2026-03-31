@@ -16,7 +16,8 @@ struct ReviewMostRecurringCard: View {
     }
 
     private var shouldShowCard: Bool {
-        if isLoading, insights == nil {
+        // Keep the panel mounted while a refresh is in flight so cached empty snapshots do not hide the title.
+        if isLoading {
             return true
         }
         if let insights, !insights.weekStats.mostRecurringThemes.isEmpty {
@@ -160,9 +161,9 @@ struct ReviewMostRecurringCard: View {
                     InsightsPlaceholderBar(widthFraction: spec.0, height: spec.1)
                 }
             }
+            .modifier(InsightsCalmLoadingBreath(active: !reduceMotion))
+            // Keep the panel title in the accessibility tree (and visible to UI tests) while hiding inert bars.
+            .accessibilityHidden(true)
         }
-        .modifier(InsightsCalmLoadingBreath(active: !reduceMotion))
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(String(localized: "Loading weekly insights."))
     }
 }

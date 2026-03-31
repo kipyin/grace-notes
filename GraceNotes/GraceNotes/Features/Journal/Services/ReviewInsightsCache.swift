@@ -5,6 +5,13 @@ import Foundation
 ///
 /// Cache entries are keyed by **week start + week-boundary preference** so a boundary change cannot hydrate
 /// aggregates that were computed under a different `Calendar.firstWeekday`.
+///
+/// **Codable evolution:** Payloads encode nested models (including ``ReviewWeekStats``) with `JSONEncoder`.
+/// New ``ReviewWeekStats`` keys such as `historySectionTotals` and `historyCompletionMix` decode with
+/// `decodeIfPresent`; when absent (caches written before those fields existed), decoding substitutes **empty**
+/// history rollups (zero counts). That avoids failing the whole payload, but history UI should treat all-zero
+/// history as **possibly stale** until `ReviewInsightsProvider` finishes a fresh ``generateInsights`` pass and
+/// `storeIfEligible` persists updated stats—same pattern as optional `rhythmHistory` on older blobs.
 actor ReviewInsightsCache {
     private static let payloadKey = "GraceNotes.reviewInsightsByWeek.v2"
     /// Obsolete payload from builds that keyed only by week start; stripped on load to avoid stale hydration.

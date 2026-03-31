@@ -139,6 +139,74 @@ final class ReviewInsightsCacheTests: XCTestCase {
         XCTAssertEqual(decoded, insights)
     }
 
+    func test_ReviewWeekStats_JSON_roundTrip_preservesHistoryRollups() throws {
+        let weekStart = date(year: 2026, month: 3, day: 12)
+        let stats = sampleWeekStats(weekStart: weekStart)
+        let data = try JSONEncoder().encode(stats)
+        let decoded = try JSONDecoder().decode(ReviewWeekStats.self, from: data)
+        XCTAssertEqual(decoded.historySectionTotals, stats.historySectionTotals)
+        XCTAssertEqual(decoded.historyCompletionMix, stats.historyCompletionMix)
+        XCTAssertEqual(decoded, stats)
+    }
+
+    func test_cache_storeAndLoad_preservesHistoryRollupsOnWeekStats() async {
+        let weekStart = date(year: 2026, month: 3, day: 12)
+        let insights = sampleInsights(weekStart: weekStart)
+
+        await cache.storeIfEligible(
+            insights,
+            calendar: calendar,
+            weekBoundaryPreferenceRawValue: defaultWeekBoundaryRaw
+        )
+        let loaded = await cache.insights(
+            forWeekStart: weekStart,
+            calendar: calendar,
+            weekBoundaryPreferenceRawValue: defaultWeekBoundaryRaw
+        )
+
+        XCTAssertEqual(loaded?.weekStats.historySectionTotals, insights.weekStats.historySectionTotals)
+        XCTAssertEqual(loaded?.weekStats.historyCompletionMix, insights.weekStats.historyCompletionMix)
+    }
+
+    func test_ReviewWeekStats_decodesOmittedHistoryRollupsAsZeros() throws {
+        let json = """
+        {
+          "reflectionDays": 2,
+          "meaningfulEntryCount": 2,
+          "completionMix": {
+            "emptyDays": 0,
+            "startedDays": 1,
+            "growingDays": 0,
+            "balancedDays": 1,
+            "fullDays": 0
+          },
+          "activity": [],
+          "sectionTotals": {
+            "gratitudeMentions": 2,
+            "needMentions": 1,
+            "peopleMentions": 0
+          },
+          "mostRecurringThemes": [],
+          "movementThemes": [],
+          "trendingBuckets": { "new": [], "up": [], "down": [] }
+        }
+        """
+        let data = try XCTUnwrap(json.data(using: .utf8))
+        let stats = try JSONDecoder().decode(ReviewWeekStats.self, from: data)
+        XCTAssertEqual(stats.sectionTotals.gratitudeMentions, 2)
+        XCTAssertEqual(stats.historySectionTotals.gratitudeMentions, 0)
+        XCTAssertEqual(stats.historyCompletionMix.emptyDays, 0)
+        XCTAssertEqual(stats.historyCompletionMix.startedDays, 0)
+        XCTAssertEqual(stats.historyCompletionMix.growingDays, 0)
+        XCTAssertEqual(stats.historyCompletionMix.balancedDays, 0)
+        XCTAssertEqual(stats.historyCompletionMix.fullDays, 0)
+    }
+
+    func test_ReviewWeekCompletionMix_totalDaysRepresented_sumsBuckets() {
+        let mix = ReviewWeekCompletionMix(emptyDays: 2, startedDays: 1, growingDays: 3, balancedDays: 0, fullDays: 4)
+        XCTAssertEqual(mix.totalDaysRepresented, 10)
+    }
+
     func test_ReviewWeekCompletionMix_decodesLegacySoilSeedKeyedPayload() throws {
         let json = """
         {"soilDays":1,"seedDays":2,"ripeningDays":3,"harvestDays":4,"abundanceDays":5}
@@ -290,6 +358,18 @@ final class ReviewInsightsCacheTests: XCTestCase {
                 gratitudeMentions: 2,
                 needMentions: 1,
                 peopleMentions: 0
+            ),
+            historySectionTotals: ReviewWeekSectionTotals(
+                gratitudeMentions: 5,
+                needMentions: 3,
+                peopleMentions: 1
+            ),
+            historyCompletionMix: ReviewWeekCompletionMix(
+                emptyDays: 1,
+                startedDays: 0,
+                growingDays: 2,
+                balancedDays: 0,
+                fullDays: 1
             )
         )
     }

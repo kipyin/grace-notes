@@ -247,6 +247,22 @@
         }
       }
     },
+    "%1$@, %2$d" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$d"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@，%2$d"
+          }
+        }
+      }
+    },
     "%1$@. Gratitudes %2$d, Needs %3$d, People in Mind %4$d." : {
       "localizations" : {
         "en" : {
@@ -2398,6 +2414,22 @@
         }
       }
     },
+    "Each row counts a day with a saved entry, not every calendar day in the week." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Each row counts a day with a saved entry, not every calendar day in the week."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每一行表示本周有一天保存了日记条目，并非本周的每一个日历日。"
+          }
+        }
+      }
+    },
     "Editing this sentence. Press Done to save, or tap outside the text field." : {
       "localizations" : {
         "en" : {
@@ -2827,6 +2859,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "感恩的事更突出"
+          }
+        }
+      }
+    },
+    "Growth stages" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Growth stages"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完成度分布"
           }
         }
       }
@@ -3294,6 +3342,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "把节奏留在手边"
+          }
+        }
+      }
+    },
+    "Keep writing to see trends for this calendar week." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep writing to see trends for this calendar week."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续记录，才能看到这一周的趋势。"
           }
         }
       }
@@ -4591,6 +4655,7 @@
       }
     },
     "Review" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4602,6 +4667,86 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "回顾"
+          }
+        }
+      }
+    },
+    "Review growth stage accessibility Balanced" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Balanced"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "均衡"
+          }
+        }
+      }
+    },
+    "Review growth stage accessibility Empty" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Empty"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空"
+          }
+        }
+      }
+    },
+    "Review growth stage accessibility Full" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Full"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已满"
+          }
+        }
+      }
+    },
+    "Review growth stage accessibility Growing" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Growing"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "成长中"
+          }
+        }
+      }
+    },
+    "Review growth stage accessibility Started" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Started"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已开始"
           }
         }
       }
@@ -4739,6 +4884,22 @@
         }
       }
     },
+    "Section activity" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Section activity"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版块统计"
+          }
+        }
+      }
+    },
     "Sections for gratitude, needs, and people-in-mind help you begin without overthinking." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4786,6 +4947,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "三个栏目里都已经有了字，也就是「起步」。再多写几条，让今天这篇记录慢慢「成长」起来。"
+          }
+        }
+      }
+    },
+    "Section Distribution" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Section Distribution"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "记录分布"
           }
         }
       }
@@ -4922,6 +5099,22 @@
         }
       }
     },
+    "Settings.todayJournalAppearance.bloomToggleA11yHint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turns on the warm Summer look for Today, including animated leaves."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开后，为今日日记启用温暖的夏日风格，包含树叶动画。"
+          }
+        }
+      }
+    },
     "Settings.todayJournalAppearance.footer" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4935,22 +5128,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "开启夏日模式后，Grace Notes 会保持夏日外观，不受设备浅色/深色模式影响。"
-          }
-        }
-      }
-    },
-    "Settings.todayJournalAppearance.bloomToggleA11yHint" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Turns on the warm Summer look for Today, including animated leaves."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打开后，为今日日记启用温暖的夏日风格，包含树叶动画。"
           }
         }
       }
@@ -5535,22 +5712,6 @@
         }
       }
     },
-    "Keep writing to see trends for this calendar week." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keep writing to see trends for this calendar week."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "继续记录，才能看到这一周的趋势。"
-          }
-        }
-      }
-    },
     "Started" : {
       "localizations" : {
         "en" : {
@@ -5891,6 +6052,7 @@
       }
     },
     "This week's theme" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6280,22 +6442,6 @@
         }
       }
     },
-    "Week starts" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Week starts"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "周起始日"
-          }
-        }
-      }
-    },
     "Week rhythm" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -6309,6 +6455,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "本周节奏"
+          }
+        }
+      }
+    },
+    "Week starts" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Week starts"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "周起始日"
           }
         }
       }

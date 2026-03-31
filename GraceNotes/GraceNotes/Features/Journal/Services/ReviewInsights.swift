@@ -248,6 +248,11 @@ struct ReviewWeekCompletionMix: Equatable, Sendable, Codable {
         balancedDays + fullDays
     }
 
+    /// Sum of the five buckets: distinct calendar days with a persisted entry in the slice used to build this mix.
+    var totalDaysRepresented: Int {
+        emptyDays + startedDays + growingDays + balancedDays + fullDays
+    }
+
     init(emptyDays: Int, startedDays: Int, growingDays: Int, balancedDays: Int, fullDays: Int) {
         self.emptyDays = emptyDays
         self.startedDays = startedDays
@@ -327,6 +332,10 @@ struct ReviewWeekStats: Equatable, Sendable, Codable {
     /// Longer chronological slice for the scrollable rhythm curve; `nil` when absent from cached payloads.
     let rhythmHistory: [ReviewDayActivity]?
     let sectionTotals: ReviewWeekSectionTotals
+    /// Section totals for all builder input entries (distinct from week-scoped ``sectionTotals``).
+    let historySectionTotals: ReviewWeekSectionTotals
+    /// Strongest completion level per calendar day across that same slice; bucket counts sum to entry-days represented.
+    let historyCompletionMix: ReviewWeekCompletionMix
     let mostRecurringThemes: [ReviewMostRecurringTheme]
     let movementThemes: [ReviewMovementTheme]
     /// Grouped trending rows (same models as ``movementThemes``, which is ``trendingBuckets.flattened``).
@@ -339,6 +348,18 @@ struct ReviewWeekStats: Equatable, Sendable, Codable {
         activity: [ReviewDayActivity],
         rhythmHistory: [ReviewDayActivity]?,
         sectionTotals: ReviewWeekSectionTotals,
+        historySectionTotals: ReviewWeekSectionTotals = ReviewWeekSectionTotals(
+            gratitudeMentions: 0,
+            needMentions: 0,
+            peopleMentions: 0
+        ),
+        historyCompletionMix: ReviewWeekCompletionMix = ReviewWeekCompletionMix(
+            emptyDays: 0,
+            startedDays: 0,
+            growingDays: 0,
+            balancedDays: 0,
+            fullDays: 0
+        ),
         mostRecurringThemes: [ReviewMostRecurringTheme] = [],
         movementThemes: [ReviewMovementTheme] = [],
         trendingBuckets: ReviewTrendingBuckets? = nil
@@ -349,6 +370,8 @@ struct ReviewWeekStats: Equatable, Sendable, Codable {
         self.activity = activity
         self.rhythmHistory = rhythmHistory
         self.sectionTotals = sectionTotals
+        self.historySectionTotals = historySectionTotals
+        self.historyCompletionMix = historyCompletionMix
         self.mostRecurringThemes = mostRecurringThemes
         if let buckets = trendingBuckets {
             self.trendingBuckets = buckets
@@ -366,6 +389,8 @@ struct ReviewWeekStats: Equatable, Sendable, Codable {
         case activity
         case rhythmHistory
         case sectionTotals
+        case historySectionTotals
+        case historyCompletionMix
         case mostRecurringThemes
         case movementThemes
         case trendingBuckets
@@ -379,6 +404,22 @@ struct ReviewWeekStats: Equatable, Sendable, Codable {
         activity = try container.decode([ReviewDayActivity].self, forKey: .activity)
         rhythmHistory = try container.decodeIfPresent([ReviewDayActivity].self, forKey: .rhythmHistory)
         sectionTotals = try container.decode(ReviewWeekSectionTotals.self, forKey: .sectionTotals)
+        if let decoded = try container.decodeIfPresent(ReviewWeekSectionTotals.self, forKey: .historySectionTotals) {
+            historySectionTotals = decoded
+        } else {
+            historySectionTotals = ReviewWeekSectionTotals(gratitudeMentions: 0, needMentions: 0, peopleMentions: 0)
+        }
+        if let decoded = try container.decodeIfPresent(ReviewWeekCompletionMix.self, forKey: .historyCompletionMix) {
+            historyCompletionMix = decoded
+        } else {
+            historyCompletionMix = ReviewWeekCompletionMix(
+                emptyDays: 0,
+                startedDays: 0,
+                growingDays: 0,
+                balancedDays: 0,
+                fullDays: 0
+            )
+        }
         mostRecurringThemes =
             try container.decodeIfPresent([ReviewMostRecurringTheme].self, forKey: .mostRecurringThemes) ?? []
         let decodedMovement =
@@ -400,6 +441,8 @@ struct ReviewWeekStats: Equatable, Sendable, Codable {
         try container.encode(activity, forKey: .activity)
         try container.encodeIfPresent(rhythmHistory, forKey: .rhythmHistory)
         try container.encode(sectionTotals, forKey: .sectionTotals)
+        try container.encode(historySectionTotals, forKey: .historySectionTotals)
+        try container.encode(historyCompletionMix, forKey: .historyCompletionMix)
         try container.encode(mostRecurringThemes, forKey: .mostRecurringThemes)
         try container.encode(movementThemes, forKey: .movementThemes)
         try container.encode(trendingBuckets, forKey: .trendingBuckets)

@@ -27,7 +27,9 @@ extension ReviewInsights {
             completionMix: mix,
             activity: days,
             rhythmHistory: days,
-            sectionTotals: sectionTotals
+            sectionTotals: sectionTotals,
+            historySectionTotals: sectionTotals,
+            historyCompletionMix: mix
         )
         let weeklyInsight = ReviewWeeklyInsight(
             pattern: .sparseFallback,

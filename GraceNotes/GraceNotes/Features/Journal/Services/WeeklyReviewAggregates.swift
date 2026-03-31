@@ -302,12 +302,12 @@ private extension WeeklyReviewAggregatesBuilder {
         referenceDate: Date
     ) -> ReviewWeekStats {
         let meaningfulEntryCount = meaningfulEntryCount(from: entries)
-        let strongestCompletionByDay = strongestCompletionByDay(from: entries, calendar: calendar)
-        let completionMix = buildCompletionMix(from: strongestCompletionByDay)
+        let weekStrongestByDay = strongestCompletionByDay(from: entries, calendar: calendar)
+        let completionMix = buildCompletionMix(from: weekStrongestByDay)
         let activity = buildDayActivity(
             currentPeriod: currentPeriod,
             entries: entries,
-            strongestCompletionByDay: strongestCompletionByDay,
+            strongestCompletionByDay: weekStrongestByDay,
             calendar: calendar
         )
         let rhythmHistory = buildRhythmHistory(
@@ -319,6 +319,16 @@ private extension WeeklyReviewAggregatesBuilder {
             gratitudeMentions: entries.reduce(0) { $0 + ($1.gratitudes ?? []).count },
             needMentions: entries.reduce(0) { $0 + ($1.needs ?? []).count },
             peopleMentions: entries.reduce(0) { $0 + ($1.people ?? []).count }
+        )
+        let sortedAllEntries = sortedEntries(allEntries)
+        let historyStrongestByDay = strongestCompletionByDay(from: sortedAllEntries, calendar: calendar)
+        // Same invariant as week ``completionMix``: bucket totals sum to calendar days with ≥1 persisted
+        // entry in the entry set used for the per-day strongest level (here, all loaded entries).
+        let historyCompletionMix = buildCompletionMix(from: historyStrongestByDay)
+        let historySectionTotals = ReviewWeekSectionTotals(
+            gratitudeMentions: sortedAllEntries.reduce(0) { $0 + ($1.gratitudes ?? []).count },
+            needMentions: sortedAllEntries.reduce(0) { $0 + ($1.needs ?? []).count },
+            peopleMentions: sortedAllEntries.reduce(0) { $0 + ($1.people ?? []).count }
         )
         let sections = buildThemeSections(
             from: sortedEntries(allEntries),
@@ -333,6 +343,8 @@ private extension WeeklyReviewAggregatesBuilder {
             activity: activity,
             rhythmHistory: rhythmHistory,
             sectionTotals: sectionTotals,
+            historySectionTotals: historySectionTotals,
+            historyCompletionMix: historyCompletionMix,
             mostRecurringThemes: sections.mostRecurring,
             trendingBuckets: sections.trending
         )
