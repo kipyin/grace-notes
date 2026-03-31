@@ -42,9 +42,18 @@ final class JournalMostRecurringUITests: XCTestCase {
     @MainActor
     private func openPastReviewPanels(_ app: XCUIApplication) {
         app.tabBars.buttons["Past"].tap()
+        let rows = mainMostRecurringRows(in: app)
+        if !rows.firstMatch.waitForExistence(timeout: 5) {
+            for _ in 0..<14 {
+                app.swipeUp()
+                if rows.firstMatch.waitForExistence(timeout: 1) {
+                    break
+                }
+            }
+        }
         XCTAssertTrue(
-            app.staticTexts["Most recurring"].waitForExistence(timeout: 25),
-            "Expected Most recurring panel in Past tab."
+            rows.firstMatch.waitForExistence(timeout: 30),
+            "Expected Most recurring theme rows in Past tab once review insights are ready."
         )
     }
 
@@ -334,7 +343,7 @@ final class JournalMostRecurringUITests: XCTestCase {
         openPastReviewPanels(app)
         scrollPastReviewUntilTrendingVisible(app)
 
-        XCTAssertTrue(app.staticTexts["Most recurring"].exists)
+        XCTAssertTrue(mainMostRecurringRows(in: app).firstMatch.exists)
         XCTAssertTrue(app.staticTexts["Trending"].exists)
     }
 }

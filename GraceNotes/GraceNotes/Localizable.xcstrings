@@ -2398,6 +2398,22 @@
         }
       }
     },
+    "Each row counts a day with a saved entry, not every calendar day in the week." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Each row counts a day with a saved entry, not every calendar day in the week."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每一行表示本周有一天保存了日记条目，并非本周的每一个日历日。"
+          }
+        }
+      }
+    },
     "Editing this sentence. Press Done to save, or tap outside the text field." : {
       "localizations" : {
         "en" : {
@@ -4735,6 +4751,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已保存到相册"
+          }
+        }
+      }
+    },
+    "Section activity" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Section activity"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版块统计"
           }
         }
       }
