@@ -19,6 +19,10 @@ from typer.testing import CliRunner
 
 from gracenotes_dev import cli, config, simulator
 from gracenotes_dev.cli import app
+from gracenotes_dev.cli import config_cmd as cli_config_cmd
+from gracenotes_dev.cli import core as cli_core
+from gracenotes_dev.cli import doctor_lint as cli_doctor_lint
+from gracenotes_dev.cli import workflows as cli_workflows
 
 
 class CLISurfaceTest(unittest.TestCase):
@@ -96,9 +100,9 @@ class CLISurfaceTest(unittest.TestCase):
     def test_sim_interactive_invokes_sim_hub(self) -> None:
         repo_root = Path(__file__).resolve().parents[3]
         cfg = config.default_config()
-        with mock.patch.object(cli, "_repo_root", return_value=repo_root):
-            with mock.patch.object(cli, "_load_config", return_value=cfg):
-                with mock.patch.object(cli, "_require_interactive_cli"):
+        with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli_core, "_load_config", return_value=cfg):
+                with mock.patch.object(cli_core, "_require_interactive_cli"):
                     with mock.patch.object(cli, "_sim_interactive") as sim_hub:
                         runner = CliRunner()
                         result = runner.invoke(app, ["sim", "--interactive"])
@@ -131,9 +135,9 @@ class CLISurfaceTest(unittest.TestCase):
             config.default_config(),
             destination="platform=iOS Simulator,name=iPhone 17 Pro,OS=latest",
         )
-        with mock.patch.object(cli, "_repo_root", return_value=repo_root):
-            with mock.patch.object(cli, "_require_macos_xcode"):
-                with mock.patch.object(cli, "_load_config", return_value=cfg):
+        with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli_core, "_require_macos_xcode"):
+                with mock.patch.object(cli_core, "_load_config", return_value=cfg):
                     with mock.patch.object(
                         simulator, "load_available_ios_devices", return_value=rows
                     ):
@@ -163,8 +167,8 @@ class CLISurfaceTest(unittest.TestCase):
             "platform=iOS Simulator,name=iPhone 13,OS=17.0",
             "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.0",
         ]
-        with mock.patch.object(cli, "_repo_root", return_value=repo_root):
-            with mock.patch.object(cli, "_require_macos_xcode"):
+        with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli_core, "_require_macos_xcode"):
                 with mock.patch.object(simulator, "load_available_ios_devices", return_value=rows):
                     runner = CliRunner()
                     result = runner.invoke(app, ["sim", "list", "--json"])
@@ -185,13 +189,13 @@ class CLISurfaceTest(unittest.TestCase):
             config.default_config(),
             destination="platform=iOS Simulator,name=iPhone 17 Pro,OS=26.0",
         )
-        with mock.patch.object(cli, "_repo_root", return_value=repo_root):
-            with mock.patch.object(cli, "_require_macos_xcode"):
-                with mock.patch.object(cli, "_load_config", return_value=cfg):
+        with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli_core, "_require_macos_xcode"):
+                with mock.patch.object(cli_core, "_load_config", return_value=cfg):
                     with mock.patch.object(
                         simulator, "load_available_ios_devices", return_value=rows
                     ):
-                        with mock.patch.object(cli, "_supports_rich_output", return_value=True):
+                        with mock.patch.object(cli_core, "_supports_rich_output", return_value=True):
                             runner = CliRunner()
                             result = runner.invoke(app, ["sim", "list"])
 
@@ -216,9 +220,9 @@ class CLISurfaceTest(unittest.TestCase):
             captured.append(list(argv))
             return subprocess.CompletedProcess(argv, 0, "", "")
 
-        with mock.patch.object(cli, "_repo_root", return_value=repo_root):
-            with mock.patch.object(cli, "_require_macos_xcode"):
-                with mock.patch.object(cli, "_run", side_effect=fake_run):
+        with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli_core, "_require_macos_xcode"):
+                with mock.patch.object(cli_core, "_run", side_effect=fake_run):
                     with mock.patch.object(
                         cli.simulator_runtime,
                         "discover_downloaded_dmg",
@@ -262,9 +266,9 @@ class CLISurfaceTest(unittest.TestCase):
             tmp.write(b"\0")
             fake_dmg = Path(tmp.name)
         try:
-            with mock.patch.object(cli, "_repo_root", return_value=repo_root):
-                with mock.patch.object(cli, "_require_macos_xcode"):
-                    with mock.patch.object(cli, "_run", side_effect=fake_run):
+            with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+                with mock.patch.object(cli_core, "_require_macos_xcode"):
+                    with mock.patch.object(cli_core, "_run", side_effect=fake_run):
                         runner = CliRunner()
                         result = runner.invoke(
                             app,
@@ -304,9 +308,9 @@ class CLISurfaceTest(unittest.TestCase):
             tmp.write(b"\0")
             fake_dmg = Path(tmp.name)
         try:
-            with mock.patch.object(cli, "_repo_root", return_value=repo_root):
-                with mock.patch.object(cli, "_require_macos_xcode"):
-                    with mock.patch.object(cli, "_run", side_effect=fake_run):
+            with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+                with mock.patch.object(cli_core, "_require_macos_xcode"):
+                    with mock.patch.object(cli_core, "_run", side_effect=fake_run):
                         runner = CliRunner()
                         result = runner.invoke(
                             app,
@@ -346,9 +350,9 @@ class CLISurfaceTest(unittest.TestCase):
             json.dumps(payload),
             "",
         )
-        with mock.patch.object(cli, "_repo_root", return_value=repo_root):
-            with mock.patch.object(cli, "_require_macos_xcode"):
-                with mock.patch.object(cli, "_run_capture", return_value=completed):
+        with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli_core, "_require_macos_xcode"):
+                with mock.patch.object(cli_core, "_run_capture", return_value=completed):
                     runner = CliRunner()
                     result = runner.invoke(app, ["sim", "runtime", "list", "--json"])
 
@@ -384,9 +388,9 @@ class CLISurfaceTest(unittest.TestCase):
     def test_ci_without_profile_uses_default_ci_profile(self) -> None:
         repo_root = Path(__file__).resolve().parents[3]
         cfg = replace(config.default_config(), default_ci_profile="test-all")
-        with mock.patch.object(cli, "_repo_root", return_value=repo_root):
-            with mock.patch.object(cli, "_load_config", return_value=cfg):
-                with mock.patch.object(cli, "_execute_ci_profile") as run_ci:
+        with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli_core, "_load_config", return_value=cfg):
+                with mock.patch.object(cli_workflows, "_execute_ci_profile") as run_ci:
                     runner = CliRunner()
                     result = runner.invoke(app, ["ci"])
 
@@ -396,9 +400,9 @@ class CLISurfaceTest(unittest.TestCase):
     def test_ci_with_explicit_profile_passes_through(self) -> None:
         repo_root = Path(__file__).resolve().parents[3]
         cfg = config.default_config()
-        with mock.patch.object(cli, "_repo_root", return_value=repo_root):
-            with mock.patch.object(cli, "_load_config", return_value=cfg):
-                with mock.patch.object(cli, "_execute_ci_profile") as run_ci:
+        with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli_core, "_load_config", return_value=cfg):
+                with mock.patch.object(cli_workflows, "_execute_ci_profile") as run_ci:
                     runner = CliRunner()
                     result = runner.invoke(app, ["ci", "--profile", "full"])
 
@@ -408,8 +412,8 @@ class CLISurfaceTest(unittest.TestCase):
     def test_interactive_refused_when_stdin_not_tty(self) -> None:
         repo_root = Path(__file__).resolve().parents[3]
         cfg = config.default_config()
-        with mock.patch.object(cli, "_repo_root", return_value=repo_root):
-            with mock.patch.object(cli, "_load_config", return_value=cfg):
+        with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli_core, "_load_config", return_value=cfg):
                 runner = CliRunner()
                 result = runner.invoke(app, ["interactive"])
 
@@ -423,8 +427,8 @@ class CLISurfaceTest(unittest.TestCase):
         with mock.patch.dict(os.environ, {"CI": "true"}, clear=False):
             stdin_mock = mock.Mock()
             stdin_mock.isatty.return_value = True
-            with mock.patch.object(cli, "_repo_root", return_value=repo_root):
-                with mock.patch.object(cli, "_load_config", return_value=cfg):
+            with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+                with mock.patch.object(cli_core, "_load_config", return_value=cfg):
                     runner = CliRunner()
                     with mock.patch.object(sys, "stdin", stdin_mock):
                         result = runner.invoke(app, ["interactive"])
@@ -437,8 +441,8 @@ class CLISurfaceTest(unittest.TestCase):
         with mock.patch.dict(os.environ, {"GRACE_NONINTERACTIVE": "1"}, clear=False):
             stdin_mock = mock.Mock()
             stdin_mock.isatty.return_value = True
-            with mock.patch.object(cli, "_repo_root", return_value=repo_root):
-                with mock.patch.object(cli, "_load_config", return_value=cfg):
+            with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+                with mock.patch.object(cli_core, "_load_config", return_value=cfg):
                     runner = CliRunner()
                     with mock.patch.object(sys, "stdin", stdin_mock):
                         result = runner.invoke(app, ["interactive"])
@@ -455,18 +459,21 @@ class CLISurfaceTest(unittest.TestCase):
         verbose_prompt = mock.Mock()
         verbose_prompt.ask.return_value = True
 
-        with mock.patch.object(cli, "_repo_root", return_value=repo_root):
-            with mock.patch.object(cli, "_load_config", return_value=cfg):
-                with mock.patch.object(cli, "_interactive_cli_allowed", return_value=True):
-                    with mock.patch.object(
-                        cli.questionary, "select", side_effect=[menu_prompt, profile_prompt]
-                    ):
+        with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli_core, "_load_config", return_value=cfg):
+                with mock.patch.object(cli_core, "_require_interactive_cli"):
+                    with mock.patch.object(cli, "_interactive_cli_allowed", return_value=True):
                         with mock.patch.object(
-                            cli.questionary, "confirm", return_value=verbose_prompt
+                            cli_core.questionary, "select", side_effect=[menu_prompt, profile_prompt]
                         ):
-                            with mock.patch.object(cli, "_execute_ci_profile") as run_ci:
-                                runner = CliRunner()
-                                result = runner.invoke(app, ["interactive"])
+                            with mock.patch.object(
+                                cli_core.questionary, "confirm", return_value=verbose_prompt
+                            ):
+                                with mock.patch.object(
+                                    cli_doctor_lint, "_execute_ci_profile"
+                                ) as run_ci:
+                                    runner = CliRunner()
+                                    result = runner.invoke(app, ["interactive"])
 
         self.assertEqual(result.exit_code, 0, msg=f"{result.stdout}\n{result.stderr}")
         run_ci.assert_called_once_with(cfg, "lint-build", verbose=True)
@@ -477,12 +484,13 @@ class CLISurfaceTest(unittest.TestCase):
         prompt = mock.Mock()
         prompt.ask.return_value = None
 
-        with mock.patch.object(cli, "_repo_root", return_value=repo_root):
-            with mock.patch.object(cli, "_load_config", return_value=cfg):
-                with mock.patch.object(cli, "_interactive_cli_allowed", return_value=True):
-                    with mock.patch.object(cli.questionary, "select", return_value=prompt):
-                        runner = CliRunner()
-                        result = runner.invoke(app, ["interactive"])
+        with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli_core, "_load_config", return_value=cfg):
+                with mock.patch.object(cli_core, "_require_interactive_cli"):
+                    with mock.patch.object(cli, "_interactive_cli_allowed", return_value=True):
+                        with mock.patch.object(cli_core.questionary, "select", return_value=prompt):
+                            runner = CliRunner()
+                            result = runner.invoke(app, ["interactive"])
 
         self.assertEqual(result.exit_code, 1)
 
@@ -492,13 +500,18 @@ class CLISurfaceTest(unittest.TestCase):
         menu_prompt = mock.Mock()
         menu_prompt.ask.return_value = "Config (interactive)"
 
-        with mock.patch.object(cli, "_repo_root", return_value=repo_root):
-            with mock.patch.object(cli, "_load_config", return_value=cfg):
-                with mock.patch.object(cli, "_interactive_cli_allowed", return_value=True):
-                    with mock.patch.object(cli.questionary, "select", return_value=menu_prompt):
-                        with mock.patch.object(cli, "config_interactive") as run_config:
-                            runner = CliRunner()
-                            result = runner.invoke(app, ["interactive"])
+        with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli_core, "_load_config", return_value=cfg):
+                with mock.patch.object(cli_core, "_require_interactive_cli"):
+                    with mock.patch.object(cli, "_interactive_cli_allowed", return_value=True):
+                        with mock.patch.object(
+                            cli_core.questionary, "select", return_value=menu_prompt
+                        ):
+                            with mock.patch.object(
+                                cli_config_cmd, "config_interactive"
+                            ) as run_config:
+                                runner = CliRunner()
+                                result = runner.invoke(app, ["interactive"])
 
         self.assertEqual(result.exit_code, 0, msg=f"{result.stdout}\n{result.stderr}")
         run_config.assert_called_once_with()
@@ -534,8 +547,8 @@ class CLISurfaceTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             fake_app = Path(tmp) / "GraceNotes.app"
             fake_app.mkdir()
-            with mock.patch.object(cli, "_repo_root", return_value=repo_root):
-                with mock.patch.object(cli, "_require_macos_xcode"):
+            with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+                with mock.patch.object(cli_core, "_require_macos_xcode"):
                     with mock.patch.object(
                         simulator, "load_available_ios_devices", return_value=rows
                     ):
@@ -544,9 +557,9 @@ class CLISurfaceTest(unittest.TestCase):
                             "built_app_path",
                             return_value=fake_app,
                         ):
-                            with mock.patch.object(cli, "_run", side_effect=fake_run):
+                            with mock.patch.object(cli_core, "_run", side_effect=fake_run):
                                 with mock.patch.object(
-                                    cli, "_run_capture", side_effect=fake_capture
+                                    cli_core, "_run_capture", side_effect=fake_capture
                                 ):
                                     runner = CliRunner()
                                     result = runner.invoke(
@@ -581,20 +594,20 @@ class CLISurfaceTest(unittest.TestCase):
         def noop_test_once(**_: object) -> None:
             return None
 
-        with mock.patch.object(cli, "_require_macos_xcode"):
-            with mock.patch.object(cli, "_repo_root", return_value=repo_root):
-                with mock.patch.object(cli, "_load_config", return_value=cfg):
+        with mock.patch.object(cli_core, "_require_macos_xcode"):
+            with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+                with mock.patch.object(cli_core, "_load_config", return_value=cfg):
                     with mock.patch.object(
                         simulator, "load_available_ios_devices", return_value=[]
                     ):
                         with mock.patch.object(
-                            cli,
+                            cli_core,
                             "_resolved_destinations_for_matrix",
                             return_value=["d1", "d2"],
                         ):
-                            with mock.patch.object(cli, "_reset_sims", side_effect=count_reset):
+                            with mock.patch.object(cli_core, "_reset_sims", side_effect=count_reset):
                                 with mock.patch.object(
-                                    cli, "_run_test_once", side_effect=noop_test_once
+                                    cli_core, "_run_test_once", side_effect=noop_test_once
                                 ):
                                     runner = CliRunner()
                                     result = runner.invoke(
@@ -612,19 +625,19 @@ class CLISurfaceTest(unittest.TestCase):
         def count_reset(_: Path) -> None:
             resets.append("reset")
 
-        with mock.patch.object(cli, "_require_macos_xcode"):
-            with mock.patch.object(cli, "_repo_root", return_value=repo_root):
-                with mock.patch.object(cli, "_load_config", return_value=cfg):
+        with mock.patch.object(cli_core, "_require_macos_xcode"):
+            with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+                with mock.patch.object(cli_core, "_load_config", return_value=cfg):
                     with mock.patch.object(
                         simulator, "load_available_ios_devices", return_value=[]
                     ):
                         with mock.patch.object(
-                            cli,
+                            cli_core,
                             "_resolved_destinations_for_matrix",
                             return_value=["d1", "d2"],
                         ):
-                            with mock.patch.object(cli, "_reset_sims", side_effect=count_reset):
-                                with mock.patch.object(cli, "_run_test_once"):
+                            with mock.patch.object(cli_core, "_reset_sims", side_effect=count_reset):
+                                with mock.patch.object(cli_core, "_run_test_once"):
                                     runner = CliRunner()
                                     result = runner.invoke(
                                         app,
@@ -651,8 +664,8 @@ class CLISurfaceTest(unittest.TestCase):
                 return f"/usr/bin/{name}"
             return None
 
-        with mock.patch.object(cli, "_repo_root", return_value=repo_root):
-            with mock.patch.object(cli, "_load_config", return_value=cfg):
+        with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli_core, "_load_config", return_value=cfg):
                 with mock.patch.object(simulator, "load_available_ios_devices", return_value=rows):
                     with mock.patch.object(sys, "platform", "darwin"):
                         with mock.patch.object(shutil, "which", side_effect=fake_which):
@@ -686,8 +699,8 @@ class CLISurfaceTest(unittest.TestCase):
                 return f"/usr/bin/{name}"
             return None
 
-        with mock.patch.object(cli, "_repo_root", return_value=repo_root):
-            with mock.patch.object(cli, "_load_config", return_value=cfg):
+        with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli_core, "_load_config", return_value=cfg):
                 with mock.patch.object(simulator, "load_available_ios_devices", return_value=rows):
                     with mock.patch.object(sys, "platform", "darwin"):
                         with mock.patch.object(shutil, "which", side_effect=fake_which):
@@ -735,6 +748,25 @@ class CLISurfaceTest(unittest.TestCase):
                 non_tty_argv = cli._prepare_xcodebuild_argv(["xcodebuild", "test"], verbose=False)
         self.assertEqual(non_tty_argv, ["xcodebuild", "test"])
 
+    def test_prepare_xcodebuild_argv_skips_quiet_for_platform_download_import(self) -> None:
+        stdout_mock = mock.Mock()
+        stdout_mock.isatty.return_value = True
+        with mock.patch.dict(os.environ, {"CI": ""}, clear=False):
+            with mock.patch.object(sys, "stdout", stdout_mock):
+                download_argv = cli._prepare_xcodebuild_argv(
+                    ["xcodebuild", "-downloadPlatform", "iOS", "-exportPath", "/tmp/out"],
+                    verbose=False,
+                )
+                import_argv = cli._prepare_xcodebuild_argv(
+                    ["xcodebuild", "-importPlatform", "/tmp/runtime.dmg"],
+                    verbose=False,
+                )
+        self.assertEqual(
+            download_argv,
+            ["xcodebuild", "-downloadPlatform", "iOS", "-exportPath", "/tmp/out"],
+        )
+        self.assertEqual(import_argv, ["xcodebuild", "-importPlatform", "/tmp/runtime.dmg"])
+
     def test_config_set_updates_value_in_toml(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -743,7 +775,7 @@ class CLISurfaceTest(unittest.TestCase):
                 '# keep comment\n[defaults]\nscheme = "GraceNotes"\n',
                 encoding="utf-8",
             )
-            with mock.patch.object(cli, "_repo_root", return_value=root):
+            with mock.patch.object(cli_core, "_repo_root", return_value=root):
                 runner = CliRunner()
                 result = runner.invoke(
                     app, ["config", "set", "defaults.scheme", "GraceNotes (Demo)"]
@@ -758,7 +790,7 @@ class CLISurfaceTest(unittest.TestCase):
     def test_config_set_unknown_key_exits_non_zero(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            with mock.patch.object(cli, "_repo_root", return_value=root):
+            with mock.patch.object(cli_core, "_repo_root", return_value=root):
                 runner = CliRunner()
                 result = runner.invoke(app, ["config", "set", "defaults.unknown_key", "value"])
         self.assertEqual(result.exit_code, 2)
@@ -784,12 +816,17 @@ class CLISurfaceTest(unittest.TestCase):
 
             text_prompt = mock.Mock()
             text_prompt.ask.return_value = "com.example.test"
-            with mock.patch.object(cli, "_repo_root", return_value=root):
-                with mock.patch.object(cli, "_interactive_cli_allowed", return_value=True):
-                    with mock.patch.object(cli.questionary, "select", side_effect=fake_select):
-                        with mock.patch.object(cli.questionary, "text", return_value=text_prompt):
-                            runner = CliRunner()
-                            result = runner.invoke(app, ["config", "interactive"])
+            with mock.patch.object(cli_core, "_repo_root", return_value=root):
+                with mock.patch.object(cli_core, "_require_interactive_cli"):
+                    with mock.patch.object(cli, "_interactive_cli_allowed", return_value=True):
+                        with mock.patch.object(
+                            cli_core.questionary, "select", side_effect=fake_select
+                        ):
+                            with mock.patch.object(
+                                cli_core.questionary, "text", return_value=text_prompt
+                            ):
+                                runner = CliRunner()
+                                result = runner.invoke(app, ["config", "interactive"])
 
             self.assertEqual(result.exit_code, 0, msg=f"{result.stdout}\n{result.stderr}")
             loaded = config.load_config(repo_root=root)
@@ -802,9 +839,9 @@ class CLISurfaceTest(unittest.TestCase):
             project.mkdir(parents=True)
             cfg = config.default_config()
             with mock.patch.object(sys, "platform", "darwin"):
-                with mock.patch.object(cli, "_repo_root", return_value=root):
-                    with mock.patch.object(cli, "_load_config", return_value=cfg):
-                        with mock.patch.object(cli, "_run") as run_cmd:
+                with mock.patch.object(cli_core, "_repo_root", return_value=root):
+                    with mock.patch.object(cli_core, "_load_config", return_value=cfg):
+                        with mock.patch.object(cli_core, "_run") as run_cmd:
                             runner = CliRunner()
                             result = runner.invoke(app, ["xcode"])
 
@@ -820,8 +857,8 @@ class CLISurfaceTest(unittest.TestCase):
     def test_print_error_block_plain_mode(self) -> None:
         buffer = io.StringIO()
         fake_console = Console(file=buffer, force_terminal=False, no_color=True)
-        with mock.patch.object(cli, "_stderr_console", return_value=fake_console):
-            with mock.patch.object(cli, "_supports_rich_output", return_value=False):
+        with mock.patch.object(cli_core, "_stderr_console", return_value=fake_console):
+            with mock.patch.object(cli_core, "_supports_rich_output", return_value=False):
                 cli._print_error_block(
                     title="Sample Error",
                     problem="Something failed.",
