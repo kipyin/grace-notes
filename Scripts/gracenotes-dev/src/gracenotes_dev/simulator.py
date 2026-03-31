@@ -218,6 +218,34 @@ def resolve_destination(destination: str, rows: List[Dict[str, str]]) -> str:
     return f"platform=iOS Simulator,name={name},OS={resolved_runtime}"
 
 
+def row_for_resolved_destination(
+    resolved_destination: str,
+    rows: List[Dict[str, str]],
+) -> Optional[Dict[str, str]]:
+    """Return one device row (including ``udid``) matching a resolved ``platform=…`` destination string."""
+    fields = parse_destination(resolved_destination)
+    name = fields.get("name")
+    os_value = fields.get("OS")
+    if not name or not os_value:
+        return None
+    matching = [row for row in rows if row["name"] == name]
+    if not matching:
+        return None
+    if os_value == "latest":
+        return max(matching, key=lambda row: version_tuple(row["runtime_version"]))
+    exact = [
+        row
+        for row in matching
+        if row["runtime_version"] == os_value or row["runtime_version"].startswith(f"{os_value}.")
+    ]
+    if not exact:
+        return None
+    resolved_runtime = sorted({row["runtime_version"] for row in exact}, key=version_tuple)[-1]
+    candidates = [row for row in exact if row["runtime_version"] == resolved_runtime]
+    candidates.sort(key=lambda r: r.get("udid", ""))
+    return candidates[0] if candidates else None
+
+
 def list_destinations(rows: List[Dict[str, str]]) -> None:
     seen: Set[Tuple[str, str]] = set()
     for row in sorted(rows, key=lambda item: (item["name"], version_tuple(item["runtime_version"]))):

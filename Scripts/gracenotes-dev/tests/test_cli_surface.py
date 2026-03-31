@@ -6,6 +6,7 @@ import io
 import json
 import os
 import shutil
+import sys
 import subprocess
 import tempfile
 import unittest
@@ -186,12 +187,102 @@ class CLISurfaceTest(unittest.TestCase):
                                     )
 
         self.assertEqual(result.exit_code, 0, msg=result.output)
-        launch_lines = [a for a in capture_capture if a[:4] == ["xcrun", "simctl", "launch", "booted"]]
+        launch_lines = [a for a in capture_capture if a[:4] == ["xcrun", "simctl", "launch", "u1"]]
         self.assertEqual(len(launch_lines), 1)
         self.assertEqual(
             launch_lines[0][4:],
             ["com.gracenotes.GraceNotes", "-reset-journal-tutorial", "-extra-flag"],
         )
+        install_lines = [a for a in capture_run if a[:4] == ["xcrun", "simctl", "install", "u1"]]
+        self.assertEqual(len(install_lines), 1)
+
+    def test_matrix_test_resets_simulators_before_each_destination(self) -> None:
+        repo_root = Path(__file__).resolve().parents[3]
+        cfg = replace(config.default_config(), test_destination_matrix=("a", "b"))
+        resets: list[str] = []
+
+        def count_reset(_: Path) -> None:
+            resets.append("reset")
+
+        def noop_test_once(**_: object) -> None:
+            return None
+
+        with mock.patch.object(cli, "_require_macos_xcode"):
+            with mock.patch.object(cli, "_repo_root", return_value=repo_root):
+                with mock.patch.object(cli, "_load_config", return_value=cfg):
+                    with mock.patch.object(simulator, "load_available_ios_devices", return_value=[]):
+                        with mock.patch.object(
+                            cli,
+                            "_resolved_destinations_for_matrix",
+                            return_value=["d1", "d2"],
+                        ):
+                            with mock.patch.object(cli, "_reset_sims", side_effect=count_reset):
+                                with mock.patch.object(cli, "_run_test_once", side_effect=noop_test_once):
+                                    runner = CliRunner()
+                                    result = runner.invoke(app, ["test", "--kind", "all", "--matrix"])
+
+        self.assertEqual(result.exit_code, 0, msg=result.output)
+        self.assertEqual(resets, ["reset", "reset"])
+
+    def test_matrix_test_skips_reset_with_no_reset_sims_flag(self) -> None:
+        repo_root = Path(__file__).resolve().parents[3]
+        cfg = replace(config.default_config(), test_destination_matrix=("a", "b"))
+        resets: list[str] = []
+
+        def count_reset(_: Path) -> None:
+            resets.append("reset")
+
+        with mock.patch.object(cli, "_require_macos_xcode"):
+            with mock.patch.object(cli, "_repo_root", return_value=repo_root):
+                with mock.patch.object(cli, "_load_config", return_value=cfg):
+                    with mock.patch.object(simulator, "load_available_ios_devices", return_value=[]):
+                        with mock.patch.object(
+                            cli,
+                            "_resolved_destinations_for_matrix",
+                            return_value=["d1", "d2"],
+                        ):
+                            with mock.patch.object(cli, "_reset_sims", side_effect=count_reset):
+                                with mock.patch.object(cli, "_run_test_once"):
+                                    runner = CliRunner()
+                                    result = runner.invoke(
+                                        app,
+                                        ["test", "--kind", "all", "--matrix", "--no-reset-sims"],
+                                    )
+
+        self.assertEqual(result.exit_code, 0, msg=result.output)
+        self.assertEqual(resets, [])
+
+    def test_doctor_json_independent_default_and_matrix_status(self) -> None:
+        """Default destination can be ok while matrix reports error (not both overwritten)."""
+        repo_root = Path(__file__).resolve().parents[3]
+        rows = [
+            {"name": "iPhone 17 Pro", "runtime_version": "26.0", "runtime_key": "k1", "udid": "u1"},
+        ]
+        cfg = replace(
+            config.default_config(),
+            destination="platform=iOS Simulator,name=iPhone 17 Pro,OS=latest",
+            test_destination_matrix=("iPhone 17 Pro@latest", "Nonexistent Device@latest"),
+        )
+
+        def fake_which(name: str) -> str | None:
+            if name in ("swiftlint", "xcodebuild", "xcrun"):
+                return f"/usr/bin/{name}"
+            return None
+
+        with mock.patch.object(cli, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli, "_load_config", return_value=cfg):
+                with mock.patch.object(simulator, "load_available_ios_devices", return_value=rows):
+                    with mock.patch.object(sys, "platform", "darwin"):
+                        with mock.patch.object(shutil, "which", side_effect=fake_which):
+                            runner = CliRunner()
+                            result = runner.invoke(app, ["doctor", "--json"])
+
+        self.assertEqual(result.exit_code, 0, msg=result.output)
+        payload = json.loads(result.output)
+        by_name = {c["name"]: c for c in payload["checks"]}
+        self.assertEqual(by_name["default destination"]["status"], "ok")
+        self.assertIn("iPhone 17 Pro", by_name["default destination"]["detail"])
+        self.assertEqual(by_name["matrix destinations"]["status"], "error")
 
     def test_no_color_disables_rich_output(self) -> None:
         stream = io.StringIO()

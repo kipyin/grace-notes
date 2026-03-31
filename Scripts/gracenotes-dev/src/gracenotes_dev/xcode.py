@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Sequence
 
@@ -126,6 +127,13 @@ def simctl_boot_sequence_argv(simulator_name: str) -> tuple[list[str], list[str]
     return boot, bootstatus
 
 
+def simctl_boot_sequence_argv_udid(udid: str) -> tuple[list[str], list[str]]:
+    """Return ``simctl boot`` and ``simctl bootstatus -b`` argv lists for a device UDID."""
+    boot = ["xcrun", "simctl", "boot", udid]
+    bootstatus = ["xcrun", "simctl", "bootstatus", udid, "-b"]
+    return boot, bootstatus
+
+
 def simctl_reset_all_argv() -> tuple[list[str], list[str]]:
     """Return ``simctl shutdown all`` and ``simctl erase all`` argv lists."""
     shutdown = ["xcrun", "simctl", "shutdown", "all"]
@@ -138,22 +146,83 @@ def resolved_name_for_smoke(resolved_destination: str) -> str:
     return destination_display_name(resolved_destination)
 
 
-def built_app_path(derived_data_path: Path, *, scheme: str, configuration: str = "Debug") -> Path:
+def shared_scheme_path(xcodeproj: Path, scheme: str) -> Path:
+    """Path to ``xcshareddata/xcschemes/<scheme>.xcscheme`` inside a ``.xcodeproj`` bundle."""
+    return xcodeproj / "xcshareddata" / "xcschemes" / f"{scheme}.xcscheme"
+
+
+def _elem_local_name(tag: str) -> str:
+    if tag.startswith("{"):
+        return tag.rsplit("}", 1)[-1]
+    return tag
+
+
+def run_launch_metadata_from_scheme(*, xcodeproj: Path, scheme: str) -> tuple[str, str]:
+    """Return ``(launch_build_configuration, product_stem)`` from the scheme's LaunchAction.
+
+    ``product_stem`` is the Built app name without ``.app`` (for example ``GraceNotes`` for ``GraceNotes.app``).
+    """
+    path = shared_scheme_path(xcodeproj, scheme)
+    if not path.is_file():
+        msg = f"Scheme file not found for {scheme!r}: {path}"
+        raise ValueError(msg)
+
+    try:
+        tree = ET.parse(path)
+    except ET.ParseError as exc:  # pragma: no cover - defensive
+        msg = f"Could not parse scheme XML {path}: {exc}"
+        raise ValueError(msg) from exc
+
+    root = tree.getroot()
+    launch = None
+    for elem in root.iter():
+        if _elem_local_name(elem.tag) == "LaunchAction":
+            launch = elem
+            break
+    if launch is None:
+        msg = f"No LaunchAction in {path}"
+        raise ValueError(msg)
+
+    attribs = {str(k).strip(): str(v).strip() if v is not None else "" for k, v in launch.attrib.items()}
+    configuration = attribs.get("buildConfiguration")
+    if not configuration:
+        msg = f"LaunchAction missing buildConfiguration in {path}"
+        raise ValueError(msg)
+
+    product_app: str | None = None
+    for child in launch.iter():
+        if _elem_local_name(child.tag) != "BuildableReference":
+            continue
+        rattribs = {str(k).strip(): str(v).strip() if v is not None else "" for k, v in child.attrib.items()}
+        buildable = rattribs.get("BuildableName", "")
+        if buildable.endswith(".app") and not buildable.endswith("Tests.xctest"):
+            product_app = buildable
+            break
+
+    if not product_app:
+        msg = f"No runnable .app BuildableReference under LaunchAction in {path}"
+        raise ValueError(msg)
+
+    product_stem = product_app[:-4] if product_app.endswith(".app") else product_app
+    return configuration, product_stem
+
+
+def built_app_path(derived_data_path: Path, *, configuration: str, product_stem: str) -> Path:
     """Locate the built ``.app`` bundle under DerivedData products."""
     app_path = (
         derived_data_path
         / "Build"
         / "Products"
         / f"{configuration}-iphonesimulator"
-        / f"{scheme}.app"
+        / f"{product_stem}.app"
     )
     if app_path.is_dir():
         return app_path
 
-    matches = sorted(derived_data_path.glob(f"**/{scheme}.app"))
+    matches = sorted(derived_data_path.glob(f"**/{product_stem}.app"))
     if matches:
         return matches[0]
-    raise FileNotFoundError(f"Could not find {scheme}.app under {derived_data_path}")
+    raise FileNotFoundError(f"Could not find {product_stem}.app under {derived_data_path}")
 
 
 def simctl_install_argv(*, app_path: Path, device: str = "booted") -> list[str]:

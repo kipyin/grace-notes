@@ -659,15 +659,14 @@ def test(
     if matrix:
         resolved_destinations = _resolved_destinations_for_matrix(cfg.test_destination_matrix, rows)
         steps: list[TheaterStep] = []
-        if reset_before_run:
-            steps.append(
-                TheaterStep(
-                    "Reset simulators",
-                    lambda: (_reset_sims(repo_root) or "shutdown all + erase all"),
-                ),
-            )
-
         for resolved_destination in resolved_destinations:
+            if reset_before_run:
+                steps.append(
+                    TheaterStep(
+                        "Reset simulators",
+                        lambda: (_reset_sims(repo_root) or "shutdown all + erase all"),
+                    ),
+                )
             steps.append(
                 TheaterStep(
                     f"Run {selected_kind} tests",
@@ -851,24 +850,52 @@ def run(
             )
         expanded_args = [*cfg.run_presets[preset], *expanded_args]
 
+    xcodeproj = (repo_root / cfg.project).resolve()
+    try:
+        launch_configuration, product_stem = xcode_helpers.run_launch_metadata_from_scheme(
+            xcodeproj=xcodeproj,
+            scheme=resolved_scheme,
+        )
+    except ValueError as exc:
+        _fail(
+            code=2,
+            title="Scheme metadata unreadable",
+            problem=str(exc),
+            likely_cause="The scheme may be missing from the Xcode project or the .xcscheme XML is unexpected.",
+            try_commands=(
+                f"ls {xcodeproj / 'xcshareddata/xcschemes'}",
+                "grace run --help",
+            ),
+        )
+
+    device_row = simulator.row_for_resolved_destination(resolved_destination, rows)
+    udid = (device_row or {}).get("udid", "").strip()
+    if not udid:
+        _fail(
+            code=3,
+            title="Cannot resolve simulator UDID",
+            problem=f"No simulator UDID matches `{resolved_destination}` in the current device list.",
+            likely_cause="simctl list changed between destination resolution and run, or device data is incomplete.",
+            try_commands=("grace sim list", "xcrun simctl list devices available"),
+        )
+
     steps: list[TheaterStep] = []
 
     def resolve_step() -> str:
         return resolved_destination
 
     def boot_step() -> str:
-        simulator_name = xcode_helpers.resolved_name_for_smoke(resolved_destination)
-        boot, bootstatus = xcode_helpers.simctl_boot_sequence_argv(simulator_name)
+        boot, bootstatus = xcode_helpers.simctl_boot_sequence_argv_udid(udid)
         _run(boot, cwd=repo_root, check=False)
         _run(bootstatus, cwd=repo_root, check=False)
-        return simulator_name
+        return udid
 
     def build_step() -> str:
         argv = xcode_helpers.build_argv(
             project=repo_root / cfg.project,
             scheme=resolved_scheme,
             resolved_destination=resolved_destination,
-            configuration="Debug",
+            configuration=launch_configuration,
             derived_data_path=derived_data_path,
         )
         _run(argv, cwd=repo_root, check=True)
@@ -877,21 +904,22 @@ def run(
     def install_step() -> str:
         app_path = xcode_helpers.built_app_path(
             derived_data_path,
-            scheme=resolved_scheme,
-            configuration="Debug",
+            configuration=launch_configuration,
+            product_stem=product_stem,
         )
         _run(
-            xcode_helpers.simctl_install_argv(app_path=app_path),
+            xcode_helpers.simctl_install_argv(app_path=app_path, device=udid),
             cwd=repo_root,
             check=True,
         )
-        return f"{app_path.name} -> booted"
+        return f"{app_path.name} -> {udid}"
 
     def launch_step() -> str | None:
         completed = _run_capture(
             xcode_helpers.simctl_launch_argv(
                 bundle_id=resolved_bundle_id,
                 app_args=expanded_args,
+                device=udid,
             ),
             cwd=repo_root,
             check=True,
@@ -907,7 +935,7 @@ def run(
         [
             TheaterStep("Resolve destination", resolve_step),
             TheaterStep("Boot simulator", boot_step),
-            TheaterStep(f"Build (Debug, {resolved_scheme})", build_step),
+            TheaterStep(f"Build ({launch_configuration}, {resolved_scheme})", build_step),
             TheaterStep("Install", install_step),
             TheaterStep(f"Launch {resolved_bundle_id}", launch_step),
         ],
