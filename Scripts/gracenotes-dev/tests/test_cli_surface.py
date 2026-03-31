@@ -379,9 +379,7 @@ class CLISurfaceTest(unittest.TestCase):
         repo_root = Path(__file__).resolve().parents[3]
         with mock.patch.object(cli_core, "_require_macos_xcode"):
             with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
-                with mock.patch.object(
-                    simulator, "load_available_ios_devices", return_value=[]
-                ):
+                with mock.patch.object(simulator, "load_available_ios_devices", return_value=[]):
                     runner = CliRunner()
                     result = runner.invoke(app, ["test", "--kind", "invalid"])
 
