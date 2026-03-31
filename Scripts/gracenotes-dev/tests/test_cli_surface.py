@@ -42,6 +42,14 @@ class CLISurfaceTest(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
         self.assertIn("--clean", result.output)
 
+    def test_version_option_prints_installed_version(self) -> None:
+        with mock.patch.object(cli.importlib.metadata, "version", return_value="9.9.9"):
+            runner = CliRunner()
+            result = runner.invoke(app, ["--version"])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output.strip(), "9.9.9")
+
     def test_sim_help_includes_required_subcommands(self) -> None:
         runner = CliRunner()
         result = runner.invoke(app, ["sim", "--help"])
@@ -126,6 +134,7 @@ class CLISurfaceTest(unittest.TestCase):
         self.assertLess(idx_17, idx_se)
         star_line = [ln for ln in result.output.splitlines() if "*" in ln and "iPhone 17 Pro" in ln]
         self.assertEqual(len(star_line), 1, msg=result.output)
+        self.assertNotRegex(result.output, "\x1b\\[[0-9;]*m")
 
     def test_sim_list_json_is_array_of_destination_strings(self) -> None:
         repo_root = Path(__file__).resolve().parents[3]
@@ -215,6 +224,89 @@ class CLISurfaceTest(unittest.TestCase):
         self.assertIn("18.5", captured[0])
         self.assertEqual(captured[1], ["xcodebuild", "-importPlatform", str(fake_dmg)])
         self.assertEqual(captured[2], ["xcrun", "simctl", "runtime", "add", str(fake_dmg)])
+
+    def test_runtime_install_from_dmg_runs_import_without_download(self) -> None:
+        repo_root = Path(__file__).resolve().parents[3]
+        captured: list[list[str]] = []
+
+        def fake_run(
+            argv: list[str],
+            *,
+            cwd: Path,
+            check: bool = True,
+            verbose: bool = False,
+        ) -> subprocess.CompletedProcess[str]:
+            captured.append(list(argv))
+            return subprocess.CompletedProcess(argv, 0, "", "")
+
+        with tempfile.NamedTemporaryFile(suffix=".dmg", delete=False) as tmp:
+            tmp.write(b"\0")
+            fake_dmg = Path(tmp.name)
+        try:
+            with mock.patch.object(cli, "_repo_root", return_value=repo_root):
+                with mock.patch.object(cli, "_require_macos_xcode"):
+                    with mock.patch.object(cli, "_run", side_effect=fake_run):
+                        runner = CliRunner()
+                        result = runner.invoke(
+                            app,
+                            [
+                                "sim",
+                                "runtime",
+                                "install",
+                                "--from-dmg",
+                                str(fake_dmg),
+                            ],
+                        )
+        finally:
+            fake_dmg.unlink(missing_ok=True)
+
+        self.assertEqual(result.exit_code, 0, msg=f"{result.stdout}\n{result.stderr}")
+        self.assertEqual(len(captured), 1)
+        self.assertEqual(captured[0][:2], ["xcodebuild", "-importPlatform"])
+        self.assertEqual(captured[0][2], str(fake_dmg))
+        for call in captured:
+            self.assertNotEqual(call[:2], ["xcodebuild", "-downloadPlatform"])
+
+    def test_runtime_install_from_dmg_with_simctl_add_runs_import_then_add(self) -> None:
+        repo_root = Path(__file__).resolve().parents[3]
+        captured: list[list[str]] = []
+
+        def fake_run(
+            argv: list[str],
+            *,
+            cwd: Path,
+            check: bool = True,
+            verbose: bool = False,
+        ) -> subprocess.CompletedProcess[str]:
+            captured.append(list(argv))
+            return subprocess.CompletedProcess(argv, 0, "", "")
+
+        with tempfile.NamedTemporaryFile(suffix=".dmg", delete=False) as tmp:
+            tmp.write(b"\0")
+            fake_dmg = Path(tmp.name)
+        try:
+            with mock.patch.object(cli, "_repo_root", return_value=repo_root):
+                with mock.patch.object(cli, "_require_macos_xcode"):
+                    with mock.patch.object(cli, "_run", side_effect=fake_run):
+                        runner = CliRunner()
+                        result = runner.invoke(
+                            app,
+                            [
+                                "sim",
+                                "runtime",
+                                "install",
+                                "--from-dmg",
+                                str(fake_dmg),
+                                "--simctl-add",
+                            ],
+                        )
+        finally:
+            fake_dmg.unlink(missing_ok=True)
+
+        self.assertEqual(result.exit_code, 0, msg=f"{result.stdout}\n{result.stderr}")
+        self.assertEqual(len(captured), 2)
+        self.assertEqual(captured[0], ["xcodebuild", "-importPlatform", str(fake_dmg)])
+        self.assertEqual(captured[1], ["xcrun", "simctl", "runtime", "add", str(fake_dmg)])
 
     def test_runtime_list_json_emits_parsed_records(self) -> None:
         repo_root = Path(__file__).resolve().parents[3]
@@ -706,3 +798,4 @@ class CLISurfaceTest(unittest.TestCase):
         self.assertIn("Problem: Something failed.", output)
         self.assertIn("Likely cause: Reason here.", output)
         self.assertIn("Copy this retry: grace test --kind all", output)
+        self.assertNotRegex(output, "\x1b\\[[0-9;]*m")

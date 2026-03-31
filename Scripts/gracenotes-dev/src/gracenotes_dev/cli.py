@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib.metadata
 import json
 import io
 import os
@@ -18,10 +19,14 @@ from typing import Annotated, Callable, TypeVar
 import questionary
 import tomlkit
 import typer
-from rich.console import Console
+from rich.console import Console, Group
 from rich.panel import Panel
+from rich.progress import Progress, SpinnerColumn, TextColumn, TimeElapsedColumn
+from rich.syntax import Syntax
 from rich.table import Table
+from rich.text import Text
 
+from gracenotes_dev import cli_rich
 from gracenotes_dev import config
 from gracenotes_dev import simulator
 from gracenotes_dev import simulator_runtime
@@ -36,7 +41,8 @@ app = typer.Typer(
         "  grace doctor\n"
         "  grace build --clean\n"
         '  grace test --kind unit --destination "iPhone 17 Pro@latest"\n'
-        '  grace run --destination "iPhone 17 Pro@latest" -- -reset-journal-tutorial'
+        '  grace run --destination "iPhone 17 Pro@latest" -- -reset-journal-tutorial\n'
+        "\nTip: run `grace --version` to confirm your installed CLI release."
     ),
 )
 sim_app = typer.Typer(
@@ -73,6 +79,7 @@ def _console(stream: io.TextIOBase, *, stderr: bool = False) -> Console:
         stderr=stderr,
         force_terminal=rich_enabled,
         no_color=not rich_enabled,
+        theme=cli_rich.CLI_THEME,
     )
 
 
@@ -84,6 +91,50 @@ def _stdout_console() -> Console:
     return _console(sys.stdout)
 
 
+def _cli_version() -> str:
+    try:
+        return importlib.metadata.version("gracenotes-dev")
+    except importlib.metadata.PackageNotFoundError:
+        return "unknown"
+
+
+def _version_callback(value: bool) -> None:
+    if not value:
+        return
+    _stdout_console().print(_cli_version())
+    raise typer.Exit(code=0)
+
+
+@app.callback()
+def app_callback(
+    version: Annotated[
+        bool,
+        typer.Option(
+            "--version",
+            help="Show the installed grace CLI version and exit.",
+            callback=_version_callback,
+            is_eager=True,
+        ),
+    ] = False,
+) -> None:
+    _ = version
+
+
+def _q_select(*args: object, **kwargs: object) -> object:
+    kwargs.setdefault("style", cli_rich.QUESTIONARY_STYLE)
+    return questionary.select(*args, **kwargs)
+
+
+def _q_confirm(*args: object, **kwargs: object) -> object:
+    kwargs.setdefault("style", cli_rich.QUESTIONARY_STYLE)
+    return questionary.confirm(*args, **kwargs)
+
+
+def _q_text(*args: object, **kwargs: object) -> object:
+    kwargs.setdefault("style", cli_rich.QUESTIONARY_STYLE)
+    return questionary.text(*args, **kwargs)
+
+
 def _print_error_block(
     *,
     title: str,
@@ -92,22 +143,30 @@ def _print_error_block(
     try_commands: tuple[str, ...] = (),
     retry_command: str | None = None,
 ) -> None:
+    console = _stderr_console()
     lines = [f"Problem: {problem}"]
     if likely_cause:
         lines.append(f"Likely cause: {likely_cause}")
-    if try_commands:
-        lines.append("Try:")
-        lines.extend(f"  {command}" for command in try_commands)
     if retry_command:
         lines.append(f"Copy this retry: {retry_command}")
     body = "\n".join(lines)
 
     if _supports_rich_output(sys.stderr):
-        _stderr_console().print(Panel.fit(body, title=title, border_style="red"))
+        renderables: list[Text | Syntax] = [Text(f"Problem: {problem}")]
+        if likely_cause:
+            renderables.append(Text(f"Likely cause: {likely_cause}"))
+        if try_commands:
+            renderables.append(Text("Try:"))
+            renderables.append(Syntax("\n".join(try_commands), "bash", word_wrap=False))
+        if retry_command:
+            renderables.append(Text(f"Copy this retry: {retry_command}"))
+        console.print(Panel.fit(Group(*renderables), title=title, border_style="red"))
         return
 
-    _stderr_console().print(title)
-    _stderr_console().print(body)
+    if try_commands:
+        body = "\n".join([body, "Try:", *(f"  {command}" for command in try_commands)])
+    console.print(title)
+    console.print(body)
 
 
 def _fail(
@@ -153,23 +212,58 @@ def _step_line(*, index: int, total: int, title: str, outcome: str, elapsed: flo
     return f"{left} {dots} {outcome} ({elapsed:.2f}s)"
 
 
+def _step_text(*, index: int, total: int, title: str, outcome: str, elapsed: float) -> Text:
+    left = f"{index}/{total}  {title}"
+    dots = "." * max(2, 48 - len(left))
+    line = Text(f"{left} {dots} ")
+    line.append_text(cli_rich.status_text(outcome))
+    line.append(f" ({elapsed:.2f}s)")
+    return line
+
+
+def _rich_theater_enabled() -> bool:
+    return _supports_rich_output(sys.stdout) and _supports_rich_output(sys.stderr)
+
+
 def _run_theater(steps: list[TheaterStep]) -> float:
     started_all = time.perf_counter()
     total = len(steps)
+    use_rich_theater = _rich_theater_enabled()
     for index, step in enumerate(steps, start=1):
         started_step = time.perf_counter()
         try:
-            detail = step.callback()
+            if use_rich_theater:
+                with Progress(
+                    SpinnerColumn(),
+                    TextColumn("[progress.description]{task.description}"),
+                    TimeElapsedColumn(),
+                    console=_stderr_console(),
+                    transient=True,
+                ) as progress:
+                    progress.add_task(step.title, total=None)
+                    detail = step.callback()
+            else:
+                detail = step.callback()
         except typer.Exit:
             elapsed = time.perf_counter() - started_step
-            _stderr_console().print(
-                _step_line(index=index, total=total, title=step.title, outcome="failed", elapsed=elapsed),
-            )
+            if use_rich_theater:
+                _stdout_console().print(
+                    _step_text(index=index, total=total, title=step.title, outcome="failed", elapsed=elapsed),
+                )
+            else:
+                _stderr_console().print(
+                    _step_line(index=index, total=total, title=step.title, outcome="failed", elapsed=elapsed),
+                )
             raise
         elapsed = time.perf_counter() - started_step
-        _stdout_console().print(
-            _step_line(index=index, total=total, title=step.title, outcome="ok", elapsed=elapsed),
-        )
+        if use_rich_theater:
+            _stdout_console().print(
+                _step_text(index=index, total=total, title=step.title, outcome="ok", elapsed=elapsed),
+            )
+        else:
+            _stdout_console().print(
+                _step_line(index=index, total=total, title=step.title, outcome="ok", elapsed=elapsed),
+            )
         if detail:
             _stdout_console().print(f"      {detail}")
     total_elapsed = time.perf_counter() - started_all
@@ -795,7 +889,7 @@ def doctor(
     table.add_column("Status")
     table.add_column("Detail")
     for item in checks:
-        table.add_row(str(item["name"]), str(item["status"]), str(item["detail"]))
+        table.add_row(str(item["name"]), cli_rich.status_text(str(item["status"])), str(item["detail"]))
     _stdout_console().print(table)
 
 
@@ -857,7 +951,7 @@ def _prompt_destination_value(
     default_destination: str,
     rows: list[dict[str, str]],
 ) -> str:
-    choice = questionary.select(
+    choice = _q_select(
         message,
         choices=_destination_prompt_choices(default_destination, rows),
         default=default_destination,
@@ -866,7 +960,7 @@ def _prompt_destination_value(
 
 
 def _prompt_optional_text(*, message: str, default_value: str = "") -> str | None:
-    value = questionary.text(message, default=default_value).ask()
+    value = _q_text(message, default=default_value).ask()
     text = _require_prompt_answer(value).strip()
     return text or None
 
@@ -881,7 +975,7 @@ def _prompt_optional_path(*, message: str, default_value: str = "") -> Path | No
 def _prompt_ci_profile(*, cfg: config.DevConfig, profile: str | None) -> str:
     if profile:
         return profile
-    choice = questionary.select(
+    choice = _q_select(
         "CI profile:",
         choices=sorted(cfg.ci_profiles.keys()),
         default=cfg.default_ci_profile,
@@ -905,14 +999,14 @@ def _prompt_build_options(
         rows=rows,
     )
     chosen_configuration = _require_prompt_answer(
-        questionary.select(
+        _q_select(
             "Build configuration:",
             choices=["Debug", "Release"],
             default=configuration,
         ).ask(),
     )
     chosen_clean = _require_prompt_answer(
-        questionary.confirm("Run clean before build?", default=do_clean).ask(),
+        _q_confirm("Run clean before build?", default=do_clean).ask(),
     )
     derived_default = str(derived_data) if derived_data is not None else ""
     chosen_derived_data = _prompt_optional_path(
@@ -920,7 +1014,7 @@ def _prompt_build_options(
         default_value=derived_default,
     )
     chosen_verbose = _require_prompt_answer(
-        questionary.confirm("Show full xcodebuild logs?", default=verbose).ask(),
+        _q_confirm("Show full xcodebuild logs?", default=verbose).ask(),
     )
     return chosen_destination, chosen_configuration, chosen_derived_data, chosen_clean, chosen_verbose
 
@@ -940,7 +1034,7 @@ def _prompt_clean_options(
         rows=rows,
     )
     chosen_configuration = _require_prompt_answer(
-        questionary.select(
+        _q_select(
             "Build configuration:",
             choices=["Debug", "Release"],
             default=configuration,
@@ -952,7 +1046,7 @@ def _prompt_clean_options(
         default_value=derived_default,
     )
     chosen_verbose = _require_prompt_answer(
-        questionary.confirm("Show full xcodebuild logs?", default=verbose).ask(),
+        _q_confirm("Show full xcodebuild logs?", default=verbose).ask(),
     )
     return chosen_destination, chosen_configuration, chosen_derived_data, chosen_verbose
 
@@ -969,7 +1063,7 @@ def _prompt_test_options(
     verbose: bool,
 ) -> tuple[str, str | None, bool, bool, bool, bool]:
     chosen_kind = _require_prompt_answer(
-        questionary.select(
+        _q_select(
             "Test kind:",
             choices=["all", "unit", "ui", "smoke"],
             default=kind,
@@ -978,7 +1072,7 @@ def _prompt_test_options(
     chosen_matrix = False
     if chosen_kind != "smoke":
         chosen_matrix = _require_prompt_answer(
-            questionary.confirm("Run destination matrix?", default=matrix).ask(),
+            _q_confirm("Run destination matrix?", default=matrix).ask(),
         )
     chosen_destination: str | None = destination
     if not chosen_matrix:
@@ -988,13 +1082,13 @@ def _prompt_test_options(
             rows=rows,
         )
     chosen_isolated_dd = _require_prompt_answer(
-        questionary.confirm("Use isolated DerivedData?", default=isolated_dd).ask(),
+        _q_confirm("Use isolated DerivedData?", default=isolated_dd).ask(),
     )
     chosen_no_reset = _require_prompt_answer(
-        questionary.confirm("Skip simulator reset?", default=no_reset_sims).ask(),
+        _q_confirm("Skip simulator reset?", default=no_reset_sims).ask(),
     )
     chosen_verbose = _require_prompt_answer(
-        questionary.confirm("Show full xcodebuild logs?", default=verbose).ask(),
+        _q_confirm("Show full xcodebuild logs?", default=verbose).ask(),
     )
     return (
         chosen_kind,
@@ -1031,7 +1125,7 @@ def _prompt_run_options(
     chosen_preset = preset
     if preset is None and len(preset_choices) > 1:
         selected = _require_prompt_answer(
-            questionary.select("Run preset:", choices=preset_choices, default="(none)").ask(),
+            _q_select("Run preset:", choices=preset_choices, default="(none)").ask(),
         )
         chosen_preset = None if selected == "(none)" else selected
     chosen_bundle = _prompt_optional_text(
@@ -1050,7 +1144,7 @@ def _prompt_run_options(
     )
     chosen_args = shlex.split(raw_args) if raw_args else list(app_args or [])
     chosen_verbose = _require_prompt_answer(
-        questionary.confirm("Show full xcodebuild logs?", default=verbose).ask(),
+        _q_confirm("Show full xcodebuild logs?", default=verbose).ask(),
     )
     return (
         chosen_scheme,
@@ -1092,7 +1186,7 @@ def _print_runtime_list(records: list[simulator_runtime.RuntimeRecord]) -> None:
         table.add_column("State")
         table.add_column("Identifier")
         for row in records:
-            table.add_row(row.platform, row.version, row.build, row.state, row.identifier)
+            table.add_row(row.platform, row.version, row.build, cli_rich.status_text(row.state), row.identifier)
         _stdout_console().print(table)
         return
 
@@ -1104,7 +1198,7 @@ def _print_runtime_list(records: list[simulator_runtime.RuntimeRecord]) -> None:
 
 def _sim_interactive(*, cfg: config.DevConfig) -> None:
     choice = _require_prompt_answer(
-        questionary.select(
+        _q_select(
             "Simulator action:",
             choices=[
                 "List destinations",
@@ -1132,7 +1226,7 @@ def _sim_interactive(*, cfg: config.DevConfig) -> None:
         return
     if choice == "Reset simulators":
         confirmed = _require_prompt_answer(
-            questionary.confirm("Shutdown and erase all simulators?", default=False).ask(),
+            _q_confirm("Shutdown and erase all simulators?", default=False).ask(),
         )
         if confirmed:
             sim_reset()
@@ -1143,7 +1237,7 @@ def _sim_interactive(*, cfg: config.DevConfig) -> None:
             default_value="",
         )
         run_simctl_add = _require_prompt_answer(
-            questionary.confirm(
+            _q_confirm(
                 "Also run `xcrun simctl runtime add` after import?",
                 default=False,
             ).ask(),
@@ -1168,11 +1262,11 @@ def _sim_interactive(*, cfg: config.DevConfig) -> None:
         return
     labels = [f"{row.platform} {row.version} ({row.build}) - {row.identifier}" for row in records]
     selected = _require_prompt_answer(
-        questionary.select("Runtime to delete:", choices=labels, default=labels[0]).ask(),
+        _q_select("Runtime to delete:", choices=labels, default=labels[0]).ask(),
     )
     identifier = selected.rsplit(" - ", 1)[-1]
     confirmed = _require_prompt_answer(
-        questionary.confirm(f"Delete runtime {identifier}?", default=False).ask(),
+        _q_confirm(f"Delete runtime {identifier}?", default=False).ask(),
     )
     if confirmed:
         runtime_delete(identifier=identifier, dry_run=False, keep_asset=False)
@@ -1295,9 +1389,17 @@ def runtime_install(
             ),
         )
 
+    needs_download = selected_dmg is None
+
     if dry_run:
-        for argv in command_plan:
-            _stdout_console().print(" ".join(shlex.quote(item) for item in argv))
+        if _supports_rich_output(sys.stdout):
+            console = _stdout_console()
+            for index, argv in enumerate(command_plan, start=1):
+                console.print(Text(f"{index}.", style="accent"))
+                console.print(Syntax(shlex.join(argv), "bash", word_wrap=False))
+        else:
+            for argv in command_plan:
+                _stdout_console().print(" ".join(shlex.quote(item) for item in argv))
         return
 
     if selected_dmg is None:
@@ -1320,7 +1422,8 @@ def runtime_install(
                 async_mode=False,
             )
 
-    for argv in command_plan[1:]:
+    start_index = 1 if needs_download else 0
+    for argv in command_plan[start_index:]:
         _run(argv, cwd=repo_root, check=True)
 
     if selected_dmg is not None:
@@ -1399,8 +1502,10 @@ def sim_list(
         table.add_column("OS", justify="right")
         table.add_column("Availability")
         for line, name, os_version in entries:
-            mark = "*" if default_resolved is not None and line == default_resolved else ""
-            table.add_row(mark, name, os_version, "available")
+            is_default = default_resolved is not None and line == default_resolved
+            mark = Text("*", style="accent") if is_default else Text("")
+            device_name = Text(name, style="bold" if is_default else "")
+            table.add_row(mark, device_name, os_version, "available")
         _stdout_console().print(table)
         return
 
@@ -1832,7 +1937,7 @@ def interactive() -> None:
     _require_interactive_cli(cfg=cfg, command_name="grace interactive")
     rows: list[dict[str, str]] = []
 
-    action = questionary.select(
+    action = _q_select(
         "Choose command:",
         choices=[
             "CI",
@@ -1852,7 +1957,7 @@ def interactive() -> None:
     if choice == "CI":
         profile = _prompt_ci_profile(cfg=cfg, profile=None)
         show_verbose = _require_prompt_answer(
-            questionary.confirm("Show full xcodebuild logs?", default=False).ask(),
+            _q_confirm("Show full xcodebuild logs?", default=False).ask(),
         )
         _execute_ci_profile(cfg, profile, verbose=show_verbose)
         return
@@ -2172,19 +2277,19 @@ def config_list() -> None:
         table.add_column("Key")
         table.add_column("Effective value")
         for key, value in summary_rows:
-            table.add_row(key, str(value))
+            table.add_row(Text(key, style="accent"), str(value))
         _stdout_console().print(table)
 
         profile_table = Table(show_header=True, header_style="bold")
         profile_table.add_column("CI profiles")
         for profile_name in sorted(cfg.ci_profiles):
-            profile_table.add_row(profile_name)
+            profile_table.add_row(Text(profile_name, style="accent"))
         _stdout_console().print(profile_table)
 
         keys_table = Table(show_header=True, header_style="bold")
         keys_table.add_column("Editable key paths")
         for key in sorted(_editable_config_keys()):
-            keys_table.add_row(key)
+            keys_table.add_row(Text(key, style="muted"))
         _stdout_console().print(keys_table)
         return
 
@@ -2298,7 +2403,7 @@ def config_interactive() -> None:
             f"[{editable_map[key].group}] {key} = {_format_config_value(editable_map[key].getter(loaded))}": key
             for key in ordered_keys
         }
-        selected = questionary.select(
+        selected = _q_select(
             "Choose config key to edit:",
             choices=[*label_to_key.keys(), "Done"],
         ).ask()
@@ -2313,7 +2418,7 @@ def config_interactive() -> None:
         if editable.value_type == "bool":
             raw_next_value = str(
                 _require_prompt_answer(
-                    questionary.confirm(
+                    _q_confirm(
                         f"Set {dotted_key}:",
                         default=bool(current_value),
                     ).ask(),
@@ -2322,7 +2427,7 @@ def config_interactive() -> None:
         else:
             default_text = _format_config_value(current_value)
             raw_next_value = _require_prompt_answer(
-                questionary.text(
+                _q_text(
                     f"Set {dotted_key}:",
                     default=default_text,
                 ).ask(),

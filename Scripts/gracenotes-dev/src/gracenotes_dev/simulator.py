@@ -1,4 +1,4 @@
-"""Resolve and validate iOS simulator destinations (migrated from Scripts/simulator_destination.py)."""
+"""Resolve and validate iOS simulator destinations for xcodebuild and ``grace sim``."""
 
 from __future__ import annotations
 
@@ -6,24 +6,7 @@ import json
 import re
 import subprocess
 import sys
-from typing import Dict, List, Optional, Sequence, Set, Tuple
-
-
-def usage() -> None:
-    print(
-        """Usage:
-  python3 Scripts/simulator_destination.py list
-  python3 Scripts/simulator_destination.py resolve "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.3"
-  python3 Scripts/simulator_destination.py name "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.3"
-  python3 Scripts/simulator_destination.py matrix-destinations "iPhone XR@17.5;iPhone 17 Pro@26.3"
-
-Notes:
-  - Each matrix entry can be either:
-      1) device@os (for example: iPhone XR@17.5)
-      2) full destination string (platform=iOS Simulator,name=...,OS=...)
-  - OS=latest resolves to the newest installed iOS runtime for the requested device.
-""".strip()
-    )
+from typing import Dict, List, Optional, Set, Tuple
 
 
 def version_tuple(version: str) -> Tuple[int, ...]:
@@ -246,16 +229,6 @@ def row_for_resolved_destination(
     return candidates[0] if candidates else None
 
 
-def list_destinations(rows: List[Dict[str, str]]) -> None:
-    seen: Set[Tuple[str, str]] = set()
-    for row in sorted(rows, key=lambda item: (item["name"], version_tuple(item["runtime_version"]))):
-        key = (row["name"], row["runtime_version"])
-        if key in seen:
-            continue
-        seen.add(key)
-        print(f"platform=iOS Simulator,name={row['name']},OS={row['runtime_version']}")
-
-
 def matrix_destinations_lines(spec: str, rows: List[Dict[str, str]]) -> List[str]:
     """Return resolved destination lines for a matrix spec (semicolon-separated)."""
     entries = [entry.strip() for entry in spec.split(";") if entry.strip()]
@@ -278,47 +251,3 @@ def matrix_destinations_lines(spec: str, rows: List[Dict[str, str]]) -> List[str
             destination = f"platform=iOS Simulator,name={name.strip()},OS={os_value.strip()}"
         lines.append(resolve_destination(destination, rows))
     return lines
-
-
-def emit_matrix_destinations(spec: str, rows: List[Dict[str, str]]) -> None:
-    for line in matrix_destinations_lines(spec, rows):
-        print(line)
-
-
-def run_legacy_cli(argv: Optional[Sequence[str]] = None) -> int:
-    """CLI parity with ``Scripts/simulator_destination.py`` (for the thin shim)."""
-    args = list(sys.argv[1:] if argv is None else argv)
-    if not args:
-        usage()
-        return 2
-
-    command_name = args[0]
-    command_args = args[1:]
-
-    if command_name == "name":
-        if len(command_args) != 1:
-            print("ERROR: name command expects exactly one destination argument.", file=sys.stderr)
-            return 2
-        print(destination_display_name(command_args[0]))
-        return 0
-
-    rows = load_available_ios_devices()
-
-    if command_name == "list":
-        list_destinations(rows)
-        return 0
-    if command_name == "resolve":
-        if len(command_args) != 1:
-            print("ERROR: resolve command expects exactly one destination argument.", file=sys.stderr)
-            return 2
-        print(resolve_destination(command_args[0], rows))
-        return 0
-    if command_name == "matrix-destinations":
-        if len(command_args) != 1:
-            print("ERROR: matrix-destinations expects exactly one matrix specification argument.", file=sys.stderr)
-            return 2
-        emit_matrix_destinations(command_args[0], rows)
-        return 0
-
-    print(f"ERROR: unknown command '{command_name}'.", file=sys.stderr)
-    return 2
