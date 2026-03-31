@@ -163,21 +163,21 @@ struct GraceNotesApp: App {
             TabView(selection: $appNavigation.selectedTab) {
                 TodayTabRoot()
                     .tabItem {
-                        Label(String(localized: "Today"), systemImage: "doc.text")
+                        Label(String(localized: "Today"), image: "pen-scribble")
                     }
                     .tag(AppTab.today)
                 NavigationStack {
                     DeferredReviewRoot(isSelected: appNavigation.selectedTab == .history)
                 }
                 .tabItem {
-                    Label(String(localized: "Past"), systemImage: "clock.arrow.circlepath")
+                    Label(String(localized: "Past"), image: "calendar")
                 }
                 .tag(AppTab.history)
                 NavigationStack {
                     SettingsScreen()
                 }
                 .tabItem {
-                    Label(String(localized: "Settings"), systemImage: "gearshape")
+                    Label(String(localized: "Settings"), image: "nodes-2")
                 }
                 .tag(AppTab.settings)
             }

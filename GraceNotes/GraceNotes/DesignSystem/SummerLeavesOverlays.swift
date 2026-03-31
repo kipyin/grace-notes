@@ -67,6 +67,7 @@ struct SummerLeavesVideoOverlay: View {
 
 private struct LoopingVideoPlayerView: UIViewRepresentable {
     let url: URL
+    @Environment(\.scenePhase) private var scenePhase
 
     func makeCoordinator() -> Coordinator {
         Coordinator(url: url)
@@ -85,6 +86,9 @@ private struct LoopingVideoPlayerView: UIViewRepresentable {
 
     func updateUIView(_ uiView: LeavesVideoHostView, context: Context) {
         context.coordinator.updateBounds(uiView.bounds)
+        if scenePhase == .active {
+            context.coordinator.resumePlaybackIfAttached()
+        }
     }
 
     static func dismantleUIView(_ uiView: LeavesVideoHostView, coordinator: Coordinator) {
@@ -123,6 +127,10 @@ private struct LoopingVideoPlayerView: UIViewRepresentable {
 
         func updateBounds(_ bounds: CGRect) {
             playerLayer?.frame = bounds
+        }
+
+        func resumePlaybackIfAttached() {
+            player?.play()
         }
 
         func teardown() {
