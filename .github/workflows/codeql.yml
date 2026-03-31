@@ -63,6 +63,13 @@ jobs:
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && github.ref || 'main' }}
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install grace (gracenotes-dev)
+        run: python3 -m pip install --upgrade pip && python3 -m pip install -e Scripts/gracenotes-dev
+
       - uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: '26.3'
@@ -73,7 +80,7 @@ jobs:
           languages: swift
 
       - name: Build (manual)
-        run: make ci-build
+        run: grace build
 
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@v3

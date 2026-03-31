@@ -25,20 +25,19 @@ Set risk-based test depth, run the right level of testing, debug and fix issues 
 
 ## Test execution (macOS)
 
-Run tests via **`make`** from the **repository root** unless a narrow `xcodebuild` one-off is justified. That keeps flags, scheme, and destination aligned with `Makefile`, `README.md`, and **`make ci`**.
+Run tests via **`grace`** from the **repository root** (after `pip install -e Scripts/gracenotes-dev`) unless a narrow `xcodebuild` one-off is justified. That keeps flags, scheme, and destination aligned with `gracenotes-dev.toml`, `README.md`, and **`grace ci`**.
 
-| Target | Use when |
+| Command | Use when |
 |--------|-----------|
-| `make test` | **GraceNotes** scheme — full suite (unit + UI). |
-| `make test-unit` | Only **`GraceNotesTests`** need to run. |
-| `make test-ui` | Only **`GraceNotesUITests`** need to run. |
-| `make test-isolated` | Suspected DerivedData / Xcode contention or hard-to-reproduce flakes. |
-| `make test-all` | Reset simulators, then **GraceNotes** tests (see `Makefile`). |
-| `make test-matrix` | **GraceNotes** tests across `TEST_DESTINATION_MATRIX`. |
-| `make ci` | Lint + `test-all` — broadest local gate before merge. |
-| `make ci-matrix` | Lint + `test-matrix`. |
+| `grace test` | **GraceNotes** scheme — full suite (unit + UI). |
+| `grace test --kind unit` | Only **`GraceNotesTests`** need to run. |
+| `grace test --kind ui` | Only **`GraceNotesUITests`** need to run. |
+| `grace test --isolated-dd` | Suspected DerivedData / Xcode contention or hard-to-reproduce flakes. |
+| `grace ci --profile test-all` | Lint, reset simulators, then full **GraceNotes** tests. |
+| `grace test --matrix` | **GraceNotes** tests across the configured destination matrix. |
+| `grace ci --profile full` | Lint + Pro destination tests + XR smoke — full CI parity. |
 
-Requires **macOS + Xcode + iOS Simulator** (see repo `AGENTS.md`). On Linux, state on the **PR** what must be run on a Mac and which `make` target to use.
+Requires **macOS + Xcode + iOS Simulator** (see repo `AGENTS.md`). On Linux, state on the **PR** what must be run on a Mac and which **`grace`** command to use.
 
 ## Output Format
 

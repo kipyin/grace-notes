@@ -10,7 +10,7 @@
 
 ### Platform constraint
 
-This project **requires macOS + Xcode 26+** to build, run, and test with the **default** Makefile simulator destinations (iPhone 17 family / iOS 26 runtimes). The Cloud Agent Linux VM cannot compile Swift code that depends on iOS SDK frameworks (SwiftUI, SwiftData, UIKit). There is no backend, no API server, and no web UI—everything runs on-device in the iOS Simulator.
+This project **requires macOS + Xcode 26+** to build, run, and test with the **default** simulator destinations in [`gracenotes-dev.toml`](gracenotes-dev.toml) (iPhone 17 family / iOS 26 runtimes). The Cloud Agent Linux VM cannot compile Swift code that depends on iOS SDK frameworks (SwiftUI, SwiftData, UIKit). There is no backend, no API server, and no web UI—everything runs on-device in the iOS Simulator.
 
 ### What works on Linux
 
@@ -25,21 +25,23 @@ This project **requires macOS + Xcode 26+** to build, run, and test with the **d
 
 ### Build and test commands (macOS only)
 
-Prefer **`make`** from the repo root so destinations and flags stay aligned with `Makefile` (`make ci`, `make test`, `make test-matrix`). Destinations are validated/resolved by `Scripts/simulator_destination.py` (Python 3). For copy-paste `platform=…` strings, run `make list-simulator-destinations`.
+**Supported entrypoints** (after install): the **`grace`** console script and **`python3 -m gracenotes_dev`** — both run the same CLI. There is no Makefile-based dev automation; GitHub Actions and contributors use **`grace`** only.
 
-CI uses **GitHub Actions** with **`make lint`** + **`make ci-build`** on PRs to **`main`**, **`make ci-full`** on **`full-ci`**-labeled PRs and on pushes to **`main`** (that post-merge job is skipped when the push is the merge commit of a PR merged to **`main`** with label **`no-ci`**). Runners select **Xcode 26.3** and use **iPhone 17 Pro @ `OS=latest`** plus **iPhone SE (3rd generation) @ iOS 18.5** (`CI_SIMULATOR_PRO` / `CI_SIMULATOR_XR`) without downloading simulator platforms in workflow steps. See **CI (GitHub Actions)** in [`README.md`](README.md).
+**Install** (from repo root): `python3 -m pip install -e Scripts/gracenotes-dev` (use a current `pip` so editable installs work with `pyproject.toml`), or **`uv tool install --editable ./Scripts/gracenotes-dev`** for an isolated `grace` on your tool path. Ephemeral runs without a global install: **`uv run --project Scripts/gracenotes-dev grace …`**.
+
+Prefer **`grace`** so destinations and flags stay aligned with [`gracenotes-dev.toml`](gracenotes-dev.toml). For copy-paste `platform=…` strings, run `grace sim list`. `Scripts/simulator_destination.py` remains a thin delegator for ad hoc Python callers.
+
+**`gracenotes-dev` package tests** (any OS after install or with `uv run --project Scripts/gracenotes-dev`): stdlib **`unittest`** under [`Scripts/gracenotes-dev/tests/`](Scripts/gracenotes-dev/tests/). From repo root with an editable install: `python3 -m unittest discover -s Scripts/gracenotes-dev/tests`. From the package directory: `cd Scripts/gracenotes-dev && uv run python -m unittest discover -s tests`.
+
+CI uses **GitHub Actions** with **`grace ci --profile lint-build`** on PRs to **`main`**, and **`grace ci --profile full`** on **`full-ci`**-labeled PRs and on pushes to **`main`** (that post-merge job is skipped when the push is the merge commit of a PR merged to **`main`** with label **`no-ci`**). Runners select **Xcode 26.3** and use **iPhone 17 Pro @ `OS=latest`** plus **iPhone SE (3rd generation) @ iOS 18.5** (`CI_SIMULATOR_PRO` / `CI_SIMULATOR_XR`) without downloading simulator platforms in workflow steps. See **CI (GitHub Actions)** in [`README.md`](README.md).
 
 ```bash
-make ci
+grace ci --profile full
 # or, ad hoc:
-xcodebuild \
-  -project GraceNotes/GraceNotes.xcodeproj \
-  -scheme GraceNotes \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=latest' \
-  test
+grace test --destination 'iPhone 17 Pro@latest'
 ```
 
-Automated Makefile targets test the **GraceNotes** scheme only. The **GraceNotes (Demo)** scheme remains in Xcode for local runs with demo seed data; it is not part of `make test` / `make ci`.
+Automated **grace** workflows test the **GraceNotes** scheme only. The **GraceNotes (Demo)** scheme remains in Xcode for local runs with demo seed data; it is not part of the default CI profiles.
 
 ### Lint command
 

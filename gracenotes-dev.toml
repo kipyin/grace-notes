@@ -1,0 +1,45 @@
+[defaults]
+project = "GraceNotes/GraceNotes.xcodeproj"
+scheme = "GraceNotes"
+bundle_id = "com.gracenotes.GraceNotes"
+destination = "platform=iOS Simulator,name=iPhone 17 Pro,OS=latest"
+ci_simulator_pro = "platform=iOS Simulator,name=iPhone 17 Pro,OS=latest"
+ci_simulator_xr = "platform=iOS Simulator,name=iPhone SE (3rd generation),OS=18.5"
+test_destination_matrix = [
+  "iPhone SE (3rd generation)@18.5",
+  "iPhone 17 Pro@latest",
+]
+isolated_derived_data = "/tmp/GraceNotes-TestDerivedData"
+
+[tests]
+unit_test_bundle = "GraceNotesTests"
+ui_test_bundle = "GraceNotesUITests"
+smoke_ui_test = "GraceNotesUITests/GraceNotesSmokeUITests/testSmokeLaunch"
+xcode_test_flags = ["-parallel-testing-enabled", "NO"]
+legacy_runtime_skip_flags = [
+  "-skip-testing:GraceNotesTests/DeterministicReviewInsightsTests",
+  "-skip-testing:GraceNotesTests/HistoryEntryGroupingTests",
+]
+
+[ci.profiles.lint-build]
+lint = true
+build = true
+build_destination = "platform=iOS Simulator,name=iPhone 17 Pro,OS=latest"
+
+[ci.profiles.test-all]
+lint = true
+test = true
+test_kind = "all"
+reset_simulators_before_test = true
+
+[ci.profiles.full]
+lint = true
+test = true
+test_kind = "all"
+test_destination = "platform=iOS Simulator,name=iPhone 17 Pro,OS=latest"
+smoke = true
+smoke_destination = "platform=iOS Simulator,name=iPhone SE (3rd generation),OS=18.5"
+
+[run.presets]
+tutorial-reset = ["-reset-journal-tutorial"]
+uitest-reset-store = ["-grace-notes-reset-uitest-store"]

@@ -25,6 +25,12 @@ DerivedData/
 .build/
 .swiftpm/
 
+# Python (dev tooling under Scripts/)
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+
 # Cursor
 .cursor/
 .xcodebuildmcp/

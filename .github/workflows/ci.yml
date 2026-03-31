@@ -59,6 +59,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install grace (gracenotes-dev)
+        run: python3 -m pip install --upgrade pip && python3 -m pip install -e Scripts/gracenotes-dev
+
       - uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: '26.3'
@@ -70,11 +77,8 @@ jobs:
           fi
           swiftlint version
 
-      - name: Lint
-        run: make lint
-
-      - name: Build
-        run: make ci-build
+      - name: Lint & build
+        run: grace ci --profile lint-build
 
   main-push-full-ci:
     name: Main push — lint, test, UI smoke
@@ -87,6 +91,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install grace (gracenotes-dev)
+        run: python3 -m pip install --upgrade pip && python3 -m pip install -e Scripts/gracenotes-dev
+
       - uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: '26.3'
@@ -98,8 +109,8 @@ jobs:
           fi
           swiftlint version
 
-      - name: Full CI (make)
-        run: make ci-full
+      - name: Full CI
+        run: grace ci --profile full
 
   pr-full-ci:
     name: PR full-ci — lint, test, UI smoke
@@ -110,6 +121,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install grace (gracenotes-dev)
+        run: python3 -m pip install --upgrade pip && python3 -m pip install -e Scripts/gracenotes-dev
+
       - uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: '26.3'
@@ -121,5 +139,5 @@ jobs:
           fi
           swiftlint version
 
-      - name: Full CI (make)
-        run: make ci-pr-full-ci
+      - name: Full CI
+        run: grace ci --profile full
