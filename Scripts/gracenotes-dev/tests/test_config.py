@@ -14,7 +14,21 @@ class ConfigLoadingTest(unittest.TestCase):
         loaded = config.load_config(repo_root=Path("/tmp/does-not-exist"))
         self.assertIn("lint-build", loaded.ci_profiles)
         self.assertIn("test-all", loaded.ci_profiles)
+        self.assertIn("lint-build-test", loaded.ci_profiles)
         self.assertIn("full", loaded.ci_profiles)
+        self.assertEqual(loaded.default_ci_profile, config.DEFAULT_CI_PROFILE)
+
+    def test_lint_build_test_profile_matches_lint_build_and_test_all_options(self) -> None:
+        loaded = config.load_config(repo_root=Path("/tmp/does-not-exist"))
+        lb = loaded.ci_profiles["lint-build"]
+        ta = loaded.ci_profiles["test-all"]
+        lbt = loaded.ci_profiles["lint-build-test"]
+        self.assertTrue(lbt.lint)
+        self.assertTrue(lbt.build)
+        self.assertEqual(lbt.build_destination, lb.build_destination)
+        self.assertTrue(lbt.test)
+        self.assertEqual(lbt.test_kind, ta.test_kind)
+        self.assertEqual(lbt.reset_simulators_before_test, ta.reset_simulators_before_test)
 
     def test_load_config_merges_toml_overrides(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -38,3 +52,17 @@ test_kind = "unit"
             self.assertEqual(len(loaded.test_destination_matrix), 1)
             self.assertEqual(loaded.ci_profiles["test-all"].test_kind, "unit")
             self.assertFalse(loaded.ci_profiles["test-all"].lint)
+
+    def test_load_config_reads_default_ci_profile(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / "gracenotes-dev.toml").write_text(
+                """
+[defaults]
+default_ci_profile = "full"
+""".strip(),
+                encoding="utf-8",
+            )
+
+            loaded = config.load_config(repo_root=root)
+            self.assertEqual(loaded.default_ci_profile, "full")

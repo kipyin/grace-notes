@@ -9,7 +9,9 @@ description = "Grace Notes developer CLI (grace) — simulators, xcodebuild, CI 
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "questionary>=2.0,<3",
     "rich>=13.7.0,<14",
+    "tomlkit>=0.13,<1",
     "typer>=0.12.3,<0.17",
     "tomli>=2.0.1,<3; python_version < '3.11'",
 ]
@@ -17,6 +19,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0,<9",
+    "ruff>=0.9.0,<0.14",
 ]
 
 [project.scripts]
@@ -27,3 +30,13 @@ packages = ["src/gracenotes_dev"]
 
 [tool.hatch.build.targets.wheel.sources]
 "src/gracenotes_dev" = "gracenotes_dev"
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["gracenotes_dev"]

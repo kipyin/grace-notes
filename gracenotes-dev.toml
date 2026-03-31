@@ -2,6 +2,8 @@
 project = "GraceNotes/GraceNotes.xcodeproj"
 scheme = "GraceNotes"
 bundle_id = "com.gracenotes.GraceNotes"
+# Default `grace ci` profile when `--profile` is omitted (lint + simulator build; no tests).
+default_ci_profile = "lint-build"
 destination = "platform=iOS Simulator,name=iPhone 17 Pro,OS=latest"
 ci_simulator_pro = "platform=iOS Simulator,name=iPhone 17 Pro,OS=latest"
 ci_simulator_xr = "platform=iOS Simulator,name=iPhone SE (3rd generation),OS=18.5"
@@ -28,6 +30,14 @@ build_destination = "platform=iOS Simulator,name=iPhone 17 Pro,OS=latest"
 
 [ci.profiles.test-all]
 lint = true
+test = true
+test_kind = "all"
+reset_simulators_before_test = true
+
+[ci.profiles.lint-build-test]
+lint = true
+build = true
+build_destination = "platform=iOS Simulator,name=iPhone 17 Pro,OS=latest"
 test = true
 test_kind = "all"
 reset_simulators_before_test = true

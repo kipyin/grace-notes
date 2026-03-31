@@ -11,6 +11,24 @@ from gracenotes_dev import xcode
 
 
 class XcodeHelpersTest(unittest.TestCase):
+    def test_with_quiet_flag_only_applies_to_xcodebuild(self) -> None:
+        self.assertEqual(
+            xcode.with_quiet_flag(["xcodebuild", "build"], quiet=True),
+            ["xcodebuild", "-quiet", "build"],
+        )
+        self.assertEqual(
+            xcode.with_quiet_flag(["xcodebuild", "-quiet", "build"], quiet=True),
+            ["xcodebuild", "-quiet", "build"],
+        )
+        self.assertEqual(
+            xcode.with_quiet_flag(["xcrun", "simctl", "list"], quiet=True),
+            ["xcrun", "simctl", "list"],
+        )
+        self.assertEqual(
+            xcode.with_quiet_flag(["xcodebuild", "test"], quiet=False),
+            ["xcodebuild", "test"],
+        )
+
     def test_ios_major_from_destination(self) -> None:
         self.assertEqual(
             xcode.ios_major_from_resolved_destination(
@@ -29,9 +47,12 @@ class XcodeHelpersTest(unittest.TestCase):
             "platform=iOS Simulator,name=iPhone SE (3rd generation),OS=17.5",
         )
         self.assertTrue(all(f.startswith("-skip-testing:") for f in flags))
-        self.assertEqual(xcode.legacy_skip_flags_if_needed(
-            "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.0",
-        ), [])
+        self.assertEqual(
+            xcode.legacy_skip_flags_if_needed(
+                "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.0",
+            ),
+            [],
+        )
 
     def test_build_argv_order(self) -> None:
         argv = xcode.build_argv(
@@ -49,6 +70,27 @@ class XcodeHelpersTest(unittest.TestCase):
         self.assertIn("-derivedDataPath", argv)
         self.assertIn("/tmp/dd", argv)
 
+    def test_clean_argv_matches_build_except_action(self) -> None:
+        project = Path("GraceNotes/GraceNotes.xcodeproj")
+        dest = "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.0"
+        build = xcode.build_argv(
+            project=project,
+            scheme="GraceNotes",
+            resolved_destination=dest,
+            configuration="Debug",
+            derived_data_path="/tmp/dd",
+        )
+        clean = xcode.clean_argv(
+            project=project,
+            scheme="GraceNotes",
+            resolved_destination=dest,
+            configuration="Debug",
+            derived_data_path="/tmp/dd",
+        )
+        self.assertEqual(build[:-1], clean[:-1])
+        self.assertEqual(build[-1], "build")
+        self.assertEqual(clean[-1], "clean")
+
     def test_repo_root_from_package_dir(self) -> None:
         repo_root = Path(__file__).resolve().parents[3]
         package_dir = Path(__file__).resolve().parents[1]
@@ -57,7 +99,7 @@ class XcodeHelpersTest(unittest.TestCase):
 
     def test_run_launch_metadata_from_fixture_scheme(self) -> None:
         xml = textwrap.dedent(
-            '''\
+            """\
             <?xml version="1.0" encoding="UTF-8"?>
             <Scheme version="1.7">
               <LaunchAction buildConfiguration = "Demo">
@@ -66,7 +108,7 @@ class XcodeHelpersTest(unittest.TestCase):
                 </BuildableProductRunnable>
               </LaunchAction>
             </Scheme>
-            '''
+            """
         )
         with tempfile.TemporaryDirectory() as tmp:
             proj = Path(tmp) / "App.xcodeproj"

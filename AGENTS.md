@@ -29,15 +29,17 @@ This project **requires macOS + Xcode 26+** to build, run, and test with the **d
 
 **Install** (from repo root): `python3 -m pip install -e Scripts/gracenotes-dev` (use a current `pip` so editable installs work with `pyproject.toml`), or **`uv tool install --editable ./Scripts/gracenotes-dev`** for an isolated `grace` on your tool path. Ephemeral runs without a global install: **`uv run --project Scripts/gracenotes-dev grace …`**.
 
-Prefer **`grace`** so destinations and flags stay aligned with [`gracenotes-dev.toml`](gracenotes-dev.toml). For copy-paste `platform=…` strings, run `grace sim list`. `Scripts/simulator_destination.py` remains a thin delegator for ad hoc Python callers.
+Prefer **`grace`** so destinations and flags stay aligned with [`gracenotes-dev.toml`](gracenotes-dev.toml). For copy-paste `platform=…` strings, run `grace sim list`.
 
 **`gracenotes-dev` package tests** (any OS after install or with `uv run --project Scripts/gracenotes-dev`): stdlib **`unittest`** under [`Scripts/gracenotes-dev/tests/`](Scripts/gracenotes-dev/tests/). From repo root with an editable install: `python3 -m unittest discover -s Scripts/gracenotes-dev/tests`. From the package directory: `cd Scripts/gracenotes-dev && uv run python -m unittest discover -s tests`.
 
-CI uses **GitHub Actions** with **`grace ci --profile lint-build`** on PRs to **`main`**, and **`grace ci --profile full`** on **`full-ci`**-labeled PRs and on pushes to **`main`** (that post-merge job is skipped when the push is the merge commit of a PR merged to **`main`** with label **`no-ci`**). Runners select **Xcode 26.3** and use **iPhone 17 Pro @ `OS=latest`** plus **iPhone SE (3rd generation) @ iOS 18.5** (`CI_SIMULATOR_PRO` / `CI_SIMULATOR_XR`) without downloading simulator platforms in workflow steps. See **CI (GitHub Actions)** in [`README.md`](README.md).
+CI uses **GitHub Actions** with **`grace ci`** (default profile: **`lint-build`** — lint and simulator build) on PRs to **`main`**, and **`grace ci --profile full`** on **`full-ci`**-labeled PRs and on pushes to **`main`** (that post-merge job is skipped when the push is the merge commit of a PR merged to **`main`** with label **`no-ci`**). Runners select **Xcode 26.3** and use **iPhone 17 Pro @ `OS=latest`** plus **iPhone SE (3rd generation) @ iOS 18.5** (`CI_SIMULATOR_PRO` / `CI_SIMULATOR_XR`) without downloading simulator platforms in workflow steps. See **CI (GitHub Actions)** in [`README.md`](README.md).
 
 ```bash
+grace ci
+# or, post-merge / full-ci parity (adds UI smoke on SE):
 grace ci --profile full
-# or, ad hoc:
+# ad hoc:
 grace test --destination 'iPhone 17 Pro@latest'
 ```
 

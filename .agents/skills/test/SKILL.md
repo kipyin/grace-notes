@@ -33,7 +33,8 @@ Run tests via **`grace`** from the **repository root** (after `pip install -e Sc
 | `grace test --kind unit` | Only **`GraceNotesTests`** need to run. |
 | `grace test --kind ui` | Only **`GraceNotesUITests`** need to run. |
 | `grace test --isolated-dd` | Suspected DerivedData / Xcode contention or hard-to-reproduce flakes. |
-| `grace ci --profile test-all` | Lint, reset simulators, then full **GraceNotes** tests. |
+| `grace ci` | Default CI profile (**`lint-build`**: lint and simulator build). |
+| `grace ci --profile test-all` | Lint, reset simulators, then full **GraceNotes** tests (no separate build step). |
 | `grace test --matrix` | **GraceNotes** tests across the configured destination matrix. |
 | `grace ci --profile full` | Lint + Pro destination tests + XR smoke — full CI parity. |
 

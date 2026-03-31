@@ -18,6 +18,9 @@ DEFAULT_SCHEME = "GraceNotes"
 # Default simulator destination (human / xcodebuild string)
 DEFAULT_DESTINATION = "platform=iOS Simulator,name=iPhone 17 Pro,OS=latest"
 
+# Default ``grace ci`` profile when ``--profile`` is omitted (lint + simulator build).
+DEFAULT_CI_PROFILE = "lint-build"
+
 # CI pins (override if runtimes differ)
 CI_SIMULATOR_PRO = "platform=iOS Simulator,name=iPhone 17 Pro,OS=latest"
 CI_SIMULATOR_XR = "platform=iOS Simulator,name=iPhone SE (3rd generation),OS=18.5"
@@ -63,6 +66,7 @@ class DevConfig:
     project: str
     scheme: str
     bundle_id: str
+    default_ci_profile: str
     destination: str
     ci_simulator_pro: str
     ci_simulator_xr: str
@@ -92,6 +96,15 @@ def _default_ci_profiles() -> dict[str, CIProfile]:
             test_kind="all",
             reset_simulators_before_test=True,
         ),
+        "lint-build-test": CIProfile(
+            name="lint-build-test",
+            lint=True,
+            build=True,
+            build_destination=CI_SIMULATOR_PRO,
+            test=True,
+            test_kind="all",
+            reset_simulators_before_test=True,
+        ),
         "full": CIProfile(
             name="full",
             lint=True,
@@ -110,13 +123,12 @@ def default_config() -> DevConfig:
         project=DEFAULT_PROJECT_RELATIVE,
         scheme=DEFAULT_SCHEME,
         bundle_id=DEFAULT_BUNDLE_ID,
+        default_ci_profile=DEFAULT_CI_PROFILE,
         destination=DEFAULT_DESTINATION,
         ci_simulator_pro=CI_SIMULATOR_PRO,
         ci_simulator_xr=CI_SIMULATOR_XR,
         test_destination_matrix=tuple(
-            item.strip()
-            for item in TEST_DESTINATION_MATRIX.split(";")
-            if item.strip()
+            item.strip() for item in TEST_DESTINATION_MATRIX.split(";") if item.strip()
         ),
         isolated_derived_data=ISOLATED_DERIVED_DATA,
         unit_test_bundle=UNIT_TEST_BUNDLE,
@@ -204,10 +216,17 @@ def load_config(repo_root: Path | None = None) -> DevConfig:
                 base=profiles.get(profile_name),
             )
 
+    default_ci_profile = str(
+        defaults.get("default_ci_profile", loaded.default_ci_profile),
+    ).strip()
+    if not default_ci_profile:
+        default_ci_profile = loaded.default_ci_profile
+
     return DevConfig(
         project=str(defaults.get("project", loaded.project)),
         scheme=str(defaults.get("scheme", loaded.scheme)),
         bundle_id=str(defaults.get("bundle_id", loaded.bundle_id)),
+        default_ci_profile=default_ci_profile,
         destination=str(defaults.get("destination", loaded.destination)),
         ci_simulator_pro=str(defaults.get("ci_simulator_pro", loaded.ci_simulator_pro)),
         ci_simulator_xr=str(defaults.get("ci_simulator_xr", loaded.ci_simulator_xr)),

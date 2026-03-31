@@ -81,16 +81,21 @@ python3 -m unittest discover -s Scripts/gracenotes-dev/tests
 ```
 
 - `grace lint` – SwiftLint (requires `swiftlint` on your PATH).
-- `grace build` – Simulator build (macOS + Xcode).
+- `grace build` – Simulator build (macOS + Xcode). Use **`grace build --clean`** for `xcodebuild clean` then build (local troubleshooting; **CI does not** run clean by default).
+- `grace clean` – `xcodebuild clean` for the configured scheme and destination (same options as `grace build`; use when you would use Xcode’s Clean Build Folder).
 - `grace test` – Unit + UI tests; add `--kind unit` / `--kind ui` / `--kind smoke`, `--matrix`, `--isolated-dd`, `--no-reset-sims` as needed.
-- `grace ci --profile test-all` – Lint, reset simulators, then full tests (close to the old lint + reset + test gate).
+- `grace ci` – Default CI profile from `gracenotes-dev.toml` (`defaults.default_ci_profile`, **`lint-build`**: lint and simulator build on iPhone 17 Pro). Use **`grace ci --profile lint-build-test`** or **`test-all`** when you need lint + tests locally.
+- `grace interactive` – TTY menu to pick a CI profile, then run it (use `grace ci --profile …` in CI or when stdin is not a terminal).
+- `grace ci --profile test-all` – Lint, reset simulators, then full tests (no separate build step; close to the old lint + reset + test gate).
 - `grace ci --profile full` – Lint, tests on iPhone 17 Pro, UI smoke on iPhone SE (3rd generation) per `gracenotes-dev.toml`.
+- `grace sim runtime install` / `grace sim runtime list` / `grace sim runtime delete …` – Install and manage simulator runtimes (then use `grace sim list` to confirm destination availability).
 - `grace sim list` / `grace sim resolve SPEC` / `grace sim reset` – Destinations and simulator hygiene.
 - `grace run` – Build, install, and launch on a booted simulator; use `--preset` and `--` to pass [app process arguments](GraceNotes/GraceNotes/Application/GraceNotesApp.swift).
 
 Examples:
 
 ```bash
+grace build --clean
 grace test --destination 'iPhone 17 Pro@latest'
 grace test --matrix
 grace run --destination 'iPhone 17 Pro@latest' -- -reset-journal-tutorial
@@ -108,21 +113,21 @@ Note: `grace ci --profile test-all` resets simulators before testing to reduce f
 
 ## CI (GitHub Actions)
 
-Workflows: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (lint, build, tests) and [`.github/workflows/codeql.yml`](.github/workflows/codeql.yml) (CodeQL Swift). **CodeQL** installs **`gracenotes-dev`** and runs **`grace build`** for the traced compile. **CodeQL** runs **daily** at **20:00 UTC** (**04:00 UTC+8**). The CodeQL workflow stores the last successfully analyzed `main` commit in **`actions/cache`** (a new cache entry per commit so the marker can advance); scheduled runs **skip** the traced macOS build when that marker matches the current `main` tip. A cache **miss** or **eviction** still runs the full scan. **Run workflow** (`workflow_dispatch`) on CodeQL always performs a full analysis.
+Workflows: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (lint + build on PRs; full lint, test, and smoke on post-merge / **`full-ci`**) and [`.github/workflows/codeql.yml`](.github/workflows/codeql.yml) (CodeQL Swift). **CodeQL** installs **`gracenotes-dev`** and runs **`grace build`** for the traced compile. **CodeQL** runs **daily** at **20:00 UTC** (**04:00 UTC+8**). The CodeQL workflow stores the last successfully analyzed `main` commit in **`actions/cache`** (a new cache entry per commit so the marker can advance); scheduled runs **skip** the traced macOS build when that marker matches the current `main` tip. A cache **miss** or **eviction** still runs the full scan. **Run workflow** (`workflow_dispatch`) on CodeQL always performs a full analysis.
 
-**CI workflow (`ci.yml`).** macOS jobs install **`Scripts/gracenotes-dev`** and run **`grace`** (`grace ci --profile lint-build` on PRs; `grace ci --profile full` for post-merge and **`full-ci`** PRs). Destinations and flags match [`gracenotes-dev.toml`](gracenotes-dev.toml).
+**CI workflow (`ci.yml`).** macOS jobs install **`Scripts/gracenotes-dev`** and run **`grace`** (`grace ci` on PRs — default **`lint-build`**; `grace ci --profile full` for post-merge and **`full-ci`** PRs). Destinations and flags match [`gracenotes-dev.toml`](gracenotes-dev.toml).
 
 **Why not both `push` and `pull_request` on every branch?** A push to a PR branch used to trigger *two* workflow runs (push + pull_request), which was noisy. The workflow now uses **`pull_request` only for PRs targeting `main`**, and **`push` only for the `main` branch** (post-merge build). Feature branches without a PR do not run CI until you open one.
 
 | When | What runs |
 |------|-----------|
-| **Pull request → `main`** | **Lint & build (iPhone 17 Pro)** — `grace ci --profile lint-build`. **`CI_SIMULATOR_PRO`** is **iPhone 17 Pro @ `OS=latest`** (newest installed runtime for that device on the runner; SE (3rd generation) smoke remains iOS 18.5). |
+| **Pull request → `main`** | **Lint & build (iPhone 17 Pro)** — `grace ci` (default profile **`lint-build`**; no tests). **`CI_SIMULATOR_PRO`** is **iPhone 17 Pro @ `OS=latest`** (newest installed runtime for that device on the runner; SE (3rd generation) smoke remains iOS 18.5). |
 | **Push → `main`** | **Main push — lint, test, UI smoke** — `grace ci --profile full` (lint, full tests on **iPhone 17 Pro**, UI smoke on **iPhone SE (3rd generation)** per config). Smoke: `GraceNotesSmokeUITests.testSmokeLaunch`. Skipped when the push SHA is the **`merge_commit_sha`** of a PR merged into **`main`** and that PR is labeled **`no-ci`** (avoids unrelated PRs on the same commit). |
 | **Pull request + label `full-ci`** | **PR full-ci — lint, test, UI smoke** — `grace ci --profile full`. Re-runs on new commits while the label is present. |
 
 The **`full-ci`** and **`no-ci`** labels must exist in the GitHub repo (Issues → Labels). Adjust **`CI_SIMULATOR_PRO`** / **`CI_SIMULATOR_XR`** in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) and [`gracenotes-dev.toml`](gracenotes-dev.toml) if Apple or runner images change.
 
-**Branch protection:** Configure required status checks for your merge policy—for example **Lint & build (iPhone 17 Pro)** on PRs, and optionally **Main push — lint, test, UI smoke** after merges. **Lint & build** runs on the pull-request SHA only; add **PR full-ci** (label) when you need the full suite before merge. If you used GitHub merge queue before, remove merge queue and any obsolete required checks in **Settings → Branches**.
+**Branch protection:** Configure required status checks for your merge policy—for example **Lint & build (iPhone 17 Pro)** on PRs, and optionally **Main push — lint, test, UI smoke** after merges. That PR job runs on the pull-request SHA only; add **PR full-ci** (label) when you need **`full`** (including UI smoke on SE) before merge. If you used GitHub merge queue before, remove merge queue and any obsolete required checks in **Settings → Branches**.
 
 ## Tech Stack
 

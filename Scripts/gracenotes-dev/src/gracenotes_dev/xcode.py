@@ -4,11 +4,23 @@ from __future__ import annotations
 
 import re
 import xml.etree.ElementTree as ET
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 from gracenotes_dev import config
 from gracenotes_dev.simulator import destination_display_name
+
+
+def with_quiet_flag(argv: Sequence[str], *, quiet: bool) -> list[str]:
+    """Insert ``-quiet`` for xcodebuild argv when requested and absent."""
+    args = list(argv)
+    if not quiet:
+        return args
+    if not args or args[0] != "xcodebuild":
+        return args
+    if "-quiet" in args:
+        return args
+    return [args[0], "-quiet", *args[1:]]
 
 
 def repo_root_from(start: Path | None = None) -> Path:
@@ -78,12 +90,34 @@ def build_argv(
     derived_data_path: Path | str | None = None,
 ) -> list[str]:
     """``xcodebuild build`` argument list."""
-    args = xcodebuild_base_args(project=project, scheme=scheme, resolved_destination=resolved_destination)
+    args = xcodebuild_base_args(
+        project=project, scheme=scheme, resolved_destination=resolved_destination
+    )
     if configuration:
         args.extend(["-configuration", configuration])
     if derived_data_path is not None:
         args.extend(["-derivedDataPath", str(derived_data_path)])
     args.append("build")
+    return args
+
+
+def clean_argv(
+    *,
+    project: Path,
+    scheme: str,
+    resolved_destination: str,
+    configuration: str | None = None,
+    derived_data_path: Path | str | None = None,
+) -> list[str]:
+    """``xcodebuild clean`` argument list (same flags as ``build``)."""
+    args = xcodebuild_base_args(
+        project=project, scheme=scheme, resolved_destination=resolved_destination
+    )
+    if configuration:
+        args.extend(["-configuration", configuration])
+    if derived_data_path is not None:
+        args.extend(["-derivedDataPath", str(derived_data_path)])
+    args.append("clean")
     return args
 
 
@@ -99,9 +133,16 @@ def test_argv(
     xcode_test_flags: Sequence[str] | None = None,
     legacy_skip_flags: Sequence[str] | None = None,
 ) -> list[str]:
-    """``xcodebuild test`` argument list matching Makefile ``test`` / ``test-unit`` / ``test-ui`` patterns."""
-    args = xcodebuild_base_args(project=project, scheme=scheme, resolved_destination=resolved_destination)
-    args.extend(list(xcode_test_flags) if xcode_test_flags is not None else xcodebuild_test_flag_list())
+    """``xcodebuild test`` argv list matching Makefile test patterns.
+
+    Covers ``test``, ``test-unit``, and ``test-ui`` Makefile targets.
+    """
+    args = xcodebuild_base_args(
+        project=project, scheme=scheme, resolved_destination=resolved_destination
+    )
+    args.extend(
+        list(xcode_test_flags) if xcode_test_flags is not None else xcodebuild_test_flag_list()
+    )
     if apply_legacy_skips:
         if legacy_skip_flags is None:
             args.extend(legacy_skip_flags_if_needed(resolved_destination))
@@ -160,7 +201,8 @@ def _elem_local_name(tag: str) -> str:
 def run_launch_metadata_from_scheme(*, xcodeproj: Path, scheme: str) -> tuple[str, str]:
     """Return ``(launch_build_configuration, product_stem)`` from the scheme's LaunchAction.
 
-    ``product_stem`` is the Built app name without ``.app`` (for example ``GraceNotes`` for ``GraceNotes.app``).
+    ``product_stem`` is the Built app name without ``.app`` (for example ``GraceNotes`` for
+    ``GraceNotes.app``).
     """
     path = shared_scheme_path(xcodeproj, scheme)
     if not path.is_file():
@@ -183,7 +225,9 @@ def run_launch_metadata_from_scheme(*, xcodeproj: Path, scheme: str) -> tuple[st
         msg = f"No LaunchAction in {path}"
         raise ValueError(msg)
 
-    attribs = {str(k).strip(): str(v).strip() if v is not None else "" for k, v in launch.attrib.items()}
+    attribs = {
+        str(k).strip(): str(v).strip() if v is not None else "" for k, v in launch.attrib.items()
+    }
     configuration = attribs.get("buildConfiguration")
     if not configuration:
         msg = f"LaunchAction missing buildConfiguration in {path}"
@@ -193,7 +237,9 @@ def run_launch_metadata_from_scheme(*, xcodeproj: Path, scheme: str) -> tuple[st
     for child in launch.iter():
         if _elem_local_name(child.tag) != "BuildableReference":
             continue
-        rattribs = {str(k).strip(): str(v).strip() if v is not None else "" for k, v in child.attrib.items()}
+        rattribs = {
+            str(k).strip(): str(v).strip() if v is not None else "" for k, v in child.attrib.items()
+        }
         buildable = rattribs.get("BuildableName", "")
         if buildable.endswith(".app") and not buildable.endswith("Tests.xctest"):
             product_app = buildable
@@ -230,6 +276,8 @@ def simctl_install_argv(*, app_path: Path, device: str = "booted") -> list[str]:
     return ["xcrun", "simctl", "install", device, str(app_path)]
 
 
-def simctl_launch_argv(*, bundle_id: str, app_args: Sequence[str], device: str = "booted") -> list[str]:
+def simctl_launch_argv(
+    *, bundle_id: str, app_args: Sequence[str], device: str = "booted"
+) -> list[str]:
     """Return ``simctl launch`` argv with optional app arguments."""
     return ["xcrun", "simctl", "launch", device, bundle_id, *app_args]
