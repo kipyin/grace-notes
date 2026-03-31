@@ -29,10 +29,18 @@ class CLISurfaceTest(unittest.TestCase):
         result = runner.invoke(app, ["--help"])
 
         self.assertEqual(result.exit_code, 0)
-        for token in ["doctor", "lint", "sim", "build", "test", "ci", "interactive", "run"]:
+        for token in ["doctor", "lint", "sim", "config", "build", "clean", "test", "ci", "interactive", "run", "xcode"]:
             self.assertIn(token, result.output)
         self.assertIn("Examples:", result.output)
         self.assertIn("grace doctor", result.output)
+        self.assertIn("grace build --clean", result.output)
+
+    def test_build_help_includes_clean_option(self) -> None:
+        runner = CliRunner()
+        result = runner.invoke(app, ["build", "--help"])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn("--clean", result.output)
 
     def test_sim_help_includes_required_subcommands(self) -> None:
         runner = CliRunner()
@@ -40,6 +48,14 @@ class CLISurfaceTest(unittest.TestCase):
 
         self.assertEqual(result.exit_code, 0)
         for token in ["list", "resolve", "reset"]:
+            self.assertIn(token, result.output)
+
+    def test_config_help_includes_required_subcommands(self) -> None:
+        runner = CliRunner()
+        result = runner.invoke(app, ["config", "--help"])
+
+        self.assertEqual(result.exit_code, 0)
+        for token in ["list", "edit", "open", "set", "interactive"]:
             self.assertIn(token, result.output)
 
     def test_sim_list_plain_outputs_columns_and_default_star(self) -> None:
@@ -151,7 +167,7 @@ class CLISurfaceTest(unittest.TestCase):
                     result = runner.invoke(app, ["ci"])
 
         self.assertEqual(result.exit_code, 0, msg=result.output)
-        run_ci.assert_called_once_with(cfg, "test-all")
+        run_ci.assert_called_once_with(cfg, "test-all", verbose=False)
 
     def test_ci_with_explicit_profile_passes_through(self) -> None:
         repo_root = Path(__file__).resolve().parents[3]
@@ -163,7 +179,7 @@ class CLISurfaceTest(unittest.TestCase):
                     result = runner.invoke(app, ["ci", "--profile", "full"])
 
         self.assertEqual(result.exit_code, 0, msg=result.output)
-        run_ci.assert_called_once_with(cfg, "full")
+        run_ci.assert_called_once_with(cfg, "full", verbose=False)
 
     def test_interactive_refused_when_stdin_not_tty(self) -> None:
         repo_root = Path(__file__).resolve().parents[3]
@@ -208,19 +224,24 @@ class CLISurfaceTest(unittest.TestCase):
     def test_interactive_runs_selected_profile(self) -> None:
         repo_root = Path(__file__).resolve().parents[3]
         cfg = config.default_config()
-        prompt = mock.Mock()
-        prompt.ask.return_value = "lint-build"
+        menu_prompt = mock.Mock()
+        menu_prompt.ask.return_value = "CI"
+        profile_prompt = mock.Mock()
+        profile_prompt.ask.return_value = "lint-build"
+        verbose_prompt = mock.Mock()
+        verbose_prompt.ask.return_value = True
 
         with mock.patch.object(cli, "_repo_root", return_value=repo_root):
             with mock.patch.object(cli, "_load_config", return_value=cfg):
                 with mock.patch.object(cli, "_interactive_cli_allowed", return_value=True):
-                    with mock.patch.object(cli.questionary, "select", return_value=prompt):
-                        with mock.patch.object(cli, "_execute_ci_profile") as run_ci:
-                            runner = CliRunner()
-                            result = runner.invoke(app, ["interactive"])
+                    with mock.patch.object(cli.questionary, "select", side_effect=[menu_prompt, profile_prompt]):
+                        with mock.patch.object(cli.questionary, "confirm", return_value=verbose_prompt):
+                            with mock.patch.object(cli, "_execute_ci_profile") as run_ci:
+                                runner = CliRunner()
+                                result = runner.invoke(app, ["interactive"])
 
         self.assertEqual(result.exit_code, 0, msg=f"{result.stdout}\n{result.stderr}")
-        run_ci.assert_called_once_with(cfg, "lint-build")
+        run_ci.assert_called_once_with(cfg, "lint-build", verbose=True)
 
     def test_interactive_cancel_exits_with_code_one(self) -> None:
         repo_root = Path(__file__).resolve().parents[3]
@@ -237,6 +258,23 @@ class CLISurfaceTest(unittest.TestCase):
 
         self.assertEqual(result.exit_code, 1)
 
+    def test_interactive_dispatches_to_config_interactive(self) -> None:
+        repo_root = Path(__file__).resolve().parents[3]
+        cfg = config.default_config()
+        menu_prompt = mock.Mock()
+        menu_prompt.ask.return_value = "Config (interactive)"
+
+        with mock.patch.object(cli, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli, "_load_config", return_value=cfg):
+                with mock.patch.object(cli, "_interactive_cli_allowed", return_value=True):
+                    with mock.patch.object(cli.questionary, "select", return_value=menu_prompt):
+                        with mock.patch.object(cli, "config_interactive") as run_config:
+                            runner = CliRunner()
+                            result = runner.invoke(app, ["interactive"])
+
+        self.assertEqual(result.exit_code, 0, msg=f"{result.stdout}\n{result.stderr}")
+        run_config.assert_called_once_with()
+
     def test_run_preset_and_passthrough_merge_for_simctl_launch(self) -> None:
         """``--preset`` argv plus ``--`` app args reach ``simctl launch`` (no real Xcode)."""
         repo_root = Path(__file__).resolve().parents[3]
@@ -246,7 +284,13 @@ class CLISurfaceTest(unittest.TestCase):
         capture_run: list[list[str]] = []
         capture_capture: list[list[str]] = []
 
-        def fake_run(argv: list[str], *, cwd: Path, check: bool = True) -> subprocess.CompletedProcess[str]:
+        def fake_run(
+            argv: list[str],
+            *,
+            cwd: Path,
+            check: bool = True,
+            verbose: bool = False,
+        ) -> subprocess.CompletedProcess[str]:
             capture_run.append(list(argv))
             return subprocess.CompletedProcess(argv, 0, "", "")
 
@@ -381,6 +425,108 @@ class CLISurfaceTest(unittest.TestCase):
         self.assertEqual(by_name["default destination"]["status"], "ok")
         self.assertIn("iPhone 17 Pro", by_name["default destination"]["detail"])
         self.assertEqual(by_name["matrix destinations"]["status"], "error")
+
+    def test_prepare_xcodebuild_argv_adds_quiet_for_interactive_tty(self) -> None:
+        stdout_mock = mock.Mock()
+        stdout_mock.isatty.return_value = True
+        with mock.patch.dict(os.environ, {"CI": ""}, clear=False):
+            with mock.patch.object(sys, "stdout", stdout_mock):
+                argv = cli._prepare_xcodebuild_argv(["xcodebuild", "build"], verbose=False)
+        self.assertEqual(argv, ["xcodebuild", "-quiet", "build"])
+
+    def test_prepare_xcodebuild_argv_keeps_full_logs_for_verbose_ci_or_non_tty(self) -> None:
+        stdout_mock = mock.Mock()
+        stdout_mock.isatty.return_value = True
+        with mock.patch.dict(os.environ, {"CI": ""}, clear=False):
+            with mock.patch.object(sys, "stdout", stdout_mock):
+                verbose_argv = cli._prepare_xcodebuild_argv(["xcodebuild", "test"], verbose=True)
+        self.assertEqual(verbose_argv, ["xcodebuild", "test"])
+
+        with mock.patch.dict(os.environ, {"CI": "true"}, clear=False):
+            with mock.patch.object(sys, "stdout", stdout_mock):
+                ci_argv = cli._prepare_xcodebuild_argv(["xcodebuild", "test"], verbose=False)
+        self.assertEqual(ci_argv, ["xcodebuild", "test"])
+
+        non_tty_stdout = mock.Mock()
+        non_tty_stdout.isatty.return_value = False
+        with mock.patch.dict(os.environ, {"CI": ""}, clear=False):
+            with mock.patch.object(sys, "stdout", non_tty_stdout):
+                non_tty_argv = cli._prepare_xcodebuild_argv(["xcodebuild", "test"], verbose=False)
+        self.assertEqual(non_tty_argv, ["xcodebuild", "test"])
+
+    def test_config_set_updates_value_in_toml(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            config_file = root / "gracenotes-dev.toml"
+            config_file.write_text(
+                "# keep comment\n[defaults]\nscheme = \"GraceNotes\"\n",
+                encoding="utf-8",
+            )
+            with mock.patch.object(cli, "_repo_root", return_value=root):
+                runner = CliRunner()
+                result = runner.invoke(app, ["config", "set", "defaults.scheme", "GraceNotes (Demo)"])
+
+            self.assertEqual(result.exit_code, 0, msg=f"{result.stdout}\n{result.stderr}")
+            loaded = config.load_config(repo_root=root)
+            self.assertEqual(loaded.scheme, "GraceNotes (Demo)")
+            rendered = config_file.read_text(encoding="utf-8")
+            self.assertIn("# keep comment", rendered)
+
+    def test_config_set_unknown_key_exits_non_zero(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            with mock.patch.object(cli, "_repo_root", return_value=root):
+                runner = CliRunner()
+                result = runner.invoke(app, ["config", "set", "defaults.unknown_key", "value"])
+        self.assertEqual(result.exit_code, 2)
+
+    def test_config_interactive_updates_selected_key(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / "gracenotes-dev.toml").write_text(
+                "[defaults]\nbundle_id = \"com.gracenotes.GraceNotes\"\n",
+                encoding="utf-8",
+            )
+            call_count = {"count": 0}
+
+            def fake_select(*_: object, **kwargs: object) -> mock.Mock:
+                prompt = mock.Mock()
+                choices = kwargs["choices"]
+                if call_count["count"] == 0:
+                    prompt.ask.return_value = choices[0]
+                else:
+                    prompt.ask.return_value = "Done"
+                call_count["count"] += 1
+                return prompt
+
+            text_prompt = mock.Mock()
+            text_prompt.ask.return_value = "com.example.test"
+            with mock.patch.object(cli, "_repo_root", return_value=root):
+                with mock.patch.object(cli, "_interactive_cli_allowed", return_value=True):
+                    with mock.patch.object(cli.questionary, "select", side_effect=fake_select):
+                        with mock.patch.object(cli.questionary, "text", return_value=text_prompt):
+                            runner = CliRunner()
+                            result = runner.invoke(app, ["config", "interactive"])
+
+            self.assertEqual(result.exit_code, 0, msg=f"{result.stdout}\n{result.stderr}")
+            loaded = config.load_config(repo_root=root)
+            self.assertEqual(loaded.bundle_id, "com.example.test")
+
+    def test_xcode_command_opens_configured_project(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            project = root / "GraceNotes" / "GraceNotes.xcodeproj"
+            project.mkdir(parents=True)
+            cfg = config.default_config()
+            with mock.patch.object(sys, "platform", "darwin"):
+                with mock.patch.object(cli, "_repo_root", return_value=root):
+                    with mock.patch.object(cli, "_load_config", return_value=cfg):
+                        with mock.patch.object(cli, "_run") as run_cmd:
+                            runner = CliRunner()
+                            result = runner.invoke(app, ["xcode"])
+
+            self.assertEqual(result.exit_code, 0, msg=f"{result.stdout}\n{result.stderr}")
+            run_cmd.assert_called_once_with(["open", str(project.resolve())], cwd=root, check=True)
 
     def test_no_color_disables_rich_output(self) -> None:
         stream = io.StringIO()

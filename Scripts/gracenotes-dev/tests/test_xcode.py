@@ -11,6 +11,24 @@ from gracenotes_dev import xcode
 
 
 class XcodeHelpersTest(unittest.TestCase):
+    def test_with_quiet_flag_only_applies_to_xcodebuild(self) -> None:
+        self.assertEqual(
+            xcode.with_quiet_flag(["xcodebuild", "build"], quiet=True),
+            ["xcodebuild", "-quiet", "build"],
+        )
+        self.assertEqual(
+            xcode.with_quiet_flag(["xcodebuild", "-quiet", "build"], quiet=True),
+            ["xcodebuild", "-quiet", "build"],
+        )
+        self.assertEqual(
+            xcode.with_quiet_flag(["xcrun", "simctl", "list"], quiet=True),
+            ["xcrun", "simctl", "list"],
+        )
+        self.assertEqual(
+            xcode.with_quiet_flag(["xcodebuild", "test"], quiet=False),
+            ["xcodebuild", "test"],
+        )
+
     def test_ios_major_from_destination(self) -> None:
         self.assertEqual(
             xcode.ios_major_from_resolved_destination(
@@ -48,6 +66,27 @@ class XcodeHelpersTest(unittest.TestCase):
         self.assertIn("Debug", argv)
         self.assertIn("-derivedDataPath", argv)
         self.assertIn("/tmp/dd", argv)
+
+    def test_clean_argv_matches_build_except_action(self) -> None:
+        project = Path("GraceNotes/GraceNotes.xcodeproj")
+        dest = "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.0"
+        build = xcode.build_argv(
+            project=project,
+            scheme="GraceNotes",
+            resolved_destination=dest,
+            configuration="Debug",
+            derived_data_path="/tmp/dd",
+        )
+        clean = xcode.clean_argv(
+            project=project,
+            scheme="GraceNotes",
+            resolved_destination=dest,
+            configuration="Debug",
+            derived_data_path="/tmp/dd",
+        )
+        self.assertEqual(build[:-1], clean[:-1])
+        self.assertEqual(build[-1], "build")
+        self.assertEqual(clean[-1], "clean")
 
     def test_repo_root_from_package_dir(self) -> None:
         repo_root = Path(__file__).resolve().parents[3]

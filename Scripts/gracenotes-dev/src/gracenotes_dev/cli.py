@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import io
 import os
+import shlex
 import shutil
 import subprocess
 import sys
@@ -12,9 +13,10 @@ import time
 from contextlib import redirect_stderr
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Annotated, Callable
+from typing import Annotated, Callable, TypeVar
 
 import questionary
+import tomlkit
 import typer
 from rich.console import Console
 from rich.panel import Panel
@@ -27,16 +29,19 @@ from gracenotes_dev import xcode as xcode_helpers
 app = typer.Typer(
     no_args_is_help=True,
     rich_markup_mode="rich",
-    help="Grace Notes developer CLI — doctor, simulator helpers, build, test, CI, interactive, and run.",
+    help="Grace Notes developer CLI — doctor, simulator helpers, build, clean, test, CI, interactive, and run.",
     epilog=(
         "Examples:\n"
         "  grace doctor\n"
+        "  grace build --clean\n"
         '  grace test --kind unit --destination "iPhone 17 Pro@latest"\n'
         '  grace run --destination "iPhone 17 Pro@latest" -- -reset-journal-tutorial'
     ),
 )
 sim_app = typer.Typer(help="Simulator destination helpers (xcrun simctl).")
 app.add_typer(sim_app, name="sim")
+config_app = typer.Typer(help="Inspect and edit gracenotes-dev.toml.")
+app.add_typer(config_app, name="config")
 
 def _supports_rich_output(stream: io.TextIOBase) -> bool:
     if os.environ.get("NO_COLOR"):
@@ -115,6 +120,18 @@ class TheaterStep:
     callback: Callable[[], str | None]
 
 
+@dataclass(frozen=True)
+class EditableConfigKey:
+    dotted_path: str
+    toml_path: tuple[str, ...]
+    value_type: str
+    group: str
+    getter: Callable[[config.DevConfig], object]
+
+
+T = TypeVar("T")
+
+
 def _step_line(*, index: int, total: int, title: str, outcome: str, elapsed: float) -> str:
     left = f"{index}/{total}  {title}"
     dots = "." * max(2, 48 - len(left))
@@ -163,6 +180,220 @@ def _load_config(repo_root: Path) -> config.DevConfig:
     return config.load_config(repo_root=repo_root)
 
 
+def _require_prompt_answer(value: T | None) -> T:
+    if value is None:
+        raise typer.Exit(code=1)
+    return value
+
+
+def _require_interactive_cli(*, cfg: config.DevConfig, command_name: str) -> None:
+    if _interactive_cli_allowed():
+        return
+    _fail(
+        code=2,
+        title="Interactive mode unavailable",
+        problem=(
+            f"`{command_name}` needs an interactive terminal (stdin must be a TTY), "
+            "and must not run with CI=1 or GRACE_NONINTERACTIVE=1."
+        ),
+        likely_cause="Automation and GitHub Actions should use non-interactive commands and explicit flags.",
+        try_commands=(
+            f"grace ci --profile {cfg.default_ci_profile}",
+            "grace config list",
+        ),
+        retry_command=f"grace ci --profile {cfg.default_ci_profile}",
+    )
+
+
+def _editable_config_keys() -> dict[str, EditableConfigKey]:
+    return {
+        "defaults.project": EditableConfigKey(
+            dotted_path="defaults.project",
+            toml_path=("defaults", "project"),
+            value_type="string",
+            group="defaults",
+            getter=lambda cfg: cfg.project,
+        ),
+        "defaults.scheme": EditableConfigKey(
+            dotted_path="defaults.scheme",
+            toml_path=("defaults", "scheme"),
+            value_type="string",
+            group="defaults",
+            getter=lambda cfg: cfg.scheme,
+        ),
+        "defaults.bundle_id": EditableConfigKey(
+            dotted_path="defaults.bundle_id",
+            toml_path=("defaults", "bundle_id"),
+            value_type="string",
+            group="defaults",
+            getter=lambda cfg: cfg.bundle_id,
+        ),
+        "defaults.default_ci_profile": EditableConfigKey(
+            dotted_path="defaults.default_ci_profile",
+            toml_path=("defaults", "default_ci_profile"),
+            value_type="string",
+            group="defaults",
+            getter=lambda cfg: cfg.default_ci_profile,
+        ),
+        "defaults.destination": EditableConfigKey(
+            dotted_path="defaults.destination",
+            toml_path=("defaults", "destination"),
+            value_type="string",
+            group="defaults",
+            getter=lambda cfg: cfg.destination,
+        ),
+        "defaults.ci_simulator_pro": EditableConfigKey(
+            dotted_path="defaults.ci_simulator_pro",
+            toml_path=("defaults", "ci_simulator_pro"),
+            value_type="string",
+            group="defaults",
+            getter=lambda cfg: cfg.ci_simulator_pro,
+        ),
+        "defaults.ci_simulator_xr": EditableConfigKey(
+            dotted_path="defaults.ci_simulator_xr",
+            toml_path=("defaults", "ci_simulator_xr"),
+            value_type="string",
+            group="defaults",
+            getter=lambda cfg: cfg.ci_simulator_xr,
+        ),
+        "defaults.test_destination_matrix": EditableConfigKey(
+            dotted_path="defaults.test_destination_matrix",
+            toml_path=("defaults", "test_destination_matrix"),
+            value_type="string_list",
+            group="defaults",
+            getter=lambda cfg: cfg.test_destination_matrix,
+        ),
+        "defaults.isolated_derived_data": EditableConfigKey(
+            dotted_path="defaults.isolated_derived_data",
+            toml_path=("defaults", "isolated_derived_data"),
+            value_type="string",
+            group="defaults",
+            getter=lambda cfg: cfg.isolated_derived_data,
+        ),
+        "tests.unit_test_bundle": EditableConfigKey(
+            dotted_path="tests.unit_test_bundle",
+            toml_path=("tests", "unit_test_bundle"),
+            value_type="string",
+            group="tests",
+            getter=lambda cfg: cfg.unit_test_bundle,
+        ),
+        "tests.ui_test_bundle": EditableConfigKey(
+            dotted_path="tests.ui_test_bundle",
+            toml_path=("tests", "ui_test_bundle"),
+            value_type="string",
+            group="tests",
+            getter=lambda cfg: cfg.ui_test_bundle,
+        ),
+        "tests.smoke_ui_test": EditableConfigKey(
+            dotted_path="tests.smoke_ui_test",
+            toml_path=("tests", "smoke_ui_test"),
+            value_type="string",
+            group="tests",
+            getter=lambda cfg: cfg.smoke_ui_test,
+        ),
+        "tests.xcode_test_flags": EditableConfigKey(
+            dotted_path="tests.xcode_test_flags",
+            toml_path=("tests", "xcode_test_flags"),
+            value_type="string_list",
+            group="tests",
+            getter=lambda cfg: cfg.xcode_test_flags,
+        ),
+        "tests.legacy_runtime_skip_flags": EditableConfigKey(
+            dotted_path="tests.legacy_runtime_skip_flags",
+            toml_path=("tests", "legacy_runtime_skip_flags"),
+            value_type="string_list",
+            group="tests",
+            getter=lambda cfg: cfg.legacy_runtime_skip_flags,
+        ),
+    }
+
+
+def _format_config_value(value: object) -> str:
+    if isinstance(value, tuple):
+        return ", ".join(str(item) for item in value)
+    if isinstance(value, list):
+        return ", ".join(str(item) for item in value)
+    return str(value)
+
+
+def _parse_bool(raw_value: str) -> bool:
+    normalized = raw_value.strip().lower()
+    if normalized in {"1", "true", "yes", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off"}:
+        return False
+    msg = f"Cannot parse boolean value from '{raw_value}'. Use true/false."
+    raise ValueError(msg)
+
+
+def _parse_string_list(raw_value: str) -> list[str]:
+    candidate = raw_value.strip()
+    if not candidate:
+        return []
+    if candidate.startswith("[") and candidate.endswith("]"):
+        parsed = json.loads(candidate)
+        if not isinstance(parsed, list):
+            msg = "JSON list value must decode to an array."
+            raise ValueError(msg)
+        return [str(item).strip() for item in parsed if str(item).strip()]
+    separator = ";" if ";" in candidate else ","
+    return [item.strip() for item in candidate.split(separator) if item.strip()]
+
+
+def _parse_config_value(raw_value: str, *, value_type: str) -> object:
+    if value_type == "string":
+        return raw_value
+    if value_type == "bool":
+        return _parse_bool(raw_value)
+    if value_type == "int":
+        return int(raw_value.strip())
+    if value_type == "string_list":
+        return _parse_string_list(raw_value)
+    msg = f"Unsupported config value type: {value_type}"
+    raise ValueError(msg)
+
+
+def _read_config_document(path: Path) -> tomlkit.TOMLDocument:
+    if not path.is_file():
+        return tomlkit.document()
+    return tomlkit.parse(path.read_text(encoding="utf-8"))
+
+
+def _write_config_document(path: Path, document: tomlkit.TOMLDocument) -> None:
+    rendered = tomlkit.dumps(document)
+    path.write_text(rendered, encoding="utf-8")
+
+
+def _set_toml_path_value(
+    document: tomlkit.TOMLDocument,
+    *,
+    path: tuple[str, ...],
+    value: object,
+) -> None:
+    table_obj: tomlkit.items.Item | tomlkit.TOMLDocument = document
+    for key in path[:-1]:
+        existing = table_obj.get(key) if hasattr(table_obj, "get") else None
+        if existing is None or not isinstance(existing, tomlkit.items.Table):
+            existing = tomlkit.table()
+            table_obj[key] = existing
+        table_obj = existing
+    table_obj[path[-1]] = value
+
+
+def _set_config_value(
+    *,
+    repo_root: Path,
+    key: EditableConfigKey,
+    parsed_value: object,
+) -> object:
+    cfg_path = config.config_path(repo_root)
+    document = _read_config_document(cfg_path)
+    _set_toml_path_value(document, path=key.toml_path, value=parsed_value)
+    _write_config_document(cfg_path, document)
+    loaded = _load_config(repo_root)
+    return key.getter(loaded)
+
+
 def _require_macos_xcode() -> None:
     if sys.platform != "darwin":
         _fail(
@@ -200,14 +431,35 @@ def _require_swiftlint() -> None:
         )
 
 
-def _run(argv: list[str], *, cwd: Path, check: bool = True) -> subprocess.CompletedProcess[str]:
+def _xcodebuild_show_full_logs(*, verbose: bool) -> bool:
+    if verbose:
+        return True
+    if os.environ.get("CI"):
+        return True
+    return not sys.stdout.isatty()
+
+
+def _prepare_xcodebuild_argv(argv: list[str], *, verbose: bool) -> list[str]:
+    if _xcodebuild_show_full_logs(verbose=verbose):
+        return list(argv)
+    return xcode_helpers.with_quiet_flag(argv, quiet=True)
+
+
+def _run(
+    argv: list[str],
+    *,
+    cwd: Path,
+    check: bool = True,
+    verbose: bool = False,
+) -> subprocess.CompletedProcess[str]:
+    prepared_argv = _prepare_xcodebuild_argv(argv, verbose=verbose)
     try:
-        completed = subprocess.run(argv, cwd=str(cwd), check=False, text=True)
+        completed = subprocess.run(prepared_argv, cwd=str(cwd), check=False, text=True)
     except FileNotFoundError:
         _fail(
             code=3,
             title="Command not found",
-            problem=f"Executable is unavailable: {' '.join(argv)}",
+            problem=f"Executable is unavailable: {' '.join(prepared_argv)}",
             likely_cause="The command is not installed or not available in PATH for this shell.",
         )
     if check and completed.returncode != 0:
@@ -215,10 +467,17 @@ def _run(argv: list[str], *, cwd: Path, check: bool = True) -> subprocess.Comple
     return completed
 
 
-def _run_capture(argv: list[str], *, cwd: Path, check: bool = True) -> subprocess.CompletedProcess[str]:
+def _run_capture(
+    argv: list[str],
+    *,
+    cwd: Path,
+    check: bool = True,
+    verbose: bool = False,
+) -> subprocess.CompletedProcess[str]:
+    prepared_argv = _prepare_xcodebuild_argv(argv, verbose=verbose)
     try:
         completed = subprocess.run(
-            argv,
+            prepared_argv,
             cwd=str(cwd),
             check=False,
             text=True,
@@ -229,7 +488,7 @@ def _run_capture(argv: list[str], *, cwd: Path, check: bool = True) -> subproces
         _fail(
             code=3,
             title="Command not found",
-            problem=f"Executable is unavailable: {' '.join(argv)}",
+            problem=f"Executable is unavailable: {' '.join(prepared_argv)}",
             likely_cause="The command is not installed or not available in PATH for this shell.",
         )
     if check and completed.returncode != 0:
@@ -359,6 +618,7 @@ def _run_test_once(
     resolved_destination: str,
     kind: str,
     isolated_dd: bool,
+    verbose: bool,
 ) -> None:
     argv = xcode_helpers.test_argv(
         project=repo_root / cfg.project,
@@ -369,7 +629,7 @@ def _run_test_once(
         xcode_test_flags=cfg.xcode_test_flags,
         legacy_skip_flags=cfg.legacy_runtime_skip_flags,
     )
-    _run(argv, cwd=repo_root, check=True)
+    _run(argv, cwd=repo_root, check=True, verbose=verbose)
 
 
 def _reset_sims(repo_root: Path) -> None:
@@ -499,6 +759,227 @@ def _print_sim_list_plain(
         console.print(f"{mark:<8}{name:<42}{os_version:<8}available")
 
 
+def _destination_prompt_choices(default_destination: str, rows: list[dict[str, str]]) -> list[str]:
+    shortcuts = [f"{name}@{runtime}" for _, name, runtime in _sim_list_entries(rows)]
+    ordered = [default_destination]
+    for item in shortcuts:
+        if item not in ordered:
+            ordered.append(item)
+    return ordered
+
+
+def _prompt_destination_value(
+    *,
+    message: str,
+    default_destination: str,
+    rows: list[dict[str, str]],
+) -> str:
+    choice = questionary.select(
+        message,
+        choices=_destination_prompt_choices(default_destination, rows),
+        default=default_destination,
+    ).ask()
+    return _require_prompt_answer(choice)
+
+
+def _prompt_optional_text(*, message: str, default_value: str = "") -> str | None:
+    value = questionary.text(message, default=default_value).ask()
+    text = _require_prompt_answer(value).strip()
+    return text or None
+
+
+def _prompt_optional_path(*, message: str, default_value: str = "") -> Path | None:
+    value = _prompt_optional_text(message=message, default_value=default_value)
+    if value is None:
+        return None
+    return Path(value)
+
+
+def _prompt_ci_profile(*, cfg: config.DevConfig, profile: str | None) -> str:
+    if profile:
+        return profile
+    choice = questionary.select(
+        "CI profile:",
+        choices=sorted(cfg.ci_profiles.keys()),
+        default=cfg.default_ci_profile,
+    ).ask()
+    return _require_prompt_answer(choice)
+
+
+def _prompt_build_options(
+    *,
+    cfg: config.DevConfig,
+    rows: list[dict[str, str]],
+    destination: str | None,
+    configuration: str,
+    derived_data: Path | None,
+    do_clean: bool,
+    verbose: bool,
+) -> tuple[str, str, Path | None, bool, bool]:
+    chosen_destination = destination or _prompt_destination_value(
+        message="Build destination:",
+        default_destination=cfg.destination,
+        rows=rows,
+    )
+    chosen_configuration = _require_prompt_answer(
+        questionary.select(
+            "Build configuration:",
+            choices=["Debug", "Release"],
+            default=configuration,
+        ).ask(),
+    )
+    chosen_clean = _require_prompt_answer(
+        questionary.confirm("Run clean before build?", default=do_clean).ask(),
+    )
+    derived_default = str(derived_data) if derived_data is not None else ""
+    chosen_derived_data = _prompt_optional_path(
+        message="DerivedData path (empty for Xcode default):",
+        default_value=derived_default,
+    )
+    chosen_verbose = _require_prompt_answer(
+        questionary.confirm("Show full xcodebuild logs?", default=verbose).ask(),
+    )
+    return chosen_destination, chosen_configuration, chosen_derived_data, chosen_clean, chosen_verbose
+
+
+def _prompt_clean_options(
+    *,
+    cfg: config.DevConfig,
+    rows: list[dict[str, str]],
+    destination: str | None,
+    configuration: str,
+    derived_data: Path | None,
+    verbose: bool,
+) -> tuple[str, str, Path | None, bool]:
+    chosen_destination = destination or _prompt_destination_value(
+        message="Clean destination:",
+        default_destination=cfg.destination,
+        rows=rows,
+    )
+    chosen_configuration = _require_prompt_answer(
+        questionary.select(
+            "Build configuration:",
+            choices=["Debug", "Release"],
+            default=configuration,
+        ).ask(),
+    )
+    derived_default = str(derived_data) if derived_data is not None else ""
+    chosen_derived_data = _prompt_optional_path(
+        message="DerivedData path (empty for Xcode default):",
+        default_value=derived_default,
+    )
+    chosen_verbose = _require_prompt_answer(
+        questionary.confirm("Show full xcodebuild logs?", default=verbose).ask(),
+    )
+    return chosen_destination, chosen_configuration, chosen_derived_data, chosen_verbose
+
+
+def _prompt_test_options(
+    *,
+    cfg: config.DevConfig,
+    rows: list[dict[str, str]],
+    kind: str,
+    destination: str | None,
+    matrix: bool,
+    isolated_dd: bool,
+    no_reset_sims: bool,
+    verbose: bool,
+) -> tuple[str, str | None, bool, bool, bool, bool]:
+    chosen_kind = _require_prompt_answer(
+        questionary.select(
+            "Test kind:",
+            choices=["all", "unit", "ui", "smoke"],
+            default=kind,
+        ).ask(),
+    )
+    chosen_matrix = False
+    if chosen_kind != "smoke":
+        chosen_matrix = _require_prompt_answer(
+            questionary.confirm("Run destination matrix?", default=matrix).ask(),
+        )
+    chosen_destination: str | None = destination
+    if not chosen_matrix:
+        chosen_destination = destination or _prompt_destination_value(
+            message="Test destination:",
+            default_destination=cfg.destination,
+            rows=rows,
+        )
+    chosen_isolated_dd = _require_prompt_answer(
+        questionary.confirm("Use isolated DerivedData?", default=isolated_dd).ask(),
+    )
+    chosen_no_reset = _require_prompt_answer(
+        questionary.confirm("Skip simulator reset?", default=no_reset_sims).ask(),
+    )
+    chosen_verbose = _require_prompt_answer(
+        questionary.confirm("Show full xcodebuild logs?", default=verbose).ask(),
+    )
+    return (
+        chosen_kind,
+        chosen_destination,
+        chosen_matrix,
+        chosen_isolated_dd,
+        chosen_no_reset,
+        chosen_verbose,
+    )
+
+
+def _prompt_run_options(
+    *,
+    cfg: config.DevConfig,
+    rows: list[dict[str, str]],
+    scheme: str | None,
+    destination: str | None,
+    preset: str | None,
+    bundle_id: str | None,
+    derived_data: Path | None,
+    app_args: list[str] | None,
+    verbose: bool,
+) -> tuple[str, str, str | None, str, Path | None, list[str], bool]:
+    chosen_destination = destination or _prompt_destination_value(
+        message="Run destination:",
+        default_destination=cfg.destination,
+        rows=rows,
+    )
+    chosen_scheme = _prompt_optional_text(
+        message="Scheme:",
+        default_value=scheme or cfg.scheme,
+    ) or cfg.scheme
+    preset_choices = ["(none)", *sorted(cfg.run_presets.keys())]
+    chosen_preset = preset
+    if preset is None and len(preset_choices) > 1:
+        selected = _require_prompt_answer(
+            questionary.select("Run preset:", choices=preset_choices, default="(none)").ask(),
+        )
+        chosen_preset = None if selected == "(none)" else selected
+    chosen_bundle = _prompt_optional_text(
+        message="Bundle identifier:",
+        default_value=bundle_id or cfg.bundle_id,
+    ) or cfg.bundle_id
+    derived_default = str(derived_data) if derived_data is not None else ""
+    chosen_derived_data = _prompt_optional_path(
+        message="DerivedData path (empty for default):",
+        default_value=derived_default,
+    )
+    default_args = " ".join(app_args or [])
+    raw_args = _prompt_optional_text(
+        message="Extra app args (space-separated, empty for none):",
+        default_value=default_args,
+    )
+    chosen_args = shlex.split(raw_args) if raw_args else list(app_args or [])
+    chosen_verbose = _require_prompt_answer(
+        questionary.confirm("Show full xcodebuild logs?", default=verbose).ask(),
+    )
+    return (
+        chosen_scheme,
+        chosen_destination,
+        chosen_preset,
+        chosen_bundle,
+        chosen_derived_data,
+        chosen_args,
+        chosen_verbose,
+    )
+
+
 @sim_app.command("list")
 def sim_list(
     json_out: Annotated[
@@ -581,14 +1062,47 @@ def build(
         Path | None,
         typer.Option("--derived-data", help="Custom DerivedData path."),
     ] = None,
+    do_clean: Annotated[
+        bool,
+        typer.Option(
+            "--clean",
+            help="Run xcodebuild clean for this scheme/destination before building.",
+        ),
+    ] = False,
+    interactive: Annotated[
+        bool,
+        typer.Option("--interactive", "-i", help="Prompt for build inputs interactively."),
+    ] = False,
+    verbose: Annotated[
+        bool,
+        typer.Option("--verbose", "-v", help="Show full xcodebuild logs."),
+    ] = False,
 ) -> None:
     """Build the Grace Notes app for an iOS Simulator destination."""
     _require_macos_xcode()
     repo_root = _repo_root()
     cfg = _load_config(repo_root)
     rows = simulator.load_available_ios_devices()
+    if interactive:
+        _require_interactive_cli(cfg=cfg, command_name="grace build --interactive")
+        destination, configuration, derived_data, do_clean, verbose = _prompt_build_options(
+            cfg=cfg,
+            rows=rows,
+            destination=destination,
+            configuration=configuration,
+            derived_data=derived_data,
+            do_clean=do_clean,
+            verbose=verbose,
+        )
     resolved_destination = _resolve_destination(destination or cfg.destination, rows)
-    argv = xcode_helpers.build_argv(
+    clean_argv = xcode_helpers.clean_argv(
+        project=repo_root / cfg.project,
+        scheme=cfg.scheme,
+        resolved_destination=resolved_destination,
+        configuration=configuration,
+        derived_data_path=derived_data,
+    )
+    build_argv = xcode_helpers.build_argv(
         project=repo_root / cfg.project,
         scheme=cfg.scheme,
         resolved_destination=resolved_destination,
@@ -599,14 +1113,88 @@ def build(
     def resolve_step() -> str:
         return resolved_destination
 
+    def clean_step() -> str:
+        _run(clean_argv, cwd=repo_root, check=True, verbose=verbose)
+        return " ".join(clean_argv)
+
     def build_step() -> str:
-        _run(argv, cwd=repo_root, check=True)
+        _run(build_argv, cwd=repo_root, check=True, verbose=verbose)
+        return " ".join(build_argv)
+
+    steps = [
+        TheaterStep("Resolve destination", resolve_step),
+    ]
+    if do_clean:
+        steps.append(TheaterStep(f"Clean ({configuration}, {cfg.scheme})", clean_step))
+    steps.append(TheaterStep(f"Build ({configuration}, {cfg.scheme})", build_step))
+    _run_theater(steps)
+
+
+@app.command("clean")
+def clean(
+    destination: Annotated[
+        str | None,
+        typer.Option(
+            "--destination",
+            "-d",
+            help="Destination spec (platform=... or device@os). Defaults to config.",
+        ),
+    ] = None,
+    configuration: Annotated[
+        str,
+        typer.Option(
+            "--configuration",
+            help="Build configuration.",
+        ),
+    ] = "Debug",
+    derived_data: Annotated[
+        Path | None,
+        typer.Option("--derived-data", help="Custom DerivedData path."),
+    ] = None,
+    interactive: Annotated[
+        bool,
+        typer.Option("--interactive", "-i", help="Prompt for clean inputs interactively."),
+    ] = False,
+    verbose: Annotated[
+        bool,
+        typer.Option("--verbose", "-v", help="Show full xcodebuild logs."),
+    ] = False,
+) -> None:
+    """Run xcodebuild clean for the Grace Notes scheme (Xcode Clean Build Folder scope)."""
+    _require_macos_xcode()
+    repo_root = _repo_root()
+    cfg = _load_config(repo_root)
+    rows = simulator.load_available_ios_devices()
+    if interactive:
+        _require_interactive_cli(cfg=cfg, command_name="grace clean --interactive")
+        destination, configuration, derived_data, verbose = _prompt_clean_options(
+            cfg=cfg,
+            rows=rows,
+            destination=destination,
+            configuration=configuration,
+            derived_data=derived_data,
+            verbose=verbose,
+        )
+    resolved_destination = _resolve_destination(destination or cfg.destination, rows)
+    argv = xcode_helpers.clean_argv(
+        project=repo_root / cfg.project,
+        scheme=cfg.scheme,
+        resolved_destination=resolved_destination,
+        configuration=configuration,
+        derived_data_path=derived_data,
+    )
+
+    def resolve_step() -> str:
+        return resolved_destination
+
+    def clean_step() -> str:
+        _run(argv, cwd=repo_root, check=True, verbose=verbose)
         return " ".join(argv)
 
     _run_theater(
         [
             TheaterStep("Resolve destination", resolve_step),
-            TheaterStep(f"Build ({configuration}, {cfg.scheme})", build_step),
+            TheaterStep(f"Clean ({configuration}, {cfg.scheme})", clean_step),
         ],
     )
 
@@ -641,8 +1229,33 @@ def test(
         bool,
         typer.Option("--no-reset-sims", help="Skip simulator reset before matrix/smoke runs."),
     ] = False,
+    interactive: Annotated[
+        bool,
+        typer.Option("--interactive", "-i", help="Prompt for test inputs interactively."),
+    ] = False,
+    verbose: Annotated[
+        bool,
+        typer.Option("--verbose", "-v", help="Show full xcodebuild logs."),
+    ] = False,
 ) -> None:
     """Run xcodebuild tests (single destination or matrix)."""
+    _require_macos_xcode()
+    repo_root = _repo_root()
+    cfg = _load_config(repo_root)
+    rows = simulator.load_available_ios_devices()
+    if interactive:
+        _require_interactive_cli(cfg=cfg, command_name="grace test --interactive")
+        kind, destination, matrix, isolated_dd, no_reset_sims, verbose = _prompt_test_options(
+            cfg=cfg,
+            rows=rows,
+            kind=kind,
+            destination=destination,
+            matrix=matrix,
+            isolated_dd=isolated_dd,
+            no_reset_sims=no_reset_sims,
+            verbose=verbose,
+        )
+
     selected_kind = kind.lower()
     if selected_kind not in {"all", "unit", "ui", "smoke"}:
         _fail(
@@ -659,11 +1272,6 @@ def test(
             problem="Smoke tests run against one simulator and cannot use --matrix.",
             try_commands=("grace test --kind smoke", "grace test --kind all --matrix"),
         )
-
-    _require_macos_xcode()
-    repo_root = _repo_root()
-    cfg = _load_config(repo_root)
-    rows = simulator.load_available_ios_devices()
 
     reset_before_run = not no_reset_sims and (matrix or selected_kind == "smoke")
     test_started = time.perf_counter()
@@ -689,6 +1297,7 @@ def test(
                             resolved_destination=resolved_destination,
                             kind=selected_kind,
                             isolated_dd=isolated_dd,
+                            verbose=verbose,
                         )
                         or resolved_destination
                     ),
@@ -734,6 +1343,7 @@ def test(
                     resolved_destination=resolved_destination,
                     kind=selected_kind,
                     isolated_dd=isolated_dd,
+                    verbose=verbose,
                 )
                 or resolved_destination
             ),
@@ -746,7 +1356,7 @@ def test(
     )
 
 
-def _execute_ci_profile(cfg: config.DevConfig, profile: str) -> None:
+def _execute_ci_profile(cfg: config.DevConfig, profile: str, *, verbose: bool = False) -> None:
     """Run lint / build / test / smoke gates for a configured CI profile name."""
     selected = cfg.ci_profiles.get(profile)
     if selected is None:
@@ -768,7 +1378,7 @@ def _execute_ci_profile(cfg: config.DevConfig, profile: str) -> None:
         _require_macos_xcode()
 
     if selected.build:
-        build(destination=selected.build_destination or cfg.ci_simulator_pro)
+        build(destination=selected.build_destination or cfg.ci_simulator_pro, verbose=verbose)
 
     if selected.test:
         test(
@@ -777,6 +1387,7 @@ def _execute_ci_profile(cfg: config.DevConfig, profile: str) -> None:
             matrix=selected.matrix,
             isolated_dd=selected.isolated_dd,
             no_reset_sims=not selected.reset_simulators_before_test,
+            verbose=verbose,
         )
 
     if selected.smoke:
@@ -786,6 +1397,7 @@ def _execute_ci_profile(cfg: config.DevConfig, profile: str) -> None:
             matrix=False,
             isolated_dd=selected.isolated_dd,
             no_reset_sims=False,
+            verbose=verbose,
         )
 
 
@@ -801,49 +1413,156 @@ def ci(
             ),
         ),
     ] = None,
+    interactive: Annotated[
+        bool,
+        typer.Option("--interactive", "-i", help="Prompt for CI inputs interactively."),
+    ] = False,
+    verbose: Annotated[
+        bool,
+        typer.Option("--verbose", "-v", help="Show full xcodebuild logs."),
+    ] = False,
 ) -> None:
     """Run a CI profile from ``gracenotes-dev.toml`` (default: ``defaults.default_ci_profile``)."""
     repo_root = _repo_root()
     cfg = _load_config(repo_root)
+    if interactive:
+        _require_interactive_cli(cfg=cfg, command_name="grace ci --interactive")
+        profile = _prompt_ci_profile(cfg=cfg, profile=profile)
     resolved = (profile or "").strip() or cfg.default_ci_profile
-    _execute_ci_profile(cfg, resolved)
+    _execute_ci_profile(cfg, resolved, verbose=verbose)
 
 
 @app.command("interactive")
 def interactive() -> None:
-    """Choose a CI profile interactively, then run ``grace ci`` with that profile.
+    """Interactive hub for CI, build/test/run, and maintenance commands."""
+    repo_root = _repo_root()
+    cfg = _load_config(repo_root)
+    _require_interactive_cli(cfg=cfg, command_name="grace interactive")
+    rows: list[dict[str, str]] = []
 
-    Requires an interactive terminal. In CI or when stdin is not a TTY, use ``grace ci --profile …``.
-    Set ``GRACE_NONINTERACTIVE=1`` to force non-interactive behavior (for scripts probing availability).
-    """
-    cfg = _load_config(_repo_root())
-
-    if not _interactive_cli_allowed():
-        _fail(
-            code=2,
-            title="Interactive mode unavailable",
-            problem=(
-                "`grace interactive` needs an interactive terminal (stdin must be a TTY), "
-                "and must not run with CI=1 or GRACE_NONINTERACTIVE=1."
-            ),
-            likely_cause="Automation and GitHub Actions should invoke `grace ci` with an explicit `--profile`.",
-            try_commands=(
-                f"grace ci --profile {cfg.default_ci_profile}",
-                "grace ci --profile full",
-            ),
-            retry_command=f"grace ci --profile {cfg.default_ci_profile}",
+    action = questionary.select(
+        "Choose command:",
+        choices=[
+            "CI",
+            "Build",
+            "Test",
+            "Run",
+            "Lint",
+            "Clean",
+            "Doctor",
+            "Config (interactive)",
+            "Exit",
+        ],
+    ).ask()
+    choice = _require_prompt_answer(action)
+    if choice == "Exit":
+        return
+    if choice == "CI":
+        profile = _prompt_ci_profile(cfg=cfg, profile=None)
+        show_verbose = _require_prompt_answer(
+            questionary.confirm("Show full xcodebuild logs?", default=False).ask(),
+        )
+        _execute_ci_profile(cfg, profile, verbose=show_verbose)
+        return
+    if choice == "Build":
+        _require_macos_xcode()
+        rows = simulator.load_available_ios_devices()
+        destination, configuration, derived_data, do_clean, verbose = _prompt_build_options(
+            cfg=cfg,
+            rows=rows,
+            destination=None,
+            configuration="Debug",
+            derived_data=None,
+            do_clean=False,
+            verbose=False,
+        )
+        build(
+            destination=destination,
+            configuration=configuration,
+            derived_data=derived_data,
+            do_clean=do_clean,
+            verbose=verbose,
         )
         return
-
-    choice = questionary.select(
-        "CI profile:",
-        choices=sorted(cfg.ci_profiles.keys()),
-    ).ask()
-
-    if choice is None:
-        raise typer.Exit(code=1)
-
-    _execute_ci_profile(cfg, choice)
+    if choice == "Test":
+        _require_macos_xcode()
+        rows = simulator.load_available_ios_devices()
+        kind, destination, matrix, isolated_dd, no_reset_sims, verbose = _prompt_test_options(
+            cfg=cfg,
+            rows=rows,
+            kind="all",
+            destination=None,
+            matrix=False,
+            isolated_dd=False,
+            no_reset_sims=False,
+            verbose=False,
+        )
+        test(
+            kind=kind,
+            destination=destination,
+            matrix=matrix,
+            isolated_dd=isolated_dd,
+            no_reset_sims=no_reset_sims,
+            verbose=verbose,
+        )
+        return
+    if choice == "Run":
+        _require_macos_xcode()
+        rows = simulator.load_available_ios_devices()
+        (
+            scheme,
+            destination,
+            preset,
+            bundle_id,
+            derived_data,
+            app_args,
+            verbose,
+        ) = _prompt_run_options(
+            cfg=cfg,
+            rows=rows,
+            scheme=None,
+            destination=None,
+            preset=None,
+            bundle_id=None,
+            derived_data=None,
+            app_args=None,
+            verbose=False,
+        )
+        run(
+            scheme=scheme,
+            destination=destination,
+            preset=preset,
+            bundle_id=bundle_id,
+            derived_data=derived_data,
+            app_args=app_args,
+            verbose=verbose,
+        )
+        return
+    if choice == "Lint":
+        lint()
+        return
+    if choice == "Clean":
+        _require_macos_xcode()
+        rows = simulator.load_available_ios_devices()
+        destination, configuration, derived_data, verbose = _prompt_clean_options(
+            cfg=cfg,
+            rows=rows,
+            destination=None,
+            configuration="Debug",
+            derived_data=None,
+            verbose=False,
+        )
+        clean(
+            destination=destination,
+            configuration=configuration,
+            derived_data=derived_data,
+            verbose=verbose,
+        )
+        return
+    if choice == "Doctor":
+        doctor()
+        return
+    config_interactive()
 
 
 @app.command(
@@ -879,12 +1598,41 @@ def run(
         list[str] | None,
         typer.Argument(help="App launch arguments (use -- before args that start with -)."),
     ] = None,
+    interactive: Annotated[
+        bool,
+        typer.Option("--interactive", "-i", help="Prompt for run inputs interactively."),
+    ] = False,
+    verbose: Annotated[
+        bool,
+        typer.Option("--verbose", "-v", help="Show full xcodebuild logs."),
+    ] = False,
 ) -> None:
     """Build, install, and launch Grace Notes on a Simulator."""
     _require_macos_xcode()
     repo_root = _repo_root()
     cfg = _load_config(repo_root)
     rows = simulator.load_available_ios_devices()
+    if interactive:
+        _require_interactive_cli(cfg=cfg, command_name="grace run --interactive")
+        (
+            scheme,
+            destination,
+            preset,
+            bundle_id,
+            derived_data,
+            app_args,
+            verbose,
+        ) = _prompt_run_options(
+            cfg=cfg,
+            rows=rows,
+            scheme=scheme,
+            destination=destination,
+            preset=preset,
+            bundle_id=bundle_id,
+            derived_data=derived_data,
+            app_args=app_args,
+            verbose=verbose,
+        )
 
     resolved_destination = _resolve_destination(destination or cfg.destination, rows)
     resolved_scheme = scheme or cfg.scheme
@@ -956,7 +1704,7 @@ def run(
             configuration=launch_configuration,
             derived_data_path=derived_data_path,
         )
-        _run(argv, cwd=repo_root, check=True)
+        _run(argv, cwd=repo_root, check=True, verbose=verbose)
         return " ".join(argv)
 
     def install_step() -> str:
@@ -999,3 +1747,225 @@ def run(
         ],
     )
     _run_theater(steps)
+
+
+def _editable_key_help_lines() -> tuple[str, ...]:
+    keys = sorted(_editable_config_keys())
+    return tuple(f"  - {item}" for item in keys)
+
+
+@config_app.command("list")
+def config_list() -> None:
+    """Show current config file path, effective values, and editable keys."""
+    repo_root = _repo_root()
+    cfg = _load_config(repo_root)
+    cfg_path = config.config_path(repo_root)
+    summary_rows = [
+        ("defaults.project", cfg.project),
+        ("defaults.scheme", cfg.scheme),
+        ("defaults.bundle_id", cfg.bundle_id),
+        ("defaults.destination", cfg.destination),
+        ("defaults.default_ci_profile", cfg.default_ci_profile),
+        ("defaults.ci_simulator_pro", cfg.ci_simulator_pro),
+        ("defaults.ci_simulator_xr", cfg.ci_simulator_xr),
+        ("defaults.test_destination_matrix", _format_config_value(cfg.test_destination_matrix)),
+        ("tests.unit_test_bundle", cfg.unit_test_bundle),
+        ("tests.ui_test_bundle", cfg.ui_test_bundle),
+        ("tests.smoke_ui_test", cfg.smoke_ui_test),
+    ]
+
+    _stdout_console().print(f"Config path: {cfg_path}")
+    if _supports_rich_output(sys.stdout):
+        table = Table(show_header=True, header_style="bold")
+        table.add_column("Key")
+        table.add_column("Effective value")
+        for key, value in summary_rows:
+            table.add_row(key, str(value))
+        _stdout_console().print(table)
+
+        profile_table = Table(show_header=True, header_style="bold")
+        profile_table.add_column("CI profiles")
+        for profile_name in sorted(cfg.ci_profiles):
+            profile_table.add_row(profile_name)
+        _stdout_console().print(profile_table)
+
+        keys_table = Table(show_header=True, header_style="bold")
+        keys_table.add_column("Editable key paths")
+        for key in sorted(_editable_config_keys()):
+            keys_table.add_row(key)
+        _stdout_console().print(keys_table)
+        return
+
+    for key, value in summary_rows:
+        _stdout_console().print(f"{key} = {value}")
+    _stdout_console().print(f"ci.profiles = {', '.join(sorted(cfg.ci_profiles.keys()))}")
+    _stdout_console().print("editable keys:")
+    for line in _editable_key_help_lines():
+        _stdout_console().print(line)
+
+
+@config_app.command("edit")
+def config_edit() -> None:
+    """Open gracenotes-dev.toml in $EDITOR / $VISUAL or a local fallback."""
+    repo_root = _repo_root()
+    cfg_path = config.config_path(repo_root)
+    cfg_path.parent.mkdir(parents=True, exist_ok=True)
+    if not cfg_path.exists():
+        cfg_path.write_text("", encoding="utf-8")
+
+    editor = os.environ.get("EDITOR") or os.environ.get("VISUAL")
+    if editor:
+        editor_argv = shlex.split(editor)
+        if editor_argv:
+            _run([*editor_argv, str(cfg_path)], cwd=repo_root, check=True)
+            return
+
+    if shutil.which("nano"):
+        _run(["nano", str(cfg_path)], cwd=repo_root, check=True)
+        return
+    if shutil.which("vi"):
+        _run(["vi", str(cfg_path)], cwd=repo_root, check=True)
+        return
+
+    _stdout_console().print(str(cfg_path))
+
+
+@config_app.command("open")
+def config_open() -> None:
+    """Open gracenotes-dev.toml in the default macOS app."""
+    if sys.platform != "darwin":
+        _fail(
+            code=3,
+            title="Unsupported platform",
+            problem="`grace config open` is only available on macOS.",
+            likely_cause="`open` is a macOS-specific command.",
+            try_commands=("grace config list", "grace config edit"),
+        )
+    repo_root = _repo_root()
+    cfg_path = config.config_path(repo_root)
+    _run(["open", str(cfg_path)], cwd=repo_root, check=True)
+
+
+@config_app.command("set")
+def config_set(
+    dotted_key: Annotated[str, typer.Argument(help="Editable dotted config path.")],
+    value_parts: Annotated[
+        list[str],
+        typer.Argument(help="Value to set (quote to preserve spaces)."),
+    ],
+) -> None:
+    """Set one editable key in gracenotes-dev.toml while preserving TOML formatting."""
+    if not value_parts:
+        _fail(
+            code=2,
+            title="Missing config value",
+            problem="Expected a value after the dotted key.",
+            try_commands=("grace config set defaults.scheme GraceNotes",),
+        )
+    editable = _editable_config_keys().get(dotted_key)
+    if editable is None:
+        _fail(
+            code=2,
+            title="Unknown config key",
+            problem=f"`{dotted_key}` is not editable via `grace config set`.",
+            likely_cause="Only a curated set of scalar/list keys is writable in v1.",
+            try_commands=("grace config list", "grace config set --help"),
+        )
+
+    raw_value = " ".join(value_parts).strip()
+    try:
+        parsed_value = _parse_config_value(raw_value, value_type=editable.value_type)
+    except (ValueError, json.JSONDecodeError) as exc:
+        _fail(
+            code=2,
+            title="Invalid config value",
+            problem=str(exc),
+            try_commands=("grace config set defaults.destination 'iPhone 17 Pro@latest'",),
+        )
+
+    repo_root = _repo_root()
+    effective_value = _set_config_value(repo_root=repo_root, key=editable, parsed_value=parsed_value)
+    _stdout_console().print(f"{dotted_key} = {_format_config_value(effective_value)}")
+
+
+@config_app.command("interactive")
+def config_interactive() -> None:
+    """Interactively update curated config keys."""
+    repo_root = _repo_root()
+    cfg = _load_config(repo_root)
+    _require_interactive_cli(cfg=cfg, command_name="grace config interactive")
+    editable_map = _editable_config_keys()
+    ordered_keys = sorted(
+        editable_map.keys(),
+        key=lambda key: (editable_map[key].group, key),
+    )
+
+    while True:
+        loaded = _load_config(repo_root)
+        label_to_key = {
+            f"[{editable_map[key].group}] {key} = {_format_config_value(editable_map[key].getter(loaded))}": key
+            for key in ordered_keys
+        }
+        selected = questionary.select(
+            "Choose config key to edit:",
+            choices=[*label_to_key.keys(), "Done"],
+        ).ask()
+        choice = _require_prompt_answer(selected)
+        if choice == "Done":
+            return
+
+        dotted_key = label_to_key[choice]
+        editable = editable_map[dotted_key]
+        current_value = editable.getter(loaded)
+
+        if editable.value_type == "bool":
+            raw_next_value = str(
+                _require_prompt_answer(
+                    questionary.confirm(
+                        f"Set {dotted_key}:",
+                        default=bool(current_value),
+                    ).ask(),
+                ),
+            )
+        else:
+            default_text = _format_config_value(current_value)
+            raw_next_value = _require_prompt_answer(
+                questionary.text(
+                    f"Set {dotted_key}:",
+                    default=default_text,
+                ).ask(),
+            )
+
+        try:
+            parsed_value = _parse_config_value(raw_next_value, value_type=editable.value_type)
+        except (ValueError, json.JSONDecodeError) as exc:
+            _stderr_console().print(f"Invalid value: {exc}")
+            continue
+
+        effective_value = _set_config_value(repo_root=repo_root, key=editable, parsed_value=parsed_value)
+        _stdout_console().print(f"Updated {dotted_key} = {_format_config_value(effective_value)}")
+
+
+@app.command("xcode")
+def xcode() -> None:
+    """Open the configured Xcode project in Xcode."""
+    if sys.platform != "darwin":
+        _fail(
+            code=3,
+            title="Unsupported platform",
+            problem="`grace xcode` is only available on macOS.",
+            likely_cause="`open` is a macOS-specific command.",
+            try_commands=("grace config list",),
+        )
+    repo_root = _repo_root()
+    cfg = _load_config(repo_root)
+    project_path = (repo_root / cfg.project).resolve()
+    if not project_path.exists():
+        _fail(
+            code=2,
+            title="Project path missing",
+            problem=f"Configured project path does not exist: {project_path}",
+            likely_cause="defaults.project in gracenotes-dev.toml points to a missing file.",
+            try_commands=("grace config list", "grace config edit"),
+        )
+    _run(["open", str(project_path)], cwd=repo_root, check=True)

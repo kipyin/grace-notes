@@ -11,6 +11,18 @@ from gracenotes_dev import config
 from gracenotes_dev.simulator import destination_display_name
 
 
+def with_quiet_flag(argv: Sequence[str], *, quiet: bool) -> list[str]:
+    """Insert ``-quiet`` for xcodebuild argv when requested and absent."""
+    args = list(argv)
+    if not quiet:
+        return args
+    if not args or args[0] != "xcodebuild":
+        return args
+    if "-quiet" in args:
+        return args
+    return [args[0], "-quiet", *args[1:]]
+
+
 def repo_root_from(start: Path | None = None) -> Path:
     """Walk up from ``start`` to find the repo root (directory containing GraceNotes/)."""
     here = (start or Path.cwd()).resolve()
@@ -84,6 +96,24 @@ def build_argv(
     if derived_data_path is not None:
         args.extend(["-derivedDataPath", str(derived_data_path)])
     args.append("build")
+    return args
+
+
+def clean_argv(
+    *,
+    project: Path,
+    scheme: str,
+    resolved_destination: str,
+    configuration: str | None = None,
+    derived_data_path: Path | str | None = None,
+) -> list[str]:
+    """``xcodebuild clean`` argument list (same flags as ``build``)."""
+    args = xcodebuild_base_args(project=project, scheme=scheme, resolved_destination=resolved_destination)
+    if configuration:
+        args.extend(["-configuration", configuration])
+    if derived_data_path is not None:
+        args.extend(["-derivedDataPath", str(derived_data_path)])
+    args.append("clean")
     return args
 
 

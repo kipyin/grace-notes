@@ -81,7 +81,8 @@ python3 -m unittest discover -s Scripts/gracenotes-dev/tests
 ```
 
 - `grace lint` – SwiftLint (requires `swiftlint` on your PATH).
-- `grace build` – Simulator build (macOS + Xcode).
+- `grace build` – Simulator build (macOS + Xcode). Use **`grace build --clean`** for `xcodebuild clean` then build (local troubleshooting; **CI does not** run clean by default).
+- `grace clean` – `xcodebuild clean` for the configured scheme and destination (same options as `grace build`; use when you would use Xcode’s Clean Build Folder).
 - `grace test` – Unit + UI tests; add `--kind unit` / `--kind ui` / `--kind smoke`, `--matrix`, `--isolated-dd`, `--no-reset-sims` as needed.
 - `grace ci` – Default CI profile from `gracenotes-dev.toml` (`defaults.default_ci_profile`, typically **`lint-build-test`**: lint, simulator build on iPhone 17 Pro, then full tests with a pre-test simulator reset).
 - `grace interactive` – TTY menu to pick a CI profile, then run it (use `grace ci --profile …` in CI or when stdin is not a terminal).
@@ -93,6 +94,7 @@ python3 -m unittest discover -s Scripts/gracenotes-dev/tests
 Examples:
 
 ```bash
+grace build --clean
 grace test --destination 'iPhone 17 Pro@latest'
 grace test --matrix
 grace run --destination 'iPhone 17 Pro@latest' -- -reset-journal-tutorial

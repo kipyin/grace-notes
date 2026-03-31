@@ -13,6 +13,7 @@ xcuserdata/
 *.moved-aside
 DerivedData/
 .derivedData/
+.grace-derived-data/
 *.hmap
 *.ipa
 *.dSYM.zip

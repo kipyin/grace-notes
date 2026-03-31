@@ -1,6 +1,6 @@
 [defaults]
 project = "GraceNotes/GraceNotes.xcodeproj"
-scheme = "GraceNotes"
+scheme = "GraceNotes (Demo)"
 bundle_id = "com.gracenotes.GraceNotes"
 # Default `grace ci` profile when `--profile` is omitted (lint, simulator build, then tests).
 default_ci_profile = "lint-build-test"
