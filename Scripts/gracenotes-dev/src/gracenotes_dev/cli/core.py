@@ -6,7 +6,6 @@ import importlib.metadata
 import io
 import json
 import os
-import shlex
 import shutil
 import subprocess
 import sys
@@ -28,7 +27,6 @@ from rich.text import Text
 
 from gracenotes_dev import cli_rich, config, simulator
 from gracenotes_dev import xcode as xcode_helpers
-
 
 
 def _supports_rich_output(stream: io.TextIOBase) -> bool:
@@ -782,5 +780,3 @@ def _reset_sims(repo_root: Path) -> None:
     shutdown, erase = xcode_helpers.simctl_reset_all_argv()
     _run(shutdown, cwd=repo_root, check=False)
     _run(erase, cwd=repo_root, check=False)
-
-

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import io
 import json
-import os
 import shlex
 import sys
 from contextlib import redirect_stderr
@@ -17,8 +16,8 @@ from rich.table import Table
 from rich.text import Text
 
 from gracenotes_dev import cli_rich, config, simulator, simulator_runtime
-from gracenotes_dev.cli.apps import runtime_app, sim_app
 from gracenotes_dev.cli import core as cli_core
+from gracenotes_dev.cli.apps import runtime_app, sim_app
 
 
 def _sim_list_entries(rows: list[dict[str, str]]) -> list[tuple[str, str, str]]:
@@ -448,6 +447,7 @@ def sim_callback(
         cfg = cli_core._load_config(repo_root)
         cli_core._require_interactive_cli(cfg=cfg, command_name="grace sim --interactive")
         import gracenotes_dev.cli as cli_pkg
+
         cli_pkg._sim_interactive(cfg=cfg)
         raise typer.Exit(code=0)
     if ctx.invoked_subcommand is None:
@@ -708,5 +708,3 @@ def sim_reset() -> None:
     """Shutdown and erase all simulators."""
     cli_core._require_macos_xcode()
     cli_core._reset_sims(cli_core._repo_root())
-
-

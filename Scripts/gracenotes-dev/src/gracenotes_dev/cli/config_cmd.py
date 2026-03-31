@@ -7,7 +7,6 @@ import os
 import shlex
 import shutil
 import sys
-from pathlib import Path
 from typing import Annotated
 
 import typer
@@ -15,8 +14,9 @@ from rich.table import Table
 from rich.text import Text
 
 from gracenotes_dev import config
-from gracenotes_dev.cli.apps import config_app
 from gracenotes_dev.cli import core as cli_core
+from gracenotes_dev.cli.apps import config_app
+
 
 def _editable_key_help_lines() -> tuple[str, ...]:
     keys = sorted(cli_core._editable_config_keys())
@@ -37,7 +37,10 @@ def config_list() -> None:
         ("defaults.default_ci_profile", cfg.default_ci_profile),
         ("defaults.ci_simulator_pro", cfg.ci_simulator_pro),
         ("defaults.ci_simulator_xr", cfg.ci_simulator_xr),
-        ("defaults.test_destination_matrix", cli_core._format_config_value(cfg.test_destination_matrix)),
+        (
+            "defaults.test_destination_matrix",
+            cli_core._format_config_value(cfg.test_destination_matrix),
+        ),
         ("tests.unit_test_bundle", cfg.unit_test_bundle),
         ("tests.ui_test_bundle", cfg.ui_test_bundle),
         ("tests.smoke_ui_test", cfg.smoke_ui_test),
@@ -156,7 +159,8 @@ def config_set(
     effective_value = cli_core._set_config_value(
         repo_root=repo_root, key=editable, parsed_value=parsed_value
     )
-    cli_core._stdout_console().print(f"{dotted_key} = {cli_core._format_config_value(effective_value)}")
+    formatted = cli_core._format_config_value(effective_value)
+    cli_core._stdout_console().print(f"{dotted_key} = {formatted}")
 
 
 @config_app.command("interactive")
@@ -211,7 +215,10 @@ def config_interactive() -> None:
             )
 
         try:
-            parsed_value = cli_core._parse_config_value(raw_next_value, value_type=editable.value_type)
+            parsed_value = cli_core._parse_config_value(
+                raw_next_value,
+                value_type=editable.value_type,
+            )
         except (ValueError, json.JSONDecodeError) as exc:
             cli_core._stderr_console().print(f"Invalid value: {exc}")
             continue
@@ -219,5 +226,5 @@ def config_interactive() -> None:
         effective_value = cli_core._set_config_value(
             repo_root=repo_root, key=editable, parsed_value=parsed_value
         )
-        cli_core._stdout_console().print(f"Updated {dotted_key} = {cli_core._format_config_value(effective_value)}")
-
+        formatted = cli_core._format_config_value(effective_value)
+        cli_core._stdout_console().print(f"Updated {dotted_key} = {formatted}")

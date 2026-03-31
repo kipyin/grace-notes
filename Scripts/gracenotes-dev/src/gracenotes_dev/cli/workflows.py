@@ -2,19 +2,16 @@
 
 from __future__ import annotations
 
-import json
-import sys
 import time
 from pathlib import Path
 from typing import Annotated
 
 import typer
-from rich.text import Text
 
 from gracenotes_dev import config, simulator
 from gracenotes_dev import xcode as xcode_helpers
-from gracenotes_dev.cli.apps import app
 from gracenotes_dev.cli import core as cli_core
+from gracenotes_dev.cli.apps import app
 from gracenotes_dev.cli.sim import (
     _prompt_build_options,
     _prompt_ci_profile,
@@ -260,7 +257,10 @@ def test(
     test_started = time.perf_counter()
 
     if matrix:
-        resolved_destinations = cli_core._resolved_destinations_for_matrix(cfg.test_destination_matrix, rows)
+        resolved_destinations = cli_core._resolved_destinations_for_matrix(
+            cfg.test_destination_matrix,
+            rows,
+        )
         steps: list[cli_core.TheaterStep] = []
         for resolved_destination in resolved_destinations:
             if reset_before_run:
@@ -358,6 +358,7 @@ def _execute_ci_profile(cfg: config.DevConfig, profile: str, *, verbose: bool = 
 
     if selected.lint:
         from gracenotes_dev.cli.doctor_lint import lint as lint_command
+
         lint_command()
 
     needs_xcode = selected.build or selected.test or selected.smoke
@@ -610,4 +611,3 @@ def run(
         ],
     )
     cli_core._run_theater(steps)
-

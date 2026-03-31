@@ -195,7 +195,11 @@ class CLISurfaceTest(unittest.TestCase):
                     with mock.patch.object(
                         simulator, "load_available_ios_devices", return_value=rows
                     ):
-                        with mock.patch.object(cli_core, "_supports_rich_output", return_value=True):
+                        with mock.patch.object(
+                            cli_core,
+                            "_supports_rich_output",
+                            return_value=True,
+                        ):
                             runner = CliRunner()
                             result = runner.invoke(app, ["sim", "list"])
 
@@ -463,8 +467,11 @@ class CLISurfaceTest(unittest.TestCase):
             with mock.patch.object(cli_core, "_load_config", return_value=cfg):
                 with mock.patch.object(cli_core, "_require_interactive_cli"):
                     with mock.patch.object(cli, "_interactive_cli_allowed", return_value=True):
+                        select_prompts = [menu_prompt, profile_prompt]
                         with mock.patch.object(
-                            cli_core.questionary, "select", side_effect=[menu_prompt, profile_prompt]
+                            cli_core.questionary,
+                            "select",
+                            side_effect=select_prompts,
                         ):
                             with mock.patch.object(
                                 cli_core.questionary, "confirm", return_value=verbose_prompt
@@ -605,7 +612,11 @@ class CLISurfaceTest(unittest.TestCase):
                             "_resolved_destinations_for_matrix",
                             return_value=["d1", "d2"],
                         ):
-                            with mock.patch.object(cli_core, "_reset_sims", side_effect=count_reset):
+                            with mock.patch.object(
+                                cli_core,
+                                "_reset_sims",
+                                side_effect=count_reset,
+                            ):
                                 with mock.patch.object(
                                     cli_core, "_run_test_once", side_effect=noop_test_once
                                 ):
@@ -636,7 +647,11 @@ class CLISurfaceTest(unittest.TestCase):
                             "_resolved_destinations_for_matrix",
                             return_value=["d1", "d2"],
                         ):
-                            with mock.patch.object(cli_core, "_reset_sims", side_effect=count_reset):
+                            with mock.patch.object(
+                                cli_core,
+                                "_reset_sims",
+                                side_effect=count_reset,
+                            ):
                                 with mock.patch.object(cli_core, "_run_test_once"):
                                     runner = CliRunner()
                                     result = runner.invoke(

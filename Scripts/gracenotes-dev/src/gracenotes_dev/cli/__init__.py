@@ -5,7 +5,6 @@ from __future__ import annotations
 import importlib
 from typing import Annotated
 
-import questionary
 import typer
 
 from gracenotes_dev import simulator_runtime
@@ -14,16 +13,12 @@ from gracenotes_dev.cli.apps import app, config_app, runtime_app, sim_app
 from gracenotes_dev.cli.core import (
     _cli_version,
     _interactive_cli_allowed,
-    _load_config,
     _prepare_xcodebuild_argv,
     _print_error_block,
-    _repo_root,
-    _run,
-    _run_capture,
-    _stderr_console,
     _stdout_console,
     _supports_rich_output,
 )
+from gracenotes_dev.cli.sim import _sim_interactive
 
 
 def _version_callback(value: bool) -> None:
@@ -52,9 +47,24 @@ from gracenotes_dev.cli import config_cmd as _config_cmd  # noqa: E402, F401
 from gracenotes_dev.cli import doctor_lint as _doctor_lint  # noqa: E402, F401
 from gracenotes_dev.cli import sim as _sim  # noqa: E402, F401
 from gracenotes_dev.cli import workflows as _workflows  # noqa: E402, F401
-
 from gracenotes_dev.cli.config_cmd import config_interactive  # noqa: E402
-from gracenotes_dev.cli.sim import _sim_interactive  # noqa: E402
 from gracenotes_dev.cli.workflows import _execute_ci_profile  # noqa: E402
 
-__all__ = ["app", "config_app", "runtime_app", "sim_app"]
+__all__ = [
+    "app",
+    "config_app",
+    "config_interactive",
+    "importlib",
+    "runtime_app",
+    "sim_app",
+    "simulator_runtime",
+    "xcode_helpers",
+    "_cli_version",
+    "_execute_ci_profile",
+    "_interactive_cli_allowed",
+    "_prepare_xcodebuild_argv",
+    "_print_error_block",
+    "_sim_interactive",
+    "_stdout_console",
+    "_supports_rich_output",
+]
