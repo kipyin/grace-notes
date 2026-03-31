@@ -24,6 +24,7 @@ from rich.table import Table
 
 from gracenotes_dev import config
 from gracenotes_dev import simulator
+from gracenotes_dev import simulator_runtime
 from gracenotes_dev import xcode as xcode_helpers
 
 app = typer.Typer(
@@ -38,8 +39,22 @@ app = typer.Typer(
         '  grace run --destination "iPhone 17 Pro@latest" -- -reset-journal-tutorial'
     ),
 )
-sim_app = typer.Typer(help="Simulator destination helpers (xcrun simctl).")
+sim_app = typer.Typer(
+    help="Simulator destination helpers (xcrun simctl).",
+    invoke_without_command=True,
+)
 app.add_typer(sim_app, name="sim")
+runtime_app = typer.Typer(
+    help="Manage installed simulator runtimes.",
+    epilog=(
+        "Examples:\n"
+        "  grace sim runtime install\n"
+        "  grace sim runtime install --build-version 18.5\n"
+        "  grace sim runtime list --json\n"
+        "  grace sim runtime delete <runtime-identifier> --dry-run"
+    ),
+)
+sim_app.add_typer(runtime_app, name="runtime")
 config_app = typer.Typer(help="Inspect and edit gracenotes-dev.toml.")
 app.add_typer(config_app, name="config")
 
@@ -529,6 +544,7 @@ def _resolve_destination(value: str, rows: list[dict[str, str]]) -> str:
         likely_cause=likely_cause,
         try_commands=(
             "grace sim list",
+            "grace sim runtime install",
             "xcodebuild -downloadPlatform iOS",
         ),
         retry_command='grace run --destination "iPhone 17 Pro@latest"',
@@ -557,7 +573,44 @@ def _resolved_destinations_for_matrix(
     return []
 
 
-def _doctor_default_destination_check(destination: str, rows: list[dict[str, str]]) -> dict[str, str]:
+def _destination_os_value(spec: str) -> str | None:
+    if spec.startswith("platform="):
+        fields = simulator.parse_destination(spec)
+        value = fields.get("OS", "").strip()
+        return value or None
+    if "@" not in spec:
+        return None
+    _, os_value = spec.rsplit("@", 1)
+    value = os_value.strip()
+    return value or None
+
+
+def _runtime_install_command_for_os_value(os_value: str) -> str:
+    if os_value.lower() == "latest":
+        return "grace sim runtime install"
+    return f"grace sim runtime install --build-version {os_value}"
+
+
+def _suggested_runtime_install_commands(
+    *,
+    cfg_destination: str | None = None,
+    matrix_specs: tuple[str, ...] | None = None,
+) -> list[str]:
+    commands: set[str] = set()
+    values: list[str] = []
+    if cfg_destination is not None:
+        values.append(cfg_destination)
+    if matrix_specs is not None:
+        values.extend(matrix_specs)
+    for spec in values:
+        os_value = _destination_os_value(spec)
+        if not os_value:
+            continue
+        commands.add(_runtime_install_command_for_os_value(os_value))
+    return sorted(commands)
+
+
+def _doctor_default_destination_check(destination: str, rows: list[dict[str, str]]) -> dict[str, object]:
     """Resolve default destination for doctor without exiting; stderr message on failure."""
     err = io.StringIO()
     try:
@@ -567,6 +620,15 @@ def _doctor_default_destination_check(destination: str, rows: list[dict[str, str
     except (SystemExit, typer.Exit):
         detail = err.getvalue().strip().splitlines()
         msg = detail[0] if detail else "Unable to resolve destination; run `grace sim list`"
+        suggestions = _suggested_runtime_install_commands(cfg_destination=destination)
+        if suggestions:
+            msg = f"{msg} Try: {suggestions[0]}; then `grace sim list`."
+            return {
+                "name": "default destination",
+                "status": "error",
+                "detail": msg,
+                "suggested_commands": suggestions,
+            }
         return {
             "name": "default destination",
             "status": "error",
@@ -579,7 +641,7 @@ def _doctor_default_destination_check(destination: str, rows: list[dict[str, str
     }
 
 
-def _doctor_matrix_check(specs: tuple[str, ...], rows: list[dict[str, str]]) -> dict[str, str]:
+def _doctor_matrix_check(specs: tuple[str, ...], rows: list[dict[str, str]]) -> dict[str, object]:
     """Resolve test matrix for doctor without exiting; stderr message on failure."""
     err = io.StringIO()
     joined = ";".join(specs)
@@ -589,6 +651,19 @@ def _doctor_matrix_check(specs: tuple[str, ...], rows: list[dict[str, str]]) -> 
     except (SystemExit, typer.Exit):
         detail = err.getvalue().strip().splitlines()
         msg = detail[0] if detail else "One or more matrix entries cannot be resolved"
+        suggestions = _suggested_runtime_install_commands(matrix_specs=specs)
+        if suggestions:
+            joined_suggestions = "; ".join(suggestions)
+            msg = (
+                f"{msg} If the iOS runtime is missing, try: {joined_suggestions}; "
+                "then `grace sim list` or update config."
+            )
+            return {
+                "name": "matrix destinations",
+                "status": "error",
+                "detail": msg,
+                "suggested_commands": suggestions,
+            }
         return {
             "name": "matrix destinations",
             "status": "error",
@@ -649,7 +724,7 @@ def doctor(
     repo_root = _repo_root()
     cfg = _load_config(repo_root)
 
-    checks: list[dict[str, str]] = []
+    checks: list[dict[str, object]] = []
 
     swiftlint_path = shutil.which("swiftlint")
     checks.append(
@@ -678,8 +753,16 @@ def doctor(
         },
     )
 
-    destination_check = {"name": "default destination", "status": "skipped", "detail": "xcode tools not available"}
-    matrix_check = {"name": "matrix destinations", "status": "skipped", "detail": "xcode tools not available"}
+    destination_check: dict[str, object] = {
+        "name": "default destination",
+        "status": "skipped",
+        "detail": "xcode tools not available",
+    }
+    matrix_check: dict[str, object] = {
+        "name": "matrix destinations",
+        "status": "skipped",
+        "detail": "xcode tools not available",
+    }
 
     if sys.platform == "darwin" and xcodebuild_path and xcrun_path:
         try:
@@ -712,7 +795,7 @@ def doctor(
     table.add_column("Status")
     table.add_column("Detail")
     for item in checks:
-        table.add_row(item["name"], item["status"], item["detail"])
+        table.add_row(str(item["name"]), str(item["status"]), str(item["detail"]))
     _stdout_console().print(table)
 
 
@@ -978,6 +1061,315 @@ def _prompt_run_options(
         chosen_args,
         chosen_verbose,
     )
+
+
+def _load_runtime_records(repo_root: Path) -> list[simulator_runtime.RuntimeRecord]:
+    completed = _run_capture(
+        simulator_runtime.simctl_runtime_list_argv(json_out=True),
+        cwd=repo_root,
+        check=True,
+    )
+    try:
+        records = simulator_runtime.parse_runtime_list_json(completed.stdout)
+        if records:
+            return records
+    except json.JSONDecodeError:
+        pass
+    fallback = _run_capture(
+        simulator_runtime.simctl_runtime_list_argv(json_out=False),
+        cwd=repo_root,
+        check=True,
+    )
+    return simulator_runtime.parse_runtime_list_text(fallback.stdout)
+
+
+def _print_runtime_list(records: list[simulator_runtime.RuntimeRecord]) -> None:
+    if _supports_rich_output(sys.stdout):
+        table = Table(show_header=True, header_style="bold")
+        table.add_column("Platform")
+        table.add_column("Version", justify="right")
+        table.add_column("Build", justify="right")
+        table.add_column("State")
+        table.add_column("Identifier")
+        for row in records:
+            table.add_row(row.platform, row.version, row.build, row.state, row.identifier)
+        _stdout_console().print(table)
+        return
+
+    console = _stdout_console()
+    console.print(f"{'Platform':<10}{'Version':<10}{'Build':<10}{'State':<12}Identifier")
+    for row in records:
+        console.print(f"{row.platform:<10}{row.version:<10}{row.build:<10}{row.state:<12}{row.identifier}")
+
+
+def _sim_interactive(*, cfg: config.DevConfig) -> None:
+    choice = _require_prompt_answer(
+        questionary.select(
+            "Simulator action:",
+            choices=[
+                "List destinations",
+                "Resolve destination",
+                "Reset simulators",
+                "Install runtime",
+                "List runtimes",
+                "Delete runtime",
+                "Exit",
+            ],
+            default="List destinations",
+        ).ask(),
+    )
+    if choice == "Exit":
+        return
+    if choice == "List destinations":
+        sim_list()
+        return
+    if choice == "Resolve destination":
+        spec = _prompt_optional_text(
+            message="Destination spec (device@os or platform=...):",
+            default_value=cfg.destination,
+        ) or cfg.destination
+        sim_resolve(spec=spec)
+        return
+    if choice == "Reset simulators":
+        confirmed = _require_prompt_answer(
+            questionary.confirm("Shutdown and erase all simulators?", default=False).ask(),
+        )
+        if confirmed:
+            sim_reset()
+        return
+    if choice == "Install runtime":
+        build_version = _prompt_optional_text(
+            message="Build version (empty for default download):",
+            default_value="",
+        )
+        run_simctl_add = _require_prompt_answer(
+            questionary.confirm(
+                "Also run `xcrun simctl runtime add` after import?",
+                default=False,
+            ).ask(),
+        )
+        runtime_install(
+            build_version=build_version,
+            export_path=None,
+            from_dmg=None,
+            simctl_add=run_simctl_add,
+            move_dmg=False,
+            dry_run=False,
+        )
+        return
+    if choice == "List runtimes":
+        runtime_list()
+        return
+
+    repo_root = _repo_root()
+    records = _load_runtime_records(repo_root)
+    if not records:
+        _stdout_console().print("No installed simulator runtimes found.")
+        return
+    labels = [f"{row.platform} {row.version} ({row.build}) - {row.identifier}" for row in records]
+    selected = _require_prompt_answer(
+        questionary.select("Runtime to delete:", choices=labels, default=labels[0]).ask(),
+    )
+    identifier = selected.rsplit(" - ", 1)[-1]
+    confirmed = _require_prompt_answer(
+        questionary.confirm(f"Delete runtime {identifier}?", default=False).ask(),
+    )
+    if confirmed:
+        runtime_delete(identifier=identifier, dry_run=False, keep_asset=False)
+
+
+@sim_app.callback()
+def sim_callback(
+    ctx: typer.Context,
+    interactive: Annotated[
+        bool,
+        typer.Option("--interactive", "-i", help="Prompt for simulator helpers interactively."),
+    ] = False,
+) -> None:
+    if interactive and ctx.invoked_subcommand is not None:
+        _fail(
+            code=2,
+            title="Interactive mode and subcommand conflict",
+            problem="Use `grace sim --interactive` alone, or run the subcommand without `--interactive`.",
+            try_commands=("grace sim -i", "grace sim list"),
+        )
+    if interactive:
+        repo_root = _repo_root()
+        cfg = _load_config(repo_root)
+        _require_interactive_cli(cfg=cfg, command_name="grace sim --interactive")
+        _sim_interactive(cfg=cfg)
+        raise typer.Exit(code=0)
+    if ctx.invoked_subcommand is None:
+        _stdout_console().print(ctx.get_help())
+        raise typer.Exit(code=0)
+
+
+@runtime_app.command("install")
+def runtime_install(
+    build_version: Annotated[
+        str | None,
+        typer.Option(
+            "--build-version",
+            help="Optional runtime build version (maps to `xcodebuild -buildVersion`).",
+        ),
+    ] = None,
+    export_path: Annotated[
+        Path | None,
+        typer.Option(
+            "--export-path",
+            help="Directory used for downloaded runtime DMGs.",
+        ),
+    ] = None,
+    from_dmg: Annotated[
+        Path | None,
+        typer.Option(
+            "--from-dmg",
+            help="Import an existing runtime DMG (skip download).",
+        ),
+    ] = None,
+    simctl_add: Annotated[
+        bool,
+        typer.Option(
+            "--simctl-add/--no-simctl-add",
+            help="Also run `xcrun simctl runtime add` after xcodebuild import.",
+        ),
+    ] = False,
+    move_dmg: Annotated[
+        bool,
+        typer.Option(
+            "--move-dmg",
+            help="With `--simctl-add`, move the DMG into simulator runtime storage.",
+        ),
+    ] = False,
+    dry_run: Annotated[
+        bool,
+        typer.Option("--dry-run", help="Print commands without executing."),
+    ] = False,
+) -> None:
+    """Download and install an iOS simulator runtime."""
+    _require_macos_xcode()
+    repo_root = _repo_root()
+    if move_dmg and not simctl_add:
+        _fail(
+            code=2,
+            title="Invalid runtime install flags",
+            problem="`--move-dmg` requires `--simctl-add`.",
+            try_commands=("grace sim runtime install --simctl-add --move-dmg",),
+        )
+    if from_dmg is not None and build_version:
+        _fail(
+            code=2,
+            title="Invalid runtime install flags",
+            problem="`--from-dmg` cannot be combined with `--build-version`.",
+            try_commands=("grace sim runtime install --from-dmg /path/to/runtime.dmg",),
+        )
+
+    download_dir = (export_path or (repo_root / ".grace" / "sim-runtime-downloads")).expanduser()
+    selected_dmg = from_dmg.expanduser() if from_dmg is not None else None
+    command_plan: list[list[str]] = []
+
+    if selected_dmg is None:
+        command_plan.append(
+            simulator_runtime.xcode_download_platform_argv(
+                export_path=download_dir,
+                build_version=build_version,
+            ),
+        )
+        import_target = download_dir / "<downloaded-runtime>.dmg"
+    else:
+        if not dry_run and not selected_dmg.is_file():
+            _fail(
+                code=2,
+                title="Runtime DMG not found",
+                problem=f"No file exists at `{selected_dmg}`.",
+                try_commands=("grace sim runtime install",),
+            )
+        import_target = selected_dmg
+    command_plan.append(simulator_runtime.xcode_import_platform_argv(dmg_path=import_target))
+    if simctl_add:
+        command_plan.append(
+            simulator_runtime.simctl_runtime_add_argv(
+                dmg_path=import_target,
+                move=move_dmg,
+                async_mode=False,
+            ),
+        )
+
+    if dry_run:
+        for argv in command_plan:
+            _stdout_console().print(" ".join(shlex.quote(item) for item in argv))
+        return
+
+    if selected_dmg is None:
+        download_dir.mkdir(parents=True, exist_ok=True)
+        _run(command_plan[0], cwd=repo_root, check=True)
+        try:
+            selected_dmg = simulator_runtime.discover_downloaded_dmg(export_path=download_dir)
+        except FileNotFoundError as exc:
+            _fail(
+                code=3,
+                title="Runtime download completed but DMG was not found",
+                problem=str(exc),
+                try_commands=(f"ls {download_dir}", "grace sim runtime install --from-dmg /path/to/runtime.dmg"),
+            )
+        command_plan[1] = simulator_runtime.xcode_import_platform_argv(dmg_path=selected_dmg)
+        if simctl_add:
+            command_plan[2] = simulator_runtime.simctl_runtime_add_argv(
+                dmg_path=selected_dmg,
+                move=move_dmg,
+                async_mode=False,
+            )
+
+    for argv in command_plan[1:]:
+        _run(argv, cwd=repo_root, check=True)
+
+    if selected_dmg is not None:
+        _stdout_console().print(f"Installed runtime from {selected_dmg}")
+
+
+@runtime_app.command("list")
+def runtime_list(
+    json_out: Annotated[
+        bool,
+        typer.Option("--json", help="Emit a JSON array of installed runtime records."),
+    ] = False,
+) -> None:
+    """List installed simulator runtimes."""
+    _require_macos_xcode()
+    repo_root = _repo_root()
+    records = _load_runtime_records(repo_root)
+    if json_out:
+        payload = [simulator_runtime.runtime_record_to_dict(row) for row in records]
+        json.dump(payload, sys.stdout, indent=2)
+        sys.stdout.write("\n")
+        return
+    _print_runtime_list(records)
+
+
+@runtime_app.command("delete")
+def runtime_delete(
+    identifier: Annotated[
+        str,
+        typer.Argument(help="Runtime identifier from `grace sim runtime list`."),
+    ],
+    dry_run: Annotated[
+        bool,
+        typer.Option("--dry-run", help="Preview delete without removing runtimes."),
+    ] = False,
+    keep_asset: Annotated[
+        bool,
+        typer.Option("--keep-asset", help="Keep the underlying mobile asset while deleting."),
+    ] = False,
+) -> None:
+    """Delete one simulator runtime by identifier (or `all`)."""
+    _require_macos_xcode()
+    repo_root = _repo_root()
+    argv = simulator_runtime.simctl_runtime_delete_argv(
+        identifier=identifier,
+        dry_run=dry_run,
+        keep_asset=keep_asset,
+    )
+    _run(argv, cwd=repo_root, check=True)
 
 
 @sim_app.command("list")

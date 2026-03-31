@@ -88,6 +88,7 @@ python3 -m unittest discover -s Scripts/gracenotes-dev/tests
 - `grace interactive` – TTY menu to pick a CI profile, then run it (use `grace ci --profile …` in CI or when stdin is not a terminal).
 - `grace ci --profile test-all` – Lint, reset simulators, then full tests (no separate build step; close to the old lint + reset + test gate).
 - `grace ci --profile full` – Lint, tests on iPhone 17 Pro, UI smoke on iPhone SE (3rd generation) per `gracenotes-dev.toml`.
+- `grace sim runtime install` / `grace sim runtime list` / `grace sim runtime delete …` – Install and manage simulator runtimes (then use `grace sim list` to confirm destination availability).
 - `grace sim list` / `grace sim resolve SPEC` / `grace sim reset` – Destinations and simulator hygiene.
 - `grace run` – Build, install, and launch on a booted simulator; use `--preset` and `--` to pass [app process arguments](GraceNotes/GraceNotes/Application/GraceNotesApp.swift).
 

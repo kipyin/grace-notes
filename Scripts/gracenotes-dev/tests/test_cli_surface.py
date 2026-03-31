@@ -47,7 +47,7 @@ class CLISurfaceTest(unittest.TestCase):
         result = runner.invoke(app, ["sim", "--help"])
 
         self.assertEqual(result.exit_code, 0)
-        for token in ["list", "resolve", "reset"]:
+        for token in ["list", "resolve", "reset", "runtime", "--interactive"]:
             self.assertIn(token, result.output)
 
     def test_config_help_includes_required_subcommands(self) -> None:
@@ -56,6 +56,44 @@ class CLISurfaceTest(unittest.TestCase):
 
         self.assertEqual(result.exit_code, 0)
         for token in ["list", "edit", "open", "set", "interactive"]:
+            self.assertIn(token, result.output)
+
+    def test_sim_without_subcommand_prints_help(self) -> None:
+        runner = CliRunner()
+        result = runner.invoke(app, ["sim"])
+
+        self.assertEqual(result.exit_code, 0, msg=f"{result.stdout}\n{result.stderr}")
+        self.assertIn("Simulator destination helpers", result.output)
+        self.assertIn("runtime", result.output)
+
+    def test_sim_interactive_rejects_subcommand_combination(self) -> None:
+        runner = CliRunner()
+        result = runner.invoke(app, ["sim", "-i", "list"])
+
+        self.assertEqual(result.exit_code, 2)
+        combined = f"{result.stdout}\n{result.stderr}"
+        self.assertIn("Interactive mode and subcommand conflict", combined)
+        self.assertIn("grace sim -i", combined)
+
+    def test_sim_interactive_invokes_sim_hub(self) -> None:
+        repo_root = Path(__file__).resolve().parents[3]
+        cfg = config.default_config()
+        with mock.patch.object(cli, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli, "_load_config", return_value=cfg):
+                with mock.patch.object(cli, "_require_interactive_cli"):
+                    with mock.patch.object(cli, "_sim_interactive") as sim_hub:
+                        runner = CliRunner()
+                        result = runner.invoke(app, ["sim", "--interactive"])
+
+        self.assertEqual(result.exit_code, 0, msg=f"{result.stdout}\n{result.stderr}")
+        sim_hub.assert_called_once_with(cfg=cfg)
+
+    def test_sim_runtime_help_lists_runtime_subcommands(self) -> None:
+        runner = CliRunner()
+        result = runner.invoke(app, ["sim", "runtime", "--help"])
+
+        self.assertEqual(result.exit_code, 0)
+        for token in ["install", "list", "delete", "--build-version"]:
             self.assertIn(token, result.output)
 
     def test_sim_list_plain_outputs_columns_and_default_star(self) -> None:
@@ -134,6 +172,81 @@ class CLISurfaceTest(unittest.TestCase):
         self.assertIn("26.0", result.output)
         self.assertIn("┏", result.output)
         self.assertIn("Default", result.output)
+
+    def test_runtime_install_runs_download_import_and_optional_simctl_add(self) -> None:
+        repo_root = Path(__file__).resolve().parents[3]
+        fake_dmg = repo_root / ".grace" / "sim-runtime-downloads" / "iOS Simulator Runtime.dmg"
+        captured: list[list[str]] = []
+
+        def fake_run(
+            argv: list[str],
+            *,
+            cwd: Path,
+            check: bool = True,
+            verbose: bool = False,
+        ) -> subprocess.CompletedProcess[str]:
+            captured.append(list(argv))
+            return subprocess.CompletedProcess(argv, 0, "", "")
+
+        with mock.patch.object(cli, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli, "_require_macos_xcode"):
+                with mock.patch.object(cli, "_run", side_effect=fake_run):
+                    with mock.patch.object(
+                        cli.simulator_runtime,
+                        "discover_downloaded_dmg",
+                        return_value=fake_dmg,
+                    ):
+                        runner = CliRunner()
+                        result = runner.invoke(
+                            app,
+                            [
+                                "sim",
+                                "runtime",
+                                "install",
+                                "--build-version",
+                                "18.5",
+                                "--simctl-add",
+                            ],
+                        )
+
+        self.assertEqual(result.exit_code, 0, msg=f"{result.stdout}\n{result.stderr}")
+        self.assertEqual(captured[0][:4], ["xcodebuild", "-downloadPlatform", "iOS", "-exportPath"])
+        self.assertIn("-buildVersion", captured[0])
+        self.assertIn("18.5", captured[0])
+        self.assertEqual(captured[1], ["xcodebuild", "-importPlatform", str(fake_dmg)])
+        self.assertEqual(captured[2], ["xcrun", "simctl", "runtime", "add", str(fake_dmg)])
+
+    def test_runtime_list_json_emits_parsed_records(self) -> None:
+        repo_root = Path(__file__).resolve().parents[3]
+        payload = {
+            "ABCDEF00-0000-0000-0000-000000000001": {
+                "identifier": "ABCDEF00-0000-0000-0000-000000000001",
+                "runtimeIdentifier": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+                "platformIdentifier": "com.apple.platform.iphonesimulator",
+                "version": "18.5",
+                "build": "22F76",
+                "state": "Ready",
+                "deletable": True,
+            },
+        }
+        completed = subprocess.CompletedProcess(
+            ["xcrun", "simctl", "runtime", "list", "-j"],
+            0,
+            json.dumps(payload),
+            "",
+        )
+        with mock.patch.object(cli, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli, "_require_macos_xcode"):
+                with mock.patch.object(cli, "_run_capture", return_value=completed):
+                    runner = CliRunner()
+                    result = runner.invoke(app, ["sim", "runtime", "list", "--json"])
+
+        self.assertEqual(result.exit_code, 0, msg=f"{result.stdout}\n{result.stderr}")
+        rows = json.loads(result.output)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["identifier"], "ABCDEF00-0000-0000-0000-000000000001")
+        self.assertEqual(rows[0]["platform"], "iOS")
+        self.assertEqual(rows[0]["version"], "18.5")
 
     def test_run_help_includes_examples(self) -> None:
         runner = CliRunner()
@@ -425,6 +538,47 @@ class CLISurfaceTest(unittest.TestCase):
         self.assertEqual(by_name["default destination"]["status"], "ok")
         self.assertIn("iPhone 17 Pro", by_name["default destination"]["detail"])
         self.assertEqual(by_name["matrix destinations"]["status"], "error")
+        self.assertEqual(
+            by_name["matrix destinations"]["suggested_commands"],
+            ["grace sim runtime install"],
+        )
+
+    def test_doctor_default_destination_error_suggests_build_version_install(self) -> None:
+        repo_root = Path(__file__).resolve().parents[3]
+        rows = [
+            {"name": "iPhone 17 Pro", "runtime_version": "26.0", "runtime_key": "k1", "udid": "u1"},
+        ]
+        cfg = replace(
+            config.default_config(),
+            destination="iPhone SE (3rd generation)@18.5",
+            test_destination_matrix=("iPhone 17 Pro@latest",),
+        )
+
+        def fake_which(name: str) -> str | None:
+            if name in ("swiftlint", "xcodebuild", "xcrun"):
+                return f"/usr/bin/{name}"
+            return None
+
+        with mock.patch.object(cli, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli, "_load_config", return_value=cfg):
+                with mock.patch.object(simulator, "load_available_ios_devices", return_value=rows):
+                    with mock.patch.object(sys, "platform", "darwin"):
+                        with mock.patch.object(shutil, "which", side_effect=fake_which):
+                            runner = CliRunner()
+                            result = runner.invoke(app, ["doctor", "--json"])
+
+        self.assertEqual(result.exit_code, 0, msg=result.output)
+        payload = json.loads(result.output)
+        by_name = {c["name"]: c for c in payload["checks"]}
+        self.assertEqual(by_name["default destination"]["status"], "error")
+        self.assertIn(
+            "grace sim runtime install --build-version 18.5",
+            by_name["default destination"]["detail"],
+        )
+        self.assertEqual(
+            by_name["default destination"]["suggested_commands"],
+            ["grace sim runtime install --build-version 18.5"],
+        )
 
     def test_prepare_xcodebuild_argv_adds_quiet_for_interactive_tty(self) -> None:
         stdout_mock = mock.Mock()
