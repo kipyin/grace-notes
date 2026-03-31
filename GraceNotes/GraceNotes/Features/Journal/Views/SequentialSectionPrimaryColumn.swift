@@ -12,7 +12,7 @@ struct SequentialSectionPrimaryColumn<ProgressDots: View>: View {
     let title: String
     let addButtonTitle: String
     let addButtonAccessibilityHint: String
-    /// When false, the add-row chip omits the trailing chevron (e.g. People empty state).
+    /// When false, the add-row chip omits the trailing chevron (default; matches journal sentence sections).
     let showsTrailingChevronOnAddRow: Bool
     let guidanceTitle: String?
     let guidanceMessage: String?
