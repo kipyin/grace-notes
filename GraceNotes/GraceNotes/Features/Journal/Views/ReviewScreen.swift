@@ -31,11 +31,17 @@ struct ReviewScreen: View {
     }
 
     private var currentInsightsRefreshKey: ReviewInsightsRefreshKey {
-        ReviewInsightsRefreshKey(
-            weekStart: currentReviewPeriod.lowerBound,
-            entrySnapshots: weeklyEntriesForRefresh.map {
-                ReviewEntrySnapshot(id: $0.id, updatedAt: $0.updatedAt)
-            },
+        let now = Date()
+        let period = ReviewInsightsPeriod.currentPeriod(containing: now, calendar: calendar)
+        return ReviewInsightsRefreshKey(
+            weekStart: period.lowerBound,
+            entrySnapshots: ReviewInsightsRefreshKey.entrySnapshotsAffectingInsights(
+                entries: entries,
+                referenceDate: now,
+                calendar: calendar,
+                pastStatisticsInterval: pastStatisticsInterval,
+                currentReviewPeriod: period
+            ),
             weekBoundaryPreferenceRawValue: reviewWeekBoundaryRawValue,
             pastStatisticsIntervalToken: pastStatisticsInterval.cacheKeyToken
         )
@@ -48,10 +54,6 @@ struct ReviewScreen: View {
     private var calendar: Calendar {
         ReviewWeekBoundaryPreference.resolve(from: reviewWeekBoundaryRawValue)
             .configuredCalendar()
-    }
-
-    private var weeklyEntriesForRefresh: [JournalEntry] {
-        entries.filter { currentReviewPeriod.contains($0.entryDate) }
     }
 
     var body: some View {

@@ -65,6 +65,86 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
         XCTAssertTrue(result)
     }
 
+    /// Past-tab insights read older days inside the past-statistics window; refresh fingerprints must
+    /// include those rows, not only the current review week (PR #166 review feedback).
+    func test_entrySnapshotsAffectingInsights_includesHistoryWindowEntryOutsideCurrentWeek() {
+        let ctx = sundayUTCReviewContext()
+        let olderDay = utcDate(year: 2026, month: 3, day: 5, calendar: ctx.calendar)
+        XCTAssertTrue(ctx.currentPeriod.contains(ctx.reference))
+        XCTAssertFalse(ctx.currentPeriod.contains(olderDay))
+
+        let historyOnlyId = UUID(uuidString: "11111111-1111-1111-1111-111111111111")!
+        let historyOnly = JournalEntry(
+            id: historyOnlyId,
+            entryDate: olderDay,
+            updatedAt: Date(timeIntervalSince1970: 100)
+        )
+        let thisWeekId = UUID(uuidString: "22222222-2222-2222-2222-222222222222")!
+        let thisWeek = JournalEntry(
+            id: thisWeekId,
+            entryDate: utcDate(year: 2026, month: 3, day: 17, calendar: ctx.calendar),
+            updatedAt: Date(timeIntervalSince1970: 200)
+        )
+        let snapshots = ReviewInsightsRefreshKey.entrySnapshotsAffectingInsights(
+            entries: [historyOnly, thisWeek],
+            referenceDate: ctx.reference,
+            calendar: ctx.calendar,
+            pastStatisticsInterval: ctx.interval,
+            currentReviewPeriod: ctx.currentPeriod
+        )
+        XCTAssertEqual(Set(snapshots.map(\.id)), Set([historyOnlyId, thisWeekId]))
+    }
+
+    func test_shouldRefresh_whenOnlyHistoryWindowEntryUpdatedAtChanges_returnsTrue() {
+        let ctx = sundayUTCReviewContext()
+        let olderDay = utcDate(year: 2026, month: 3, day: 5, calendar: ctx.calendar)
+        let historyOnly = JournalEntry(
+            id: UUID(uuidString: "33333333-3333-3333-3333-333333333333")!,
+            entryDate: olderDay,
+            updatedAt: Date(timeIntervalSince1970: 300)
+        )
+        let thisWeek = JournalEntry(
+            id: UUID(uuidString: "44444444-4444-4444-4444-444444444444")!,
+            entryDate: utcDate(year: 2026, month: 3, day: 17, calendar: ctx.calendar),
+            updatedAt: Date(timeIntervalSince1970: 400)
+        )
+        let entries = [historyOnly, thisWeek]
+        let snapshotsBefore = ReviewInsightsRefreshKey.entrySnapshotsAffectingInsights(
+            entries: entries,
+            referenceDate: ctx.reference,
+            calendar: ctx.calendar,
+            pastStatisticsInterval: ctx.interval,
+            currentReviewPeriod: ctx.currentPeriod
+        )
+        historyOnly.updatedAt = Date(timeIntervalSince1970: 900)
+        let snapshotsAfter = ReviewInsightsRefreshKey.entrySnapshotsAffectingInsights(
+            entries: entries,
+            referenceDate: ctx.reference,
+            calendar: ctx.calendar,
+            pastStatisticsInterval: ctx.interval,
+            currentReviewPeriod: ctx.currentPeriod
+        )
+        XCTAssertNotEqual(snapshotsBefore, snapshotsAfter)
+
+        let token = ctx.interval.cacheKeyToken
+        let weekBoundary = ReviewWeekBoundaryPreference.sundayStart.rawValue
+        let keyBefore = ReviewInsightsRefreshKey(
+            weekStart: ctx.currentPeriod.lowerBound,
+            entrySnapshots: snapshotsBefore,
+            weekBoundaryPreferenceRawValue: weekBoundary,
+            pastStatisticsIntervalToken: token
+        )
+        let keyAfter = ReviewInsightsRefreshKey(
+            weekStart: ctx.currentPeriod.lowerBound,
+            entrySnapshots: snapshotsAfter,
+            weekBoundaryPreferenceRawValue: weekBoundary,
+            pastStatisticsIntervalToken: token
+        )
+        XCTAssertTrue(
+            ReviewInsightsRefreshPolicy.shouldRefresh(hasInsights: true, previousKey: keyBefore, currentKey: keyAfter)
+        )
+    }
+
     func test_isSparseProviderFallback_matchesProviderFallbackShape() {
         XCTAssertTrue(ReviewInsightsRefreshPolicy.isSparseProviderFallback(makeSparseProviderFallbackInsights()))
     }
@@ -87,6 +167,38 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
             weekStats: insights.weekStats
         )
         XCTAssertFalse(ReviewInsightsRefreshPolicy.isSparseProviderFallback(insights))
+    }
+
+    private func utcDate(year: Int, month: Int, day: Int, calendar: Calendar) -> Date {
+        var components = DateComponents()
+        components.year = year
+        components.month = month
+        components.day = day
+        components.timeZone = calendar.timeZone
+        return calendar.date(from: components)!
+    }
+
+    /// Wednesday 2026-03-18 UTC; Sun-start week per ``ReviewInsightsPeriodTests``.
+    private func sundayUTCReviewContext() -> SundayUTCReviewContext {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.firstWeekday = 1
+        let reference = utcDate(year: 2026, month: 3, day: 18, calendar: calendar)
+        let currentPeriod = ReviewInsightsPeriod.currentPeriod(containing: reference, calendar: calendar)
+        let interval = PastStatisticsIntervalSelection(mode: .custom, quantity: 4, unit: .week)
+        return SundayUTCReviewContext(
+            calendar: calendar,
+            reference: reference,
+            currentPeriod: currentPeriod,
+            interval: interval
+        )
+    }
+
+    private struct SundayUTCReviewContext {
+        let calendar: Calendar
+        let reference: Date
+        let currentPeriod: Range<Date>
+        let interval: PastStatisticsIntervalSelection
     }
 
     private func makeKey(
