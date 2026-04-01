@@ -58,7 +58,7 @@ struct SequentialSectionView: View {
         title: String,
         addButtonTitle: String,
         addButtonAccessibilityHint: String,
-        showsTrailingChevronOnAddRow: Bool = true,
+        showsTrailingChevronOnAddRow: Bool = false,
         guidanceTitle: String? = nil,
         guidanceMessage: String? = nil,
         guidanceMessageSecondary: String? = nil,
