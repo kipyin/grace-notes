@@ -137,10 +137,9 @@ struct PastJournalSearchFieldRow: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             Button(action: dismissSearchControlTapped) {
-                Image(systemName: "xmark.circle.fill")
+                Image(systemName: "xmark")
                     .font(.title2.weight(.medium))
                     .foregroundStyle(AppTheme.reviewTextMuted)
-                    .symbolRenderingMode(.hierarchical)
             }
             .buttonStyle(.plain)
             .frame(width: Metrics.dismissSlotWidth, height: Metrics.dismissSlotWidth)
