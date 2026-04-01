@@ -36,6 +36,28 @@ final class JournalUITests: XCTestCase {
     }
 
     @MainActor
+    private func openInlineEditor(
+        stripId: String,
+        editorId: String,
+        in app: XCUIApplication
+    ) -> XCUIElement {
+        let strip = app.buttons[stripId]
+        XCTAssertTrue(strip.waitForExistence(timeout: 6), "Expected strip \(stripId) to exist.")
+        let editor = journalTextView(editorId, in: app)
+        for attempt in 0..<3 {
+            if !strip.isHittable {
+                app.swipeUp()
+            }
+            strip.tap()
+            if editor.waitForExistence(timeout: attempt == 0 ? 2 : 4) {
+                return editor
+            }
+        }
+        XCTFail("Expected inline editor \(editorId) after tapping strip \(stripId).")
+        return editor
+    }
+
+    @MainActor
     private func submitEntry(
         fieldIdentifier: String,
         stripIdentifier: String,
@@ -395,19 +417,25 @@ final class JournalUITests: XCTestCase {
         XCTAssertTrue(firstStrip.waitForExistence(timeout: 5))
         XCTAssertTrue(secondStrip.waitForExistence(timeout: 5))
 
-        firstStrip.tap()
-        let firstEditor = journalTextView("JournalGratitudeStrip.0.editor", in: app)
-        XCTAssertTrue(firstEditor.waitForExistence(timeout: 5))
+        let firstEditor = openInlineEditor(
+            stripId: "JournalGratitudeStrip.0",
+            editorId: "JournalGratitudeStrip.0.editor",
+            in: app
+        )
         firstEditor.typeText(" UPDATED")
 
-        secondStrip.tap()
-        let secondEditor = journalTextView("JournalGratitudeStrip.1.editor", in: app)
-        XCTAssertTrue(secondEditor.waitForExistence(timeout: 5))
+        let secondEditor = openInlineEditor(
+            stripId: "JournalGratitudeStrip.1",
+            editorId: "JournalGratitudeStrip.1.editor",
+            in: app
+        )
         XCTAssertEqual(secondEditor.value as? String, "Second gratitude sentence")
 
-        firstStrip.tap()
-        let firstEditorReopened = journalTextView("JournalGratitudeStrip.0.editor", in: app)
-        XCTAssertTrue(firstEditorReopened.waitForExistence(timeout: 5))
+        let firstEditorReopened = openInlineEditor(
+            stripId: "JournalGratitudeStrip.0",
+            editorId: "JournalGratitudeStrip.0.editor",
+            in: app
+        )
         let firstValue = firstEditorReopened.value as? String ?? ""
         XCTAssertTrue(
             firstValue.contains("UPDATED"),

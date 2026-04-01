@@ -20,7 +20,7 @@ final class JournalMostRecurringUITests: XCTestCase {
 
     private func browseTrendingRows(in app: XCUIApplication) -> XCUIElementQuery {
         let predicate = NSPredicate(format: "identifier BEGINSWITH %@", "TrendingThemeBrowseRow.")
-        return app.buttons.matching(predicate)
+        return app.descendants(matching: .any).matching(predicate)
     }
 
     private func mainTrendingRows(in app: XCUIApplication) -> XCUIElementQuery {
@@ -78,6 +78,56 @@ final class JournalMostRecurringUITests: XCTestCase {
     }
 
     @MainActor
+    private func openTrendingBrowseSheet(_ app: XCUIApplication) -> Bool {
+        let browseRows = browseTrendingRows(in: app)
+        let done = app.buttons["TrendingBrowseSheetDone"]
+        let tapElementCenter: (XCUIElement) -> Void = { element in
+            let frame = element.frame
+            guard !frame.isEmpty else {
+                element.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+                return
+            }
+            let appOrigin = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
+            appOrigin.withOffset(CGVector(dx: frame.midX, dy: frame.midY)).tap()
+        }
+
+        for attempt in 0..<4 {
+            let linkQuery = app.buttons.matching(identifier: "BrowseAllTrendingThemesLink")
+            guard linkQuery.firstMatch.waitForExistence(timeout: 8) else { return false }
+
+            var scrollAttempts = 0
+            while !linkQuery.allElementsBoundByIndex.contains(where: \.isHittable) && scrollAttempts < 12 {
+                app.swipeUp()
+                scrollAttempts += 1
+            }
+
+            var linkToTap = linkQuery.allElementsBoundByIndex.first(where: \.isHittable) ?? linkQuery.firstMatch
+            // Avoid tapping too close to floating chrome near the bottom edge on compact simulators.
+            if linkToTap.frame.maxY > (app.frame.maxY - 120) {
+                app.swipeUp()
+                let refreshed = app.buttons.matching(identifier: "BrowseAllTrendingThemesLink")
+                linkToTap = refreshed.allElementsBoundByIndex.first(where: \.isHittable) ?? refreshed.firstMatch
+            }
+
+            tapElementCenter(linkToTap)
+            if done.waitForExistence(timeout: 2) || browseRows.firstMatch.waitForExistence(timeout: 2) {
+                return true
+            }
+
+            // Fallback to element-dispatched tap in case coordinate tap hit list chrome.
+            if linkToTap.exists, linkToTap.isHittable {
+                linkToTap.tap()
+            }
+
+            if done.waitForExistence(timeout: attempt == 0 ? 10 : 6)
+                || browseRows.firstMatch.waitForExistence(timeout: 4) {
+                return true
+            }
+        }
+        return false
+    }
+
+    @MainActor
     func test_reviewScreen_browseAndDrilldown_showMatchingSurfaceContent() {
         let app = launchAppWithWideReviewSeed()
         openPastReviewPanels(app)
@@ -88,38 +138,42 @@ final class JournalMostRecurringUITests: XCTestCase {
         XCTAssertTrue(firstRow.waitForExistence(timeout: 8), "Expected first Most Recurring row.")
         XCTAssertTrue(firstRow.isHittable, "Expected first Most Recurring row to be tappable.")
         firstRow.tap()
+        let themeDetailsNav = app.navigationBars["Theme details"]
         XCTAssertTrue(
-            app.navigationBars["Theme details"].waitForExistence(timeout: 8),
+            themeDetailsNav.waitForExistence(timeout: 8),
             "Expected drilldown destination from the main recurring section."
         )
         XCTAssertTrue(
             app.staticTexts["Matching writing surfaces"].waitForExistence(timeout: 5),
             "Expected per-surface evidence section in drilldown."
         )
-        app.buttons["Done"].tap()
+        let drilldownDone = themeDetailsNav.buttons["Done"]
+        XCTAssertTrue(drilldownDone.waitForExistence(timeout: 6), "Expected Done on theme drilldown.")
+        drilldownDone.tap()
+        let drilldownDismissDeadline = Date().addingTimeInterval(20)
+        while Date() < drilldownDismissDeadline, themeDetailsNav.exists {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.15))
+        }
+        XCTAssertFalse(
+            themeDetailsNav.exists,
+            "Theme drilldown should dismiss before opening Trending browse (avoids sheet stacking on iOS 18)."
+        )
 
         scrollPastReviewUntilTrendingVisible(app)
-        let trendingBrowseLink = app.buttons["BrowseAllTrendingThemesLink"]
         var openedTrendingViaBrowse = false
-        if trendingBrowseLink.waitForExistence(timeout: 4) {
-            var linkScrolls = 0
-            while linkScrolls < 10, trendingBrowseLink.exists, !trendingBrowseLink.isHittable {
-                app.swipeUp()
-                linkScrolls += 1
-            }
-            if trendingBrowseLink.isHittable {
-                trendingBrowseLink.tap()
-                XCTAssertTrue(
-                    app.navigationBars["Trending"].waitForExistence(timeout: 8),
-                    "Expected dedicated trending browse screen."
-                )
-                let browseRows = browseTrendingRows(in: app)
-                XCTAssertGreaterThan(browseRows.count, 0, "Expected browse screen to show trending themes.")
-                let firstBrowseRow = browseRows.element(boundBy: 0)
-                XCTAssertTrue(firstBrowseRow.waitForExistence(timeout: 8))
-                firstBrowseRow.tap()
-                openedTrendingViaBrowse = true
-            }
+        if app.buttons["BrowseAllTrendingThemesLink"].waitForExistence(timeout: 4) {
+            XCTAssertTrue(
+                openTrendingBrowseSheet(app),
+                "Expected dedicated trending browse sheet (toolbar Done)."
+            )
+            let browseRows = browseTrendingRows(in: app)
+            XCTAssertTrue(
+                browseRows.firstMatch.waitForExistence(timeout: 8),
+                "Expected browse screen to show trending themes."
+            )
+            let firstBrowseRow = browseRows.element(boundBy: 0)
+            firstBrowseRow.tap()
+            openedTrendingViaBrowse = true
         }
 
         if !openedTrendingViaBrowse {
@@ -199,11 +253,11 @@ final class JournalMostRecurringUITests: XCTestCase {
         }
         recurringLink.tap()
         XCTAssertTrue(
-            app.navigationBars["Most recurring"].waitForExistence(timeout: 10),
-            "Recurring browse should use the Most recurring title."
+            app.buttons["MostRecurringBrowseSheetDone"].waitForExistence(timeout: 10),
+            "Recurring browse should show the recurring browse sheet Done control."
         )
 
-        let recurringDone = app.navigationBars["Most recurring"].buttons["Done"]
+        let recurringDone = app.buttons["MostRecurringBrowseSheetDone"]
         XCTAssertTrue(recurringDone.waitForExistence(timeout: 6), "Expected Done on the recurring browse sheet.")
         recurringDone.tap()
         XCTAssertTrue(recurringLink.waitForExistence(timeout: 8), "Expected to return to the Past review card.")
@@ -218,10 +272,9 @@ final class JournalMostRecurringUITests: XCTestCase {
             app.swipeUp()
             scrollAttempts += 1
         }
-        trendingLink.tap()
         XCTAssertTrue(
-            app.navigationBars["Trending"].waitForExistence(timeout: 10),
-            "Trending browse should use the Trending title, not Most recurring."
+            openTrendingBrowseSheet(app),
+            "Trending browse should show the Trending browse sheet Done control."
         )
     }
 
@@ -241,7 +294,7 @@ final class JournalMostRecurringUITests: XCTestCase {
         }
         browseButton.tap()
 
-        XCTAssertTrue(app.navigationBars["Most recurring"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["MostRecurringBrowseSheetDone"].waitForExistence(timeout: 10))
         XCTAssertTrue(
             mostRecurringBrowseSection("gratitudes", in: app).waitForExistence(timeout: 10),
             "Browse list should section gratitudes."
@@ -268,14 +321,11 @@ final class JournalMostRecurringUITests: XCTestCase {
         guard trendingLink.waitForExistence(timeout: 12) else {
             throw XCTSkip("Trending browse link is hidden when the Past tab shows at most three trending rows.")
         }
-        var scrollAttempts = 0
-        while !trendingLink.isHittable && scrollAttempts < 12 {
-            app.swipeUp()
-            scrollAttempts += 1
-        }
-        trendingLink.tap()
-
-        XCTAssertTrue(app.navigationBars["Trending"].waitForExistence(timeout: 10))
+        let browseRows = browseTrendingRows(in: app)
+        XCTAssertTrue(
+            openTrendingBrowseSheet(app),
+            "Trending browse sheet should present (first open can be slower on iOS 18 SE)."
+        )
         let newHeader = app.staticTexts["New"]
         let upHeader = app.staticTexts["Up"]
         let downHeader = app.staticTexts["Down"]
@@ -292,7 +342,11 @@ final class JournalMostRecurringUITests: XCTestCase {
             sawBucketHeader,
             "Trending browse should group rows under at least one of New, Up, or Down."
         )
-        XCTAssertGreaterThan(browseTrendingRows(in: app).count, 0, "Expected at least one trending browse row.")
+        XCTAssertTrue(
+            browseRows.firstMatch.waitForExistence(timeout: 8),
+            "Expected trending browse rows to appear after the sheet opens."
+        )
+        XCTAssertGreaterThan(browseRows.count, 0, "Expected at least one trending browse row.")
     }
 
     /// Default seed is one prior-day entry; Trending floors are not met, so the card shows fallback copy.
