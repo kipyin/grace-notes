@@ -3,7 +3,6 @@ import SwiftData
 
 struct ReviewScreen: View {
     @Query(sort: \JournalEntry.entryDate, order: .reverse) private var entries: [JournalEntry]
-    @Environment(\.modelContext) private var modelContext
     @AppStorage(ReviewWeekBoundaryPreference.userDefaultsKey)
     private var reviewWeekBoundaryRawValue = ReviewWeekBoundaryPreference.defaultValue.rawValue
     @AppStorage(PastStatisticsIntervalPreference.appStorageKey)
@@ -16,7 +15,6 @@ struct ReviewScreen: View {
     @State private var trendingThemeDrilldown: ReviewThemeDrilldownPayload?
     @State private var trendingBrowsePayload: TrendingBrowsePayload?
     @State private var journalSearchText = ""
-    @State private var journalSearchMatches: [JournalSearchMatch] = []
 
     private let reviewInsightsProvider = ReviewInsightsProvider.shared
     private let reviewInsightsCache = ReviewInsightsCache.shared
@@ -70,14 +68,6 @@ struct ReviewScreen: View {
             .configuredCalendar()
     }
 
-    private var trimmedJournalSearchText: String {
-        journalSearchText.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    private var isShowingJournalSearch: Bool {
-        !trimmedJournalSearchText.isEmpty
-    }
-
     var body: some View {
         Group {
             if entries.isEmpty && !isUiTestingExperience {
@@ -91,12 +81,12 @@ struct ReviewScreen: View {
         .onAppear {
             PerformanceTrace.instant("ReviewScreen.onAppear")
         }
-        .task(id: journalSearchText) {
-            await runJournalSearchDebounced()
-        }
         .task(id: currentInsightsRefreshKey) {
             await hydrateReviewInsightsFromCacheIfNeeded()
             await refreshReviewInsights()
+        }
+        .navigationDestination(for: PastJournalSearchRoute.self) { _ in
+            PastJournalSearchScreen(text: $journalSearchText, calendar: calendar)
         }
         .sheet(item: $mostRecurringThemeDrilldown) { payload in
             ThemeDrilldownSheet(payload: payload)
@@ -119,22 +109,18 @@ struct ReviewScreen: View {
     private var emptyStateWithSearch: some View {
         List {
             pastSearchBarSection
-            if isShowingJournalSearch {
-                journalSearchResultsContent
-            } else {
-                Section {
-                    ContentUnavailableView {
-                        Label(String(localized: "No entries yet"), systemImage: "doc.text")
-                    } description: {
-                        Text(String(localized: "Start with today."))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 24)
+            Section {
+                ContentUnavailableView {
+                    Label(String(localized: "No entries yet"), systemImage: "doc.text")
+                } description: {
+                    Text(String(localized: "Start with today."))
                 }
-                .listRowInsets(PastTabListLayout.cardRowInsets)
-                .listRowBackground(AppTheme.reviewBackground)
-                .listRowSeparator(.hidden)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 24)
             }
+            .listRowInsets(PastTabListLayout.cardRowInsets)
+            .listRowBackground(AppTheme.reviewBackground)
+            .listRowSeparator(.hidden)
         }
         .listStyle(.plain)
         .listRowSeparator(.hidden)
@@ -150,11 +136,7 @@ struct ReviewScreen: View {
     private var historyList: some View {
         List {
             pastSearchBarSection
-            if isShowingJournalSearch {
-                journalSearchResultsContent
-            } else {
-                insightsSection
-            }
+            insightsSection
         }
         .listStyle(.plain)
         .listRowSeparator(.hidden)
@@ -169,15 +151,15 @@ struct ReviewScreen: View {
 
     private var pastSearchBarSection: some View {
         Section {
-            PastJournalSearchBar(text: $journalSearchText)
-                .listRowInsets(PastTabListLayout.searchBarRowInsets)
-                .listRowBackground(AppTheme.reviewBackground)
-                .listRowSeparator(.hidden)
+            NavigationLink(value: PastJournalSearchRoute.journalSearch) {
+                PastJournalSearchActivationRow(query: journalSearchText)
+            }
+            .buttonStyle(.plain)
+            .navigationLinkIndicatorVisibility(.hidden)
+            .listRowInsets(PastTabListLayout.searchBarRowInsets)
+            .listRowBackground(AppTheme.reviewBackground)
+            .listRowSeparator(.hidden)
         }
-    }
-
-    private var journalSearchResultsContent: some View {
-        PastJournalSearchResultsList(matches: journalSearchMatches, calendar: calendar)
     }
 
     private var insightsSection: some View {
@@ -293,30 +275,5 @@ private extension ReviewScreen {
             weekBoundaryPreferenceRawValue: reviewWeekBoundaryRawValue,
             pastStatisticsIntervalToken: pastStatisticsInterval.cacheKeyToken
         )
-    }
-
-    @MainActor
-    func runJournalSearchDebounced() async {
-        let snapshot = journalSearchText
-        try? await Task.sleep(nanoseconds: 250_000_000)
-        guard !Task.isCancelled else { return }
-        guard snapshot == journalSearchText else { return }
-
-        let trimmed = snapshot.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed.isEmpty {
-            journalSearchMatches = []
-            return
-        }
-
-        let repository = JournalRepository(calendar: calendar)
-        do {
-            let matches = try repository.searchMatches(query: trimmed, context: modelContext)
-            guard !Task.isCancelled else { return }
-            guard snapshot == journalSearchText else { return }
-            journalSearchMatches = matches
-        } catch {
-            guard snapshot == journalSearchText else { return }
-            journalSearchMatches = []
-        }
     }
 }
