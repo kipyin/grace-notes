@@ -1,5 +1,12 @@
 import SwiftUI
 
+private enum PastSearchListLayout {
+    static var rowInsets: EdgeInsets {
+        let inset = AppTheme.spacingWide
+        return EdgeInsets(top: 2, leading: inset, bottom: 6, trailing: inset)
+    }
+}
+
 enum PastJournalSearchGrouping {
     static func groups(
         matches: [JournalSearchMatch],
@@ -33,12 +40,15 @@ struct PastJournalSearchBar: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 11)
-        .background(AppTheme.reviewPaper.opacity(0.72))
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(AppTheme.reviewStandardBorder.opacity(0.42), lineWidth: 1)
+        .background {
+            RoundedRectangle(cornerRadius: 14, style: .circular)
+                .fill(AppTheme.reviewPaper.opacity(0.72))
         }
+        .overlay {
+            RoundedRectangle(cornerRadius: 14, style: .circular)
+                .strokeBorder(AppTheme.reviewStandardBorder.opacity(0.42), lineWidth: 1)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .circular))
         .accessibilityElement(children: .combine)
     }
 }
@@ -62,7 +72,9 @@ struct PastJournalSearchResultsList: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 20)
             }
+            .listRowInsets(PastSearchListLayout.rowInsets)
             .listRowBackground(AppTheme.reviewBackground)
+            .listRowSeparator(.hidden)
         } else {
             Section {
                 ForEach(groupedMatches, id: \.day) { group in
@@ -87,6 +99,8 @@ struct PastJournalSearchResultsList: View {
                             .accessibilityElement(children: .combine)
                             .accessibilityLabel(rowAccessibilityLabel(day: group.day, match: match))
                             .accessibilityHint(String(localized: "ThemeDrilldown.openEntry.a11yHint"))
+                            .listRowInsets(PastSearchListLayout.rowInsets)
+                            .listRowSeparator(.hidden)
                         }
                     } header: {
                         Text(group.day.formatted(date: .abbreviated, time: .omitted))

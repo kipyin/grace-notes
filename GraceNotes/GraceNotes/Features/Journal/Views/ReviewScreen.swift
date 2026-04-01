@@ -23,6 +23,18 @@ struct ReviewScreen: View {
     /// When true, keep Review list chrome even with zero entries so UI tests can navigate.
     private let isUiTestingExperience: Bool
 
+    private enum PastTabListLayout {
+        static var cardRowInsets: EdgeInsets {
+            let inset = AppTheme.spacingWide
+            return EdgeInsets(top: 2, leading: inset, bottom: 6, trailing: inset)
+        }
+
+        static var searchBarRowInsets: EdgeInsets {
+            let inset = AppTheme.spacingWide
+            return EdgeInsets(top: 6, leading: inset, bottom: 8, trailing: inset)
+        }
+    }
+
     init() {
         let isUiTesting = ProcessInfo.graceNotesIsRunningUITests
         isUiTestingExperience = isUiTesting
@@ -119,10 +131,14 @@ struct ReviewScreen: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 24)
                 }
+                .listRowInsets(PastTabListLayout.cardRowInsets)
                 .listRowBackground(AppTheme.reviewBackground)
+                .listRowSeparator(.hidden)
             }
         }
-        .listStyle(.insetGrouped)
+        .listStyle(.plain)
+        .listRowSeparator(.hidden)
+        .listSectionSeparator(.hidden, edges: .all)
         .listRowSpacing(10)
         .scrollContentBackground(.hidden)
         .background(AppTheme.reviewBackground)
@@ -140,7 +156,9 @@ struct ReviewScreen: View {
                 insightsSection
             }
         }
-        .listStyle(.insetGrouped)
+        .listStyle(.plain)
+        .listRowSeparator(.hidden)
+        .listSectionSeparator(.hidden, edges: .all)
         .listRowSpacing(10)
         .scrollContentBackground(.hidden)
         .background(AppTheme.reviewBackground)
@@ -152,8 +170,9 @@ struct ReviewScreen: View {
     private var pastSearchBarSection: some View {
         Section {
             PastJournalSearchBar(text: $journalSearchText)
-                .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 8, trailing: 16))
+                .listRowInsets(PastTabListLayout.searchBarRowInsets)
                 .listRowBackground(AppTheme.reviewBackground)
+                .listRowSeparator(.hidden)
         }
     }
 
@@ -168,22 +187,25 @@ struct ReviewScreen: View {
                     insights: reviewInsights,
                     isLoading: isLoadingInsights
                 )
-                .listRowInsets(EdgeInsets(top: 2, leading: 0, bottom: 6, trailing: 0))
+                .listRowInsets(PastTabListLayout.cardRowInsets)
                 .listRowBackground(AppTheme.reviewBackground)
+                .listRowSeparator(.hidden)
 
                 ReviewHistoryGrowthStagesPanel(
                     insights: reviewInsights,
                     isLoading: isLoadingInsights
                 )
-                .listRowInsets(EdgeInsets(top: 2, leading: 0, bottom: 6, trailing: 0))
+                .listRowInsets(PastTabListLayout.cardRowInsets)
                 .listRowBackground(AppTheme.reviewBackground)
+                .listRowSeparator(.hidden)
 
                 ReviewHistorySectionDistributionPanel(
                     insights: reviewInsights,
                     isLoading: isLoadingInsights
                 )
-                .listRowInsets(EdgeInsets(top: 2, leading: 0, bottom: 6, trailing: 0))
+                .listRowInsets(PastTabListLayout.cardRowInsets)
                 .listRowBackground(AppTheme.reviewBackground)
+                .listRowSeparator(.hidden)
             }
 
             ReviewMostRecurringCard(
@@ -192,8 +214,9 @@ struct ReviewScreen: View {
                 insights: reviewInsights,
                 isLoading: isLoadingInsights
             )
-            .listRowInsets(EdgeInsets(top: 2, leading: 0, bottom: 6, trailing: 0))
+            .listRowInsets(PastTabListLayout.cardRowInsets)
             .listRowBackground(AppTheme.reviewBackground)
+            .listRowSeparator(.hidden)
 
             ReviewTrendingCard(
                 themeDrilldown: $trendingThemeDrilldown,
@@ -201,15 +224,17 @@ struct ReviewScreen: View {
                 insights: reviewInsights,
                 isLoading: isLoadingInsights
             )
-            .listRowInsets(EdgeInsets(top: 2, leading: 0, bottom: 6, trailing: 0))
+            .listRowInsets(PastTabListLayout.cardRowInsets)
             .listRowBackground(AppTheme.reviewBackground)
+            .listRowSeparator(.hidden)
 
             ReviewNarrativeSummaryCard(
                 insights: reviewInsights,
                 isLoading: isLoadingInsights
             )
-            .listRowInsets(EdgeInsets(top: 2, leading: 0, bottom: 6, trailing: 0))
+            .listRowInsets(PastTabListLayout.cardRowInsets)
             .listRowBackground(AppTheme.reviewBackground)
+            .listRowSeparator(.hidden)
         }
     }
 }
