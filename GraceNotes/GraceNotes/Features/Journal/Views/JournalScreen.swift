@@ -648,9 +648,7 @@ private extension JournalScreen {
             gratitudesSequentialSection
                 .id(JournalScrollTarget.gratitudeSection)
             needsSequentialSection
-                .id(JournalScrollTarget.needSection)
             peopleSequentialSection
-                .id(JournalScrollTarget.peopleSection)
         }
         .padding(.top, AppTheme.spacingTight)
         .onChange(of: gratitudeInput) { oldValue, newValue in
@@ -677,14 +675,14 @@ private extension JournalScreen {
                newValue.count > oldValue.count {
                 scheduleJournalKeyboardScroll(
                     proxy: proxy,
-                    reason: .typing(.needSection)
+                    reason: .typing(.needInputArea)
                 )
             }
             let newCount = newValue.filter { $0 == "\n" }.count
             if newCount > needInputNewlineCount {
                 scheduleJournalKeyboardScroll(
                     proxy: proxy,
-                    reason: .newlineAdded(.needSection)
+                    reason: .newlineAdded(.needInputArea)
                 )
             }
             needInputNewlineCount = newCount
@@ -695,14 +693,14 @@ private extension JournalScreen {
                newValue.count > oldValue.count {
                 scheduleJournalKeyboardScroll(
                     proxy: proxy,
-                    reason: .typing(.peopleSection)
+                    reason: .typing(.peopleInputArea)
                 )
             }
             let newCount = newValue.filter { $0 == "\n" }.count
             if newCount > personInputNewlineCount {
                 scheduleJournalKeyboardScroll(
                     proxy: proxy,
-                    reason: .newlineAdded(.peopleSection)
+                    reason: .newlineAdded(.peopleInputArea)
                 )
             }
             personInputNewlineCount = newCount
@@ -779,7 +777,8 @@ private extension JournalScreen {
             isAddMorphComposerVisible: $isNeedAddMorphComposerVisible,
             ambientInlineEditingActive: isAnyInlineChipEditing,
             sectionHostsInlineFocus: editingNeedIndex != nil || isNeedAddMorphComposerVisible,
-            onRequestDismissInlineEditing: { dismissInlineChipEditingSession() }
+            onRequestDismissInlineEditing: { dismissInlineChipEditingSession() },
+            keyboardScrollAnchorID: .needInputArea
         )
     }
 
@@ -816,7 +815,8 @@ private extension JournalScreen {
             isAddMorphComposerVisible: $isPersonAddMorphComposerVisible,
             ambientInlineEditingActive: isAnyInlineChipEditing,
             sectionHostsInlineFocus: editingPersonIndex != nil || isPersonAddMorphComposerVisible,
-            onRequestDismissInlineEditing: { dismissInlineChipEditingSession() }
+            onRequestDismissInlineEditing: { dismissInlineChipEditingSession() },
+            keyboardScrollAnchorID: .peopleInputArea
         )
     }
 
@@ -902,10 +902,9 @@ private extension JournalScreen {
         let animation: Animation? = usesTypingDrivenScroll ? nil : (reduceMotion ? nil : .easeOut(duration: 0.25))
         let anchor: UnitPoint
         switch scrollTarget {
-        case .gratitudeSection:
+        case .gratitudeSection, .needInputArea, .peopleInputArea:
+            // Needs/People scroll targets chip list + input only (not full section), so gratitude-style anchors apply.
             anchor = usesTypingDrivenScroll ? .bottom : .center
-        case .needSection, .peopleSection:
-            anchor = .bottom
         default:
             anchor = .bottom
         }
@@ -926,8 +925,8 @@ private extension JournalScreen {
     private func currentJournalScrollTarget() -> JournalScrollTarget? {
         if isGratitudeInputFocused || isNeedInputFocused || isPersonInputFocused {
             if isGratitudeInputFocused { return .gratitudeSection }
-            if isNeedInputFocused { return .needSection }
-            if isPersonInputFocused { return .peopleSection }
+            if isNeedInputFocused { return .needInputArea }
+            if isPersonInputFocused { return .peopleInputArea }
             return .sentenceSections
         }
         if isReadingNotesFocused { return .readingNotes }

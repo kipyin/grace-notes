@@ -14,8 +14,9 @@ enum JournalKeyWindowReader {
 enum JournalScrollTarget: String, CaseIterable {
     case sentenceSections
     case gratitudeSection
-    case needSection
-    case peopleSection
+    /// Chips + composer only (not section title/guidance) so keyboard scroll aligns the field, not the whole block.
+    case needInputArea
+    case peopleInputArea
     case readingNotes
     case reflections
 }

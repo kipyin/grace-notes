@@ -47,6 +47,9 @@ struct SequentialSectionView: View {
     let sectionHostsInlineFocus: Bool
     /// Commits inline editing when the user taps outside the active field (e.g. dimmed section overlay).
     let onRequestDismissInlineEditing: (() -> Void)?
+    /// Optional `ScrollViewReader` id on the chip list + composer (excludes header).
+    /// Used for Needs/People keyboard avoidance.
+    let keyboardScrollAnchorID: JournalScrollTarget?
     @Binding var isAddMorphComposerVisible: Bool
     @State private var draggingItemID: UUID?
     /// Item UUID that last triggered a live reorder during this drag.
@@ -82,7 +85,8 @@ struct SequentialSectionView: View {
         isAddMorphComposerVisible: Binding<Bool> = .constant(false),
         ambientInlineEditingActive: Bool = false,
         sectionHostsInlineFocus: Bool = false,
-        onRequestDismissInlineEditing: (() -> Void)? = nil
+        onRequestDismissInlineEditing: (() -> Void)? = nil,
+        keyboardScrollAnchorID: JournalScrollTarget? = nil
     ) {
         self.title = title
         self.addButtonTitle = addButtonTitle
@@ -112,6 +116,7 @@ struct SequentialSectionView: View {
         self.ambientInlineEditingActive = ambientInlineEditingActive
         self.sectionHostsInlineFocus = sectionHostsInlineFocus
         self.onRequestDismissInlineEditing = onRequestDismissInlineEditing
+        self.keyboardScrollAnchorID = keyboardScrollAnchorID
     }
 
     private var isInputFocused: Bool {
@@ -184,7 +189,8 @@ struct SequentialSectionView: View {
             draggingItemID: $draggingItemID,
             itemReorderHoverTargetItemID: $itemReorderHoverTargetItemID,
             isAddMorphComposerVisible: $isAddMorphComposerVisible,
-            progressDots: sectionProgressDots
+            progressDots: sectionProgressDots,
+            keyboardScrollAnchorID: keyboardScrollAnchorID
         )
         .onAppear {
             updateEditingPulseAnimation()

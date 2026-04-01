@@ -45,6 +45,8 @@ struct SequentialSectionPrimaryColumn<ProgressDots: View>: View {
     @State private var morphingItemID: UUID?
 
     let progressDots: ProgressDots
+    /// When set, `ScrollViewReader` targets chip list + input only (not the section header).
+    let keyboardScrollAnchorID: JournalScrollTarget?
 
     private var activeEditingIndex: Int? {
         guard let editingIndex, items.indices.contains(editingIndex) else { return nil }
@@ -128,6 +130,8 @@ struct SequentialSectionPrimaryColumn<ProgressDots: View>: View {
                     isInteractionEnabled: isInteractionEnabled
                 )
                 .opacity(morphSlotAmbientOpacity)
+                // Scroll target is the composer, not the whole chip column (see `JournalScreen` keyboard scroll).
+                .optionalJournalScrollAnchor(isInlineEditingActive ? nil : keyboardScrollAnchorID)
             }
         }
         .allowsHitTesting(isInteractionEnabled)
@@ -344,6 +348,7 @@ struct SequentialSectionPrimaryColumn<ProgressDots: View>: View {
         )
         .padding(.bottom, SequentialSectionInlineLayout.editorBottomSpacing)
         .shadow(color: Color.black.opacity(0.14), radius: 10, x: 0, y: 4)
+        .optionalJournalScrollAnchor(keyboardScrollAnchorID)
     }
 
     private func commitInlineEditIfNeeded() {
@@ -374,6 +379,17 @@ struct SequentialSectionPrimaryColumn<ProgressDots: View>: View {
         }
     }
 
+}
+
+private extension View {
+    @ViewBuilder
+    func optionalJournalScrollAnchor(_ id: JournalScrollTarget?) -> some View {
+        if let id {
+            self.id(id)
+        } else {
+            self
+        }
+    }
 }
 
 private extension SequentialSectionPrimaryColumn {
