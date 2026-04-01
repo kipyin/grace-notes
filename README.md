@@ -91,6 +91,7 @@ python3 -m unittest discover -s Scripts/gracenotes-dev/tests
 - `grace sim runtime install` / `grace sim runtime list` / `grace sim runtime delete …` – Install and manage simulator runtimes (then use `grace sim list` to confirm destination availability).
 - `grace sim list` / `grace sim resolve SPEC` / `grace sim reset` – Destinations and simulator hygiene.
 - `grace run` – Build, install, and launch on a booted simulator; use `--preset` and `--` to pass [app process arguments](GraceNotes/GraceNotes/Application/GraceNotesApp.swift).
+- **Planned:** assisted workflow when a simulator destination is missing, plus `grace build` / `grace run` on a physical device — tracking in [#175](https://github.com/kipyin/grace-notes/issues/175).
 
 Examples:
 
