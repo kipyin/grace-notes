@@ -1432,22 +1432,6 @@
         }
       }
     },
-    "Completion this week" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Completion this week"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "本周完成情况"
-          }
-        }
-      }
-    },
     "Connection looks good." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4946,6 +4930,118 @@
         }
       }
     },
+    "Review history growth column empty hint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No days in this stage."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "该阶段没有记录日期。"
+          }
+        }
+      }
+    },
+    "Review history growth column hint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows a list of days in this stage."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查看该阶段的具体日期。"
+          }
+        }
+      }
+    },
+    "Review history growth drilldown dates section" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Matching days"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "符合的日期"
+          }
+        }
+      }
+    },
+    "Review history section strip segment empty hint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens details; there are no matching entries for this section in the current range."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开详情；当前时间范围内该板块没有匹配的日记条目。"
+          }
+        }
+      }
+    },
+    "Review history section strip segment hint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows journal entries for this section."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查看该板块的日记条目。"
+          }
+        }
+      }
+    },
+    "Review section drilldown empty format" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No entries with %@ in this range."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此时间范围内没有包含%@的日记条目。"
+          }
+        }
+      }
+    },
+    "Review section drilldown empty title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No entries"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂无条目"
+          }
+        }
+      }
+    },
     "Review mode" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -5091,22 +5187,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已保存到相册"
-          }
-        }
-      }
-    },
-    "Section activity" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Section activity"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "版块统计"
           }
         }
       }

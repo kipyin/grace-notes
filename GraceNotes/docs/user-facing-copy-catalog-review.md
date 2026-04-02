@@ -398,12 +398,6 @@ Collapsed
 
 ---
 
-本周完成情况
-
-Completion this week
-
----
-
 连接正常。
 
 Connection looks good.

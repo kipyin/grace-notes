@@ -7,6 +7,12 @@ struct ReviewHistoryGrowthStagesPanel: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
+    @Binding var historyDrilldown: ReviewHistoryDrilldownPayload?
+    let entries: [JournalEntry]
+    let calendar: Calendar
+    let referenceDate: Date
+    let pastStatisticsInterval: PastStatisticsIntervalSelection
+
     let insights: ReviewInsights?
     let isLoading: Bool
 
@@ -40,7 +46,13 @@ struct ReviewHistoryGrowthStagesPanel: View {
             title: String(localized: "Growth stages"),
             panelChrome: .standard
         ) {
-            ReviewHistoryGrowthSkyline(mix: mix, dynamicTypeSize: dynamicTypeSize)
+            ReviewHistoryGrowthSkyline(
+                mix: mix,
+                dynamicTypeSize: dynamicTypeSize,
+                onSelectGrowthStage: { level in
+                    historyDrilldown = .growthStage(level)
+                }
+            )
         }
     }
 
@@ -68,6 +80,7 @@ struct ReviewHistoryGrowthStagesPanel: View {
 private struct ReviewHistoryGrowthSkyline: View {
     let mix: ReviewWeekCompletionMix
     let dynamicTypeSize: DynamicTypeSize
+    let onSelectGrowthStage: (JournalCompletionLevel) -> Void
 
     private static let columnOrder: [JournalCompletionLevel] = [
         .empty, .started, .growing, .balanced, .full
@@ -83,7 +96,10 @@ private struct ReviewHistoryGrowthSkyline: View {
                     level: level,
                     count: counts[index],
                     maxCount: maxCount,
-                    metrics: metrics
+                    metrics: metrics,
+                    onSelect: {
+                        onSelectGrowthStage(level)
+                    }
                 )
             }
         }
@@ -129,6 +145,7 @@ private struct ReviewHistoryGrowthSkyline: View {
         let count: Int
         let maxCount: Int
         let metrics: SkylineMetrics
+        let onSelect: () -> Void
 
         private var barHeight: CGFloat {
             guard maxCount > 0 else { return metrics.minBarHeight }
@@ -136,55 +153,68 @@ private struct ReviewHistoryGrowthSkyline: View {
             return max(min(metrics.chartHeight * fraction, metrics.chartHeight), metrics.minBarHeight)
         }
 
-        var body: some View {
-            VStack(spacing: 7) {
-                ZStack(alignment: .bottom) {
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .fill(AppTheme.reviewRhythmColumnFill.opacity(0.42))
-                        .frame(height: metrics.chartHeight)
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .fill(AppTheme.reviewRhythmPillBackground(for: level))
-                        .frame(height: barHeight)
-                        .overlay {
-                            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                .strokeBorder(AppTheme.reviewRhythmPillBorder(for: level), lineWidth: 0.8)
-                        }
-                }
-                .frame(height: metrics.chartHeight)
-
-                Image(ReviewRhythmFormatting.assetName(for: level))
-                    .renderingMode(.template)
-                    .resizable()
-                    .scaledToFit()
-                    .foregroundStyle(AppTheme.reviewRhythmIconTint)
-                    .frame(width: metrics.glyphSize, height: metrics.glyphSize)
-                    .frame(width: metrics.glyphChrome, height: metrics.glyphChrome)
-                    .background {
-                        Capsule(style: .continuous)
-                            .fill(AppTheme.reviewRhythmPillBackground(for: level))
-                    }
-                    .overlay {
-                        Capsule(style: .continuous)
-                            .strokeBorder(AppTheme.reviewRhythmPillBorder(for: level), lineWidth: 1)
-                    }
-                    .accessibilityHidden(true)
-
-                Text("\(count)")
-                    .font(AppTheme.warmPaperCaption)
-                    .monospacedDigit()
-                    .foregroundStyle(AppTheme.reviewTextMuted)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-            }
-            .frame(maxWidth: .infinity)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(
-                String(
-                    format: String(localized: "%1$@, %2$d"),
-                    ReviewCompletionLevelFormatting.accessibilityLocalizedStageName(for: level),
-                    count
-                )
+        private var columnAccessibilityLabel: String {
+            String(
+                format: String(localized: "%1$@, %2$d"),
+                ReviewCompletionLevelFormatting.accessibilityLocalizedStageName(for: level),
+                count
             )
+        }
+
+        var body: some View {
+            Button(action: onSelect) {
+                VStack(spacing: 7) {
+                    ZStack(alignment: .bottom) {
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .fill(AppTheme.reviewRhythmColumnFill.opacity(0.42))
+                            .frame(height: metrics.chartHeight)
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .fill(AppTheme.reviewRhythmPillBackground(for: level))
+                            .frame(height: barHeight)
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    .strokeBorder(AppTheme.reviewRhythmPillBorder(for: level), lineWidth: 0.8)
+                            }
+                    }
+                    .frame(height: metrics.chartHeight)
+
+                    Image(ReviewRhythmFormatting.assetName(for: level))
+                        .renderingMode(.template)
+                        .resizable()
+                        .scaledToFit()
+                        .foregroundStyle(AppTheme.reviewRhythmIconTint)
+                        .frame(width: metrics.glyphSize, height: metrics.glyphSize)
+                        .frame(width: metrics.glyphChrome, height: metrics.glyphChrome)
+                        .background {
+                            Capsule(style: .continuous)
+                                .fill(AppTheme.reviewRhythmPillBackground(for: level))
+                        }
+                        .overlay {
+                            Capsule(style: .continuous)
+                                .strokeBorder(AppTheme.reviewRhythmPillBorder(for: level), lineWidth: 1)
+                        }
+                        .shadow(color: AppTheme.reviewRhythmPillShadow(for: level), radius: 3, x: 0, y: 1.2)
+                        .accessibilityHidden(true)
+
+                    Text("\(count)")
+                        .font(AppTheme.warmPaperCaption)
+                        .monospacedDigit()
+                        .foregroundStyle(AppTheme.reviewTextMuted)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.plain)
+            .disabled(count == 0)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(columnAccessibilityLabel)
+            .accessibilityHint(
+                count == 0
+                    ? String(localized: "Review history growth column empty hint")
+                    : String(localized: "Review history growth column hint")
+            )
+            .accessibilityAddTraits(count == 0 ? [] : .isButton)
         }
     }
 }
@@ -227,6 +257,12 @@ struct ReviewHistorySectionDistributionPanel: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
+    @Binding var historyDrilldown: ReviewHistoryDrilldownPayload?
+    let entries: [JournalEntry]
+    let calendar: Calendar
+    let referenceDate: Date
+    let pastStatisticsInterval: PastStatisticsIntervalSelection
+
     let insights: ReviewInsights?
     let isLoading: Bool
 
@@ -260,7 +296,13 @@ struct ReviewHistorySectionDistributionPanel: View {
             title: String(localized: "Section Distribution"),
             panelChrome: .standard
         ) {
-            ReviewHistorySectionStrip(totals: totals, dynamicTypeSize: dynamicTypeSize)
+            ReviewHistorySectionStrip(
+                totals: totals,
+                dynamicTypeSize: dynamicTypeSize,
+                onSelectSection: { kind in
+                    historyDrilldown = .section(kind)
+                }
+            )
         }
     }
 
@@ -285,6 +327,7 @@ struct ReviewHistorySectionDistributionPanel: View {
 private struct ReviewHistorySectionStrip: View {
     let totals: ReviewWeekSectionTotals
     let dynamicTypeSize: DynamicTypeSize
+    let onSelectSection: (ReviewStatsSectionKind) -> Void
 
     private var segments: [(kind: ReviewStatsSectionKind, count: Int)] {
         [
@@ -292,6 +335,12 @@ private struct ReviewHistorySectionStrip: View {
             (.needs, totals.needMentions),
             (.people, totals.peopleMentions)
         ]
+    }
+
+    private func segmentAccessibilityHint(forCount count: Int) -> String {
+        count == 0
+            ? String(localized: "Review history section strip segment empty hint")
+            : String(localized: "Review history section strip segment hint")
     }
 
     var body: some View {
@@ -315,23 +364,28 @@ private struct ReviewHistorySectionStrip: View {
                         let fill = SectionDistributionPalette.fill(for: item.kind)
                             .opacity(item.count > 0 ? 1 : 0.38)
                         let border = SectionDistributionPalette.border(for: item.kind)
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                .fill(fill)
-                                .overlay {
-                                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                        .strokeBorder(border, lineWidth: 0.85)
-                                }
-                            Text("\(item.count)")
-                                .font(AppTheme.warmPaperMeta)
-                                .monospacedDigit()
-                                .foregroundStyle(AppTheme.reviewTextPrimary)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.45)
-                                .padding(.horizontal, 3)
-                                .accessibilityHidden(true)
+                        Button {
+                            onSelectSection(item.kind)
+                        } label: {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    .fill(fill)
+                                    .overlay {
+                                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                            .strokeBorder(border, lineWidth: 0.85)
+                                    }
+                                Text("\(item.count)")
+                                    .font(AppTheme.warmPaperMeta)
+                                    .monospacedDigit()
+                                    .foregroundStyle(AppTheme.reviewTextPrimary)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.45)
+                                    .padding(.horizontal, 3)
+                                    .accessibilityHidden(true)
+                            }
+                            .frame(width: segmentWidths[index], height: stripHeight)
                         }
-                        .frame(width: segmentWidths[index], height: stripHeight)
+                        .buttonStyle(.plain)
                         .accessibilityLabel(
                             String(
                                 format: String(localized: "%1$@, %2$d"),
@@ -339,6 +393,7 @@ private struct ReviewHistorySectionStrip: View {
                                 item.count
                             )
                         )
+                        .accessibilityHint(segmentAccessibilityHint(forCount: item.count))
                     }
                 }
                 .frame(width: width, height: stripHeight)
@@ -347,26 +402,39 @@ private struct ReviewHistorySectionStrip: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(Array(segments.enumerated()), id: \.offset) { _, item in
-                    HStack(alignment: .firstTextBaseline, spacing: 8) {
-                        Circle()
-                            .fill(SectionDistributionPalette.fill(for: item.kind))
-                            .frame(width: 10, height: 10)
-                            .overlay {
-                                Circle()
-                                    .strokeBorder(SectionDistributionPalette.border(for: item.kind), lineWidth: 0.6)
-                            }
-                            .accessibilityHidden(true)
-                        Text(localizedSectionName(for: item.kind))
-                            .font(AppTheme.warmPaperBody)
-                            .foregroundStyle(AppTheme.reviewTextPrimary)
-                        Spacer(minLength: 8)
-                        Text("\(item.count)")
-                            .font(AppTheme.warmPaperMeta)
-                            .monospacedDigit()
-                            .foregroundStyle(AppTheme.reviewTextMuted)
-                            .accessibilityHidden(true)
+                    Button {
+                        onSelectSection(item.kind)
+                    } label: {
+                        HStack(alignment: .firstTextBaseline, spacing: 8) {
+                            Circle()
+                                .fill(SectionDistributionPalette.fill(for: item.kind))
+                                .frame(width: 10, height: 10)
+                                .overlay {
+                                    Circle()
+                                        .strokeBorder(SectionDistributionPalette.border(for: item.kind), lineWidth: 0.6)
+                                }
+                                .accessibilityHidden(true)
+                            Text(localizedSectionName(for: item.kind))
+                                .font(AppTheme.warmPaperBody)
+                                .foregroundStyle(AppTheme.reviewTextPrimary)
+                            Spacer(minLength: 8)
+                            Text("\(item.count)")
+                                .font(AppTheme.warmPaperMeta)
+                                .monospacedDigit()
+                                .foregroundStyle(AppTheme.reviewTextMuted)
+                                .accessibilityHidden(true)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .accessibilityElement(children: .combine)
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(
+                        String(
+                            format: String(localized: "%1$@, %2$d"),
+                            localizedSectionName(for: item.kind),
+                            item.count
+                        )
+                    )
+                    .accessibilityHint(segmentAccessibilityHint(forCount: item.count))
                 }
             }
         }

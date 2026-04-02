@@ -161,9 +161,125 @@ final class WeeklyReviewHistoryRollupsTests: XCTestCase {
             XCTAssertLessThan(ranks[index], ranks[index + 1])
         }
     }
+
+    func test_reviewHistoryWindowing_recomputesSameHistoryCompletionMixAsAggregates() throws {
+        let referenceDate = date(year: 2026, month: 3, day: 18)
+        let period = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
+        let previous = ReviewInsightsPeriod.previousPeriod(before: period, calendar: calendar)
+
+        let priorMonth = date(year: 2026, month: 2, day: 1)
+        let fullDayChips = (0..<5).map { "a\($0)" }
+        let priorFull = makeEntry(
+            on: priorMonth,
+            gratitudes: fullDayChips,
+            needs: fullDayChips,
+            people: fullDayChips
+        )
+        let weekSparse = makeEntry(on: date(year: 2026, month: 3, day: 17), gratitudes: ["solo"])
+
+        let allEntries = [priorFull, weekSparse]
+        let aggregates = builder.build(
+            currentPeriod: period,
+            currentWeekEntries: allEntries.filter { period.contains($0.entryDate) },
+            previousWeekEntries: allEntries.filter { previous.contains($0.entryDate) },
+            allEntries: allEntries,
+            calendar: calendar,
+            referenceDate: referenceDate
+        )
+
+        let interval = PastStatisticsIntervalSelection.default
+        let windowed = ReviewHistoryWindowing.entriesInValidatedHistoryWindow(
+            allEntries: allEntries,
+            referenceDate: referenceDate,
+            calendar: calendar,
+            pastStatisticsInterval: interval
+        )
+        let strongest = ReviewHistoryWindowing.strongestCompletionByDay(from: windowed, calendar: calendar)
+        let recomputed = Self.completionMix(fromStrongestByDay: strongest)
+        XCTAssertEqual(recomputed, aggregates.stats.historyCompletionMix)
+    }
+
+    func test_reviewHistoryWindowing_calendarDaysMatchingLevel_reflectsStrongestPerDay() throws {
+        let referenceDate = date(year: 2026, month: 3, day: 18)
+        let sharedDay = date(year: 2026, month: 3, day: 16)
+
+        let sparseSameDay = makeEntry(on: sharedDay, gratitudes: ["x"])
+        let fullSameDay = makeEntry(
+            on: sharedDay,
+            gratitudes: (0..<5).map { "g\($0)" },
+            needs: (0..<5).map { "n\($0)" },
+            people: (0..<5).map { "p\($0)" }
+        )
+        let allEntries = [sparseSameDay, fullSameDay]
+        let windowed = ReviewHistoryWindowing.entriesInValidatedHistoryWindow(
+            allEntries: allEntries,
+            referenceDate: referenceDate,
+            calendar: calendar,
+            pastStatisticsInterval: .default
+        )
+        let strongest = ReviewHistoryWindowing.strongestCompletionByDay(from: windowed, calendar: calendar)
+        let fullDays = ReviewHistoryWindowing.calendarDaysMatchingStrongestCompletionLevel(
+            .full,
+            strongestByDay: strongest
+        )
+        XCTAssertEqual(fullDays.count, 1)
+        XCTAssertEqual(
+            ReviewHistoryWindowing.calendarDaysMatchingStrongestCompletionLevel(
+                .started,
+                strongestByDay: strongest
+            ).count,
+            0
+        )
+    }
+
+    func test_reviewHistoryWindowing_entriesContributingToSection_sortsNewestFirst() {
+        let dayOlder = date(year: 2026, month: 3, day: 10)
+        let dayNewer = date(year: 2026, month: 3, day: 11)
+        let older = makeEntry(on: dayOlder, gratitudes: ["a"])
+        let newer = makeEntry(on: dayNewer, needs: ["n"])
+        let sortedOldestFirst = ReviewHistoryWindowing.sortedEntries([newer, older])
+        let gratitudesOnly = ReviewHistoryWindowing.entriesContributingToSection(
+            .gratitudes,
+            in: sortedOldestFirst
+        )
+        XCTAssertEqual(gratitudesOnly.map(\.entryDate), [dayOlder])
+        let needsOnly = ReviewHistoryWindowing.entriesContributingToSection(.needs, in: sortedOldestFirst)
+        XCTAssertEqual(needsOnly.map(\.entryDate), [dayNewer])
+    }
 }
 
 private extension WeeklyReviewHistoryRollupsTests {
+    static func completionMix(
+        fromStrongestByDay strongestByDay: [Date: JournalCompletionLevel]
+    ) -> ReviewWeekCompletionMix {
+        var emptyDays = 0
+        var startedDays = 0
+        var growingDays = 0
+        var balancedDays = 0
+        var fullDays = 0
+        for level in strongestByDay.values {
+            switch level {
+            case .empty:
+                emptyDays += 1
+            case .started:
+                startedDays += 1
+            case .growing:
+                growingDays += 1
+            case .balanced:
+                balancedDays += 1
+            case .full:
+                fullDays += 1
+            }
+        }
+        return ReviewWeekCompletionMix(
+            emptyDays: emptyDays,
+            startedDays: startedDays,
+            growingDays: growingDays,
+            balancedDays: balancedDays,
+            fullDays: fullDays
+        )
+    }
+
     func distinctEntryDays(_ entries: [JournalEntry]) -> Int {
         Set(entries.map { calendar.startOfDay(for: $0.entryDate) }).count
     }
