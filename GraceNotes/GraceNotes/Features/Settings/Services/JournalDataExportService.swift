@@ -30,7 +30,7 @@ struct JournalDataExportService {
     func makeArchive(from entries: [JournalEntry], exportedAt: Date) -> JournalDataExportArchive {
         let sortedEntries = entries.sorted { $0.entryDate < $1.entryDate }
         return JournalDataExportArchive(
-            schemaVersion: 1,
+            schemaVersion: JournalDataExportArchive.currentSchemaVersion,
             exportedAt: exportedAt,
             entries: sortedEntries.map(makeExportEntry)
         )
@@ -69,6 +69,10 @@ struct JournalDataExportService {
 }
 
 struct JournalDataExportArchive: Codable, Equatable {
+    /// v2: strip-only items. v1: same import path; items may include legacy `chipLabel` / `isTruncated`.
+    static let currentSchemaVersion = 2
+    static let supportedImportSchemaVersions: Set<Int> = [1, 2]
+
     let schemaVersion: Int
     let exportedAt: Date
     let entries: [JournalDataExportEntry]
@@ -87,7 +91,40 @@ struct JournalDataExportEntry: Codable, Equatable {
     let completedAt: Date?
 }
 
-struct JournalDataExportItem: Codable, Equatable {
+struct JournalDataExportItem: Equatable {
     let id: UUID
     let fullText: String
+    /// Legacy pre–strip-only exports; ignored when mapping to `JournalItem`.
+    let chipLabel: String?
+    /// Legacy pre–strip-only exports; ignored when mapping to `JournalItem`.
+    let isTruncated: Bool?
+
+    init(id: UUID, fullText: String, chipLabel: String? = nil, isTruncated: Bool? = nil) {
+        self.id = id
+        self.fullText = fullText
+        self.chipLabel = chipLabel
+        self.isTruncated = isTruncated
+    }
+}
+
+extension JournalDataExportItem: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case id, fullText, chipLabel, isTruncated
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        fullText = try container.decode(String.self, forKey: .fullText)
+        chipLabel = try container.decodeIfPresent(String.self, forKey: .chipLabel)
+        isTruncated = try container.decodeIfPresent(Bool.self, forKey: .isTruncated)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(fullText, forKey: .fullText)
+        try container.encodeIfPresent(chipLabel, forKey: .chipLabel)
+        try container.encodeIfPresent(isTruncated, forKey: .isTruncated)
+    }
 }

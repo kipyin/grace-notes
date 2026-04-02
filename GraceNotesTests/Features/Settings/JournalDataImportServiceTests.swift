@@ -26,12 +26,29 @@ final class JournalDataImportServiceTests: XCTestCase {
 
     func test_decode_unsupportedSchema_throws() throws {
         let data = try encodeArchive(
-            JournalDataExportArchive(schemaVersion: 2, exportedAt: Date(), entries: [])
+            JournalDataExportArchive(schemaVersion: 3, exportedAt: Date(), entries: [])
         )
 
         XCTAssertThrowsError(try importService.decodeArchive(data)) { error in
-            XCTAssertEqual(error as? JournalDataImportError, .unsupportedSchemaVersion(2))
+            XCTAssertEqual(error as? JournalDataImportError, .unsupportedSchemaVersion(3))
         }
+    }
+
+    func test_decode_acceptsSchema2() throws {
+        let data = try encodeArchive(
+            JournalDataExportArchive(schemaVersion: 2, exportedAt: Date(), entries: [])
+        )
+
+        let archive = try importService.decodeArchive(data)
+        XCTAssertEqual(archive.schemaVersion, 2)
+        XCTAssertTrue(archive.entries.isEmpty)
+    }
+
+    func test_export_makeArchive_usesCurrentSchemaVersion() {
+        let exportService = JournalDataExportService()
+        let archive = exportService.makeArchive(from: [], exportedAt: Date())
+        XCTAssertEqual(archive.schemaVersion, JournalDataExportArchive.currentSchemaVersion)
+        XCTAssertEqual(archive.schemaVersion, 2)
     }
 
     func test_checkImportPayloadByteCount_rejectsOverLimit() {
@@ -98,6 +115,49 @@ final class JournalDataImportServiceTests: XCTestCase {
         XCTAssertEqual(lengths.gratitudes, JournalEntry.slotCount)
         XCTAssertEqual(lengths.needs, 0)
         XCTAssertEqual(lengths.people, 0)
+    }
+
+    func test_sanitize_dropsWhitespaceOnlyStripItems() {
+        let day = calendar.startOfDay(for: Date(timeIntervalSince1970: 1_742_147_200))
+        let export = makeExportEntry(
+            id: UUID(),
+            entryDate: day,
+            gratitudes: [
+                exportItem(fullText: "  "),
+                exportItem(fullText: "\t"),
+                exportItem(fullText: "Real")
+            ]
+        )
+
+        let lengths = importService.sanitizedSectionLengths(for: export)
+
+        XCTAssertEqual(lengths.gratitudes, 1)
+    }
+
+    func test_sanitize_legacyChipFieldsIgnored_usesFullTextOnly() throws {
+        let day = calendar.startOfDay(for: Date(timeIntervalSince1970: 1_742_147_200))
+        let export = makeExportEntry(
+            id: UUID(),
+            entryDate: day,
+            gratitudes: [
+                JournalDataExportItem(
+                    id: UUID(),
+                    fullText: "Kept",
+                    chipLabel: "Legacy label",
+                    isTruncated: true
+                )
+            ]
+        )
+
+        let lengths = importService.sanitizedSectionLengths(for: export)
+        XCTAssertEqual(lengths.gratitudes, 1)
+
+        let data = try encodeArchive(
+            JournalDataExportArchive(schemaVersion: 1, exportedAt: day, entries: [export])
+        )
+        let roundTrip = try importService.decodeArchive(data)
+        XCTAssertEqual(roundTrip.entries.first?.gratitudes.first?.fullText, "Kept")
+        XCTAssertEqual(roundTrip.entries.first?.gratitudes.first?.chipLabel, "Legacy label")
     }
 
     // MARK: - SwiftData integration

@@ -115,7 +115,7 @@ struct JournalDataImportService {
         } catch {
             throw JournalDataImportError.invalidGraceNotesExport
         }
-        guard archive.schemaVersion == 1 else {
+        guard JournalDataExportArchive.supportedImportSchemaVersions.contains(archive.schemaVersion) else {
             throw JournalDataImportError.unsupportedSchemaVersion(archive.schemaVersion)
         }
         guard archive.entries.count <= Self.maxImportEntryCount else {
@@ -157,8 +157,8 @@ struct JournalDataImportService {
             gratitudes: gratitudes,
             needs: needs,
             people: people,
-            readingNotes: clampString(export.readingNotes),
-            reflections: clampString(export.reflections),
+            readingNotes: normalizeNoteField(export.readingNotes),
+            reflections: normalizeNoteField(export.reflections),
             createdAt: export.createdAt,
             updatedAt: export.updatedAt,
             completedAt: export.completedAt
@@ -166,17 +166,22 @@ struct JournalDataImportService {
     }
 
     private func mapItems(_ items: [JournalDataExportItem]) -> [JournalItem] {
-        items.map { item in
-            JournalItem(
-                fullText: clampString(item.fullText),
-                id: item.id
-            )
+        items.compactMap { item in
+            let trimmed = item.fullText.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else { return nil }
+            let capped = clampString(trimmed)
+            return JournalItem(fullText: capped, id: item.id)
         }
     }
 
     private func clampString(_ value: String) -> String {
         guard value.count > maxStringFieldLength else { return value }
         return String(value.prefix(maxStringFieldLength))
+    }
+
+    private func normalizeNoteField(_ value: String) -> String {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return clampString(trimmed)
     }
 
     private struct SanitizedExport {
