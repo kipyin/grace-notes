@@ -6188,6 +6188,22 @@
         }
       }
     },
+    "PastSearch.dateLabel.yesterday" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yesterday"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "昨天"
+          }
+        }
+      }
+    },
     "Start writing this week to unlock review insights." : {
       "localizations" : {
         "en" : {

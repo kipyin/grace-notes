@@ -147,6 +147,7 @@ struct ReviewScreen: View {
                     isAwaitingInput: isPastSearchFieldFocused && trimmedJournalSearchQuery.isEmpty,
                     matches: journalSearchMatches,
                     calendar: calendar,
+                    highlightQuery: trimmedJournalSearchQuery,
                     onDismissSearchFocus: dismissPastSearchFocus
                 )
             }
@@ -173,6 +174,7 @@ struct ReviewScreen: View {
                     isAwaitingInput: isPastSearchFieldFocused && trimmedJournalSearchQuery.isEmpty,
                     matches: journalSearchMatches,
                     calendar: calendar,
+                    highlightQuery: trimmedJournalSearchQuery,
                     onDismissSearchFocus: dismissPastSearchFocus
                 )
             }

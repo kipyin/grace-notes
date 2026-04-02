@@ -75,6 +75,64 @@ enum PastJournalSearchGrouping {
     }
 }
 
+private enum PastJournalSearchHighlighting {
+    /// Body size matches ``AppTheme.warmPaperBody`` (17pt, scaled for Dynamic Type).
+    private static let bodyPointSize: CGFloat = 17
+    private static let serifRegularPostScriptName = "SourceSerif4Roman-Regular"
+    private static let matchBackgroundFill = UIColor(AppTheme.reviewAccent).withAlphaComponent(0.15)
+    private static var bodyTextColor: UIColor { UIColor(AppTheme.reviewTextPrimary) }
+
+    private static func bodyUIFont(semibold: Bool) -> UIFont {
+        let size = UIFontMetrics(forTextStyle: .body).scaledValue(for: bodyPointSize)
+        guard let base = UIFont(name: serifRegularPostScriptName, size: size) else {
+            return UIFont.preferredFont(forTextStyle: .body)
+        }
+        if !semibold { return base }
+        let boldTraits = base.fontDescriptor.symbolicTraits.union(.traitBold)
+        guard let boldDescriptor = base.fontDescriptor.withSymbolicTraits(boldTraits) else { return base }
+        return UIFont(descriptor: boldDescriptor, size: size)
+    }
+
+    private static func matchRanges(for content: String, trimmedQuery: String) -> [Range<String.Index>] {
+        var ranges: [Range<String.Index>] = []
+        var searchStart = content.startIndex
+        while searchStart < content.endIndex,
+              let found = content.range(
+                of: trimmedQuery,
+                options: [.caseInsensitive, .diacriticInsensitive],
+                range: searchStart ..< content.endIndex,
+                locale: .current
+              ) {
+            ranges.append(found)
+            searchStart = found.upperBound
+        }
+        return ranges
+    }
+
+    static func text(content: String, highlightQuery: String) -> Text {
+        let trimmed = highlightQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        let ranges: [Range<String.Index>] = if trimmed.isEmpty {
+            []
+        } else {
+            matchRanges(for: content, trimmedQuery: trimmed)
+        }
+
+        let mutable = NSMutableAttributedString(string: content)
+        let full = NSRange(location: 0, length: (content as NSString).length)
+        mutable.addAttribute(.font, value: bodyUIFont(semibold: false), range: full)
+        mutable.addAttribute(.foregroundColor, value: bodyTextColor, range: full)
+
+        for matchRange in ranges {
+            let nsr = NSRange(matchRange, in: content)
+            guard nsr.length > 0 else { continue }
+            mutable.addAttribute(.font, value: bodyUIFont(semibold: true), range: nsr)
+            mutable.addAttribute(.backgroundColor, value: matchBackgroundFill, range: nsr)
+        }
+
+        return Text(AttributedString(mutable))
+    }
+}
+
 private struct PastJournalSearchBarChrome<Content: View>: View {
     @ViewBuilder var content: () -> Content
 
@@ -207,66 +265,78 @@ struct PastJournalSearchFieldRow: View {
 private struct PastJournalSearchDayCard: View {
     let day: Date
     let sections: [(source: ReviewThemeSourceCategory, rows: [JournalSearchMatch])]
-    let onDismissSearchFocus: () -> Void
+    let calendar: Calendar
+    let highlightQuery: String
+
+    /// Avoid multiple `NavigationLink`s in one `List` row — they can all activate on a single tap.
+    @State private var journalNavigationDay: Date?
+
+    private var dayCaption: String {
+        PastSearchDayCaption.string(day: day, now: Date(), calendar: calendar)
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text(day.formatted(date: .abbreviated, time: .omitted))
-                .font(AppTheme.warmPaperHeader)
-                .foregroundStyle(AppTheme.reviewTextPrimary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(Rectangle())
-                .onTapGesture { onDismissSearchFocus() }
+        Button {
+            journalNavigationDay = day
+        } label: {
+            VStack(alignment: .leading, spacing: 14) {
+                Text(dayCaption)
+                    .font(AppTheme.warmPaperHeader)
+                    .foregroundStyle(AppTheme.reviewTextPrimary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
-            VStack(alignment: .leading, spacing: 16) {
-                ForEach(sections, id: \.source) { section in
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(section.source.localizedJournalSurfaceTitle)
-                            .font(AppTheme.warmPaperMetaEmphasis.weight(.semibold))
-                            .foregroundStyle(AppTheme.reviewTextPrimary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .contentShape(Rectangle())
-                            .onTapGesture { onDismissSearchFocus() }
+                VStack(alignment: .leading, spacing: 16) {
+                    ForEach(sections, id: \.source) { section in
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(section.source.localizedJournalSurfaceTitle)
+                                .font(AppTheme.warmPaperMetaEmphasis.weight(.semibold))
+                                .foregroundStyle(AppTheme.reviewTextPrimary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
 
-                        VStack(alignment: .leading, spacing: 10) {
-                            ForEach(section.rows) { match in
-                                NavigationLink {
-                                    JournalScreen(entryDate: match.entryDate)
-                                } label: {
-                                    Text(match.content)
-                                        .font(AppTheme.warmPaperBody)
-                                        .foregroundStyle(AppTheme.reviewTextPrimary)
+                            VStack(alignment: .leading, spacing: 10) {
+                                ForEach(section.rows) { match in
+                                    HStack(alignment: .firstTextBaseline, spacing: 10) {
+                                        PastJournalSearchHighlighting.text(
+                                            content: match.content,
+                                            highlightQuery: highlightQuery
+                                        )
                                         .multilineTextAlignment(.leading)
                                         .fixedSize(horizontal: false, vertical: true)
                                         .frame(maxWidth: .infinity, alignment: .leading)
+
+                                        Image(systemName: "chevron.right")
+                                            .font(.caption.weight(.semibold))
+                                            .foregroundStyle(AppTheme.reviewTextMuted)
+                                            .imageScale(.small)
+                                            .accessibilityHidden(true)
+                                    }
                                 }
-                                .buttonStyle(.plain)
-                                .accessibilityElement(children: .combine)
-                                .accessibilityLabel(rowAccessibilityLabel(day: day, match: match))
-                                .accessibilityHint(String(localized: "ThemeDrilldown.openEntry.a11yHint"))
                             }
                         }
                     }
                 }
             }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background {
+                RoundedRectangle(cornerRadius: 14, style: .circular)
+                    .fill(AppTheme.reviewPaper.opacity(0.72))
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 14, style: .circular)
+                    .strokeBorder(AppTheme.reviewStandardBorder.opacity(0.42), lineWidth: 1)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .circular))
+            .contentShape(RoundedRectangle(cornerRadius: 14, style: .circular))
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 14)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background {
-            RoundedRectangle(cornerRadius: 14, style: .circular)
-                .fill(AppTheme.reviewPaper.opacity(0.72))
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(dayCaption)
+        .accessibilityHint(String(localized: "ThemeDrilldown.openEntry.a11yHint"))
+        .navigationDestination(item: $journalNavigationDay) { destinationDay in
+            JournalScreen(entryDate: destinationDay)
         }
-        .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .circular)
-                .strokeBorder(AppTheme.reviewStandardBorder.opacity(0.42), lineWidth: 1)
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .circular))
-    }
-
-    private func rowAccessibilityLabel(day: Date, match: JournalSearchMatch) -> String {
-        let dayText = day.formatted(date: .abbreviated, time: .omitted)
-        return [dayText, match.source.localizedJournalSurfaceTitle, match.content].joined(separator: ", ")
     }
 }
 
@@ -274,6 +344,7 @@ struct PastJournalSearchResultsList: View {
     let isAwaitingInput: Bool
     let matches: [JournalSearchMatch]
     let calendar: Calendar
+    let highlightQuery: String
     let onDismissSearchFocus: () -> Void
 
     private var daySectionGroups: [(
@@ -312,7 +383,8 @@ struct PastJournalSearchResultsList: View {
                         PastJournalSearchDayCard(
                             day: group.day,
                             sections: group.sections,
-                            onDismissSearchFocus: onDismissSearchFocus
+                            calendar: calendar,
+                            highlightQuery: highlightQuery
                         )
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
