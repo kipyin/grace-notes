@@ -8,9 +8,9 @@ struct JournalRepository {
         self.calendar = calendar
     }
 
-    func fetchAllEntries(context: ModelContext) throws -> [JournalEntry] {
+    func fetchAllEntries(context: ModelContext) throws -> [Journal] {
         let trace = PerformanceTrace.begin("JournalRepository.fetchAllEntries")
-        let descriptor = FetchDescriptor<JournalEntry>(
+        let descriptor = FetchDescriptor<Journal>(
             sortBy: [SortDescriptor(\.entryDate, order: .reverse)]
         )
         do {
@@ -23,7 +23,7 @@ struct JournalRepository {
         }
     }
 
-    func fetchEntry(for date: Date, context: ModelContext) throws -> JournalEntry? {
+    func fetchEntry(for date: Date, context: ModelContext) throws -> Journal? {
         let dayStart = calendar.startOfDay(for: date)
         return try fetchEntry(dayStart: dayStart, context: context)
     }
@@ -31,8 +31,8 @@ struct JournalRepository {
     /// True when the user has reached Full/Harvest at least once.
     /// Prefers `completedAt` (cheap query), then scans for legacy rows without that field.
     func hasUserReachedFullHarvest(context: ModelContext) throws -> Bool {
-        var completedDescriptor = FetchDescriptor<JournalEntry>(
-            predicate: #Predicate<JournalEntry> { entry in
+        var completedDescriptor = FetchDescriptor<Journal>(
+            predicate: #Predicate<Journal> { entry in
                 entry.completedAt != nil
             }
         )
@@ -45,14 +45,14 @@ struct JournalRepository {
     }
 
     /// Fetches the journal row for `[dayStart, nextDay)` using the same interval semantics as import and demo seeding.
-    func fetchEntry(dayStart: Date, context: ModelContext) throws -> JournalEntry? {
+    func fetchEntry(dayStart: Date, context: ModelContext) throws -> Journal? {
         let trace = PerformanceTrace.begin("JournalRepository.fetchEntry")
         guard let nextDay = calendar.date(byAdding: .day, value: 1, to: dayStart) else {
             PerformanceTrace.end("JournalRepository.fetchEntry.invalidDate", startedAt: trace)
             return nil
         }
         do {
-            let descriptor = FetchDescriptor<JournalEntry>(
+            let descriptor = FetchDescriptor<Journal>(
                 predicate: #Predicate { entry in
                     entry.entryDate >= dayStart && entry.entryDate < nextDay
                 },
@@ -87,7 +87,7 @@ struct JournalRepository {
             var offset = 0
 
             batchLoop: while matches.count < maxRows {
-                var descriptor = FetchDescriptor<JournalEntry>(
+                var descriptor = FetchDescriptor<Journal>(
                     sortBy: [SortDescriptor(\.entryDate, order: .reverse)]
                 )
                 descriptor.fetchLimit = batchSize
@@ -116,14 +116,14 @@ struct JournalRepository {
     }
 
     private func appendMatches(
-        from entry: JournalEntry,
+        from entry: Journal,
         trimmedQuery: String,
         matches: inout [JournalSearchMatch],
         maxRows: Int
     ) {
         let dayStart = calendar.startOfDay(for: entry.entryDate)
 
-        func appendStripLine(item: JournalItem, source: ReviewThemeSourceCategory) {
+        func appendStripLine(item: Entry, source: ReviewThemeSourceCategory) {
             guard matches.count < maxRows else { return }
             let full = item.fullText
             guard Self.textContains(trimmedQuery, in: full) else { return }

@@ -35,7 +35,7 @@ private struct ReviewJournalDaySheetItem: Identifiable, Equatable {
 
 struct ReviewScreen: View {
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \JournalEntry.entryDate, order: .reverse) private var entries: [JournalEntry]
+    @Query(sort: \Journal.entryDate, order: .reverse) private var entries: [Journal]
     @AppStorage(ReviewWeekBoundaryPreference.userDefaultsKey)
     private var reviewWeekBoundaryRawValue = ReviewWeekBoundaryPreference.defaultValue.rawValue
     @AppStorage(PastStatisticsIntervalPreference.appStorageKey)

@@ -47,11 +47,11 @@ Use this vocabulary in README, issues, PRs, and **new** Swift identifiers. Issue
 
 ### Product terms (English)
 
-1. **Journal** — What the user creates for **one calendar day** on **Today**. Do **not** call it a note, reflection, *journal entry*, or generic *entry* when you mean the day-level object. **Swift target:** `Journal` (replacing `JournalEntry`).
+1. **Journal** — What the user creates for **one calendar day** on **Today**. Do **not** call it a note, reflection, *journal entry*, or generic *entry* when you mean the day-level object. **Swift type:** `Journal`.
 2. **Today** — The main journaling tab. Say **Today**, not “today’s journal,” “today’s entry,” or “Journal” when you mean the tab.
 3. **Past** — The history and insights tab. Say **Past**, not Review, Insights, or Reflections when you mean this destination.
 4. **Section** — One of **three** on each Journal: **Gratitudes**, **Needs**, **People in Mind**. Do **not** use *structured* as an adjective for these groups.
-5. **Entry** — One of up to **five** items inside a **Section**. Do **not** call these lines, chips, strips, or sentences in new prose or identifiers. **Swift target:** name aligned with **Entry** (replacing `JournalItem`). *Note:* English **Entry** (section row) is not the same word as day-level **Journal**.
+5. **Entry** — One of up to **five** items inside a **Section**. Do **not** call these lines, chips, strips, or sentences in new prose or identifiers. **Swift type:** `Entry`. *Note:* English **Entry** (section row) is not the same as day-level **Journal**.
 6. **Notes** — Reading notes and reflections on a Journal. Treat them as **Notes** in docs; the app still has two fields until they merge into a single **Notes** field—avoid coupling Section **Entries** with Notes in new designs.
 7. **Theme** — On **Past**, analytics can surface **Themes** extracted from **Entries** (and related text). Do **not** call these chips.
 8. **Card** — A boxed module on **Past** (e.g. a day **Card**, growth-stage **Card**). Say **Card** in contributor prose, not generic *box*.
@@ -180,7 +180,7 @@ The **`full-ci`** and **`no-ci`** labels must exist in the GitHub repo (Issues �
 
 - `GraceNotes/GraceNotes/Application` - App entry point
 - `GraceNotes/GraceNotes/Features/Journal` - **Today** and **Past** surfaces (UI, view models, sharing)
-- `GraceNotes/GraceNotes/Data` - Models and persistence (SwiftData); day-level model migrates to **`Journal`**, section rows to **Entry**-aligned types (#144)
+- `GraceNotes/GraceNotes/Data` - Models and persistence (SwiftData); day model **`Journal`**, section row **`Entry`**
 - `GraceNotes/GraceNotes/DesignSystem` - Theming and shared styling
 - `GraceNotes/GraceNotes/Services` - Summarization and app-level business services
 

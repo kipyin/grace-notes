@@ -21,9 +21,9 @@ final class JournalRepositoryTests: XCTestCase {
         let date2 = calendar.startOfDay(for: Date(timeIntervalSince1970: 1_742_056_800)) // 2025-03-04
         let date3 = calendar.startOfDay(for: Date(timeIntervalSince1970: 1_742_221_600)) // 2025-03-22
 
-        let entry1 = JournalEntry(entryDate: date1, createdAt: date1, updatedAt: date1)
-        let entry2 = JournalEntry(entryDate: date2, createdAt: date2, updatedAt: date2)
-        let entry3 = JournalEntry(entryDate: date3, createdAt: date3, updatedAt: date3)
+        let entry1 = Journal(entryDate: date1, createdAt: date1, updatedAt: date1)
+        let entry2 = Journal(entryDate: date2, createdAt: date2, updatedAt: date2)
+        let entry3 = Journal(entryDate: date3, createdAt: date3, updatedAt: date3)
         context.insert(entry1)
         context.insert(entry2)
         context.insert(entry3)
@@ -42,9 +42,9 @@ final class JournalRepositoryTests: XCTestCase {
         let repo = JournalRepository(calendar: calendar)
         let now = Date(timeIntervalSince1970: 1_742_147_200)
         let startOfDay = calendar.startOfDay(for: now)
-        let entry = JournalEntry(
+        let entry = Journal(
             entryDate: startOfDay,
-            gratitudes: [JournalItem(fullText: "Test")],
+            gratitudes: [Entry(fullText: "Test")],
             needs: [],
             people: [],
             readingNotes: "",
@@ -75,9 +75,9 @@ final class JournalRepositoryTests: XCTestCase {
         let context = try makeInMemoryContext()
         let repo = JournalRepository(calendar: calendar)
         let day = calendar.startOfDay(for: Date(timeIntervalSince1970: 1_742_147_200))
-        let entry = JournalEntry(
+        let entry = Journal(
             entryDate: day,
-            gratitudes: [JournalItem(fullText: "a")],
+            gratitudes: [Entry(fullText: "a")],
             needs: [],
             people: [],
             completedAt: day
@@ -92,7 +92,7 @@ final class JournalRepositoryTests: XCTestCase {
         let context = try makeInMemoryContext()
         let repo = JournalRepository(calendar: calendar)
         let day = calendar.startOfDay(for: Date(timeIntervalSince1970: 1_742_147_200))
-        let entry = JournalEntry(
+        let entry = Journal(
             entryDate: day,
             gratitudes: Self.fiveStubItems(prefix: "g"),
             needs: Self.fiveStubItems(prefix: "n"),
@@ -109,9 +109,9 @@ final class JournalRepositoryTests: XCTestCase {
         let context = try makeInMemoryContext()
         let repo = JournalRepository(calendar: calendar)
         let day = calendar.startOfDay(for: Date(timeIntervalSince1970: 1_742_147_200))
-        let entry = JournalEntry(
+        let entry = Journal(
             entryDate: day,
-            gratitudes: [JournalItem(fullText: "a")],
+            gratitudes: [Entry(fullText: "a")],
             needs: [],
             people: [],
             completedAt: nil
@@ -128,9 +128,9 @@ final class JournalRepositoryTests: XCTestCase {
         let day1 = calendar.startOfDay(for: Date(timeIntervalSince1970: 1_742_147_200))
         let day2 = calendar.startOfDay(for: Date(timeIntervalSince1970: 1_742_056_800))
 
-        let entry1 = JournalEntry(
+        let entry1 = Journal(
             entryDate: day1,
-            gratitudes: [JournalItem(fullText: "Morning coffee ritual")],
+            gratitudes: [Entry(fullText: "Morning coffee ritual")],
             needs: [],
             people: [],
             readingNotes: "Psalm study notes",
@@ -138,7 +138,7 @@ final class JournalRepositoryTests: XCTestCase {
             createdAt: day1,
             updatedAt: day1
         )
-        let entry2 = JournalEntry(
+        let entry2 = Journal(
             entryDate: day2,
             gratitudes: [],
             needs: [],
@@ -176,10 +176,10 @@ final class JournalRepositoryTests: XCTestCase {
         let day = calendar.startOfDay(for: Date(timeIntervalSince1970: 1_742_147_200))
         let entryId = UUID(uuidString: "A0A0A0A0-BBBB-4CCC-8DDD-111122223333")!
         let itemId = UUID(uuidString: "B1B1B1B1-BBBB-4CCC-8DDD-111122223333")!
-        let entry = JournalEntry(
+        let entry = Journal(
             id: entryId,
             entryDate: day,
-            gratitudes: [JournalItem(fullText: "Thankful for morning coffee", id: itemId)],
+            gratitudes: [Entry(fullText: "Thankful for morning coffee", id: itemId)],
             needs: [],
             people: [],
             readingNotes: "",
@@ -209,9 +209,9 @@ final class JournalRepositoryTests: XCTestCase {
             let day = calendar.startOfDay(
                 for: Date(timeIntervalSince1970: 1_742_147_200 + TimeInterval(index * 86_400))
             )
-            let entry = JournalEntry(
+            let entry = Journal(
                 entryDate: day,
-                gratitudes: [JournalItem(fullText: "match token")],
+                gratitudes: [Entry(fullText: "match token")],
                 needs: [],
                 people: [],
                 readingNotes: "",
@@ -227,8 +227,8 @@ final class JournalRepositoryTests: XCTestCase {
         XCTAssertEqual(matches.count, 2)
     }
 
-    private static func fiveStubItems(prefix: String) -> [JournalItem] {
-        (0..<5).map { JournalItem(fullText: "\(prefix)\($0)") }
+    private static func fiveStubItems(prefix: String) -> [Entry] {
+        (0..<5).map { Entry(fullText: "\(prefix)\($0)") }
     }
 
     private func makeInMemoryContext() throws -> ModelContext {

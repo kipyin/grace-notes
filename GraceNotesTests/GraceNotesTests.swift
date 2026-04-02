@@ -338,8 +338,8 @@ final class JournalScreenStripHandlingTests: XCTestCase {
 @MainActor
 final class StripReorderDropDelegateTests: XCTestCase {
     func test_applyLiveReorder_movesWhenDraggingOverDifferentChip() {
-        let first = JournalItem(fullText: "First")
-        let second = JournalItem(fullText: "Second")
+        let first = Entry(fullText: "First")
+        let second = Entry(fullText: "Second")
         let items = [first, second]
         var draggingItemID: UUID? = first.id
         var hoverTargetItemID: UUID?
@@ -360,8 +360,8 @@ final class StripReorderDropDelegateTests: XCTestCase {
     }
 
     func test_applyLiveReorder_secondCall_sameTargetSkipsExtraMove() {
-        let first = JournalItem(fullText: "First")
-        let second = JournalItem(fullText: "Second")
+        let first = Entry(fullText: "First")
+        let second = Entry(fullText: "Second")
         let items = [first, second]
         var draggingItemID: UUID? = first.id
         var hoverTargetItemID: UUID?
@@ -382,8 +382,8 @@ final class StripReorderDropDelegateTests: XCTestCase {
     }
 
     func test_performDrop_withoutPriorLiveReorder_appliesMoveWhenNeeded() {
-        let first = JournalItem(fullText: "First")
-        let second = JournalItem(fullText: "Second")
+        let first = Entry(fullText: "First")
+        let second = Entry(fullText: "Second")
         let items = [first, second]
         var draggingItemID: UUID? = first.id
         var hoverTargetItemID: UUID?
@@ -404,8 +404,8 @@ final class StripReorderDropDelegateTests: XCTestCase {
     }
 
     func test_performDrop_afterLiveReflowWhenAlreadyPlaced_skipsMoveButClearsState() {
-        let first = JournalItem(fullText: "First")
-        let second = JournalItem(fullText: "Second")
+        let first = Entry(fullText: "First")
+        let second = Entry(fullText: "Second")
         let items = [second, first]
         var draggingItemID: UUID? = first.id
         var hoverTargetItemID: UUID? = second.id
@@ -427,7 +427,7 @@ final class StripReorderDropDelegateTests: XCTestCase {
     }
 
     func test_performDrop_withoutInternalDrag_returnsFalse() {
-        let item = JournalItem(fullText: "Only")
+        let item = Entry(fullText: "Only")
         var draggingItemID: UUID?
         var hoverTargetItemID: UUID?
         var didMove = false
@@ -447,8 +447,8 @@ final class StripReorderDropDelegateTests: XCTestCase {
     }
 
     func test_stripReorderMoveParameters_nilWhenHoveringDraggedChip() {
-        let first = JournalItem(fullText: "First")
-        let second = JournalItem(fullText: "Second")
+        let first = Entry(fullText: "First")
+        let second = Entry(fullText: "Second")
         let items = [first, second]
         XCTAssertNil(
             SequentialSectionStripRow.StripReorderDropDelegate.stripReorderMoveParameters(
@@ -460,9 +460,9 @@ final class StripReorderDropDelegateTests: XCTestCase {
     }
 
     func test_stripReorderMoveParameters_movesEarlierItemTowardLaterChip() {
-        let first = JournalItem(fullText: "First")
-        let second = JournalItem(fullText: "Second")
-        let third = JournalItem(fullText: "Third")
+        let first = Entry(fullText: "First")
+        let second = Entry(fullText: "Second")
+        let third = Entry(fullText: "Third")
         let items = [first, second, third]
         let params = SequentialSectionStripRow.StripReorderDropDelegate.stripReorderMoveParameters(
             activeDragID: first.id,

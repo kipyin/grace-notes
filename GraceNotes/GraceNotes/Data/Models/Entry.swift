@@ -1,6 +1,6 @@
 import Foundation
 
-struct JournalItem: Codable {
+struct Entry: Codable {
     var id: UUID
     var fullText: String
 

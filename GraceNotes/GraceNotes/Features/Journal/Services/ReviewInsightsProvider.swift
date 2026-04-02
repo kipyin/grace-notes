@@ -19,7 +19,7 @@ struct ReviewInsightsProvider: Sendable {
     }
 
     func generateInsights(
-        from entries: [JournalEntry],
+        from entries: [Journal],
         referenceDate: Date,
         calendar: Calendar = .current,
         pastStatisticsInterval: PastStatisticsIntervalSelection = .default
@@ -33,7 +33,7 @@ struct ReviewInsightsProvider: Sendable {
     }
 
     private func deterministicOrSparseInsights(
-        from entries: [JournalEntry],
+        from entries: [Journal],
         referenceDate: Date,
         calendar: Calendar,
         pastStatisticsInterval: PastStatisticsIntervalSelection
@@ -56,7 +56,7 @@ struct ReviewInsightsProvider: Sendable {
     }
 
     private func sparseFallbackInsights(
-        from entries: [JournalEntry],
+        from entries: [Journal],
         referenceDate: Date,
         calendar: Calendar,
         pastStatisticsInterval: PastStatisticsIntervalSelection

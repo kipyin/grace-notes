@@ -2,7 +2,7 @@ import Foundation
 
 extension WeeklyInsightCandidateBuilder {
     func fullCompletionCandidate(
-        entries: [JournalEntry],
+        entries: [Journal],
         calendar: Calendar
     ) -> InsightCandidate? {
         guard !entries.isEmpty else { return nil }
@@ -270,7 +270,7 @@ extension WeeklyInsightCandidateBuilder {
         }
     }
 
-    func isSparseWeek(entries: [JournalEntry], reflectionDayCount: Int) -> Bool {
+    func isSparseWeek(entries: [Journal], reflectionDayCount: Int) -> Bool {
         guard !entries.isEmpty else { return true }
         if reflectionDayCount >= 2 {
             return false

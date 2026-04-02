@@ -7,15 +7,15 @@ import SwiftData
 @Observable
 final class JournalViewModel {
     var entryDate: Date = .now
-    var gratitudes: [JournalItem] = []
-    var needs: [JournalItem] = []
-    var people: [JournalItem] = []
+    var gratitudes: [Entry] = []
+    var needs: [Entry] = []
+    var people: [Entry] = []
     var readingNotes: String = ""
     var reflections: String = ""
     private(set) var saveErrorMessage: String?
     private(set) var streakSummary: StreakSummary = .empty
 
-    static let slotCount = JournalEntry.slotCount
+    static let slotCount = Journal.slotCount
     @ObservationIgnored private let calendar: Calendar
     @ObservationIgnored private let nowProvider: () -> Date
     @ObservationIgnored private let repository: JournalRepository
@@ -24,7 +24,7 @@ final class JournalViewModel {
     @ObservationIgnored private var cancellables: Set<AnyCancellable> = []
 
     @ObservationIgnored private var modelContext: ModelContext?
-    @ObservationIgnored private var journalEntry: JournalEntry?
+    @ObservationIgnored private var journalEntry: Journal?
     @ObservationIgnored private var hasLoadedToday = false
     @ObservationIgnored private var isHydrating = false
     @ObservationIgnored private var hasRecordedFirstSave = false
@@ -91,7 +91,7 @@ final class JournalViewModel {
         }
 
         let now = nowProvider()
-        let newEntry = JournalEntry(
+        let newEntry = Journal(
             entryDate: dayStart,
             createdAt: now,
             updatedAt: now
@@ -106,7 +106,7 @@ final class JournalViewModel {
         PerformanceTrace.end("JournalViewModel.loadEntry.newUnsaved", startedAt: loadTrace)
     }
 
-    private func hydrate(from entry: JournalEntry) {
+    private func hydrate(from entry: Journal) {
         journalEntry = entry
         isHydrating = true
         defer { isHydrating = false }
@@ -209,7 +209,7 @@ final class JournalViewModel {
     }
 
     var completionLevel: JournalCompletionLevel {
-        JournalEntry.completionLevel(
+        Journal.completionLevel(
             gratitudesCount: gratitudes.count,
             needsCount: needs.count,
             peopleCount: people.count
@@ -218,7 +218,7 @@ final class JournalViewModel {
 
     /// True when gratitudes, needs, and people each have at least one chip (milestone 1/1/1 minimum).
     var hasAtLeastOneInEachChipSection: Bool {
-        JournalEntry.minChipSectionCount(
+        Journal.minChipSectionCount(
             gratitudesCount: gratitudes.count,
             needsCount: needs.count,
             peopleCount: people.count

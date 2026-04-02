@@ -8,7 +8,7 @@ struct ReviewHistoryGrowthStagesPanel: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @Binding var historyDrilldown: ReviewHistoryDrilldownPayload?
-    let entries: [JournalEntry]
+    let entries: [Journal]
     let calendar: Calendar
     let referenceDate: Date
     let pastStatisticsInterval: PastStatisticsIntervalSelection
@@ -258,7 +258,7 @@ struct ReviewHistorySectionDistributionPanel: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @Binding var historyDrilldown: ReviewHistoryDrilldownPayload?
-    let entries: [JournalEntry]
+    let entries: [Journal]
     let calendar: Calendar
     let referenceDate: Date
     let pastStatisticsInterval: PastStatisticsIntervalSelection

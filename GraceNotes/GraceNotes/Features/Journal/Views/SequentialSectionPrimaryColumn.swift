@@ -17,7 +17,7 @@ struct SequentialSectionPrimaryColumn<ProgressDots: View>: View {
     let guidanceTitle: String?
     let guidanceMessage: String?
     let guidanceMessageSecondary: String?
-    let items: [JournalItem]
+    let items: [Entry]
     let placeholder: String
     let slotCount: Int
     let inputAccessibilityIdentifier: String?
@@ -269,7 +269,7 @@ struct SequentialSectionPrimaryColumn<ProgressDots: View>: View {
     }
 
     @ViewBuilder
-    private func itemRow(for item: JournalItem, at index: Int) -> some View {
+    private func itemRow(for item: Entry, at index: Int) -> some View {
         if activeEditingIndex == index {
             inlineEditorRow(for: item, at: index)
                 .zIndex(2)
@@ -283,7 +283,7 @@ struct SequentialSectionPrimaryColumn<ProgressDots: View>: View {
     }
 
     @ViewBuilder
-    private func stripView(for item: JournalItem, at index: Int) -> some View {
+    private func stripView(for item: Entry, at index: Int) -> some View {
         let stripIdentifierPrefix = stripAccessibilityIdentifierPrefix.map { "\($0).\(index)" }
         let strip = makeSentenceStrip(for: item, index: index, stripIdentifierPrefix: stripIdentifierPrefix)
 
@@ -315,7 +315,7 @@ struct SequentialSectionPrimaryColumn<ProgressDots: View>: View {
     }
 
     @ViewBuilder
-    private func inlineEditorRow(for item: JournalItem, at index: Int) -> some View {
+    private func inlineEditorRow(for item: Entry, at index: Int) -> some View {
         let stripIdentifierPrefix = stripAccessibilityIdentifierPrefix.map { "\($0).\(index)" }
         let editorIdentifier = stripIdentifierPrefix.map { "\($0).editor" }
         let isMorphing = morphingItemID == item.id
@@ -394,7 +394,7 @@ private extension View {
 
 private extension SequentialSectionPrimaryColumn {
     func makeSentenceStrip(
-        for item: JournalItem,
+        for item: Entry,
         index: Int,
         stripIdentifierPrefix: String?
     ) -> SentenceStripView {

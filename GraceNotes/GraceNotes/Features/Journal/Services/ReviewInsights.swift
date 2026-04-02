@@ -203,7 +203,7 @@ struct ReviewDayActivity: Equatable, Hashable, Sendable, Codable {
     let date: Date
     let hasReflectiveActivity: Bool
     let strongestCompletionLevel: JournalCompletionLevel?
-    /// True when there is a `JournalEntry` row for this calendar day (it may still be inactive for rhythm signal).
+    /// True when there is a `Journal` row for this calendar day (it may still be inactive for rhythm signal).
     let hasPersistedEntry: Bool
 
     private enum CodingKeys: String, CodingKey {
@@ -524,7 +524,7 @@ extension ReviewInsights {
 
 protocol ReviewInsightsGenerating: Sendable {
     func generateInsights(
-        from entries: [JournalEntry],
+        from entries: [Journal],
         referenceDate: Date,
         calendar: Calendar,
         pastStatisticsInterval: PastStatisticsIntervalSelection

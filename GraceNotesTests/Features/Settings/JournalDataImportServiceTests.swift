@@ -112,7 +112,7 @@ final class JournalDataImportServiceTests: XCTestCase {
 
         let lengths = importService.sanitizedSectionLengths(for: export)
 
-        XCTAssertEqual(lengths.gratitudes, JournalEntry.slotCount)
+        XCTAssertEqual(lengths.gratitudes, Journal.slotCount)
         XCTAssertEqual(lengths.needs, 0)
         XCTAssertEqual(lengths.people, 0)
     }
@@ -199,10 +199,10 @@ final class JournalDataImportServiceTests: XCTestCase {
         let day = calendar.startOfDay(for: Date(timeIntervalSince1970: 1_742_147_200))
         let existingId = UUID()
         context.insert(
-            JournalEntry(
+            Journal(
                 id: existingId,
                 entryDate: day,
-                gratitudes: [JournalItem(fullText: "Old")],
+                gratitudes: [Entry(fullText: "Old")],
                 needs: [],
                 people: [],
                 readingNotes: "",
@@ -256,7 +256,7 @@ final class JournalDataImportServiceTests: XCTestCase {
 
         let repo = JournalRepository(calendar: calendar)
         let entry = try XCTUnwrap(try repo.fetchEntry(for: day, context: context))
-        XCTAssertEqual((entry.gratitudes ?? []).count, JournalEntry.slotCount)
+        XCTAssertEqual((entry.gratitudes ?? []).count, Journal.slotCount)
         XCTAssertEqual((entry.gratitudes ?? []).first?.fullText, "G1")
         XCTAssertEqual((entry.gratitudes ?? []).last?.fullText, "G5")
     }

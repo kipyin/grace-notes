@@ -90,7 +90,7 @@ struct JournalOnboardingContext: Equatable {
     let hasCompletedGuidedJournal: Bool
 
     var hasRipening: Bool {
-        JournalEntry.minChipSectionCount(
+        Journal.minChipSectionCount(
             gratitudesCount: gratitudesCount,
             needsCount: needsCount,
             peopleCount: peopleCount
@@ -98,7 +98,7 @@ struct JournalOnboardingContext: Equatable {
     }
 
     var hasHarvest: Bool {
-        JournalEntry.hasAllFifteenChips(
+        Journal.hasAllFifteenChips(
             gratitudesCount: gratitudesCount,
             needsCount: needsCount,
             peopleCount: peopleCount

@@ -53,7 +53,7 @@ enum DemoDataSeeder {
         }
 
         context.insert(
-            JournalEntry(
+            Journal(
                 entryDate: payload.entryDate,
                 gratitudes: payload.gratitudes,
                 needs: payload.needs,
@@ -67,9 +67,9 @@ enum DemoDataSeeder {
         )
     }
 
-    private static func fetchEntry(for date: Date, context: ModelContext, calendar: Calendar) -> JournalEntry? {
+    private static func fetchEntry(for date: Date, context: ModelContext, calendar: Calendar) -> Journal? {
         guard let nextDay = calendar.date(byAdding: .day, value: 1, to: date) else { return nil }
-        let descriptor = FetchDescriptor<JournalEntry>(
+        let descriptor = FetchDescriptor<Journal>(
             predicate: #Predicate { entry in
                 entry.entryDate >= date && entry.entryDate < nextDay
             },
@@ -255,16 +255,16 @@ enum DemoDataSeeder {
         )
     }
 
-    private static func item(_ fullText: String) -> JournalItem {
-        JournalItem(fullText: fullText)
+    private static func item(_ fullText: String) -> Entry {
+        Entry(fullText: fullText)
     }
 }
 
 private struct DemoEntryPayload {
     let entryDate: Date
-    let gratitudes: [JournalItem]
-    let needs: [JournalItem]
-    let people: [JournalItem]
+    let gratitudes: [Entry]
+    let needs: [Entry]
+    let people: [Entry]
     let readingNotes: String
     let reflections: String
     let completedAt: Date?

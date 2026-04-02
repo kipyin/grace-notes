@@ -7,7 +7,7 @@ struct JournalDataExportService {
         now: Date = .now,
         fileManager: FileManager = .default
     ) throws -> URL {
-        let descriptor = FetchDescriptor<JournalEntry>(
+        let descriptor = FetchDescriptor<Journal>(
             sortBy: [SortDescriptor(\.entryDate, order: .forward)]
         )
         let entries = try context.fetch(descriptor)
@@ -19,7 +19,7 @@ struct JournalDataExportService {
         return fileURL
     }
 
-    func makeArchiveData(from entries: [JournalEntry], exportedAt: Date) throws -> Data {
+    func makeArchiveData(from entries: [Journal], exportedAt: Date) throws -> Data {
         let archive = makeArchive(from: entries, exportedAt: exportedAt)
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
@@ -27,7 +27,7 @@ struct JournalDataExportService {
         return try encoder.encode(archive)
     }
 
-    func makeArchive(from entries: [JournalEntry], exportedAt: Date) -> JournalDataExportArchive {
+    func makeArchive(from entries: [Journal], exportedAt: Date) -> JournalDataExportArchive {
         let sortedEntries = entries.sorted { $0.entryDate < $1.entryDate }
         return JournalDataExportArchive(
             schemaVersion: JournalDataExportArchive.currentSchemaVersion,
@@ -36,7 +36,7 @@ struct JournalDataExportService {
         )
     }
 
-    private func makeExportEntry(from entry: JournalEntry) -> JournalDataExportEntry {
+    private func makeExportEntry(from entry: Journal) -> JournalDataExportEntry {
         JournalDataExportEntry(
             id: entry.id,
             entryDate: entry.entryDate,
@@ -51,7 +51,7 @@ struct JournalDataExportService {
         )
     }
 
-    private func makeExportItem(from item: JournalItem) -> JournalDataExportItem {
+    private func makeExportItem(from item: Entry) -> JournalDataExportItem {
         JournalDataExportItem(
             id: item.id,
             fullText: item.fullText
@@ -94,9 +94,9 @@ struct JournalDataExportEntry: Codable, Equatable {
 struct JournalDataExportItem: Equatable {
     let id: UUID
     let fullText: String
-    /// Legacy pre–strip-only exports; ignored when mapping to `JournalItem`.
+    /// Legacy pre–strip-only exports; ignored when mapping to `Entry`.
     let chipLabel: String?
-    /// Legacy pre–strip-only exports; ignored when mapping to `JournalItem`.
+    /// Legacy pre–strip-only exports; ignored when mapping to `Entry`.
     let isTruncated: Bool?
 
     init(id: UUID, fullText: String, chipLabel: String? = nil, isTruncated: Bool? = nil) {

@@ -6,7 +6,7 @@ extension JournalViewModel {
         let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, gratitudes.count < Self.slotCount else { return false }
 
-        gratitudes.append(JournalItem(fullText: trimmed))
+        gratitudes.append(Entry(fullText: trimmed))
         scheduleAutosave()
         return true
     }
@@ -16,7 +16,7 @@ extension JournalViewModel {
         let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, needs.count < Self.slotCount else { return false }
 
-        needs.append(JournalItem(fullText: trimmed))
+        needs.append(Entry(fullText: trimmed))
         scheduleAutosave()
         return true
     }
@@ -26,7 +26,7 @@ extension JournalViewModel {
         let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, people.count < Self.slotCount else { return false }
 
-        people.append(JournalItem(fullText: trimmed))
+        people.append(Entry(fullText: trimmed))
         scheduleAutosave()
         return true
     }
@@ -37,7 +37,7 @@ extension JournalViewModel {
         guard index >= 0, index < gratitudes.count, !trimmed.isEmpty else { return false }
         guard trimmed != gratitudes[index].fullText else { return true }
 
-        gratitudes[index] = JournalItem(fullText: trimmed, id: gratitudes[index].id)
+        gratitudes[index] = Entry(fullText: trimmed, id: gratitudes[index].id)
         scheduleAutosave()
         return true
     }
@@ -48,7 +48,7 @@ extension JournalViewModel {
         guard index >= 0, index < needs.count, !trimmed.isEmpty else { return false }
         guard trimmed != needs[index].fullText else { return true }
 
-        needs[index] = JournalItem(fullText: trimmed, id: needs[index].id)
+        needs[index] = Entry(fullText: trimmed, id: needs[index].id)
         scheduleAutosave()
         return true
     }
@@ -59,7 +59,7 @@ extension JournalViewModel {
         guard index >= 0, index < people.count, !trimmed.isEmpty else { return false }
         guard trimmed != people[index].fullText else { return true }
 
-        people[index] = JournalItem(fullText: trimmed, id: people[index].id)
+        people[index] = Entry(fullText: trimmed, id: people[index].id)
         scheduleAutosave()
         return true
     }
@@ -71,7 +71,7 @@ extension JournalViewModel {
         let trimmed = fullText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard index >= 0, index < gratitudes.count, !trimmed.isEmpty else { return nil }
 
-        gratitudes[index] = JournalItem(fullText: trimmed, id: gratitudes[index].id)
+        gratitudes[index] = Entry(fullText: trimmed, id: gratitudes[index].id)
         scheduleAutosave()
         return index
     }
@@ -81,7 +81,7 @@ extension JournalViewModel {
         let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, gratitudes.count < Self.slotCount else { return nil }
 
-        gratitudes.append(JournalItem(fullText: trimmed))
+        gratitudes.append(Entry(fullText: trimmed))
         scheduleAutosave()
         return gratitudes.count - 1
     }
@@ -91,7 +91,7 @@ extension JournalViewModel {
         let trimmed = fullText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard index >= 0, index < needs.count, !trimmed.isEmpty else { return nil }
 
-        needs[index] = JournalItem(fullText: trimmed, id: needs[index].id)
+        needs[index] = Entry(fullText: trimmed, id: needs[index].id)
         scheduleAutosave()
         return index
     }
@@ -101,7 +101,7 @@ extension JournalViewModel {
         let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, needs.count < Self.slotCount else { return nil }
 
-        needs.append(JournalItem(fullText: trimmed))
+        needs.append(Entry(fullText: trimmed))
         scheduleAutosave()
         return needs.count - 1
     }
@@ -111,7 +111,7 @@ extension JournalViewModel {
         let trimmed = fullText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard index >= 0, index < people.count, !trimmed.isEmpty else { return nil }
 
-        people[index] = JournalItem(fullText: trimmed, id: people[index].id)
+        people[index] = Entry(fullText: trimmed, id: people[index].id)
         scheduleAutosave()
         return index
     }
@@ -121,7 +121,7 @@ extension JournalViewModel {
         let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, people.count < Self.slotCount else { return nil }
 
-        people.append(JournalItem(fullText: trimmed))
+        people.append(Entry(fullText: trimmed))
         scheduleAutosave()
         return people.count - 1
     }
@@ -165,7 +165,7 @@ extension JournalViewModel {
         moveItem(in: &people, from: sourceIndex, to: destinationOffset)
     }
 
-    private func moveItem(in items: inout [JournalItem], from sourceIndex: Int, to destinationOffset: Int) -> Bool {
+    private func moveItem(in items: inout [Entry], from sourceIndex: Int, to destinationOffset: Int) -> Bool {
         guard sourceIndex >= 0, sourceIndex < items.count else { return false }
         guard destinationOffset >= 0, destinationOffset <= items.count else { return false }
 

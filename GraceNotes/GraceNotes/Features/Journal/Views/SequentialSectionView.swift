@@ -21,7 +21,7 @@ struct SequentialSectionView: View {
     let guidanceMessage: String?
     /// Optional second line under `guidanceMessage` (e.g. keyboard hint).
     let guidanceMessageSecondary: String?
-    let items: [JournalItem]
+    let items: [Entry]
     let placeholder: String
     let slotCount: Int
     let inputAccessibilityIdentifier: String?
@@ -65,7 +65,7 @@ struct SequentialSectionView: View {
         guidanceTitle: String? = nil,
         guidanceMessage: String? = nil,
         guidanceMessageSecondary: String? = nil,
-        items: [JournalItem],
+        items: [Entry],
         placeholder: String,
         slotCount: Int = 5,
         inputAccessibilityIdentifier: String? = nil,

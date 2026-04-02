@@ -36,7 +36,7 @@ enum ReviewHistoryDrilldownCalendarRow: Identifiable, Equatable {
 enum ReviewHistoryDrilldownCalendarLayout {
     /// Lower: first day of the month containing the earliest entry; upper: statistics window end (exclusive).
     static func drilldownGridDisplayRange(
-        entries: [JournalEntry],
+        entries: [Journal],
         historyDayRange: Range<Date>,
         calendar: Calendar
     ) -> Range<Date> {

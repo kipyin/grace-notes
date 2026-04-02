@@ -384,7 +384,7 @@ enum SequentialSectionStripRow {
 
     struct StripReorderDropDelegate: DropDelegate {
         let targetIndex: Int
-        let items: [JournalItem]
+        let items: [Entry]
         @Binding var draggingItemID: UUID?
         @Binding var hoverTargetItemID: UUID?
         let reduceMotion: Bool
@@ -393,7 +393,7 @@ enum SequentialSectionStripRow {
         /// Indices for `JournalViewModel.moveItem`-compatible `onMoveStrip`, or nil when no reorder should run.
         static func stripReorderMoveParameters(
             activeDragID: UUID,
-            items: [JournalItem],
+            items: [Entry],
             targetIndex: Int
         ) -> (source: Int, destination: Int)? {
             guard items.indices.contains(targetIndex) else { return nil }

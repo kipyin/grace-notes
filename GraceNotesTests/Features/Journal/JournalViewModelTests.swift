@@ -23,7 +23,7 @@ final class JournalViewModelTests: XCTestCase {
 
         let startOfDay = calendar.startOfDay(for: now)
         let nextDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
-        let descriptor = FetchDescriptor<JournalEntry>(
+        let descriptor = FetchDescriptor<Journal>(
             predicate: #Predicate { entry in
                 entry.entryDate >= startOfDay && entry.entryDate < nextDay
             }
@@ -38,11 +38,11 @@ final class JournalViewModelTests: XCTestCase {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
         let startOfDay = calendar.startOfDay(for: now)
-        let existingEntry = JournalEntry(
+        let existingEntry = Journal(
             entryDate: startOfDay,
-            gratitudes: [JournalItem(fullText: "Family")],
-            needs: [JournalItem(fullText: "Wisdom")],
-            people: [JournalItem(fullText: "Friend")],
+            gratitudes: [Entry(fullText: "Family")],
+            needs: [Entry(fullText: "Wisdom")],
+            people: [Entry(fullText: "Friend")],
             readingNotes: "Psalm 23",
             reflections: "Trusting God",
             createdAt: now,
@@ -66,11 +66,11 @@ final class JournalViewModelTests: XCTestCase {
         let now = Date(timeIntervalSince1970: 1_742_147_200) // 2025-03-15
         let pastDate = Date(timeIntervalSince1970: 1_742_056_800) // 2025-03-04
         let startOfPastDay = calendar.startOfDay(for: pastDate)
-        let pastEntry = JournalEntry(
+        let pastEntry = Journal(
             entryDate: startOfPastDay,
-            gratitudes: [JournalItem(fullText: "Past gratitude")],
-            needs: [JournalItem(fullText: "Past need")],
-            people: [JournalItem(fullText: "Past person")],
+            gratitudes: [Entry(fullText: "Past gratitude")],
+            needs: [Entry(fullText: "Past need")],
+            people: [Entry(fullText: "Past person")],
             readingNotes: "Past notes",
             reflections: "Past reflection",
             createdAt: pastDate,
@@ -96,9 +96,9 @@ final class JournalViewModelTests: XCTestCase {
         let startOfToday = calendar.startOfDay(for: now)
         let startOfPastDay = calendar.startOfDay(for: pastDate)
 
-        let todayEntry = JournalEntry(
+        let todayEntry = Journal(
             entryDate: startOfToday,
-            gratitudes: [JournalItem(fullText: "Today")],
+            gratitudes: [Entry(fullText: "Today")],
             needs: [],
             people: [],
             readingNotes: "",
@@ -106,9 +106,9 @@ final class JournalViewModelTests: XCTestCase {
             createdAt: now,
             updatedAt: now
         )
-        let pastEntry = JournalEntry(
+        let pastEntry = Journal(
             entryDate: startOfPastDay,
-            gratitudes: [JournalItem(fullText: "Past")],
+            gratitudes: [Entry(fullText: "Past")],
             needs: [],
             people: [],
             readingNotes: "",
@@ -193,7 +193,7 @@ final class JournalViewModelTests: XCTestCase {
 
         try await Task.sleep(nanoseconds: 120_000_000)
 
-        let descriptor = FetchDescriptor<JournalEntry>()
+        let descriptor = FetchDescriptor<Journal>()
         let entries = try context.fetch(descriptor)
         XCTAssertEqual(entries.count, 1)
         XCTAssertEqual((entries[0].gratitudes ?? []).map(\.fullText), ["Family"])

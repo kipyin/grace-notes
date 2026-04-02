@@ -4,7 +4,7 @@ import XCTest
 
 final class JournalCompletionLevelTests: XCTestCase {
     func test_completionLevel_soil_whenEntryIsBlank() {
-        let level = JournalEntry.completionLevel(
+        let level = Journal.completionLevel(
             gratitudesCount: 0,
             needsCount: 0,
             peopleCount: 0
@@ -14,7 +14,7 @@ final class JournalCompletionLevelTests: XCTestCase {
     }
 
     func test_completionLevel_sprout_withSingleGratitudeOnly() {
-        let level = JournalEntry.completionLevel(
+        let level = Journal.completionLevel(
             gratitudesCount: 1,
             needsCount: 0,
             peopleCount: 0
@@ -24,7 +24,7 @@ final class JournalCompletionLevelTests: XCTestCase {
     }
 
     func test_completionLevel_sprout_twoZeroZero() {
-        let level = JournalEntry.completionLevel(
+        let level = Journal.completionLevel(
             gratitudesCount: 2,
             needsCount: 0,
             peopleCount: 0
@@ -34,7 +34,7 @@ final class JournalCompletionLevelTests: XCTestCase {
     }
 
     func test_completionLevel_sprout_twoTwoTwo() {
-        let level = JournalEntry.completionLevel(
+        let level = Journal.completionLevel(
             gratitudesCount: 2,
             needsCount: 2,
             peopleCount: 2
@@ -44,7 +44,7 @@ final class JournalCompletionLevelTests: XCTestCase {
     }
 
     func test_completionLevel_sprout_oneOneOne() {
-        let level = JournalEntry.completionLevel(
+        let level = Journal.completionLevel(
             gratitudesCount: 1,
             needsCount: 1,
             peopleCount: 1
@@ -54,7 +54,7 @@ final class JournalCompletionLevelTests: XCTestCase {
     }
 
     func test_completionLevel_twig_fiveTwoThree() {
-        let level = JournalEntry.completionLevel(
+        let level = Journal.completionLevel(
             gratitudesCount: 5,
             needsCount: 2,
             peopleCount: 3
@@ -64,7 +64,7 @@ final class JournalCompletionLevelTests: XCTestCase {
     }
 
     func test_completionLevel_twig_threeZeroZero() {
-        let level = JournalEntry.completionLevel(
+        let level = Journal.completionLevel(
             gratitudesCount: 3,
             needsCount: 0,
             peopleCount: 0
@@ -74,7 +74,7 @@ final class JournalCompletionLevelTests: XCTestCase {
     }
 
     func test_completionLevel_twig_fiveTwoTwo() {
-        let level = JournalEntry.completionLevel(
+        let level = Journal.completionLevel(
             gratitudesCount: 5,
             needsCount: 2,
             peopleCount: 2
@@ -84,7 +84,7 @@ final class JournalCompletionLevelTests: XCTestCase {
     }
 
     func test_completionLevel_leaf_fiveThreeThree() {
-        let level = JournalEntry.completionLevel(
+        let level = Journal.completionLevel(
             gratitudesCount: 5,
             needsCount: 3,
             peopleCount: 3
@@ -94,7 +94,7 @@ final class JournalCompletionLevelTests: XCTestCase {
     }
 
     func test_completionLevel_leaf_fiveFiveFour() {
-        let level = JournalEntry.completionLevel(
+        let level = Journal.completionLevel(
             gratitudesCount: 5,
             needsCount: 5,
             peopleCount: 4
@@ -104,7 +104,7 @@ final class JournalCompletionLevelTests: XCTestCase {
     }
 
     func test_completionLevel_bloom_fiveFiveFive() {
-        let level = JournalEntry.completionLevel(
+        let level = Journal.completionLevel(
             gratitudesCount: 5,
             needsCount: 5,
             peopleCount: 5
@@ -115,15 +115,15 @@ final class JournalCompletionLevelTests: XCTestCase {
 
     func test_hasHarvestChips_alignsWithBloomLevel_withOrWithoutNotes() throws {
         let context = try makeInMemoryContext()
-        let items = (1...JournalEntry.slotCount).map { JournalItem(fullText: "x\($0)") }
-        let harvestOnly = JournalEntry(
+        let items = (1...Journal.slotCount).map { Entry(fullText: "x\($0)") }
+        let harvestOnly = Journal(
             gratitudes: items,
             needs: items,
             people: items,
             readingNotes: "",
             reflections: ""
         )
-        let harvestWithNotes = JournalEntry(
+        let harvestWithNotes = Journal(
             gratitudes: items,
             needs: items,
             people: items,
@@ -182,7 +182,7 @@ final class JournalCompletionLevelTests: XCTestCase {
     }
 
     func test_hasMeaningfulContent_trueWhenOnlyReadingNotesOnEmptyStrips() {
-        let entry = JournalEntry(
+        let entry = Journal(
             entryDate: .now,
             gratitudes: [],
             needs: [],
@@ -195,7 +195,7 @@ final class JournalCompletionLevelTests: XCTestCase {
     }
 
     private func makeInMemoryContext() throws -> ModelContext {
-        let schema = Schema([JournalEntry.self])
+        let schema = Schema([Journal.self])
         let storeURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("GraceNotesCompletionLevelTests-\(UUID().uuidString).store")
         let configuration = ModelConfiguration(schema: schema, url: storeURL)

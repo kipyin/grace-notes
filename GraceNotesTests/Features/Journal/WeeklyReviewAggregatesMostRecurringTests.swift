@@ -261,7 +261,7 @@ final class WeeklyReviewAggregatesMostRecurringTests: XCTestCase {
         let previous = ReviewInsightsPeriod.previousPeriod(before: period, calendar: calendar)
         let refDay = calendar.startOfDay(for: referenceDate)
 
-        var entries: [JournalEntry] = []
+        var entries: [Journal] = []
         for dayOffset in 1...22 {
             let day = calendar.date(byAdding: .day, value: -dayOffset, to: refDay)!
             entries.append(makeEntry(on: day, gratitudes: ["rest"], needs: ["focus"], people: ["Dad"]))
@@ -456,12 +456,12 @@ private extension WeeklyReviewAggregatesMostRecurringTests {
         people: [String] = [],
         readingNotes: String = "",
         reflections: String = ""
-    ) -> JournalEntry {
-        JournalEntry(
+    ) -> Journal {
+        Journal(
             entryDate: date,
-            gratitudes: gratitudes.map { JournalItem(fullText: $0) },
-            needs: needs.map { JournalItem(fullText: $0) },
-            people: people.map { JournalItem(fullText: $0) },
+            gratitudes: gratitudes.map { Entry(fullText: $0) },
+            needs: needs.map { Entry(fullText: $0) },
+            people: people.map { Entry(fullText: $0) },
             readingNotes: readingNotes,
             reflections: reflections
         )

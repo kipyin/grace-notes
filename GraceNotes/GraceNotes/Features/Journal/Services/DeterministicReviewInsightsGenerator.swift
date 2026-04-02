@@ -4,7 +4,7 @@ struct DeterministicReviewInsightsGenerator: ReviewInsightsGenerating {
     private let ruleEngine = WeeklyInsightRuleEngine()
 
     func generateInsights(
-        from entries: [JournalEntry],
+        from entries: [Journal],
         referenceDate: Date,
         calendar: Calendar = .current,
         pastStatisticsInterval: PastStatisticsIntervalSelection = .default

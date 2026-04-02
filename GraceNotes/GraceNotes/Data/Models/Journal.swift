@@ -43,14 +43,14 @@ extension JournalCompletionLevel: Codable {
 }
 
 @Model
-final class JournalEntry {
+final class Journal {
     // CloudKit: non-optional transformable arrays do not get a recognized default in
     // the Core Data stack; use optional (`nil` = empty) so the store can load.
     var id: UUID = UUID()
     var entryDate: Date = Date.now
-    var gratitudes: [JournalItem]?
-    var needs: [JournalItem]?
-    var people: [JournalItem]?
+    var gratitudes: [Entry]?
+    var needs: [Entry]?
+    var people: [Entry]?
     @Attribute(originalName: "bibleNotes") var readingNotes: String = ""
     var reflections: String = ""
     var createdAt: Date = Date.now
@@ -60,9 +60,9 @@ final class JournalEntry {
     init(
         id: UUID = UUID(),
         entryDate: Date = .now,
-        gratitudes: [JournalItem] = [],
-        needs: [JournalItem] = [],
-        people: [JournalItem] = [],
+        gratitudes: [Entry] = [],
+        needs: [Entry] = [],
+        people: [Entry] = [],
         readingNotes: String = "",
         reflections: String = "",
         createdAt: Date = .now,

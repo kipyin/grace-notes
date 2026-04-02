@@ -280,7 +280,7 @@ private extension WeeklyReviewHistoryRollupsTests {
         )
     }
 
-    func distinctEntryDays(_ entries: [JournalEntry]) -> Int {
+    func distinctEntryDays(_ entries: [Journal]) -> Int {
         Set(entries.map { calendar.startOfDay(for: $0.entryDate) }).count
     }
 
@@ -291,12 +291,12 @@ private extension WeeklyReviewHistoryRollupsTests {
         people: [String] = [],
         readingNotes: String = "",
         reflections: String = ""
-    ) -> JournalEntry {
-        JournalEntry(
+    ) -> Journal {
+        Journal(
             entryDate: date,
-            gratitudes: gratitudes.map { JournalItem(fullText: $0) },
-            needs: needs.map { JournalItem(fullText: $0) },
-            people: people.map { JournalItem(fullText: $0) },
+            gratitudes: gratitudes.map { Entry(fullText: $0) },
+            needs: needs.map { Entry(fullText: $0) },
+            people: people.map { Entry(fullText: $0) },
             readingNotes: readingNotes,
             reflections: reflections
         )

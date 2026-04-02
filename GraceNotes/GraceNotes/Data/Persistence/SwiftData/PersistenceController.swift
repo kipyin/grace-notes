@@ -56,7 +56,7 @@ final class PersistenceController {
     static func makeForUITesting() throws -> PersistenceController {
         resetUITestStoreIfRequested()
         let startupTrace = PerformanceTrace.begin("PersistenceController.makeForUITesting")
-        let schema = Schema([JournalEntry.self])
+        let schema = Schema([Journal.self])
         let configuration = ModelConfiguration(
             schema: schema,
             url: uiTestStoreURL,
@@ -84,7 +84,7 @@ final class PersistenceController {
 
     private static func makeController(inMemory: Bool, cloudSyncEnabled: Bool) throws -> PersistenceController {
         let startupTrace = PerformanceTrace.begin("PersistenceController.makeController")
-        let schema = Schema([JournalEntry.self])
+        let schema = Schema([Journal.self])
         let configuration = Self.makeConfiguration(
             schema: schema,
             inMemory: inMemory,
@@ -190,7 +190,7 @@ final class PersistenceController {
 
     private static func seedUITestDataIfNeeded(in container: ModelContainer) throws {
         let context = ModelContext(container)
-        var descriptor = FetchDescriptor<JournalEntry>()
+        var descriptor = FetchDescriptor<Journal>()
         descriptor.fetchLimit = 1
         if try context.fetch(descriptor).first != nil {
             return
@@ -211,11 +211,11 @@ final class PersistenceController {
         } else {
             // Short, distinct lines so NL distillation does not emit overlapping concepts that
             // sum to trending floors from a single entry (see `WeeklyReviewAggregatesMostRecurringTests`).
-            let seededEntry = JournalEntry(
+            let seededEntry = Journal(
                 entryDate: previousDay,
-                gratitudes: [JournalItem(fullText: "sunlight")],
-                needs: [JournalItem(fullText: "stretching")],
-                people: [JournalItem(fullText: "Jordan")],
+                gratitudes: [Entry(fullText: "sunlight")],
+                needs: [Entry(fullText: "stretching")],
+                people: [Entry(fullText: "Jordan")],
                 createdAt: now,
                 updatedAt: now
             )
@@ -251,11 +251,11 @@ final class PersistenceController {
                 needSeed = rolling[(dayOffset + 1) % rolling.count]
             }
             let personSeed = dayOffset % 2 == 0 ? "Mia" : "Dad"
-            let entry = JournalEntry(
+            let entry = Journal(
                 entryDate: day,
-                gratitudes: [JournalItem(fullText: gratitudeSeed)],
-                needs: [JournalItem(fullText: needSeed)],
-                people: [JournalItem(fullText: personSeed)],
+                gratitudes: [Entry(fullText: gratitudeSeed)],
+                needs: [Entry(fullText: needSeed)],
+                people: [Entry(fullText: personSeed)],
                 readingNotes: dayOffset % 3 == 0 ? "Short note about \(gratitudeSeed)." : "",
                 reflections: dayOffset % 4 == 0 ? "Reflecting on \(needSeed)." : "",
                 createdAt: now,
