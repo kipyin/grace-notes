@@ -376,8 +376,12 @@ class CLISurfaceTest(unittest.TestCase):
         self.assertIn("grace run --destination", result.output)
 
     def test_invalid_kind_uses_designed_error_shape(self) -> None:
-        runner = CliRunner()
-        result = runner.invoke(app, ["test", "--kind", "invalid"])
+        repo_root = Path(__file__).resolve().parents[3]
+        with mock.patch.object(cli_core, "_require_macos_xcode"):
+            with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+                with mock.patch.object(simulator, "load_available_ios_devices", return_value=[]):
+                    runner = CliRunner()
+                    result = runner.invoke(app, ["test", "--kind", "invalid"])
 
         self.assertEqual(result.exit_code, 2)
 
@@ -661,6 +665,69 @@ class CLISurfaceTest(unittest.TestCase):
 
         self.assertEqual(result.exit_code, 0, msg=result.output)
         self.assertEqual(resets, [])
+
+    def test_run_test_once_splits_kind_all_when_parallel_toggles_differ(self) -> None:
+        repo_root = Path(__file__).resolve().parents[3]
+        cfg = replace(
+            config.default_config(),
+            parallel_testing_unit=True,
+            parallel_testing_ui=False,
+        )
+        runs: list[list[str]] = []
+
+        def capture_run(argv: list[str], **_: object) -> subprocess.CompletedProcess[str]:
+            runs.append(list(argv))
+            return subprocess.CompletedProcess(argv, 0, "", "")
+
+        with mock.patch.object(cli_core, "_run", side_effect=capture_run):
+            cli_core._run_test_once(
+                cfg=cfg,
+                repo_root=repo_root,
+                resolved_destination="platform=iOS Simulator,name=iPhone 17 Pro,OS=latest",
+                kind="all",
+                isolated_dd=False,
+                verbose=False,
+            )
+
+        self.assertEqual(len(runs), 2)
+        u_idx = runs[0].index("-parallel-testing-enabled")
+        self.assertEqual(runs[0][u_idx + 1], "YES")
+        self.assertIn("-only-testing", runs[0])
+        ot = runs[0].index("-only-testing")
+        self.assertEqual(runs[0][ot + 1], cfg.unit_test_bundle)
+
+        ui_idx = runs[1].index("-parallel-testing-enabled")
+        self.assertEqual(runs[1][ui_idx + 1], "NO")
+        ot_ui = runs[1].index("-only-testing")
+        self.assertEqual(runs[1][ot_ui + 1], cfg.ui_test_bundle)
+
+    def test_run_test_once_kind_all_single_invocation_when_parallel_toggles_match(self) -> None:
+        repo_root = Path(__file__).resolve().parents[3]
+        cfg = replace(
+            config.default_config(),
+            parallel_testing_unit=False,
+            parallel_testing_ui=False,
+        )
+        runs: list[list[str]] = []
+
+        def capture_run(argv: list[str], **_: object) -> subprocess.CompletedProcess[str]:
+            runs.append(list(argv))
+            return subprocess.CompletedProcess(argv, 0, "", "")
+
+        with mock.patch.object(cli_core, "_run", side_effect=capture_run):
+            cli_core._run_test_once(
+                cfg=cfg,
+                repo_root=repo_root,
+                resolved_destination="platform=iOS Simulator,name=iPhone 17 Pro,OS=latest",
+                kind="all",
+                isolated_dd=False,
+                verbose=False,
+            )
+
+        self.assertEqual(len(runs), 1)
+        self.assertNotIn("-only-testing", runs[0])
+        idx = runs[0].index("-parallel-testing-enabled")
+        self.assertEqual(runs[0][idx + 1], "NO")
 
     def test_doctor_json_independent_default_and_matrix_status(self) -> None:
         """Default destination can be ok while matrix reports error (not both overwritten)."""

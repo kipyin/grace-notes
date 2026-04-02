@@ -368,6 +368,20 @@ def _editable_config_keys() -> dict[str, EditableConfigKey]:
             group="tests",
             getter=lambda cfg: cfg.xcode_test_flags,
         ),
+        "tests.parallel_testing_unit": EditableConfigKey(
+            dotted_path="tests.parallel_testing_unit",
+            toml_path=("tests", "parallel_testing_unit"),
+            value_type="bool",
+            group="tests",
+            getter=lambda cfg: cfg.parallel_testing_unit,
+        ),
+        "tests.parallel_testing_ui": EditableConfigKey(
+            dotted_path="tests.parallel_testing_ui",
+            toml_path=("tests", "parallel_testing_ui"),
+            value_type="bool",
+            group="tests",
+            getter=lambda cfg: cfg.parallel_testing_ui,
+        ),
         "tests.legacy_runtime_skip_flags": EditableConfigKey(
             dotted_path="tests.legacy_runtime_skip_flags",
             toml_path=("tests", "legacy_runtime_skip_flags"),
@@ -755,6 +769,16 @@ def _test_only_filter(kind: str, cfg: config.DevConfig) -> list[str] | None:
     return [cfg.smoke_ui_test]
 
 
+def _parallel_testing_for_kind(cfg: config.DevConfig, kind: str) -> bool:
+    """XCTest parallel flag: unit vs UI/smoke can be configured separately."""
+    if kind == "unit":
+        return cfg.parallel_testing_unit
+    if kind in {"ui", "smoke"}:
+        return cfg.parallel_testing_ui
+    # "all" with identical unit/UI toggles uses one xcodebuild
+    return cfg.parallel_testing_unit
+
+
 def _run_test_once(
     *,
     cfg: config.DevConfig,
@@ -764,6 +788,25 @@ def _run_test_once(
     isolated_dd: bool,
     verbose: bool,
 ) -> None:
+    if kind == "all" and cfg.parallel_testing_unit != cfg.parallel_testing_ui:
+        _run_test_once(
+            cfg=cfg,
+            repo_root=repo_root,
+            resolved_destination=resolved_destination,
+            kind="unit",
+            isolated_dd=isolated_dd,
+            verbose=verbose,
+        )
+        _run_test_once(
+            cfg=cfg,
+            repo_root=repo_root,
+            resolved_destination=resolved_destination,
+            kind="ui",
+            isolated_dd=isolated_dd,
+            verbose=verbose,
+        )
+        return
+
     argv = xcode_helpers.test_argv(
         project=repo_root / cfg.project,
         scheme=cfg.scheme,
@@ -771,6 +814,7 @@ def _run_test_once(
         only_testing=_test_only_filter(kind, cfg),
         isolated_derived_data=cfg.isolated_derived_data if isolated_dd else None,
         xcode_test_flags=cfg.xcode_test_flags,
+        parallel_testing=_parallel_testing_for_kind(cfg, kind),
         legacy_skip_flags=cfg.legacy_runtime_skip_flags,
     )
     _run(argv, cwd=repo_root, check=True, verbose=verbose)

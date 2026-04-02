@@ -145,3 +145,31 @@ class XcodeHelpersTest(unittest.TestCase):
         boot, status = xcode.simctl_boot_sequence_argv_udid("ABC-UDID")
         self.assertEqual(boot, ["xcrun", "simctl", "boot", "ABC-UDID"])
         self.assertEqual(status, ["xcrun", "simctl", "bootstatus", "ABC-UDID", "-b"])
+
+    def test_merge_parallel_testing_flags_strips_then_applies(self) -> None:
+        base = ["-foo", "1", "-parallel-testing-enabled", "NO", "-bar"]
+        merged = xcode.merge_parallel_testing_flags(base, parallel_enabled=True)
+        self.assertEqual(
+            merged,
+            ["-foo", "1", "-bar", "-parallel-testing-enabled", "YES"],
+        )
+        merged_off = xcode.merge_parallel_testing_flags(base, parallel_enabled=False)
+        self.assertEqual(
+            merged_off[-2:],
+            ["-parallel-testing-enabled", "NO"],
+        )
+
+    def test_test_argv_parallel_testing(self) -> None:
+        project = Path("GraceNotes/GraceNotes.xcodeproj")
+        dest = "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.0"
+        argv = xcode.test_argv(
+            project=project,
+            scheme="GraceNotes",
+            resolved_destination=dest,
+            only_testing=["GraceNotesTests"],
+            xcode_test_flags=["-parallel-testing-enabled", "NO"],
+            parallel_testing=True,
+        )
+        self.assertIn("-parallel-testing-enabled", argv)
+        self.assertEqual(argv[argv.index("-parallel-testing-enabled") + 1], "YES")
+        self.assertEqual(argv[-1], "test")

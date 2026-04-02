@@ -33,7 +33,11 @@ UNIT_TEST_BUNDLE = "GraceNotesTests"
 UI_TEST_BUNDLE = "GraceNotesUITests"
 SMOKE_UI_TEST = "GraceNotesUITests/GraceNotesSmokeUITests/testSmokeLaunch"
 
-XCODE_TEST_FLAGS = ("-parallel-testing-enabled", "NO")
+XCODE_TEST_FLAGS: tuple[str, ...] = ()
+
+# XCTest parallel execution (separate toggles; smoke/UI use the UI toggle).
+DEFAULT_PARALLEL_TESTING_UNIT = True
+DEFAULT_PARALLEL_TESTING_UI = False
 
 # iOS 17 hosted runtime can crash in these suites before assertions run.
 LEGACY_RUNTIME_SKIP_FLAGS: tuple[str, ...] = (
@@ -76,6 +80,8 @@ class DevConfig:
     ui_test_bundle: str
     smoke_ui_test: str
     xcode_test_flags: tuple[str, ...]
+    parallel_testing_unit: bool
+    parallel_testing_ui: bool
     legacy_runtime_skip_flags: tuple[str, ...]
     ci_profiles: dict[str, CIProfile]
     run_presets: dict[str, tuple[str, ...]]
@@ -135,6 +141,8 @@ def default_config() -> DevConfig:
         ui_test_bundle=UI_TEST_BUNDLE,
         smoke_ui_test=SMOKE_UI_TEST,
         xcode_test_flags=tuple(XCODE_TEST_FLAGS),
+        parallel_testing_unit=DEFAULT_PARALLEL_TESTING_UNIT,
+        parallel_testing_ui=DEFAULT_PARALLEL_TESTING_UI,
         legacy_runtime_skip_flags=tuple(LEGACY_RUNTIME_SKIP_FLAGS),
         ci_profiles=_default_ci_profiles(),
         run_presets={},
@@ -147,6 +155,22 @@ def _as_string_tuple(value: Any) -> tuple[str, ...]:
     if isinstance(value, list):
         return tuple(str(item).strip() for item in value if str(item).strip())
     return ()
+
+
+def _parse_optional_bool(raw: Any, default: bool) -> bool:
+    if raw is None:
+        return default
+    if isinstance(raw, bool):
+        return raw
+    if isinstance(raw, (int, float)):
+        return bool(raw)
+    if isinstance(raw, str):
+        normalized = raw.strip().lower()
+        if normalized in {"1", "true", "yes", "on"}:
+            return True
+        if normalized in {"0", "false", "no", "off"}:
+            return False
+    return default
 
 
 def _as_profile(name: str, raw: Any, base: CIProfile | None = None) -> CIProfile:
@@ -238,7 +262,16 @@ def load_config(repo_root: Path | None = None) -> DevConfig:
         ui_test_bundle=str(tests.get("ui_test_bundle", loaded.ui_test_bundle)),
         smoke_ui_test=str(tests.get("smoke_ui_test", loaded.smoke_ui_test)),
         xcode_test_flags=tuple(_as_string_tuple(tests.get("xcode_test_flags")))
-        or loaded.xcode_test_flags,
+        if "xcode_test_flags" in tests
+        else loaded.xcode_test_flags,
+        parallel_testing_unit=_parse_optional_bool(
+            tests.get("parallel_testing_unit"),
+            loaded.parallel_testing_unit,
+        ),
+        parallel_testing_ui=_parse_optional_bool(
+            tests.get("parallel_testing_ui"),
+            loaded.parallel_testing_ui,
+        ),
         legacy_runtime_skip_flags=tuple(
             _as_string_tuple(tests.get("legacy_runtime_skip_flags")),
         )

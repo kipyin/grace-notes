@@ -66,3 +66,23 @@ default_ci_profile = "full"
 
             loaded = config.load_config(repo_root=root)
             self.assertEqual(loaded.default_ci_profile, "full")
+
+    def test_parallel_testing_defaults(self) -> None:
+        loaded = config.load_config(repo_root=Path("/tmp/does-not-exist"))
+        self.assertTrue(loaded.parallel_testing_unit)
+        self.assertFalse(loaded.parallel_testing_ui)
+
+    def test_load_config_parallel_testing_toml(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / "gracenotes-dev.toml").write_text(
+                """
+[tests]
+parallel_testing_unit = false
+parallel_testing_ui = true
+""".strip(),
+                encoding="utf-8",
+            )
+            loaded = config.load_config(repo_root=root)
+            self.assertFalse(loaded.parallel_testing_unit)
+            self.assertTrue(loaded.parallel_testing_ui)

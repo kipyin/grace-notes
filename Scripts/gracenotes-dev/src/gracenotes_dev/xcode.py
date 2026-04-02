@@ -59,8 +59,27 @@ def legacy_skip_flags_if_needed(resolved_destination: str) -> list[str]:
 
 
 def xcodebuild_test_flag_list() -> list[str]:
-    """Parallel test flag tuple as a list for subprocess."""
+    """Legacy extra xcodebuild test flags as a list (often empty)."""
     return list(config.XCODE_TEST_FLAGS)
+
+
+def merge_parallel_testing_flags(
+    base: Sequence[str] | None,
+    *,
+    parallel_enabled: bool,
+) -> list[str]:
+    """Remove any ``-parallel-testing-enabled`` pair from ``base``, then set it from the bool."""
+    raw = list(base) if base is not None else []
+    out: list[str] = []
+    index = 0
+    while index < len(raw):
+        if raw[index] == "-parallel-testing-enabled" and index + 1 < len(raw):
+            index += 2
+            continue
+        out.append(raw[index])
+        index += 1
+    out.extend(["-parallel-testing-enabled", "YES" if parallel_enabled else "NO"])
+    return out
 
 
 def xcodebuild_base_args(
@@ -131,18 +150,25 @@ def test_argv(
     isolated_derived_data: Path | str | None = None,
     apply_legacy_skips: bool = True,
     xcode_test_flags: Sequence[str] | None = None,
+    parallel_testing: bool | None = None,
     legacy_skip_flags: Sequence[str] | None = None,
 ) -> list[str]:
     """``xcodebuild test`` argv list matching Makefile test patterns.
 
     Covers ``test``, ``test-unit``, and ``test-ui`` Makefile targets.
+
+    When ``parallel_testing`` is set, ``-parallel-testing-enabled`` is applied for that run
+    (after stripping any parallel pair from ``xcode_test_flags``). When ``None``, extra flags
+    are passed through unchanged.
     """
     args = xcodebuild_base_args(
         project=project, scheme=scheme, resolved_destination=resolved_destination
     )
-    args.extend(
-        list(xcode_test_flags) if xcode_test_flags is not None else xcodebuild_test_flag_list()
-    )
+    base_flags = xcode_test_flags if xcode_test_flags is not None else xcodebuild_test_flag_list()
+    if parallel_testing is not None:
+        args.extend(merge_parallel_testing_flags(base_flags, parallel_enabled=parallel_testing))
+    else:
+        args.extend(list(base_flags))
     if apply_legacy_skips:
         if legacy_skip_flags is None:
             args.extend(legacy_skip_flags_if_needed(resolved_destination))

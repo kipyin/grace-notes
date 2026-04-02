@@ -17,7 +17,9 @@ isolated_derived_data = "/tmp/GraceNotes-TestDerivedData"
 unit_test_bundle = "GraceNotesTests"
 ui_test_bundle = "GraceNotesUITests"
 smoke_ui_test = "GraceNotesUITests/GraceNotesSmokeUITests/testSmokeLaunch"
-xcode_test_flags = ["-parallel-testing-enabled", "NO"]
+# XCTest parallel execution (UI defaults off — see CHANGELOG re: simulator contention).
+parallel_testing_unit = true
+parallel_testing_ui = false
 legacy_runtime_skip_flags = [
   "-skip-testing:GraceNotesTests/DeterministicReviewInsightsTests",
   "-skip-testing:GraceNotesTests/HistoryEntryGroupingTests",

@@ -44,6 +44,8 @@ def config_list() -> None:
         ("tests.unit_test_bundle", cfg.unit_test_bundle),
         ("tests.ui_test_bundle", cfg.ui_test_bundle),
         ("tests.smoke_ui_test", cfg.smoke_ui_test),
+        ("tests.parallel_testing_unit", cfg.parallel_testing_unit),
+        ("tests.parallel_testing_ui", cfg.parallel_testing_ui),
     ]
 
     cli_core._stdout_console().print(f"Config path: {cfg_path}")
