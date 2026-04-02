@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import UIKit
 
 /// Single active “browse all” presentation. Two separate `sheet(item:)` branches can race on some
 /// runtimes (e.g. iOS 18 + small devices), showing the recurring sheet when opening Trending browse.
@@ -18,6 +19,7 @@ private enum ReviewBrowseSheet: Identifiable {
 }
 
 struct ReviewScreen: View {
+    @Environment(\.modelContext) private var modelContext
     @Query(sort: \JournalEntry.entryDate, order: .reverse) private var entries: [JournalEntry]
     @AppStorage(ReviewWeekBoundaryPreference.userDefaultsKey)
     private var reviewWeekBoundaryRawValue = ReviewWeekBoundaryPreference.defaultValue.rawValue
@@ -29,12 +31,27 @@ struct ReviewScreen: View {
     @State private var mostRecurringThemeDrilldown: ReviewThemeDrilldownPayload?
     @State private var browseSheet: ReviewBrowseSheet?
     @State private var trendingThemeDrilldown: ReviewThemeDrilldownPayload?
+    @State private var journalSearchText = ""
+    @State private var journalSearchMatches: [JournalSearchMatch] = []
+    @FocusState private var isPastSearchFieldFocused: Bool
     @EnvironmentObject private var appNavigation: AppNavigationModel
 
     private let reviewInsightsProvider = ReviewInsightsProvider.shared
     private let reviewInsightsCache = ReviewInsightsCache.shared
     /// When true, keep Review list chrome even with zero entries so UI tests can navigate.
     private let isUiTestingExperience: Bool
+
+    private enum PastTabListLayout {
+        static var cardRowInsets: EdgeInsets {
+            let inset = AppTheme.spacingWide
+            return EdgeInsets(top: 2, leading: inset, bottom: 6, trailing: inset)
+        }
+
+        static var searchBarRowInsets: EdgeInsets {
+            let inset = AppTheme.spacingWide
+            return EdgeInsets(top: 6, leading: inset, bottom: 8, trailing: inset)
+        }
+    }
 
     init() {
         let isUiTesting = ProcessInfo.graceNotesIsRunningUITests
@@ -69,6 +86,14 @@ struct ReviewScreen: View {
     private var calendar: Calendar {
         ReviewWeekBoundaryPreference.resolve(from: reviewWeekBoundaryRawValue)
             .configuredCalendar()
+    }
+
+    private var trimmedJournalSearchQuery: String {
+        journalSearchText.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var isPastSearchMode: Bool {
+        isPastSearchFieldFocused || !trimmedJournalSearchQuery.isEmpty
     }
 
     private var mostRecurringBrowseBinding: Binding<MostRecurringBrowsePayload?> {
@@ -106,7 +131,7 @@ struct ReviewScreen: View {
     var body: some View {
         Group {
             if entries.isEmpty && !isUiTestingExperience {
-                emptyState
+                emptyStateWithSearch
             } else {
                 historyList
             }
@@ -119,6 +144,17 @@ struct ReviewScreen: View {
         .task(id: currentInsightsRefreshKey) {
             await hydrateReviewInsightsFromCacheIfNeeded()
             await refreshReviewInsights()
+        }
+        .task(id: journalSearchText) {
+            await PastJournalSearchDebouncer.runDebouncedSearch(
+                query: journalSearchText,
+                calendar: calendar,
+                modelContext: modelContext,
+                isTrimmedQueryStillCurrent: { expectedTrimmed in
+                    journalSearchText.trimmingCharacters(in: .whitespacesAndNewlines) == expectedTrimmed
+                },
+                updateMatches: { journalSearchMatches = $0 }
+            )
         }
         .sheet(item: $mostRecurringThemeDrilldown) { payload in
             ThemeDrilldownSheet(payload: payload)
@@ -145,25 +181,77 @@ struct ReviewScreen: View {
         })
     }
 
-    private var emptyState: some View {
-        ContentUnavailableView {
-            Label(String(localized: "No entries yet"), systemImage: "doc.text")
-        } description: {
-            Text(String(localized: "Start with today."))
+    private var emptyStateWithSearch: some View {
+        List {
+            pastSearchBarSection
+            if !isPastSearchMode {
+                Section {
+                    ContentUnavailableView {
+                        Label(String(localized: "No entries yet"), systemImage: "doc.text")
+                    } description: {
+                        Text(String(localized: "Start with today."))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 24)
+                }
+                .listRowInsets(PastTabListLayout.cardRowInsets)
+                .listRowBackground(AppTheme.reviewBackground)
+                .listRowSeparator(.hidden)
+            } else {
+                PastJournalSearchResultsList(
+                    isAwaitingInput: isPastSearchFieldFocused && trimmedJournalSearchQuery.isEmpty,
+                    matches: journalSearchMatches,
+                    calendar: calendar,
+                    highlightQuery: trimmedJournalSearchQuery,
+                    onDismissSearchFocus: dismissPastSearchFocus
+                )
+            }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .pastTabListStyle()
+        .listRowSeparator(.hidden)
+        .listSectionSeparator(.hidden, edges: .all)
+        .listRowSpacing(10)
+        .scrollContentBackground(.hidden)
+        .scrollDismissesKeyboard(isPastSearchFieldFocused ? .never : .immediately)
+        .background(AppTheme.reviewBackground)
+        .safeAreaInset(edge: .bottom) {
+            Color.clear.frame(height: AppTheme.spacingSection + AppTheme.floatingTabBarClearance)
+        }
     }
 
     private var historyList: some View {
         List {
-            insightsSection
+            pastSearchBarSection
+            if !isPastSearchMode {
+                insightsSection
+            } else {
+                PastJournalSearchResultsList(
+                    isAwaitingInput: isPastSearchFieldFocused && trimmedJournalSearchQuery.isEmpty,
+                    matches: journalSearchMatches,
+                    calendar: calendar,
+                    highlightQuery: trimmedJournalSearchQuery,
+                    onDismissSearchFocus: dismissPastSearchFocus
+                )
+            }
         }
-        .listStyle(.insetGrouped)
+        .pastTabListStyle()
+        .listRowSeparator(.hidden)
+        .listSectionSeparator(.hidden, edges: .all)
         .listRowSpacing(10)
         .scrollContentBackground(.hidden)
+        .scrollDismissesKeyboard(isPastSearchFieldFocused ? .never : .immediately)
         .background(AppTheme.reviewBackground)
         .safeAreaInset(edge: .bottom) {
             Color.clear.frame(height: AppTheme.spacingSection + AppTheme.floatingTabBarClearance)
+        }
+    }
+
+    private var pastSearchBarSection: some View {
+        Section {
+            PastJournalSearchFieldRow(text: $journalSearchText, searchFocus: $isPastSearchFieldFocused)
+                .listRowInsets(PastTabListLayout.searchBarRowInsets)
+                .listRowBackground(isPastSearchMode ? Color.clear : AppTheme.reviewBackground)
+                .listRowSeparator(.hidden)
         }
     }
 
@@ -174,22 +262,25 @@ struct ReviewScreen: View {
                     insights: reviewInsights,
                     isLoading: isLoadingInsights
                 )
-                .listRowInsets(EdgeInsets(top: 2, leading: 0, bottom: 6, trailing: 0))
+                .listRowInsets(PastTabListLayout.cardRowInsets)
                 .listRowBackground(AppTheme.reviewBackground)
+                .listRowSeparator(.hidden)
 
                 ReviewHistoryGrowthStagesPanel(
                     insights: reviewInsights,
                     isLoading: isLoadingInsights
                 )
-                .listRowInsets(EdgeInsets(top: 2, leading: 0, bottom: 6, trailing: 0))
+                .listRowInsets(PastTabListLayout.cardRowInsets)
                 .listRowBackground(AppTheme.reviewBackground)
+                .listRowSeparator(.hidden)
 
                 ReviewHistorySectionDistributionPanel(
                     insights: reviewInsights,
                     isLoading: isLoadingInsights
                 )
-                .listRowInsets(EdgeInsets(top: 2, leading: 0, bottom: 6, trailing: 0))
+                .listRowInsets(PastTabListLayout.cardRowInsets)
                 .listRowBackground(AppTheme.reviewBackground)
+                .listRowSeparator(.hidden)
             }
 
             ReviewMostRecurringCard(
@@ -198,8 +289,9 @@ struct ReviewScreen: View {
                 insights: reviewInsights,
                 isLoading: isLoadingInsights
             )
-            .listRowInsets(EdgeInsets(top: 2, leading: 0, bottom: 6, trailing: 0))
+            .listRowInsets(PastTabListLayout.cardRowInsets)
             .listRowBackground(AppTheme.reviewBackground)
+            .listRowSeparator(.hidden)
 
             ReviewTrendingCard(
                 themeDrilldown: $trendingThemeDrilldown,
@@ -207,20 +299,34 @@ struct ReviewScreen: View {
                 insights: reviewInsights,
                 isLoading: isLoadingInsights
             )
-            .listRowInsets(EdgeInsets(top: 2, leading: 0, bottom: 6, trailing: 0))
+            .listRowInsets(PastTabListLayout.cardRowInsets)
             .listRowBackground(AppTheme.reviewBackground)
+            .listRowSeparator(.hidden)
 
             ReviewNarrativeSummaryCard(
                 insights: reviewInsights,
                 isLoading: isLoadingInsights
             )
-            .listRowInsets(EdgeInsets(top: 2, leading: 0, bottom: 6, trailing: 0))
+            .listRowInsets(PastTabListLayout.cardRowInsets)
             .listRowBackground(AppTheme.reviewBackground)
+            .listRowSeparator(.hidden)
         }
+    }
+}
+
+private extension ReviewScreen {
+    func dismissPastSearchFocus() {
+        isPastSearchFieldFocused = false
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil,
+            from: nil,
+            for: nil
+        )
     }
 
     @MainActor
-    private func refreshReviewInsights() async {
+    func refreshReviewInsights() async {
         guard !entries.isEmpty else {
             reviewInsights = nil
             isLoadingInsights = false
@@ -263,7 +369,7 @@ struct ReviewScreen: View {
         isLoadingInsights = false
     }
 
-    private func hydrateReviewInsightsFromCacheIfNeeded() async {
+    func hydrateReviewInsightsFromCacheIfNeeded() async {
         guard !entries.isEmpty else { return }
         guard reviewInsights == nil else { return }
         reviewInsights = await reviewInsightsCache.insights(
@@ -272,5 +378,11 @@ struct ReviewScreen: View {
             weekBoundaryPreferenceRawValue: reviewWeekBoundaryRawValue,
             pastStatisticsIntervalToken: pastStatisticsInterval.cacheKeyToken
         )
+    }
+}
+
+private extension View {
+    func pastTabListStyle() -> some View {
+        listStyle(.plain)
     }
 }

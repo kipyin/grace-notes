@@ -294,7 +294,7 @@ struct JournalScreen: View {
         .onChange(of: journalProgressFingerprint) { _, _ in
             handleJournalProgressChange()
         }
-        .task {
+        .task(id: entryDate) {
             await runJournalScreenLoadTask()
         }
     }

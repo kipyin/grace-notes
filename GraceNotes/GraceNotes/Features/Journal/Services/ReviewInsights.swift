@@ -37,6 +37,22 @@ enum ReviewThemeSourceCategory: String, CaseIterable, Equatable, Hashable, Senda
     case people
     case readingNotes
     case reflections
+
+    /// User-visible section name for journal surfaces (chips, reading notes, reflections).
+    var localizedJournalSurfaceTitle: String {
+        switch self {
+        case .gratitudes:
+            return String(localized: "Gratitudes")
+        case .needs:
+            return String(localized: "Needs")
+        case .people:
+            return String(localized: "People in Mind")
+        case .readingNotes:
+            return String(localized: "Reading notes")
+        case .reflections:
+            return String(localized: "Reflections")
+        }
+    }
 }
 
 enum ReviewThemeTrend: String, Equatable, Hashable, Sendable, Codable {

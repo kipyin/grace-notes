@@ -10,6 +10,7 @@ Work tracked toward milestone **0.5.2** (Settings cohesion and insight follow-th
 
 ### Changed
 
+- Past: **Search** (en / zh-Hans) labels the Past tab inline field — results and behavior unchanged; clearing the query restores insights cards. The dismiss control sits **outside** the search pill (trailing, 44pt target), clears non-empty text, and dismisses the keyboard with **Today**-aligned snappy layout animation (respects Reduce Motion). While the search field is focused, list scrolling does not dismiss the keyboard. **zh-Hans** Past search copy refined (`Localizable.xcstrings`).
 - Journal: removed the extra **Abundance** / full-rhythm tier. **Harvest** (all fifteen structured lines) is now the top state for **perfect** streaks, **`completedToday`**, and first-run onboarding; reading notes and reflections are optional. Legacy decode still maps raw **`abundance`** → **`.full`** where older data or APIs use that string (`JournalCompletionLevel`, weekly mix JSON).
 - Copy / localization (**#128**): completion surfaces use the **Soil → Bloom** English set and locked **zh-Hans** status labels (静待播种 → 花开有成); contributor glossary (**记录** / **部分** / **条**) in completion-facing strings; string catalog scrubbed for user-facing **Abundance**, **满溢**, cloud/AI product framing, and em dash in customer copy where the issue checklist applies.
 - **Data export:** JSON share filenames now use the prefix **`grace-notes-export-`** instead of `five-cubed-journal-export-`. Automation or scripts that match the old basename need updating (#133 / #136).

@@ -139,15 +139,15 @@ private struct ReviewHistoryGrowthSkyline: View {
         var body: some View {
             VStack(spacing: 7) {
                 ZStack(alignment: .bottom) {
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
                         .fill(AppTheme.reviewRhythmColumnFill.opacity(0.42))
                         .frame(height: metrics.chartHeight)
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
                         .fill(AppTheme.reviewRhythmPillBackground(for: level))
                         .frame(height: barHeight)
                         .overlay {
-                            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .stroke(AppTheme.reviewRhythmPillBorder(for: level), lineWidth: 0.8)
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .strokeBorder(AppTheme.reviewRhythmPillBorder(for: level), lineWidth: 0.8)
                         }
                 }
                 .frame(height: metrics.chartHeight)
@@ -165,7 +165,7 @@ private struct ReviewHistoryGrowthSkyline: View {
                     }
                     .overlay {
                         Capsule(style: .continuous)
-                            .stroke(AppTheme.reviewRhythmPillBorder(for: level), lineWidth: 1)
+                            .strokeBorder(AppTheme.reviewRhythmPillBorder(for: level), lineWidth: 1)
                     }
                     .accessibilityHidden(true)
 
@@ -316,11 +316,11 @@ private struct ReviewHistorySectionStrip: View {
                             .opacity(item.count > 0 ? 1 : 0.38)
                         let border = SectionDistributionPalette.border(for: item.kind)
                         ZStack {
-                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
                                 .fill(fill)
                                 .overlay {
-                                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                        .stroke(border, lineWidth: 0.85)
+                                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                        .strokeBorder(border, lineWidth: 0.85)
                                 }
                             Text("\(item.count)")
                                 .font(AppTheme.warmPaperMeta)
@@ -353,7 +353,7 @@ private struct ReviewHistorySectionStrip: View {
                             .frame(width: 10, height: 10)
                             .overlay {
                                 Circle()
-                                    .stroke(SectionDistributionPalette.border(for: item.kind), lineWidth: 0.6)
+                                    .strokeBorder(SectionDistributionPalette.border(for: item.kind), lineWidth: 0.6)
                             }
                             .accessibilityHidden(true)
                         Text(localizedSectionName(for: item.kind))

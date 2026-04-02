@@ -219,7 +219,7 @@ struct ReviewDaysYouWrotePanel: View {
             }
             .overlay {
                 UnevenRoundedRectangle(cornerRadii: cornerRadii, style: .continuous)
-                    .stroke(AppTheme.reviewRhythmColumnStroke.opacity(0.58), lineWidth: 0.8)
+                    .strokeBorder(AppTheme.reviewRhythmColumnStroke.opacity(0.58), lineWidth: 0.8)
             }
 
         Group {
@@ -377,7 +377,7 @@ struct ReviewDaysYouWrotePanel: View {
             }
             .overlay {
                 Capsule(style: .continuous)
-                    .stroke(AppTheme.reviewRhythmPillBorder(for: level), lineWidth: 1)
+                    .strokeBorder(AppTheme.reviewRhythmPillBorder(for: level), lineWidth: 1)
             }
             .shadow(color: AppTheme.reviewRhythmPillShadow(for: level), radius: 3, x: 0, y: 1.2)
             .accessibilityHidden(true)

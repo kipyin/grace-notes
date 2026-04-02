@@ -583,7 +583,7 @@ struct ThemeDrilldownView: View {
                                         JournalScreen(entryDate: evidence.entryDate)
                                     } label: {
                                         VStack(alignment: .leading, spacing: 8) {
-                                            Text(localizedSourceLabel(evidence.source))
+                                            Text(evidence.source.localizedJournalSurfaceTitle)
                                                 .font(AppTheme.warmPaperMetaEmphasis.weight(.semibold))
                                                 .foregroundStyle(AppTheme.reviewTextPrimary)
                                             Text(evidence.content)
@@ -638,23 +638,9 @@ struct ThemeDrilldownView: View {
         let dayText = day.formatted(date: .abbreviated, time: .omitted)
         return [
             dayText,
-            localizedSourceLabel(evidence.source),
+            evidence.source.localizedJournalSurfaceTitle,
             evidence.content
         ].joined(separator: ", ")
     }
 
-    private func localizedSourceLabel(_ source: ReviewThemeSourceCategory) -> String {
-        switch source {
-        case .gratitudes:
-            return String(localized: "Gratitudes")
-        case .needs:
-            return String(localized: "Needs")
-        case .people:
-            return String(localized: "People in Mind")
-        case .readingNotes:
-            return String(localized: "Reading notes")
-        case .reflections:
-            return String(localized: "Reflections")
-        }
-    }
 }
