@@ -62,3 +62,37 @@ class SimulatorParsingTest(unittest.TestCase):
                 rows,
             ),
         )
+
+    def test_user_destination_requests_physical_ios(self) -> None:
+        self.assertTrue(
+            simulator.user_destination_requests_physical_ios("platform=iOS,id=00008140-001"),
+        )
+        self.assertFalse(
+            simulator.user_destination_requests_physical_ios("platform=iOS Simulator,name=X,OS=1"),
+        )
+        self.assertFalse(simulator.user_destination_requests_physical_ios("iPhone 17 Pro@latest"))
+
+    def test_physical_udid_from_resolved_destination(self) -> None:
+        self.assertEqual(
+            simulator.physical_udid_from_resolved_destination("platform=iOS,id=abc"),
+            "abc",
+        )
+        self.assertIsNone(
+            simulator.physical_udid_from_resolved_destination(
+                "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.0",
+            ),
+        )
+
+    def test_resolve_physical_destination_by_udid(self) -> None:
+        devices = [
+            {"name": "P", "udid": "00008140-111", "identifier": "core", "os_version": "18.0"},
+        ]
+        out = simulator.resolve_physical_destination("platform=iOS,id=00008140-111", devices)
+        self.assertEqual(out, "platform=iOS,id=00008140-111")
+
+    def test_resolve_physical_destination_by_name(self) -> None:
+        devices = [
+            {"name": "P", "udid": "u1", "identifier": "core", "os_version": "18.0"},
+        ]
+        out = simulator.resolve_physical_destination("platform=iOS,name=P", devices)
+        self.assertEqual(out, "platform=iOS,id=u1")

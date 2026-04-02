@@ -69,7 +69,7 @@ class CLISurfaceTest(unittest.TestCase):
         result = runner.invoke(app, ["sim", "--help"])
 
         self.assertEqual(result.exit_code, 0)
-        for token in ["list", "resolve", "reset", "runtime", "--interactive"]:
+        for token in ["list", "resolve", "reset", "runtime", "add", "--interactive", "--physical"]:
             self.assertIn(token, result.output)
 
     def test_config_help_includes_required_subcommands(self) -> None:
@@ -762,8 +762,37 @@ class CLISurfaceTest(unittest.TestCase):
         self.assertEqual(by_name["matrix destinations"]["status"], "error")
         self.assertEqual(
             by_name["matrix destinations"]["suggested_commands"],
-            ["grace sim runtime install"],
+            [
+                'grace sim add "iPhone 17 Pro@latest"',
+                "grace sim runtime install",
+                'grace sim add "Nonexistent Device@latest"',
+            ],
         )
+
+    def test_test_rejects_physical_destination(self) -> None:
+        repo_root = Path(__file__).resolve().parents[3]
+        rows: list[dict[str, str]] = []
+        cfg = replace(
+            config.default_config(),
+            destination="platform=iOS,id=00008140-001",
+        )
+
+        def fake_which(name: str) -> str | None:
+            if name in ("swiftlint", "xcodebuild", "xcrun"):
+                return f"/usr/bin/{name}"
+            return None
+
+        with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli_core, "_load_config", return_value=cfg):
+                with mock.patch.object(simulator, "load_available_ios_devices", return_value=rows):
+                    with mock.patch.object(sys, "platform", "darwin"):
+                        with mock.patch.object(shutil, "which", side_effect=fake_which):
+                            runner = CliRunner()
+                            result = runner.invoke(app, ["test", "--kind", "unit"])
+
+        self.assertEqual(result.exit_code, 2, msg=result.output)
+        combined = f"{result.stdout}\n{result.stderr}"
+        self.assertIn("Physical device unsupported for tests", combined)
 
     def test_doctor_default_destination_error_suggests_build_version_install(self) -> None:
         repo_root = Path(__file__).resolve().parents[3]
@@ -799,7 +828,10 @@ class CLISurfaceTest(unittest.TestCase):
         )
         self.assertEqual(
             by_name["default destination"]["suggested_commands"],
-            ["grace sim runtime install --build-version 18.5"],
+            [
+                'grace sim add "iPhone SE (3rd generation)@18.5"',
+                "grace sim runtime install --build-version 18.5",
+            ],
         )
 
     def test_prepare_xcodebuild_argv_adds_quiet_for_interactive_tty(self) -> None:

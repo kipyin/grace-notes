@@ -590,27 +590,52 @@ def _run_capture(
     return completed
 
 
+def grace_sim_add_suggestion_from_user_value(value: str) -> str | None:
+    """Return a ``grace sim add`` line for ``device@os`` shorthands (not ``platform=``)."""
+    stripped = value.strip()
+    if stripped.startswith("platform="):
+        return None
+    if "@" not in stripped:
+        return None
+    return f'grace sim add "{stripped}"'
+
+
+def _simulator_destination_recovery_try_commands(user_value: str) -> tuple[str, ...]:
+    parts: list[str] = ["grace sim list"]
+    add_line = grace_sim_add_suggestion_from_user_value(user_value)
+    if add_line:
+        parts.append(add_line)
+    parts.extend(["grace sim runtime install", "xcodebuild -downloadPlatform iOS"])
+    return tuple(parts)
+
+
+def _physical_destination_recovery_try_commands() -> tuple[str, ...]:
+    return ("grace sim list --physical",)
+
+
 def _to_destination_spec(value: str) -> str:
-    if value.startswith("platform="):
-        return value
-    if "@" not in value:
+    stripped = value.strip()
+    if stripped.startswith("platform="):
+        return stripped
+    if "@" not in stripped:
         _fail(
             code=2,
             title="Cannot parse destination",
             problem=f"Destination '{value}' is missing '@os' and is not a full platform= string.",
             likely_cause="Shortcut syntax expects `device@os` such as `iPhone 17 Pro@latest`.",
-            try_commands=("grace sim list",),
+            try_commands=("grace sim list", "grace sim list --physical"),
             retry_command='grace run --destination "iPhone 17 Pro@latest"',
         )
-    name, os_value = value.rsplit("@", 1)
+    name, os_value = stripped.rsplit("@", 1)
     return f"platform=iOS Simulator,name={name.strip()},OS={os_value.strip()}"
 
 
-def _resolve_destination(value: str, rows: list[dict[str, str]]) -> str:
-    requested = _to_destination_spec(value)
+def _resolve_simulator_destination(
+    user_value: str, requested_full: str, rows: list[dict[str, str]]
+) -> str:
     with redirect_stderr(io.StringIO()) as captured:
         try:
-            return simulator.resolve_destination(requested, rows)
+            return simulator.resolve_destination(requested_full, rows)
         except SystemExit:
             detail = captured.getvalue().strip().splitlines()
     likely_cause = (
@@ -619,16 +644,59 @@ def _resolve_destination(value: str, rows: list[dict[str, str]]) -> str:
     _fail(
         code=3,
         title="Cannot resolve destination",
-        problem=f"No simulator matches `{value}` on this machine.",
+        problem=f"No simulator matches `{user_value}` on this machine.",
         likely_cause=likely_cause,
-        try_commands=(
-            "grace sim list",
-            "grace sim runtime install",
-            "xcodebuild -downloadPlatform iOS",
-        ),
+        try_commands=_simulator_destination_recovery_try_commands(user_value),
         retry_command='grace run --destination "iPhone 17 Pro@latest"',
     )
     return ""
+
+
+def _resolve_physical_cli(destination_spec: str) -> str:
+    devices = simulator.load_connected_ios_devices()
+    with redirect_stderr(io.StringIO()) as captured:
+        try:
+            return simulator.resolve_physical_destination(destination_spec, devices)
+        except SystemExit:
+            detail = captured.getvalue().strip().splitlines()
+    likely_cause = (
+        detail[0] if detail else "No connected physical iOS device matches this destination."
+    )
+    _fail(
+        code=3,
+        title="Cannot resolve physical device destination",
+        problem=f"No physical iOS device matches `{destination_spec}` on this machine.",
+        likely_cause=likely_cause,
+        try_commands=_physical_destination_recovery_try_commands(),
+    )
+    return ""
+
+
+def _resolve_build_destination(value: str, rows: list[dict[str, str]]) -> str:
+    """Resolve simulator or physical ``platform=iOS`` destinations for build/clean/run."""
+    stripped = value.strip()
+    if stripped.startswith("platform="):
+        fields = simulator.parse_destination(stripped)
+        plat = fields.get("platform", "")
+        if plat == "iOS":
+            return _resolve_physical_cli(stripped)
+        if plat == "iOS Simulator":
+            return _resolve_simulator_destination(stripped, stripped, rows)
+        _fail(
+            code=2,
+            title="Unsupported destination platform",
+            problem=f"Unknown or unsupported platform in `{stripped}`.",
+            likely_cause=(
+                "Use platform=iOS Simulator for simulators or platform=iOS for a physical device."
+            ),
+            try_commands=("grace sim list", "grace sim list --physical"),
+        )
+    requested = _to_destination_spec(stripped)
+    return _resolve_simulator_destination(stripped, requested, rows)
+
+
+def _resolve_destination(value: str, rows: list[dict[str, str]]) -> str:
+    return _resolve_build_destination(value, rows)
 
 
 def _resolved_destinations_for_matrix(
@@ -644,12 +712,20 @@ def _resolved_destinations_for_matrix(
     likely_cause = (
         detail[0] if detail else "One or more configured matrix destinations are invalid."
     )
+    first_add: str | None = None
+    for entry in specs:
+        first_add = grace_sim_add_suggestion_from_user_value(entry)
+        if first_add:
+            break
+    try_commands_list: list[str] = ["grace sim list", f"open {config.config_path(_repo_root())}"]
+    if first_add:
+        try_commands_list.insert(1, first_add)
     _fail(
         code=3,
         title="Cannot resolve destination matrix",
         problem="At least one matrix destination from config does not match installed simulators.",
         likely_cause=likely_cause,
-        try_commands=("grace sim list", f"open {config.config_path(_repo_root())}"),
+        try_commands=tuple(try_commands_list),
     )
     return []
 
@@ -691,21 +767,58 @@ def _suggested_runtime_install_commands(
     return sorted(commands)
 
 
+def _doctor_merged_sim_recovery_commands(destination: str) -> list[str]:
+    merged: list[str] = []
+    add_line = grace_sim_add_suggestion_from_user_value(destination)
+    if add_line:
+        merged.append(add_line)
+    merged.extend(_suggested_runtime_install_commands(cfg_destination=destination))
+    seen: set[str] = set()
+    out: list[str] = []
+    for cmd in merged:
+        if cmd not in seen:
+            seen.add(cmd)
+            out.append(cmd)
+    return out
+
+
 def _doctor_default_destination_check(
     destination: str, rows: list[dict[str, str]]
 ) -> dict[str, object]:
     """Resolve default destination for doctor without exiting; stderr message on failure."""
     err = io.StringIO()
+    stripped = destination.strip()
     try:
         with redirect_stderr(err):
-            requested = _to_destination_spec(destination)
-            resolved = simulator.resolve_destination(requested, rows)
+            physical_cfg = stripped.startswith(
+                "platform=",
+            ) and simulator.user_destination_requests_physical_ios(stripped)
+            if physical_cfg:
+                devices = simulator.try_load_connected_ios_devices()
+                resolved = simulator.resolve_physical_destination(stripped, devices)
+            else:
+                requested = _to_destination_spec(destination)
+                resolved = simulator.resolve_destination(requested, rows)
     except (SystemExit, typer.Exit):
         detail = err.getvalue().strip().splitlines()
         msg = detail[0] if detail else "Unable to resolve destination; run `grace sim list`"
-        suggestions = _suggested_runtime_install_commands(cfg_destination=destination)
+        if stripped.startswith("platform=") and simulator.user_destination_requests_physical_ios(
+            stripped
+        ):
+            suggestions = ["grace sim list --physical"]
+            msg = f"{msg} Connect the device or pick a UDID from `grace sim list --physical`."
+            return {
+                "name": "default destination",
+                "status": "error",
+                "detail": msg,
+                "suggested_commands": suggestions,
+            }
+
+        suggestions = _doctor_merged_sim_recovery_commands(destination)
+        extras = _suggested_runtime_install_commands(cfg_destination=destination)
+        if extras:
+            msg = f"{msg} Try: {extras[0]}; then `grace sim list`."
         if suggestions:
-            msg = f"{msg} Try: {suggestions[0]}; then `grace sim list`."
             return {
                 "name": "default destination",
                 "status": "error",
@@ -735,17 +848,38 @@ def _doctor_matrix_check(specs: tuple[str, ...], rows: list[dict[str, str]]) -> 
         detail = err.getvalue().strip().splitlines()
         msg = detail[0] if detail else "One or more matrix entries cannot be resolved"
         suggestions = _suggested_runtime_install_commands(matrix_specs=specs)
+        merged = _doctor_merged_sim_recovery_commands(specs[0] if specs else "")
+        for spec in specs[1:]:
+            merged.extend(_doctor_merged_sim_recovery_commands(spec))
+        # Preserve order, drop duplicates
+        seen_cmds: set[str] = set()
+        merged_cmds: list[str] = []
+        for cmd in merged:
+            if cmd not in seen_cmds:
+                seen_cmds.add(cmd)
+                merged_cmds.append(cmd)
         if suggestions:
             joined_suggestions = "; ".join(suggestions)
             msg = (
                 f"{msg} If the iOS runtime is missing, try: {joined_suggestions}; "
                 "then `grace sim list` or update config."
             )
+            for cmd in suggestions:
+                if cmd not in seen_cmds:
+                    seen_cmds.add(cmd)
+                    merged_cmds.append(cmd)
             return {
                 "name": "matrix destinations",
                 "status": "error",
                 "detail": msg,
-                "suggested_commands": suggestions,
+                "suggested_commands": merged_cmds,
+            }
+        if merged_cmds:
+            return {
+                "name": "matrix destinations",
+                "status": "error",
+                "detail": msg,
+                "suggested_commands": merged_cmds,
             }
         return {
             "name": "matrix destinations",

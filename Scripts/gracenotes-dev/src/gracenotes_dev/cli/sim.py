@@ -645,15 +645,70 @@ def runtime_delete(
     cli_core._run(argv, cwd=repo_root, check=True)
 
 
+def _physical_destination_lines(rows: list[dict[str, str]]) -> list[tuple[str, str, str, str]]:
+    """Rows: (xcodebuild_line, display_name, os_version, udid_or_id)."""
+    out: list[tuple[str, str, str, str]] = []
+    for row in rows:
+        udid = (row.get("udid") or "").strip()
+        ident = (row.get("identifier") or "").strip()
+        device_id = udid if udid else ident
+        if not device_id:
+            continue
+        name = row.get("name", "") or "(unnamed)"
+        os_ver = row.get("os_version", "")
+        line = f"platform=iOS,id={device_id}"
+        out.append((line, name, os_ver, device_id))
+    return sorted(out, key=lambda item: (item[1], item[2], item[3]))
+
+
 @sim_app.command("list")
 def sim_list(
+    physical: Annotated[
+        bool,
+        typer.Option(
+            "--physical",
+            help="List connected physical iOS devices as xcodebuild platform=iOS,id=… strings.",
+        ),
+    ] = False,
     json_out: Annotated[
         bool,
         typer.Option("--json", help="Emit a JSON array of xcodebuild destination strings."),
     ] = False,
 ) -> None:
-    """List installed iOS Simulator destinations."""
+    """List installed iOS Simulator destinations, or connected devices with ``--physical``."""
     cli_core._require_macos_xcode()
+    if physical:
+        dev_rows = simulator.load_connected_ios_devices()
+        entries = _physical_destination_lines(dev_rows)
+        lines = [item[0] for item in entries]
+        if json_out:
+            json.dump(lines, sys.stdout, indent=2)
+            sys.stdout.write("\n")
+            return
+        console = cli_core._stdout_console()
+        if not entries:
+            console.print("No physical iOS devices reported by devicectl.")
+            return
+        if cli_core._supports_rich_output(sys.stdout):
+            table = Table(show_header=True, header_style="bold")
+            table.add_column("Device")
+            table.add_column("OS", justify="right")
+            table.add_column("UDID / id")
+            table.add_column("Destination")
+            for line, name, os_version, udid in entries:
+                table.add_row(
+                    Text(name, style="bold"),
+                    os_version,
+                    Text(udid, style="dim"),
+                    Text(line, style="dim"),
+                )
+            console.print(table)
+            return
+        console.print(f"{'Device':<24}{'OS':<10}{'UDID':<28}Destination")
+        for line, name, os_version, udid in entries:
+            console.print(f"{name:<24}{os_version:<10}{udid:<28}{line}")
+        return
+
     rows = simulator.load_available_ios_devices()
     entries = _sim_list_entries(rows)
     lines = [item[0] for item in entries]
@@ -680,6 +735,152 @@ def sim_list(
         return
 
     _print_sim_list_plain(entries, default_resolved)
+
+
+@sim_app.command("add")
+def sim_add(
+    spec: Annotated[
+        str,
+        typer.Argument(help="Simulator shortcut, e.g. iPhone 17 Pro@18.5 or iPhone 17 Pro@latest."),
+    ],
+    dry_run: Annotated[
+        bool,
+        typer.Option("--dry-run", help="Print the planned simctl steps without creating a device."),
+    ] = False,
+) -> None:
+    """Guided workflow to create a missing Simulator instance (runtime must exist)."""
+    cli_core._require_macos_xcode()
+    stripped = spec.strip()
+    if stripped.startswith("platform="):
+        cli_core._fail(
+            code=2,
+            title="Use a simulator shortcut",
+            problem="`grace sim add` expects `device@os`, not a full platform= string.",
+            try_commands=('grace sim add "iPhone 17 Pro@latest"', "grace sim list"),
+        )
+    if "@" not in stripped:
+        cli_core._fail(
+            code=2,
+            title="Invalid simulator spec",
+            problem=f"Expected device@os, got `{stripped}`.",
+            try_commands=('grace sim add "iPhone 17 Pro@latest"',),
+        )
+
+    device_name, os_token = stripped.rsplit("@", 1)
+    device_name = device_name.strip()
+    os_token = os_token.strip()
+    if not device_name or not os_token:
+        cli_core._fail(
+            code=2,
+            title="Invalid simulator spec",
+            problem=f"Device name and OS are required in `{stripped}`.",
+            try_commands=('grace sim add "iPhone 17 Pro@latest"',),
+        )
+
+    console = cli_core._stdout_console()
+    err = cli_core._stderr_console()
+
+    err.print(
+        "[bold]Step 1/4[/bold] — Check that an iOS [bold]Simulator runtime[/bold] is installed "
+        f"for [accent]{os_token!r}[/accent].",
+    )
+    runtime_id = simulator.find_simulator_runtime_identifier_for_os(os_token)
+    if not runtime_id:
+        err.print(
+            f"No available iOS Simulator runtime matches {os_token!r}. "
+            "Install one before creating a device instance.",
+        )
+        cmd = (
+            "grace sim runtime install"
+            if os_token.lower() == "latest"
+            else f"grace sim runtime install --build-version {os_token}"
+        )
+        cli_core._fail(
+            code=3,
+            title="Simulator runtime missing",
+            problem=f"No installed runtime matches OS {os_token!r}.",
+            likely_cause="Download/import the platform runtime, then re-run this command.",
+            try_commands=(cmd, "xcodebuild -downloadPlatform iOS", "grace sim list"),
+        )
+
+    err.print(
+        f"  Found runtime [accent]{runtime_id}[/accent] for this OS. "
+        "This is the disk image Xcode uses for Simulator OS version matching.",
+    )
+
+    err.print(
+        "[bold]Step 2/4[/bold] — Check whether a Simulator device named "
+        f"[accent]{device_name!r}[/accent] already exists for that OS.",
+    )
+    rows = simulator.load_available_ios_devices()
+    requested_full = f"platform=iOS Simulator,name={device_name},OS={os_token}"
+    existing: str | None = None
+    capture = io.StringIO()
+    try:
+        with redirect_stderr(capture):
+            existing = simulator.resolve_destination(requested_full, rows)
+    except SystemExit:
+        existing = None
+    if existing:
+        err.print(
+            "  A matching device is already installed. No simctl create is needed.",
+        )
+        err.print(f"  Resolved destination: [accent]{existing}[/accent]")
+        console.print(f"grace sim resolve {shlex.quote(stripped)}")
+        return
+
+    err.print(
+        "  No matching instance yet — we will pick a device type and run "
+        "`simctl create` so Xcode can boot that simulator.",
+    )
+
+    err.print(
+        "[bold]Step 3/4[/bold] — Map the name to a SimDeviceType id "
+        "from `simctl list devicetypes`.",
+    )
+    type_id, ambiguous = simulator.pick_devicetype_identifier_for_device_name(device_name)
+    if type_id is None:
+        if ambiguous:
+            preview = ", ".join(ambiguous[:12])
+            more = "" if len(ambiguous) <= 12 else ", …"
+            cli_core._fail(
+                code=2,
+                title="Ambiguous device type",
+                problem=f"Several device types match {device_name!r}: {preview}{more}",
+                likely_cause=(
+                    "Pick the exact device name from `simctl list devicetypes` and update the spec."
+                ),
+                try_commands=("xcrun simctl list devicetypes", "grace sim list"),
+            )
+        cli_core._fail(
+            code=2,
+            title="Unknown device type",
+            problem=f"No Simulator device type matches {device_name!r}.",
+            likely_cause="Use a name from `grace sim list` / Xcode’s device list.",
+            try_commands=("xcrun simctl list devicetypes", "grace sim list"),
+        )
+
+    err.print(
+        f"  Using device type [accent]{type_id}[/accent] (matches “{device_name}”).",
+    )
+
+    create_cmd = ["xcrun", "simctl", "create", device_name, type_id, runtime_id]
+    err.print(
+        "[bold]Step 4/4[/bold] — Run `simctl create`, then verify with `grace sim resolve`.",
+    )
+    err.print(f"  Command: [bold]{' '.join(shlex.quote(c) for c in create_cmd)}[/bold]")
+    if dry_run:
+        err.print("  [dim](dry-run: not executing)[/dim]")
+        q = shlex.quote(stripped)
+        console.print(f"Next: run without --dry-run, then `grace sim resolve {q}`")
+        return
+
+    udid = simulator.create_simulator_device(device_name, type_id, runtime_id)
+    err.print(f"  Created Simulator UDID: [accent]{udid}[/accent]")
+
+    rows_after = simulator.load_available_ios_devices()
+    resolved = cli_core._resolve_destination(stripped, rows_after)
+    console.print(resolved)
 
 
 @sim_app.command("resolve")

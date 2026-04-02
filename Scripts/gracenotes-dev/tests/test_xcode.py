@@ -141,6 +141,49 @@ class XcodeHelpersTest(unittest.TestCase):
             found = xcode.built_app_path(base, configuration="Debug", product_stem="GraceNotes")
             self.assertEqual(found, app_dir)
 
+    def test_built_app_path_uses_iphoneos_for_physical_destination(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            app_dir = base / "Build" / "Products" / "Debug-iphoneos" / "GraceNotes.app"
+            app_dir.mkdir(parents=True)
+            found = xcode.built_app_path(
+                base,
+                configuration="Debug",
+                product_stem="GraceNotes",
+                resolved_destination="platform=iOS,id=00008140-001",
+            )
+            self.assertEqual(found, app_dir)
+
+    def test_is_physical_ios_destination(self) -> None:
+        self.assertTrue(xcode.is_physical_ios_destination("platform=iOS,id=a"))
+        self.assertFalse(xcode.is_physical_ios_destination("platform=iOS Simulator,name=X,OS=1"))
+
+    def test_devicectl_argv_helpers(self) -> None:
+        p = Path("/tmp/App.app")
+        self.assertEqual(
+            xcode.devicectl_install_app_argv(device="udid", app_path=p),
+            ["xcrun", "devicectl", "device", "install", "app", "--device", "udid", str(p)],
+        )
+        launch = xcode.devicectl_process_launch_argv(
+            device="udid",
+            bundle_id="com.example.app",
+            app_args=["-f"],
+        )
+        self.assertEqual(
+            launch,
+            [
+                "xcrun",
+                "devicectl",
+                "device",
+                "process",
+                "launch",
+                "--device",
+                "udid",
+                "com.example.app",
+                "-f",
+            ],
+        )
+
     def test_simctl_boot_udid_uses_identifier(self) -> None:
         boot, status = xcode.simctl_boot_sequence_argv_udid("ABC-UDID")
         self.assertEqual(boot, ["xcrun", "simctl", "boot", "ABC-UDID"])

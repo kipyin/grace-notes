@@ -8,7 +8,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from gracenotes_dev import config
-from gracenotes_dev.simulator import destination_display_name
+from gracenotes_dev.simulator import destination_display_name, parse_destination
 
 
 def with_quiet_flag(argv: Sequence[str], *, quiet: bool) -> list[str]:
@@ -32,6 +32,11 @@ def repo_root_from(start: Path | None = None) -> Path:
             return candidate
     # Fall back to cwd for relative paths (callers may set cwd explicitly).
     return here
+
+
+def is_physical_ios_destination(resolved_destination: str) -> bool:
+    """True when ``xcodebuild`` should use a tethered device (not Simulator)."""
+    return parse_destination(resolved_destination).get("platform") == "iOS"
 
 
 def ios_major_from_resolved_destination(resolved_destination: str) -> int | None:
@@ -279,15 +284,20 @@ def run_launch_metadata_from_scheme(*, xcodeproj: Path, scheme: str) -> tuple[st
     return configuration, product_stem
 
 
-def built_app_path(derived_data_path: Path, *, configuration: str, product_stem: str) -> Path:
+def built_app_path(
+    derived_data_path: Path,
+    *,
+    configuration: str,
+    product_stem: str,
+    resolved_destination: str | None = None,
+) -> Path:
     """Locate the built ``.app`` bundle under DerivedData products."""
-    app_path = (
-        derived_data_path
-        / "Build"
-        / "Products"
-        / f"{configuration}-iphonesimulator"
-        / f"{product_stem}.app"
+    platform_dir = (
+        f"{configuration}-iphoneos"
+        if resolved_destination and is_physical_ios_destination(resolved_destination)
+        else f"{configuration}-iphonesimulator"
     )
+    app_path = derived_data_path / "Build" / "Products" / platform_dir / f"{product_stem}.app"
     if app_path.is_dir():
         return app_path
 
@@ -307,3 +317,25 @@ def simctl_launch_argv(
 ) -> list[str]:
     """Return ``simctl launch`` argv with optional app arguments."""
     return ["xcrun", "simctl", "launch", device, bundle_id, *app_args]
+
+
+def devicectl_install_app_argv(*, device: str, app_path: Path) -> list[str]:
+    """Return ``devicectl device install app`` argv (physical device)."""
+    return ["xcrun", "devicectl", "device", "install", "app", "--device", device, str(app_path)]
+
+
+def devicectl_process_launch_argv(
+    *, device: str, bundle_id: str, app_args: Sequence[str]
+) -> list[str]:
+    """Return ``devicectl device process launch`` argv for a bundle identifier."""
+    return [
+        "xcrun",
+        "devicectl",
+        "device",
+        "process",
+        "launch",
+        "--device",
+        device,
+        bundle_id,
+        *app_args,
+    ]
