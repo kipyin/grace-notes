@@ -47,10 +47,12 @@ struct ReviewHistoryDrilldownSheetContainer: View {
 
 private struct GrowthStageDrilldownSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @State private var journalNavigationDay: ReviewHistoryDrilldownJournalNavigationDay?
 
     let level: JournalCompletionLevel
     private let matchingDayStarts: Set<Date>
     private let historyDayRange: Range<Date>
+    private let displayRange: Range<Date>
     private let drilldownCalendar: Calendar
 
     init(
@@ -66,6 +68,11 @@ private struct GrowthStageDrilldownSheet: View {
             referenceDate: referenceDate,
             calendar: calendar,
             allEntries: entries
+        )
+        displayRange = ReviewHistoryDrilldownCalendarLayout.drilldownGridDisplayRange(
+            entries: entries,
+            historyDayRange: historyDayRange,
+            calendar: calendar
         )
         let historyEntries = ReviewHistoryWindowing.entriesInValidatedHistoryWindow(
             allEntries: entries,
@@ -115,10 +122,17 @@ private struct GrowthStageDrilldownSheet: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.vertical, 8)
                     } else {
-                        ReviewHistoryDrilldownCalendarMonthStack(
+                        ReviewHistoryDrilldownCalendarGrid(
                             matchingDayStarts: matchingDayStarts,
+                            historyDayRange: historyDayRange,
+                            displayRange: displayRange,
                             calendar: drilldownCalendar,
-                            historyDayRange: historyDayRange
+                            onMatchingDaySelected: { day in
+                                journalNavigationDay = ReviewHistoryDrilldownJournalNavigationDay(
+                                    dayStart: day,
+                                    calendar: drilldownCalendar
+                                )
+                            }
                         )
                         .padding(.vertical, 4)
                     }
@@ -138,6 +152,9 @@ private struct GrowthStageDrilldownSheet: View {
                         dismiss()
                     }
                 }
+            }
+            .navigationDestination(item: $journalNavigationDay) { item in
+                JournalScreen(entryDate: item.date)
             }
         }
     }
@@ -177,11 +194,13 @@ private struct GrowthStageDrilldownSheet: View {
 
 private struct SectionEntriesDrilldownSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @State private var journalNavigationDay: ReviewHistoryDrilldownJournalNavigationDay?
 
     let section: ReviewStatsSectionKind
     private let contributingEntries: [JournalEntry]
     private let sectionMatchingDayStarts: Set<Date>
     private let historyDayRange: Range<Date>
+    private let displayRange: Range<Date>
     private let drilldownCalendar: Calendar
 
     init(
@@ -197,6 +216,11 @@ private struct SectionEntriesDrilldownSheet: View {
             referenceDate: referenceDate,
             calendar: calendar,
             allEntries: entries
+        )
+        displayRange = ReviewHistoryDrilldownCalendarLayout.drilldownGridDisplayRange(
+            entries: entries,
+            historyDayRange: historyDayRange,
+            calendar: calendar
         )
         let historyEntries = ReviewHistoryWindowing.entriesInValidatedHistoryWindow(
             allEntries: entries,
@@ -236,10 +260,17 @@ private struct SectionEntriesDrilldownSheet: View {
                 } else {
                     List {
                         Section {
-                            ReviewHistoryDrilldownCalendarMonthStack(
+                            ReviewHistoryDrilldownCalendarGrid(
                                 matchingDayStarts: sectionMatchingDayStarts,
+                                historyDayRange: historyDayRange,
+                                displayRange: displayRange,
                                 calendar: drilldownCalendar,
-                                historyDayRange: historyDayRange
+                                onMatchingDaySelected: { day in
+                                    journalNavigationDay = ReviewHistoryDrilldownJournalNavigationDay(
+                                        dayStart: day,
+                                        calendar: drilldownCalendar
+                                    )
+                                }
                             )
                             .padding(.vertical, 4)
                         } header: {
@@ -250,6 +281,9 @@ private struct SectionEntriesDrilldownSheet: View {
                         }
                     }
                     .scrollContentBackground(.hidden)
+                    .navigationDestination(item: $journalNavigationDay) { item in
+                        JournalScreen(entryDate: item.date)
+                    }
                 }
             }
             .background(AppTheme.reviewBackground)

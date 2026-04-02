@@ -4547,54 +4547,6 @@
         }
       }
     },
-    "Review history growth drilldown calendar empty title": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No matching days"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "没有符合的日期"
-          }
-        }
-      }
-    },
-    "Review history growth drilldown calendar empty description": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No journal days in the current range match this growth level."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当前时间范围内没有符合该成长阶段的日记日期。"
-          }
-        }
-      }
-    },
-    "Review history section drilldown calendar section": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Days with entries"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "有内容的日期"
-          }
-        }
-      }
-    },
     "Review history section strip segment empty hint": {
       "localizations": {
         "en": {
@@ -8355,6 +8307,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "你常常把「休息」写在「需要的事」里，但是「感恩的事」里还没有出现过它。"
+          }
+        }
+      }
+    },
+    "Review history growth drilldown calendar empty title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No matching days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有符合的日期"
+          }
+        }
+      }
+    },
+    "Review history growth drilldown calendar empty description": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No journal days in the current range match this growth level."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前时间范围内没有符合该成长阶段的日记日期。"
+          }
+        }
+      }
+    },
+    "Review history section drilldown calendar section": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Days with entries"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有内容的日期"
           }
         }
       }

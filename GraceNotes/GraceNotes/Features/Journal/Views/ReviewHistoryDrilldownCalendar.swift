@@ -1,36 +1,59 @@
 import SwiftUI
+import SwiftData
 
-/// Shared layout for Growth / Section Past drill-downs (issue #178): stacked month grids with matching days emphasized.
-enum ReviewHistoryDrilldownCalendarLayout {
-    /// First day of each distinct calendar month that appears in `matchingDayStarts`, newest month first.
-    static func monthStartsDescending(matchingDayStarts: Set<Date>, calendar: Calendar) -> [Date] {
-        var monthStarts: Set<Date> = []
-        for day in matchingDayStarts {
-            let parts = calendar.dateComponents([.year, .month], from: day)
-            guard let first = calendar.date(from: parts) else { continue }
-            monthStarts.insert(calendar.startOfDay(for: first))
-        }
-        return monthStarts.sorted { $0 > $1 }
+// Opens ``JournalScreen`` from Past history drill-down calendars (``navigationDestination`` item).
+// swiftlint:disable:next type_name
+struct ReviewHistoryDrilldownJournalNavigationDay: Identifiable, Hashable {
+    let id: String
+    let date: Date
+
+    init(dayStart: Date, calendar: Calendar) {
+        let normalized = calendar.startOfDay(for: dayStart)
+        date = normalized
+        let components = calendar.dateComponents([.year, .month, .day], from: normalized)
+        let year = components.year ?? 0
+        let month = components.month ?? 0
+        let day = components.day ?? 0
+        id = "\(year)-\(month)-\(day)"
     }
+}
 
-    /// Leading padding cells + each day in the month as start-of-day; trailing nils pad to a full week row.
-    static func dayCellsForMonth(monthStart: Date, calendar: Calendar) -> [Date?] {
-        guard let firstOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: monthStart)),
-              let dayRange = calendar.range(of: .day, in: .month, for: firstOfMonth)
-        else {
-            return []
+/// One structural row in the continuous drill-down calendar (week rows + month banners).
+enum ReviewHistoryDrilldownCalendarRow: Identifiable, Equatable {
+    case monthBanner(id: String, title: String)
+    case week(id: String, cells: [Date?])
+
+    var id: String {
+        switch self {
+        case .monthBanner(let id, _):
+            return id
+        case .week(let id, _):
+            return id
         }
-        let firstWeekday = calendar.component(.weekday, from: firstOfMonth)
-        let leadingPad = (firstWeekday - calendar.firstWeekday + 7) % 7
-        var cells: [Date?] = Array(repeating: nil, count: leadingPad)
-        for dayNumber in dayRange {
-            guard let date = calendar.date(byAdding: .day, value: dayNumber - 1, to: firstOfMonth) else { continue }
-            cells.append(calendar.startOfDay(for: date))
+    }
+}
+
+enum ReviewHistoryDrilldownCalendarLayout {
+    /// Lower: first day of the month containing the earliest entry; upper: statistics window end (exclusive).
+    static func drilldownGridDisplayRange(
+        entries: [JournalEntry],
+        historyDayRange: Range<Date>,
+        calendar: Calendar
+    ) -> Range<Date> {
+        let upper = historyDayRange.upperBound
+        guard let minDate = entries.lazy.map(\.entryDate).min() else {
+            return (historyDayRange.lowerBound < upper)
+                ? historyDayRange.lowerBound ..< upper
+                : historyDayRange
         }
-        while !cells.isEmpty, cells.count % 7 != 0 {
-            cells.append(nil)
+        guard let firstOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: minDate)) else {
+            return historyDayRange.lowerBound ..< upper
         }
-        return cells
+        let lower = calendar.startOfDay(for: firstOfMonth)
+        if lower >= upper {
+            return historyDayRange.lowerBound ..< upper
+        }
+        return lower ..< upper
     }
 
     static func weekdaySymbolsOrdered(calendar: Calendar) -> [String] {
@@ -41,61 +64,104 @@ enum ReviewHistoryDrilldownCalendarLayout {
         let head = Array(symbols[..<firstIndex])
         return tail + head
     }
-}
 
-struct ReviewHistoryDrilldownCalendarMonthStack: View {
-    let matchingDayStarts: Set<Date>
-    let calendar: Calendar
-    let historyDayRange: Range<Date>
+    /// Week-aligned rows from ``displayRange`` (half-open); interleaves month banners at month boundaries.
+    static func continuousRows(displayRange: Range<Date>, calendar: Calendar) -> [ReviewHistoryDrilldownCalendarRow] {
+        guard let lower = normalizedRangeLower(displayRange: displayRange, calendar: calendar),
+              let lastInclusive = normalizedRangeLastInclusive(displayRange: displayRange, calendar: calendar),
+              lastInclusive >= lower else { return [] }
 
-    private var monthStarts: [Date] {
-        ReviewHistoryDrilldownCalendarLayout.monthStartsDescending(
-            matchingDayStarts: matchingDayStarts,
-            calendar: calendar
-        )
+        let flat = paddedDayCells(lower: lower, lastInclusive: lastInclusive, calendar: calendar)
+        let weeks = chunkIntoWeeks(flat)
+        return rowsWithBannersFromWeeks(weeks, calendar: calendar)
     }
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            ForEach(monthStarts, id: \.self) { monthStart in
-                ReviewHistoryDrilldownMonthCalendar(
-                    monthStart: monthStart,
-                    matchingDayStarts: matchingDayStarts,
-                    calendar: calendar,
-                    historyDayRange: historyDayRange
-                )
-            }
+    private static func normalizedRangeLower(displayRange: Range<Date>, calendar: Calendar) -> Date? {
+        let upperEx = displayRange.upperBound
+        let cand = calendar.startOfDay(for: displayRange.lowerBound)
+        return upperEx > cand ? cand : nil
+    }
+
+    private static func normalizedRangeLastInclusive(displayRange: Range<Date>, calendar: Calendar) -> Date? {
+        let upperEx = displayRange.upperBound
+        guard let dayBeforeUpper = calendar.date(byAdding: .day, value: -1, to: upperEx) else { return nil }
+        return calendar.startOfDay(for: dayBeforeUpper)
+    }
+
+    private static func paddedDayCells(lower: Date, lastInclusive: Date, calendar: Calendar) -> [Date?] {
+        let firstWeekday = calendar.component(.weekday, from: lower)
+        let leadingPad = (firstWeekday - calendar.firstWeekday + 7) % 7
+        var flat: [Date?] = Array(repeating: nil, count: leadingPad)
+        var cursor = lower
+        while cursor <= lastInclusive {
+            flat.append(cursor)
+            guard let rawNext = calendar.date(byAdding: .day, value: 1, to: cursor) else { break }
+            cursor = calendar.startOfDay(for: rawNext)
         }
+        while !flat.isEmpty, flat.count % 7 != 0 {
+            flat.append(nil)
+        }
+        return flat
+    }
+
+    private static func chunkIntoWeeks(_ flat: [Date?]) -> [[Date?]] {
+        var weeks: [[Date?]] = []
+        var index = 0
+        while index < flat.count {
+            let end = min(index + 7, flat.count)
+            weeks.append(Array(flat[index..<end]))
+            index = end
+        }
+        return weeks
+    }
+
+    private static func rowsWithBannersFromWeeks(
+        _ weeks: [[Date?]],
+        calendar: Calendar
+    ) -> [ReviewHistoryDrilldownCalendarRow] {
+        var rows: [ReviewHistoryDrilldownCalendarRow] = []
+        var lastBannerMonthKey: String?
+        for (weekIndex, week) in weeks.enumerated() {
+            if let firstDate = week.compactMap({ $0 }).first {
+                let year = calendar.component(.year, from: firstDate)
+                let month = calendar.component(.month, from: firstDate)
+                let key = "\(year)-\(month)"
+                if lastBannerMonthKey != key {
+                    let title = firstDate.formatted(.dateTime.month(.wide).year())
+                    rows.append(.monthBanner(id: "banner-\(key)", title: title))
+                    lastBannerMonthKey = key
+                }
+            }
+            let weekId: String
+            if let first = week.compactMap({ $0 }).first {
+                weekId = "week-\(Int(first.timeIntervalSince1970))-\(weekIndex)"
+            } else {
+                weekId = "week-pad-\(weekIndex)"
+            }
+            rows.append(.week(id: weekId, cells: week))
+        }
+        return rows
     }
 }
 
-private struct ReviewHistoryDrilldownMonthCalendar: View {
-    let monthStart: Date
+/// Continuous week grid for Growth / Section drill-downs (week header, month banners, one week per row).
+struct ReviewHistoryDrilldownCalendarGrid: View {
     let matchingDayStarts: Set<Date>
-    let calendar: Calendar
     let historyDayRange: Range<Date>
+    let displayRange: Range<Date>
+    let calendar: Calendar
+    let onMatchingDaySelected: (Date) -> Void
 
-    private var monthTitle: String {
-        monthStart.formatted(.dateTime.month(.wide).year())
-    }
-
-    private var cells: [Date?] {
-        ReviewHistoryDrilldownCalendarLayout.dayCellsForMonth(monthStart: monthStart, calendar: calendar)
+    private var rows: [ReviewHistoryDrilldownCalendarRow] {
+        ReviewHistoryDrilldownCalendarLayout.continuousRows(displayRange: displayRange, calendar: calendar)
     }
 
     private var orderedWeekdaySymbols: [String] {
         ReviewHistoryDrilldownCalendarLayout.weekdaySymbolsOrdered(calendar: calendar)
     }
 
-    private let gridColumns: [GridItem] = Array(repeating: GridItem(.flexible(), spacing: 6), count: 7)
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(monthTitle)
-                .font(AppTheme.warmPaperMetaEmphasis.weight(.semibold))
-                .foregroundStyle(AppTheme.reviewTextPrimary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
+        VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 6) {
                 ForEach(Array(orderedWeekdaySymbols.enumerated()), id: \.offset) { _, symbol in
                     Text(symbol)
@@ -106,11 +172,28 @@ private struct ReviewHistoryDrilldownMonthCalendar: View {
             }
             .accessibilityHidden(true)
 
-            LazyVGrid(columns: gridColumns, spacing: 6) {
-                ForEach(Array(cells.enumerated()), id: \.offset) { index, cellDay in
-                    dayCell(cellDay)
-                        .id("\(monthStart.timeIntervalSince1970)-\(index)")
+            LazyVStack(alignment: .leading, spacing: 10) {
+                ForEach(rows) { row in
+                    switch row {
+                    case .monthBanner(_, let title):
+                        Text(title)
+                            .font(AppTheme.warmPaperMetaEmphasis.weight(.semibold))
+                            .foregroundStyle(AppTheme.reviewTextPrimary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityAddTraits(.isHeader)
+                    case .week(_, let cells):
+                        calendarWeekRow(cells: cells)
+                    }
                 }
+            }
+        }
+    }
+
+    private func calendarWeekRow(cells: [Date?]) -> some View {
+        HStack(spacing: 6) {
+            ForEach(Array(cells.enumerated()), id: \.offset) { _, cellDay in
+                dayCell(cellDay)
+                    .frame(maxWidth: .infinity)
             }
         }
     }
@@ -123,8 +206,8 @@ private struct ReviewHistoryDrilldownMonthCalendar: View {
             let dayNumber = calendar.component(.day, from: dayStart)
 
             if isMatch {
-                NavigationLink {
-                    JournalScreen(entryDate: dayStart)
+                Button {
+                    onMatchingDaySelected(dayStart)
                 } label: {
                     dayNumberLabel(dayNumber: dayNumber, emphasized: true, outsideWindow: !inWindow)
                 }
