@@ -4978,6 +4978,22 @@
         }
       }
     },
+    "Review history section strip segment empty hint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens details; there are no matching entries for this section in the current range."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开详情；当前时间范围内该板块没有匹配的日记条目。"
+          }
+        }
+      }
+    },
     "Review history section strip segment hint" : {
       "localizations" : {
         "en" : {

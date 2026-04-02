@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum ReviewHistoryDrillDownPayload: Identifiable, Equatable {
+enum ReviewHistoryDrilldownPayload: Identifiable, Equatable {
     case growthStage(JournalCompletionLevel)
     case section(ReviewStatsSectionKind)
 
@@ -14,8 +14,8 @@ enum ReviewHistoryDrillDownPayload: Identifiable, Equatable {
     }
 }
 
-struct ReviewHistoryDrillDownSheetContainer: View {
-    let payload: ReviewHistoryDrillDownPayload
+struct ReviewHistoryDrilldownSheetContainer: View {
+    let payload: ReviewHistoryDrilldownPayload
     let entries: [JournalEntry]
     let calendar: Calendar
     let referenceDate: Date
@@ -24,7 +24,7 @@ struct ReviewHistoryDrillDownSheetContainer: View {
     var body: some View {
         switch payload {
         case .growthStage(let level):
-            GrowthStageDrillDownSheet(
+            GrowthStageDrilldownSheet(
                 level: level,
                 entries: entries,
                 calendar: calendar,
@@ -32,7 +32,7 @@ struct ReviewHistoryDrillDownSheetContainer: View {
                 pastStatisticsInterval: pastStatisticsInterval
             )
         case .section(let kind):
-            SectionEntriesDrillDownSheet(
+            SectionEntriesDrilldownSheet(
                 section: kind,
                 entries: entries,
                 calendar: calendar,
@@ -45,30 +45,34 @@ struct ReviewHistoryDrillDownSheetContainer: View {
 
 // MARK: - Growth stage
 
-private struct GrowthStageDrillDownSheet: View {
+private struct GrowthStageDrilldownSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     let level: JournalCompletionLevel
-    let entries: [JournalEntry]
-    let calendar: Calendar
-    let referenceDate: Date
-    let pastStatisticsInterval: PastStatisticsIntervalSelection
+    private let matchingDays: [Date]
 
-    private var historyEntries: [JournalEntry] {
-        ReviewHistoryWindowing.entriesInValidatedHistoryWindow(
+    init(
+        level: JournalCompletionLevel,
+        entries: [JournalEntry],
+        calendar: Calendar,
+        referenceDate: Date,
+        pastStatisticsInterval: PastStatisticsIntervalSelection
+    ) {
+        self.level = level
+        let historyEntries = ReviewHistoryWindowing.entriesInValidatedHistoryWindow(
             allEntries: entries,
             referenceDate: referenceDate,
             calendar: calendar,
             pastStatisticsInterval: pastStatisticsInterval
         )
-    }
-
-    private var strongestByDay: [Date: JournalCompletionLevel] {
-        ReviewHistoryWindowing.strongestCompletionByDay(from: historyEntries, calendar: calendar)
-    }
-
-    private var matchingDays: [Date] {
-        ReviewHistoryWindowing.calendarDaysMatchingStrongestCompletionLevel(level, strongestByDay: strongestByDay)
+        let strongestByDay = ReviewHistoryWindowing.strongestCompletionByDay(
+            from: historyEntries,
+            calendar: calendar
+        )
+        matchingDays = ReviewHistoryWindowing.calendarDaysMatchingStrongestCompletionLevel(
+            level,
+            strongestByDay: strongestByDay
+        )
     }
 
     var body: some View {
@@ -155,26 +159,30 @@ private struct GrowthStageDrillDownSheet: View {
 
 // MARK: - Section entries
 
-private struct SectionEntriesDrillDownSheet: View {
+private struct SectionEntriesDrilldownSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     let section: ReviewStatsSectionKind
-    let entries: [JournalEntry]
-    let calendar: Calendar
-    let referenceDate: Date
-    let pastStatisticsInterval: PastStatisticsIntervalSelection
+    private let contributingEntries: [JournalEntry]
 
-    private var historyEntries: [JournalEntry] {
-        ReviewHistoryWindowing.entriesInValidatedHistoryWindow(
+    init(
+        section: ReviewStatsSectionKind,
+        entries: [JournalEntry],
+        calendar: Calendar,
+        referenceDate: Date,
+        pastStatisticsInterval: PastStatisticsIntervalSelection
+    ) {
+        self.section = section
+        let historyEntries = ReviewHistoryWindowing.entriesInValidatedHistoryWindow(
             allEntries: entries,
             referenceDate: referenceDate,
             calendar: calendar,
             pastStatisticsInterval: pastStatisticsInterval
         )
-    }
-
-    private var contributingEntries: [JournalEntry] {
-        ReviewHistoryWindowing.entriesContributingToSection(section, in: historyEntries)
+        contributingEntries = ReviewHistoryWindowing.entriesContributingToSection(
+            section,
+            in: historyEntries
+        )
     }
 
     var body: some View {

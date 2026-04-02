@@ -7,7 +7,7 @@ struct ReviewHistoryGrowthStagesPanel: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
-    @Binding var historyDrillDown: ReviewHistoryDrillDownPayload?
+    @Binding var historyDrilldown: ReviewHistoryDrilldownPayload?
     let entries: [JournalEntry]
     let calendar: Calendar
     let referenceDate: Date
@@ -50,7 +50,7 @@ struct ReviewHistoryGrowthStagesPanel: View {
                 mix: mix,
                 dynamicTypeSize: dynamicTypeSize,
                 onSelectGrowthStage: { level in
-                    historyDrillDown = .growthStage(level)
+                    historyDrilldown = .growthStage(level)
                 }
             )
         }
@@ -257,7 +257,7 @@ struct ReviewHistorySectionDistributionPanel: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
-    @Binding var historyDrillDown: ReviewHistoryDrillDownPayload?
+    @Binding var historyDrilldown: ReviewHistoryDrilldownPayload?
     let entries: [JournalEntry]
     let calendar: Calendar
     let referenceDate: Date
@@ -300,7 +300,7 @@ struct ReviewHistorySectionDistributionPanel: View {
                 totals: totals,
                 dynamicTypeSize: dynamicTypeSize,
                 onSelectSection: { kind in
-                    historyDrillDown = .section(kind)
+                    historyDrilldown = .section(kind)
                 }
             )
         }
@@ -335,6 +335,12 @@ private struct ReviewHistorySectionStrip: View {
             (.needs, totals.needMentions),
             (.people, totals.peopleMentions)
         ]
+    }
+
+    private func segmentAccessibilityHint(forCount count: Int) -> String {
+        count == 0
+            ? String(localized: "Review history section strip segment empty hint")
+            : String(localized: "Review history section strip segment hint")
     }
 
     var body: some View {
@@ -387,7 +393,7 @@ private struct ReviewHistorySectionStrip: View {
                                 item.count
                             )
                         )
-                        .accessibilityHint(String(localized: "Review history section strip segment hint"))
+                        .accessibilityHint(segmentAccessibilityHint(forCount: item.count))
                     }
                 }
                 .frame(width: width, height: stripHeight)
@@ -428,7 +434,7 @@ private struct ReviewHistorySectionStrip: View {
                             item.count
                         )
                     )
-                    .accessibilityHint(String(localized: "Review history section strip segment hint"))
+                    .accessibilityHint(segmentAccessibilityHint(forCount: item.count))
                 }
             }
         }
