@@ -267,9 +267,7 @@ private struct PastJournalSearchDayCard: View {
     let sections: [(source: ReviewThemeSourceCategory, rows: [JournalSearchMatch])]
     let calendar: Calendar
     let highlightQuery: String
-
-    /// Avoid multiple `NavigationLink`s in one `List` row — they can all activate on a single tap.
-    @State private var journalNavigationDay: Date?
+    let onOpenJournalDay: (Date) -> Void
 
     private var dayCaption: String {
         PastSearchDayCaption.string(day: day, now: Date(), calendar: calendar)
@@ -277,7 +275,7 @@ private struct PastJournalSearchDayCard: View {
 
     var body: some View {
         Button {
-            journalNavigationDay = day
+            onOpenJournalDay(day)
         } label: {
             VStack(alignment: .leading, spacing: 14) {
                 Text(dayCaption)
@@ -334,9 +332,6 @@ private struct PastJournalSearchDayCard: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(dayCaption)
         .accessibilityHint(String(localized: "ThemeDrilldown.openEntry.a11yHint"))
-        .navigationDestination(item: $journalNavigationDay) { destinationDay in
-            JournalScreen(entryDate: destinationDay)
-        }
     }
 }
 
@@ -346,6 +341,7 @@ struct PastJournalSearchResultsList: View {
     let calendar: Calendar
     let highlightQuery: String
     let onDismissSearchFocus: () -> Void
+    let onOpenJournalDay: (Date) -> Void
 
     private var daySectionGroups: [(
         day: Date,
@@ -384,7 +380,8 @@ struct PastJournalSearchResultsList: View {
                             day: group.day,
                             sections: group.sections,
                             calendar: calendar,
-                            highlightQuery: highlightQuery
+                            highlightQuery: highlightQuery,
+                            onOpenJournalDay: onOpenJournalDay
                         )
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)

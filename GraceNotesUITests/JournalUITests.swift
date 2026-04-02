@@ -189,9 +189,15 @@ final class JournalUITests: XCTestCase {
             app.buttons["Share"].waitForExistence(timeout: 8),
             "Expected journal screen with Share after drilling in from Past tab rhythm."
         )
+        let doneButton = app.navigationBars.buttons["Done"]
         XCTAssertTrue(
-            app.navigationBars.buttons["Past"].waitForExistence(timeout: 5),
-            "Expected back affordance to return to Past."
+            doneButton.waitForExistence(timeout: 5),
+            "Expected Done in the journal sheet toolbar."
+        )
+        doneButton.tap()
+        XCTAssertTrue(
+            app.staticTexts["Days you wrote"].waitForExistence(timeout: 8),
+            "Expected Past tab after dismissing the journal sheet."
         )
     }
 

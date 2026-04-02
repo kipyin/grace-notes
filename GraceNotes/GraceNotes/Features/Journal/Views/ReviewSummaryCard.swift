@@ -16,6 +16,19 @@ struct ReviewDaysYouWrotePanel: View {
     private var reviewWeekBoundaryRawValue = ReviewWeekBoundaryPreference.defaultValue.rawValue
     let insights: ReviewInsights?
     let isLoading: Bool
+    /// When set, persisted rhythm days open via this callback (Past tab sheet).
+    /// When `nil`, uses push `NavigationLink` to `JournalScreen`.
+    var onPersistedDaySelected: ((Date) -> Void)?
+
+    init(
+        insights: ReviewInsights?,
+        isLoading: Bool,
+        onPersistedDaySelected: ((Date) -> Void)? = nil
+    ) {
+        self.insights = insights
+        self.isLoading = isLoading
+        self.onPersistedDaySelected = onPersistedDaySelected
+    }
 
     var body: some View {
         Group {
@@ -119,8 +132,8 @@ struct ReviewDaysYouWrotePanel: View {
         )
     }
 
-    // swiftlint:disable:next function_parameter_count
     @ViewBuilder
+    // swiftlint:disable:next function_parameter_count
     private func rhythmHistoryScrollSection(
         days: [ReviewDayActivity],
         displayInterval: Range<Date>,
@@ -224,12 +237,21 @@ struct ReviewDaysYouWrotePanel: View {
 
         Group {
             if day.hasPersistedEntry {
-                NavigationLink {
-                    JournalScreen(entryDate: day.date)
-                } label: {
-                    column
+                if let onPersistedDaySelected {
+                    Button {
+                        onPersistedDaySelected(day.date)
+                    } label: {
+                        column
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    NavigationLink {
+                        JournalScreen(entryDate: day.date)
+                    } label: {
+                        column
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             } else {
                 column
             }
