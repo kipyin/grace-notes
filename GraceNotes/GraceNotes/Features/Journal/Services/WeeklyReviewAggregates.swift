@@ -125,12 +125,7 @@ struct WeeklyReviewAggregatesBuilder {
 
 private extension WeeklyReviewAggregatesBuilder {
     private func sortedEntries(_ entries: [JournalEntry]) -> [JournalEntry] {
-        entries.sorted {
-            if $0.entryDate != $1.entryDate {
-                return $0.entryDate < $1.entryDate
-            }
-            return $0.id.uuidString < $1.id.uuidString
-        }
+        ReviewHistoryWindowing.sortedEntries(entries)
     }
 
     private func reflectionDayCount(from entries: [JournalEntry], calendar: Calendar) -> Int {
@@ -304,7 +299,7 @@ private extension WeeklyReviewAggregatesBuilder {
         pastStatisticsInterval: PastStatisticsIntervalSelection
     ) -> ReviewWeekStats {
         let meaningfulEntryCount = meaningfulEntryCount(from: entries)
-        let weekStrongestByDay = strongestCompletionByDay(from: entries, calendar: calendar)
+        let weekStrongestByDay = ReviewHistoryWindowing.strongestCompletionByDay(from: entries, calendar: calendar)
         let completionMix = buildCompletionMix(from: weekStrongestByDay)
         let activity = buildDayActivity(
             currentPeriod: currentPeriod,
@@ -322,17 +317,21 @@ private extension WeeklyReviewAggregatesBuilder {
             needMentions: entries.reduce(0) { $0 + ($1.needs ?? []).count },
             peopleMentions: entries.reduce(0) { $0 + ($1.people ?? []).count }
         )
-        let sortedAllEntries = sortedEntries(allEntries)
         let historyRange = pastStatisticsInterval.validated.resolvedHistoryRange(
             referenceDate: referenceDate,
             calendar: calendar,
             allEntries: allEntries
         )
-        let entriesInHistoryRange = sortedAllEntries.filter { entry in
-            let day = calendar.startOfDay(for: entry.entryDate)
-            return day >= historyRange.lowerBound && day < historyRange.upperBound
-        }
-        let historyStrongestByDay = strongestCompletionByDay(from: entriesInHistoryRange, calendar: calendar)
+        let entriesInHistoryRange = ReviewHistoryWindowing.entriesInValidatedHistoryWindow(
+            allEntries: allEntries,
+            referenceDate: referenceDate,
+            calendar: calendar,
+            pastStatisticsInterval: pastStatisticsInterval
+        )
+        let historyStrongestByDay = ReviewHistoryWindowing.strongestCompletionByDay(
+            from: entriesInHistoryRange,
+            calendar: calendar
+        )
         // Same invariant as week ``completionMix``: bucket totals sum to calendar days with ≥1 persisted
         // entry in the entry set used for the per-day strongest level (here, entries in the past-stats window).
         let historyCompletionMix = buildCompletionMix(from: historyStrongestByDay)
@@ -642,7 +641,10 @@ private extension WeeklyReviewAggregatesBuilder {
     ) -> [ReviewDayActivity]? {
         guard !allEntries.isEmpty else { return nil }
 
-        let strongestCompletionByDay = strongestCompletionByDay(from: allEntries, calendar: calendar)
+        let strongestCompletionByDay = ReviewHistoryWindowing.strongestCompletionByDay(
+            from: allEntries,
+            calendar: calendar
+        )
         let endDayInclusive = calendar.date(byAdding: .day, value: -1, to: currentPeriod.upperBound)
             ?? currentPeriod.lowerBound
         let entryMin = allEntries.map { calendar.startOfDay(for: $0.entryDate) }.min()
@@ -658,22 +660,6 @@ private extension WeeklyReviewAggregatesBuilder {
             calendar: calendar
         )
         return history.isEmpty ? nil : history
-    }
-
-    private func strongestCompletionByDay(
-        from entries: [JournalEntry],
-        calendar: Calendar
-    ) -> [Date: JournalCompletionLevel] {
-        var strongestByDay: [Date: JournalCompletionLevel] = [:]
-        for entry in entries {
-            let day = calendar.startOfDay(for: entry.entryDate)
-            let current = strongestByDay[day]
-            if let current, completionRank(current) >= completionRank(entry.completionLevel) {
-                continue
-            }
-            strongestByDay[day] = entry.completionLevel
-        }
-        return strongestByDay
     }
 
     private func buildCompletionMix(from strongestByDay: [Date: JournalCompletionLevel]) -> ReviewWeekCompletionMix {
@@ -734,10 +720,6 @@ private extension WeeklyReviewAggregatesBuilder {
             day = calendar.date(byAdding: .day, value: 1, to: day) ?? currentPeriod.upperBound
         }
         return activity
-    }
-
-    private func completionRank(_ level: JournalCompletionLevel) -> Int {
-        level.tutorialCompletionRank
     }
 }
 

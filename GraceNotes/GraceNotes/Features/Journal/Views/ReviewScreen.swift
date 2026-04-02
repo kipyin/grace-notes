@@ -31,6 +31,7 @@ struct ReviewScreen: View {
     @State private var mostRecurringThemeDrilldown: ReviewThemeDrilldownPayload?
     @State private var browseSheet: ReviewBrowseSheet?
     @State private var trendingThemeDrilldown: ReviewThemeDrilldownPayload?
+    @State private var historyDrilldown: ReviewHistoryDrilldownPayload?
     @State private var journalSearchText = ""
     @State private var journalSearchMatches: [JournalSearchMatch] = []
     @FocusState private var isPastSearchFieldFocused: Bool
@@ -86,6 +87,11 @@ struct ReviewScreen: View {
     private var calendar: Calendar {
         ReviewWeekBoundaryPreference.resolve(from: reviewWeekBoundaryRawValue)
             .configuredCalendar()
+    }
+
+    /// Same instant used when the visible `reviewInsights` were built (Copilot PR #176 follow-up).
+    private var insightsReferenceDate: Date {
+        reviewInsights?.generatedAt ?? Date()
     }
 
     private var trimmedJournalSearchQuery: String {
@@ -179,6 +185,15 @@ struct ReviewScreen: View {
             }
             .id(sheet.id)
         })
+        .sheet(item: $historyDrilldown) { payload in
+            ReviewHistoryDrilldownSheetContainer(
+                payload: payload,
+                entries: entries,
+                calendar: calendar,
+                referenceDate: insightsReferenceDate,
+                pastStatisticsInterval: pastStatisticsInterval
+            )
+        }
     }
 
     private var emptyStateWithSearch: some View {
@@ -267,6 +282,11 @@ struct ReviewScreen: View {
                 .listRowSeparator(.hidden)
 
                 ReviewHistoryGrowthStagesPanel(
+                    historyDrilldown: $historyDrilldown,
+                    entries: entries,
+                    calendar: calendar,
+                    referenceDate: insightsReferenceDate,
+                    pastStatisticsInterval: pastStatisticsInterval,
                     insights: reviewInsights,
                     isLoading: isLoadingInsights
                 )
@@ -275,6 +295,11 @@ struct ReviewScreen: View {
                 .listRowSeparator(.hidden)
 
                 ReviewHistorySectionDistributionPanel(
+                    historyDrilldown: $historyDrilldown,
+                    entries: entries,
+                    calendar: calendar,
+                    referenceDate: insightsReferenceDate,
+                    pastStatisticsInterval: pastStatisticsInterval,
                     insights: reviewInsights,
                     isLoading: isLoadingInsights
                 )
