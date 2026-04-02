@@ -3,16 +3,15 @@ import XCTest
 @testable import GraceNotes
 
 @MainActor
-final class JournalScreenChipHandlingTests: XCTestCase {
-    func test_performChipTap_whenEditingUnchangedText_switchesWithoutCommitting() {
+final class JournalScreenStripHandlingTests: XCTestCase {
+    func test_performStripTap_whenEditingUnchangedText_switchesWithoutCommitting() {
         var input = "Current full text"
         var editingIndex: Int? = 0
         var isTransitioning = false
         var didUpdate = false
         var didAdd = false
-        var didSummarize = false
 
-        let operations = ChipSectionOperations(
+        let operations = StripSectionOperations(
             updateImmediate: { _, _ in
                 didUpdate = true
                 return 0
@@ -25,13 +24,10 @@ final class JournalScreenChipHandlingTests: XCTestCase {
             fullText: { index in
                 index == 0 ? "Current full text" : "Tapped full text"
             },
-            count: 2,
-            summarizeAndUpdateChip: { _ in
-                didSummarize = true
-            }
+            count: 2
         )
 
-        let handled = JournalScreenChipHandling.performChipTap(
+        let handled = JournalScreenStripHandling.performStripTap(
             tapIndex: 1,
             input: Binding(get: { input }, set: { input = $0 }),
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
@@ -42,31 +38,26 @@ final class JournalScreenChipHandlingTests: XCTestCase {
         XCTAssertTrue(handled)
         XCTAssertFalse(didUpdate)
         XCTAssertFalse(didAdd)
-        XCTAssertFalse(didSummarize)
         XCTAssertEqual(editingIndex, 1)
         XCTAssertEqual(input, "Tapped full text")
     }
 
-    func test_performChipTap_whenEditingChangedText_commitsAndSchedulesSummary() {
+    func test_performStripTap_whenEditingChangedText_commitsAndSwitchesStrip() {
         var input = "Edited text"
         var editingIndex: Int? = 0
         var isTransitioning = false
-        var summarizedIndex: Int?
 
-        let operations = ChipSectionOperations(
+        let operations = StripSectionOperations(
             updateImmediate: { _, _ in 0 },
             addImmediate: { _ in nil },
             remove: { _ in false },
             fullText: { index in
                 index == 0 ? "Original" : "Target full text"
             },
-            count: 2,
-            summarizeAndUpdateChip: { index in
-                summarizedIndex = index
-            }
+            count: 2
         )
 
-        let handled = JournalScreenChipHandling.performChipTap(
+        let handled = JournalScreenStripHandling.performStripTap(
             tapIndex: 1,
             input: Binding(get: { input }, set: { input = $0 }),
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
@@ -75,29 +66,24 @@ final class JournalScreenChipHandlingTests: XCTestCase {
         )
 
         XCTAssertTrue(handled)
-        XCTAssertEqual(summarizedIndex, 0)
         XCTAssertEqual(editingIndex, 1)
         XCTAssertEqual(input, "Target full text")
     }
 
-    func test_performChipTap_whenTransitionInFlight_ignoresTap() {
+    func test_performStripTap_whenTransitionInFlight_ignoresTap() {
         var input = "Draft text"
         var editingIndex: Int? = 0
         var isTransitioning = true
-        var didSummarize = false
 
-        let operations = ChipSectionOperations(
+        let operations = StripSectionOperations(
             updateImmediate: { _, _ in 0 },
             addImmediate: { _ in 1 },
             remove: { _ in false },
             fullText: { _ in "Target full text" },
-            count: 1,
-            summarizeAndUpdateChip: { _ in
-                didSummarize = true
-            }
+            count: 1
         )
 
-        let handled = JournalScreenChipHandling.performChipTap(
+        let handled = JournalScreenStripHandling.performStripTap(
             tapIndex: 0,
             input: Binding(get: { input }, set: { input = $0 }),
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
@@ -108,14 +94,13 @@ final class JournalScreenChipHandlingTests: XCTestCase {
         XCTAssertFalse(handled)
         XCTAssertEqual(input, "Draft text")
         XCTAssertEqual(editingIndex, 0)
-        XCTAssertFalse(didSummarize)
     }
 
     func test_performDelete_whenDeletingEarlierItem_shiftsEditingIndex() {
         var input = "In progress"
         var editingIndex: Int? = 3
 
-        JournalScreenChipHandling.performDelete(
+        JournalScreenStripHandling.performDelete(
             index: 1,
             remove: { _ in true },
             input: Binding(get: { input }, set: { input = $0 }),
@@ -126,21 +111,19 @@ final class JournalScreenChipHandlingTests: XCTestCase {
         XCTAssertEqual(input, "In progress")
     }
 
-    func test_submitChipSection_whenAddSucceeds_clearsInput() {
+    func test_submitStripSection_whenAddSucceeds_clearsInput() {
         var input = "New text"
         var editingIndex: Int?
         var isTransitioning = false
-        var summarizedIndex: Int?
-        let operations = ChipSectionOperations(
+        let operations = StripSectionOperations(
             updateImmediate: { _, _ in nil },
             addImmediate: { _ in 2 },
             remove: { _ in false },
             fullText: { _ in nil },
-            count: 2,
-            summarizeAndUpdateChip: { summarizedIndex = $0 }
+            count: 2
         )
 
-        let didSubmit = JournalScreenChipHandling.submitChipSection(
+        let didSubmit = JournalScreenStripHandling.submitStripSection(
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
             input: Binding(get: { input }, set: { input = $0 }),
             operations: operations,
@@ -150,15 +133,14 @@ final class JournalScreenChipHandlingTests: XCTestCase {
         XCTAssertTrue(didSubmit)
         XCTAssertNil(editingIndex)
         XCTAssertEqual(input, "")
-        XCTAssertEqual(summarizedIndex, 2)
     }
 
-    func test_submitChipSection_whenTransitionInFlight_ignoresDuplicateSubmit() {
+    func test_submitStripSection_whenTransitionInFlight_ignoresDuplicateSubmit() {
         var input = "New text"
         var editingIndex: Int?
         var isTransitioning = true
         var didAdd = false
-        let operations = ChipSectionOperations(
+        let operations = StripSectionOperations(
             updateImmediate: { _, _ in nil },
             addImmediate: { _ in
                 didAdd = true
@@ -166,11 +148,10 @@ final class JournalScreenChipHandlingTests: XCTestCase {
             },
             remove: { _ in false },
             fullText: { _ in nil },
-            count: 0,
-            summarizeAndUpdateChip: { _ in }
+            count: 0
         )
 
-        let didSubmit = JournalScreenChipHandling.submitChipSection(
+        let didSubmit = JournalScreenStripHandling.submitStripSection(
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
             input: Binding(get: { input }, set: { input = $0 }),
             operations: operations,
@@ -182,21 +163,19 @@ final class JournalScreenChipHandlingTests: XCTestCase {
         XCTAssertEqual(input, "New text")
     }
 
-    func test_handleAddChipTap_withActiveDraft_commitsAndStartsFreshInput() {
+    func test_handleAddStripTap_withActiveDraft_commitsAndStartsFreshInput() {
         var input = "Keep this draft"
         var editingIndex: Int? = 1
         var isTransitioning = false
-        var summarizedIndex: Int?
-        let operations = ChipSectionOperations(
+        let operations = StripSectionOperations(
             updateImmediate: { _, _ in 1 },
             addImmediate: { _ in nil },
             remove: { _ in false },
             fullText: { _ in nil },
-            count: 2,
-            summarizeAndUpdateChip: { summarizedIndex = $0 }
+            count: 2
         )
 
-        let handled = JournalScreenChipHandling.handleAddChipTap(
+        let handled = JournalScreenStripHandling.handleAddStripTap(
             input: Binding(get: { input }, set: { input = $0 }),
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
             operations: operations,
@@ -206,15 +185,14 @@ final class JournalScreenChipHandlingTests: XCTestCase {
         XCTAssertTrue(handled)
         XCTAssertEqual(input, "")
         XCTAssertNil(editingIndex)
-        XCTAssertEqual(summarizedIndex, 1)
     }
 
-    func test_handleAddChipTap_withEmptyDraft_exitsEditingMode() {
+    func test_handleAddStripTap_withEmptyDraft_exitsEditingMode() {
         var input = "   "
         var editingIndex: Int? = 2
         var isTransitioning = false
         var didRemove = false
-        let operations = ChipSectionOperations(
+        let operations = StripSectionOperations(
             updateImmediate: { _, _ in nil },
             addImmediate: { _ in nil },
             remove: { index in
@@ -222,11 +200,10 @@ final class JournalScreenChipHandlingTests: XCTestCase {
                 return index == 2
             },
             fullText: { _ in nil },
-            count: 2,
-            summarizeAndUpdateChip: { _ in }
+            count: 2
         )
 
-        let handled = JournalScreenChipHandling.handleAddChipTap(
+        let handled = JournalScreenStripHandling.handleAddStripTap(
             input: Binding(get: { input }, set: { input = $0 }),
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
             operations: operations,
@@ -239,13 +216,13 @@ final class JournalScreenChipHandlingTests: XCTestCase {
         XCTAssertNil(editingIndex)
     }
 
-    func test_performChipTap_withEmptyInlineEdit_opensTappedStripAfterDelete() {
+    func test_performStripTap_withEmptyInlineEdit_opensTappedStripAfterDelete() {
         var input = "  \n"
         var editingIndex: Int? = 0
         var isTransitioning = false
         var removedIndex: Int?
         var chipTexts = ["First", "Second"]
-        let operations = ChipSectionOperations(
+        let operations = StripSectionOperations(
             updateImmediate: { _, _ in nil },
             addImmediate: { _ in nil },
             remove: { index in
@@ -258,11 +235,10 @@ final class JournalScreenChipHandlingTests: XCTestCase {
                 guard chipTexts.indices.contains(index) else { return nil }
                 return chipTexts[index]
             },
-            count: 2,
-            summarizeAndUpdateChip: { _ in }
+            count: 2
         )
 
-        let handled = JournalScreenChipHandling.performChipTap(
+        let handled = JournalScreenStripHandling.performStripTap(
             tapIndex: 1,
             input: Binding(get: { input }, set: { input = $0 }),
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
@@ -276,12 +252,12 @@ final class JournalScreenChipHandlingTests: XCTestCase {
         XCTAssertEqual(input, "Second")
     }
 
-    func test_performChipTap_withEmptyInlineEdit_tappingSameStrip_clearsEditing() {
+    func test_performStripTap_withEmptyInlineEdit_tappingSameStrip_clearsEditing() {
         var input = ""
         var editingIndex: Int? = 1
         var isTransitioning = false
         var removedIndex: Int?
-        let operations = ChipSectionOperations(
+        let operations = StripSectionOperations(
             updateImmediate: { _, _ in nil },
             addImmediate: { _ in nil },
             remove: { index in
@@ -291,11 +267,10 @@ final class JournalScreenChipHandlingTests: XCTestCase {
             fullText: { index in
                 index == 1 ? "Only" : "Other"
             },
-            count: 2,
-            summarizeAndUpdateChip: { _ in }
+            count: 2
         )
 
-        let handled = JournalScreenChipHandling.performChipTap(
+        let handled = JournalScreenStripHandling.performStripTap(
             tapIndex: 1,
             input: Binding(get: { input }, set: { input = $0 }),
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
@@ -309,21 +284,19 @@ final class JournalScreenChipHandlingTests: XCTestCase {
         XCTAssertEqual(input, "")
     }
 
-    func test_handleAddChipTap_whenNotEditingWithDraft_addsDraftAndStartsFreshInput() {
+    func test_handleAddStripTap_whenNotEditingWithDraft_addsDraftAndStartsFreshInput() {
         var input = "New draft"
         var editingIndex: Int?
         var isTransitioning = false
-        var summarizedIndex: Int?
-        let operations = ChipSectionOperations(
+        let operations = StripSectionOperations(
             updateImmediate: { _, _ in nil },
             addImmediate: { _ in 2 },
             remove: { _ in false },
             fullText: { _ in nil },
-            count: 2,
-            summarizeAndUpdateChip: { summarizedIndex = $0 }
+            count: 2
         )
 
-        let handled = JournalScreenChipHandling.handleAddChipTap(
+        let handled = JournalScreenStripHandling.handleAddStripTap(
             input: Binding(get: { input }, set: { input = $0 }),
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
             operations: operations,
@@ -333,13 +306,12 @@ final class JournalScreenChipHandlingTests: XCTestCase {
         XCTAssertTrue(handled)
         XCTAssertEqual(input, "")
         XCTAssertNil(editingIndex)
-        XCTAssertEqual(summarizedIndex, 2)
     }
 
     func test_performMove_whenEditingMovedItem_updatesEditingIndexToDestination() {
         var editingIndex: Int? = 0
 
-        JournalScreenChipHandling.performMove(
+        JournalScreenStripHandling.performMove(
             from: 0,
             to: 3,
             move: { _, _ in true },
@@ -352,7 +324,7 @@ final class JournalScreenChipHandlingTests: XCTestCase {
     func test_performMove_whenEditingItemBetweenRange_shiftsEditingIndex() {
         var editingIndex: Int? = 2
 
-        JournalScreenChipHandling.performMove(
+        JournalScreenStripHandling.performMove(
             from: 0,
             to: 3,
             move: { _, _ in true },
@@ -364,7 +336,7 @@ final class JournalScreenChipHandlingTests: XCTestCase {
 }
 
 @MainActor
-final class ChipReorderDropDelegateTests: XCTestCase {
+final class StripReorderDropDelegateTests: XCTestCase {
     func test_applyLiveReorder_movesWhenDraggingOverDifferentChip() {
         let first = JournalItem(fullText: "First")
         let second = JournalItem(fullText: "Second")
@@ -373,13 +345,13 @@ final class ChipReorderDropDelegateTests: XCTestCase {
         var hoverTargetItemID: UUID?
         var moveCount = 0
 
-        let delegate = SequentialSectionChipRow.ChipReorderDropDelegate(
+        let delegate = SequentialSectionStripRow.StripReorderDropDelegate(
             targetIndex: 1,
             items: items,
             draggingItemID: Binding(get: { draggingItemID }, set: { draggingItemID = $0 }),
             hoverTargetItemID: Binding(get: { hoverTargetItemID }, set: { hoverTargetItemID = $0 }),
             reduceMotion: true,
-            onMoveChip: { _, _ in moveCount += 1 }
+            onMoveStrip: { _, _ in moveCount += 1 }
         )
 
         delegate.applyLiveReorderIfNeeded()
@@ -395,13 +367,13 @@ final class ChipReorderDropDelegateTests: XCTestCase {
         var hoverTargetItemID: UUID?
         var moveCount = 0
 
-        let delegate = SequentialSectionChipRow.ChipReorderDropDelegate(
+        let delegate = SequentialSectionStripRow.StripReorderDropDelegate(
             targetIndex: 1,
             items: items,
             draggingItemID: Binding(get: { draggingItemID }, set: { draggingItemID = $0 }),
             hoverTargetItemID: Binding(get: { hoverTargetItemID }, set: { hoverTargetItemID = $0 }),
             reduceMotion: true,
-            onMoveChip: { _, _ in moveCount += 1 }
+            onMoveStrip: { _, _ in moveCount += 1 }
         )
 
         delegate.applyLiveReorderIfNeeded()
@@ -417,13 +389,13 @@ final class ChipReorderDropDelegateTests: XCTestCase {
         var hoverTargetItemID: UUID?
         var moveCount = 0
 
-        let delegate = SequentialSectionChipRow.ChipReorderDropDelegate(
+        let delegate = SequentialSectionStripRow.StripReorderDropDelegate(
             targetIndex: 1,
             items: items,
             draggingItemID: Binding(get: { draggingItemID }, set: { draggingItemID = $0 }),
             hoverTargetItemID: Binding(get: { hoverTargetItemID }, set: { hoverTargetItemID = $0 }),
             reduceMotion: true,
-            onMoveChip: { _, _ in moveCount += 1 }
+            onMoveStrip: { _, _ in moveCount += 1 }
         )
 
         XCTAssertTrue(delegate.performDrop())
@@ -439,13 +411,13 @@ final class ChipReorderDropDelegateTests: XCTestCase {
         var hoverTargetItemID: UUID? = second.id
         var moveCount = 0
 
-        let delegate = SequentialSectionChipRow.ChipReorderDropDelegate(
+        let delegate = SequentialSectionStripRow.StripReorderDropDelegate(
             targetIndex: 0,
             items: items,
             draggingItemID: Binding(get: { draggingItemID }, set: { draggingItemID = $0 }),
             hoverTargetItemID: Binding(get: { hoverTargetItemID }, set: { hoverTargetItemID = $0 }),
             reduceMotion: true,
-            onMoveChip: { _, _ in moveCount += 1 }
+            onMoveStrip: { _, _ in moveCount += 1 }
         )
 
         XCTAssertTrue(delegate.performDrop())
@@ -459,13 +431,13 @@ final class ChipReorderDropDelegateTests: XCTestCase {
         var draggingItemID: UUID?
         var hoverTargetItemID: UUID?
         var didMove = false
-        let delegate = SequentialSectionChipRow.ChipReorderDropDelegate(
+        let delegate = SequentialSectionStripRow.StripReorderDropDelegate(
             targetIndex: 0,
             items: [item],
             draggingItemID: Binding(get: { draggingItemID }, set: { draggingItemID = $0 }),
             hoverTargetItemID: Binding(get: { hoverTargetItemID }, set: { hoverTargetItemID = $0 }),
             reduceMotion: true,
-            onMoveChip: { _, _ in didMove = true }
+            onMoveStrip: { _, _ in didMove = true }
         )
 
         let didHandleDrop = delegate.performDrop()
@@ -474,12 +446,12 @@ final class ChipReorderDropDelegateTests: XCTestCase {
         XCTAssertFalse(didMove)
     }
 
-    func test_chipReorderMoveParameters_nilWhenHoveringDraggedChip() {
+    func test_stripReorderMoveParameters_nilWhenHoveringDraggedChip() {
         let first = JournalItem(fullText: "First")
         let second = JournalItem(fullText: "Second")
         let items = [first, second]
         XCTAssertNil(
-            SequentialSectionChipRow.ChipReorderDropDelegate.chipReorderMoveParameters(
+            SequentialSectionStripRow.StripReorderDropDelegate.stripReorderMoveParameters(
                 activeDragID: first.id,
                 items: items,
                 targetIndex: 0
@@ -487,12 +459,12 @@ final class ChipReorderDropDelegateTests: XCTestCase {
         )
     }
 
-    func test_chipReorderMoveParameters_movesEarlierItemTowardLaterChip() {
+    func test_stripReorderMoveParameters_movesEarlierItemTowardLaterChip() {
         let first = JournalItem(fullText: "First")
         let second = JournalItem(fullText: "Second")
         let third = JournalItem(fullText: "Third")
         let items = [first, second, third]
-        let params = SequentialSectionChipRow.ChipReorderDropDelegate.chipReorderMoveParameters(
+        let params = SequentialSectionStripRow.StripReorderDropDelegate.stripReorderMoveParameters(
             activeDragID: first.id,
             items: items,
             targetIndex: 2

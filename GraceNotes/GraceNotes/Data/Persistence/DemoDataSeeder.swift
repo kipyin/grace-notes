@@ -101,25 +101,25 @@ enum DemoDataSeeder {
         DemoEntryPayload(
             entryDate: entryDate,
             gratitudes: [
-                item("感恩 morning coffee 讓我開始美好的一天", "Morning coffee 美好開始"),
-                item("Thanks to 小明 for helping with the project", "小明幫 project"),
-                item("和 Sarah 的 lunch meeting 很愉快", "Sarah lunch 愉快"),
-                item("Family dinner with lots of laughter", "Family dinner"),
-                item("天氣很好，散步很舒服", "天氣好散步")
+                item("感恩 morning coffee 讓我開始美好的一天"),
+                item("Thanks to 小明 for helping with the project"),
+                item("和 Sarah 的 lunch meeting 很愉快"),
+                item("Family dinner with lots of laughter"),
+                item("天氣很好，散步很舒服")
             ],
             needs: [
-                item("需要 more sleep 和規律作息", "More sleep 規律"),
-                item("想 find time for 運動", "Find time 運動"),
-                item("Need clearer priorities at work", "Clear priorities"),
-                item("今天需要安靜專注", "安靜專注"),
-                item("More water during the day", "Drink more water")
+                item("需要 more sleep 和規律作息"),
+                item("想 find time for 運動"),
+                item("Need clearer priorities at work"),
+                item("今天需要安靜專注"),
+                item("More water during the day")
             ],
             people: [
-                item("和媽媽的 weekly call", "媽媽 weekly call"),
-                item("Coffee with 老闆討論 promotion", "老闆 coffee talk"),
-                item("Pray for my brother's travel", "Brother travel"),
-                item("Check in with mentor after lunch", "Mentor check-in"),
-                item("Send encouragement to team", "Encourage team")
+                item("和媽媽的 weekly call"),
+                item("Coffee with 老闆討論 promotion"),
+                item("Pray for my brother's travel"),
+                item("Check in with mentor after lunch"),
+                item("Send encouragement to team")
             ],
             readingNotes: "John 15 reminded me to remain connected and let daily habits flow from that place.",
             reflections: "Today I feel grounded and hopeful. "
@@ -132,19 +132,19 @@ enum DemoDataSeeder {
         DemoEntryPayload(
             entryDate: entryDate,
             gratitudes: [
-                item("Grateful for quiet morning time", "Quiet morning"),
-                item("感恩同事主動幫忙", "同事幫忙"),
-                item("Nice walk after dinner", "Evening walk")
+                item("Grateful for quiet morning time"),
+                item("感恩同事主動幫忙"),
+                item("Nice walk after dinner")
             ],
             needs: [
-                item("Need to rest my eyes", "Rest eyes"),
-                item("想要更好的時間管理", "時間管理"),
-                item("Need to follow up on one message", "Follow up")
+                item("Need to rest my eyes"),
+                item("想要更好的時間管理"),
+                item("Need to follow up on one message")
             ],
             people: [
-                item("Pray for my friend interview", "Friend interview"),
-                item("Call dad tonight", "Call dad"),
-                item("Thank my manager for yesterday's feedback", "Manager follow-up")
+                item("Pray for my friend interview"),
+                item("Call dad tonight"),
+                item("Thank my manager for yesterday's feedback")
             ],
             readingNotes: "",
             reflections: "A little tired, but still thankful.",
@@ -168,25 +168,25 @@ enum DemoDataSeeder {
         DemoEntryPayload(
             entryDate: entryDate,
             gratitudes: [
-                item("感謝朋友幫忙搬家", "朋友幫忙"),
-                item("感謝今天的陽光", "今日陽光"),
-                item("感謝午餐很美味", "午餐美味"),
-                item("感謝有時間禱告", "禱告時間"),
-                item("感謝身體恢復中", "身體恢復")
+                item("感謝朋友幫忙搬家"),
+                item("感謝今天的陽光"),
+                item("感謝午餐很美味"),
+                item("感謝有時間禱告"),
+                item("感謝身體恢復中")
             ],
             needs: [
-                item("想找時間運動", "找時間運動"),
-                item("需要多休息", "多休息"),
-                item("需要整理房間", "整理房間"),
-                item("想減少滑手機", "少滑手機"),
-                item("需要補充水分", "補充水分")
+                item("想找時間運動"),
+                item("需要多休息"),
+                item("需要整理房間"),
+                item("想減少滑手機"),
+                item("需要補充水分")
             ],
             people: [
-                item("感謝媽媽的提醒", "媽媽提醒"),
-                item("想關心同事近況", "關心同事"),
-                item("為教會小組代禱", "小組代禱"),
-                item("感謝鄰居借工具", "鄰居借工具"),
-                item("想約朋友散步", "約朋友散步")
+                item("感謝媽媽的提醒"),
+                item("想關心同事近況"),
+                item("為教會小組代禱"),
+                item("感謝鄰居借工具"),
+                item("想約朋友散步")
             ],
             readingNotes: "詩篇提醒我在忙碌裡仍然可以安靜等候。",
             reflections: "今天節奏很滿，但仍有很多值得感恩的片刻。",
@@ -198,25 +198,25 @@ enum DemoDataSeeder {
         DemoEntryPayload(
             entryDate: entryDate,
             gratitudes: [
-                item("Grateful for morning prayer", "Morning prayer"),
-                item("Thankful for smooth commute", "Smooth commute"),
-                item("感恩 coffee break", "Coffee break"),
-                item("Great feedback from teammate", "Team feedback"),
-                item("Lunch outside in good weather", "Lunch outside")
+                item("Grateful for morning prayer"),
+                item("Thankful for smooth commute"),
+                item("感恩 coffee break"),
+                item("Great feedback from teammate"),
+                item("Lunch outside in good weather")
             ],
             needs: [
-                item("Need one focused work block", "Focused block"),
-                item("需要 more patience", "More patience"),
-                item("Need to prep tomorrow plan", "Prep tomorrow"),
-                item("Need to drink more water", "Drink more water"),
-                item("Want one quiet evening", "Quiet evening")
+                item("Need one focused work block"),
+                item("需要 more patience"),
+                item("Need to prep tomorrow plan"),
+                item("Need to drink more water"),
+                item("Want one quiet evening")
             ],
             people: [
-                item("Check on grandma", "Grandma check"),
-                item("Message project partner", "Partner message"),
-                item("Pray for pastor", "Pray pastor"),
-                item("Call mom after dinner", "妈妈 weekly call"),
-                item("Send notes to mentor", "Mentor check-in")
+                item("Check on grandma"),
+                item("Message project partner"),
+                item("Pray for pastor"),
+                item("Call mom after dinner"),
+                item("Send notes to mentor")
             ],
             readingNotes: "",
             reflections: "",
@@ -241,13 +241,13 @@ enum DemoDataSeeder {
         DemoEntryPayload(
             entryDate: entryDate,
             gratitudes: [
-                item("Morning prayer before work", "Morning prayer")
+                item("Morning prayer before work")
             ],
             needs: [
-                item("需要多休息", "多休息")
+                item("需要多休息")
             ],
             people: [
-                item("Thinking of mom", "媽媽 weekly call")
+                item("Thinking of mom")
             ],
             readingNotes: "",
             reflections: "",
@@ -255,8 +255,8 @@ enum DemoDataSeeder {
         )
     }
 
-    private static func item(_ fullText: String, _ chipLabel: String) -> JournalItem {
-        JournalItem(fullText: fullText, chipLabel: chipLabel, isTruncated: false)
+    private static func item(_ fullText: String) -> JournalItem {
+        JournalItem(fullText: fullText)
     }
 }
 

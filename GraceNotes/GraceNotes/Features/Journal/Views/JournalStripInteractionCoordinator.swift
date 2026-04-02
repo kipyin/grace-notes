@@ -1,22 +1,21 @@
 import SwiftUI
 
-/// Orchestrates chip strip add / tap flows and keyboard focus restoration for Today’s sequential sections.
-/// Mutations stay in `JournalScreenChipHandling`; this type is the single call site for “handle + maybe refocus”.
+/// Orchestrates strip add / tap flows and keyboard focus restoration for Today’s sequential sections.
 @MainActor
-enum JournalChipInteractionCoordinator {
+enum JournalStripInteractionCoordinator {
     struct SectionContext {
         let input: Binding<String>
         let editingIndex: Binding<Int?>
         let isTransitioning: Binding<Bool>
         let inputFocus: FocusState<Bool>.Binding
-        let operations: ChipSectionOperations
+        let operations: StripSectionOperations
     }
 
     static func addNewTapped(
         context: SectionContext,
         restoreInputFocus: (FocusState<Bool>.Binding) -> Void
     ) {
-        let handled = JournalScreenChipHandling.handleAddChipTap(
+        let handled = JournalScreenStripHandling.handleAddStripTap(
             input: context.input,
             editingIndex: context.editingIndex,
             operations: context.operations,
@@ -27,12 +26,12 @@ enum JournalChipInteractionCoordinator {
         }
     }
 
-    static func chipTapped(
+    static func stripTapped(
         context: SectionContext,
         tapIndex: Int,
         restoreInputFocus: (FocusState<Bool>.Binding) -> Void
     ) {
-        let handled = JournalScreenChipHandling.performChipTap(
+        let handled = JournalScreenStripHandling.performStripTap(
             tapIndex: tapIndex,
             input: context.input,
             editingIndex: context.editingIndex,

@@ -18,7 +18,7 @@ struct SettingsScreen: View {
     @State private var highlightedTarget: SettingsScrollTarget?
     @State private var settingsHighlightDismissTask: Task<Void, Never>?
     @State private var showAppTourFromSettings = false
-    @AppStorage(JournalOnboardingStorageKeys.hasSeenPostSeedJourney) private var hasSeenPostSeedJourney = false
+    @AppStorage(JournalOnboardingStorageKeys.hasSeenAppTour) private var hasSeenAppTour = false
     @AppStorage(JournalOnboardingStorageKeys.completedGuidedJournal) private var hasCompletedGuidedJournal = false
     /// Same storage as first Full/Harvest celebration; unlocks Bloom in Advanced settings.
     @AppStorage(JournalTutorialStorageKeys.celebratedFirstHarvest) private var hasCelebratedFirstHarvest = false
@@ -143,7 +143,7 @@ struct SettingsScreen: View {
                 focusSettingsTarget(target, proxy: proxy)
             }
             .fullScreenCover(isPresented: $showAppTourFromSettings) {
-                PostSeedJourneyView(
+                AppTourView(
                     onFinish: {
                         JournalOnboardingProgress.applyAppTourCompletion(using: .standard)
                         showAppTourFromSettings = false

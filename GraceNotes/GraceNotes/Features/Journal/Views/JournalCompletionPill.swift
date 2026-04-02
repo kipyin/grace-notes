@@ -52,7 +52,7 @@ struct JournalCompletionPill: View {
     }
 
     private var isCelebrating: Bool {
-        celebratingLevel == completionLevel && completionLevel != .empty
+        celebratingLevel == completionLevel && completionLevel != .soil
     }
 
     private var pillLabel: some View {
@@ -73,28 +73,28 @@ struct JournalCompletionPill: View {
 
     private var localizedCompletionTitle: String {
         switch completionLevel {
-        case .empty:
+        case .soil:
             String(localized: "Empty")
-        case .started:
+        case .sprout:
             String(localized: "Started")
-        case .growing:
+        case .twig:
             String(localized: "Growing")
-        case .balanced:
+        case .leaf:
             String(localized: "Balanced")
-        case .full:
+        case .bloom:
             String(localized: "Full")
         }
     }
 
     private var completionLabelForeground: AnyShapeStyle {
         switch completionLevel {
-        case .empty:
+        case .soil:
             AnyShapeStyle(palette.textMuted)
-        case .started:
+        case .sprout:
             AnyShapeStyle(palette.quickCheckInText)
-        case .growing, .balanced:
+        case .twig, .leaf:
             AnyShapeStyle(palette.standardText)
-        case .full:
+        case .bloom:
             AnyShapeStyle(palette.fullText)
         }
     }
@@ -119,11 +119,11 @@ struct JournalCompletionPill: View {
 
     private func backgroundFill(for level: JournalCompletionLevel) -> AnyShapeStyle {
         switch level {
-        case .empty:
+        case .soil:
             return AnyShapeStyle(palette.background)
-        case .started:
+        case .sprout:
             return AnyShapeStyle(palette.quickCheckInBackground)
-        case .growing, .balanced:
+        case .twig, .leaf:
             return AnyShapeStyle(
                 LinearGradient(
                     colors: [palette.standardBackgroundStart, palette.standardBackgroundEnd],
@@ -131,7 +131,7 @@ struct JournalCompletionPill: View {
                     endPoint: .bottomTrailing
                 )
             )
-        case .full:
+        case .bloom:
             return AnyShapeStyle(
                 LinearGradient(
                     colors: [palette.fullBackgroundStart, palette.fullBackgroundEnd],
@@ -144,13 +144,13 @@ struct JournalCompletionPill: View {
 
     private func borderColor(for level: JournalCompletionLevel) -> Color {
         switch level {
-        case .empty:
+        case .soil:
             return palette.border
-        case .started:
+        case .sprout:
             return palette.quickCheckInBorder
-        case .growing, .balanced:
+        case .twig, .leaf:
             return palette.standardBorder
-        case .full:
+        case .bloom:
             return palette.fullBorder
         }
     }
@@ -158,15 +158,15 @@ struct JournalCompletionPill: View {
     private func scaleFactor(for level: JournalCompletionLevel, isCelebrating: Bool) -> CGFloat {
         guard isCelebrating, !reduceMotion else { return 1.0 }
         switch level {
-        case .empty:
+        case .soil:
             return 1.0
-        case .started:
+        case .sprout:
             return 1.008
-        case .growing:
+        case .twig:
             return 1.01
-        case .balanced:
+        case .leaf:
             return 1.015
-        case .full:
+        case .bloom:
             return 1.02
         }
     }
@@ -174,13 +174,13 @@ struct JournalCompletionPill: View {
     private func shadowColor(for level: JournalCompletionLevel, isCelebrating: Bool) -> Color {
         guard isCelebrating, !reduceTransparency else { return .clear }
         switch level {
-        case .empty:
+        case .soil:
             return .clear
-        case .started:
+        case .sprout:
             return palette.quickCheckInGlow.opacity(0.25)
-        case .growing, .balanced:
+        case .twig, .leaf:
             return palette.standardGlow.opacity(0.4)
-        case .full:
+        case .bloom:
             return palette.fullGlow.opacity(0.48)
         }
     }
@@ -188,15 +188,15 @@ struct JournalCompletionPill: View {
     private func shadowRadius(for level: JournalCompletionLevel, isCelebrating: Bool) -> CGFloat {
         guard isCelebrating, !reduceTransparency else { return 0 }
         switch level {
-        case .empty:
+        case .soil:
             return 0
-        case .started:
+        case .sprout:
             return 4
-        case .growing:
+        case .twig:
             return 6
-        case .balanced:
+        case .leaf:
             return 8
-        case .full:
+        case .bloom:
             return 11
         }
     }

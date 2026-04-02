@@ -14,11 +14,11 @@ enum JournalTutorialHintPresentation {
         dismissedHarvestGuidance: Bool
     ) -> JournalTutorialHintKind? {
         guard entryDate == nil else { return nil }
-        if completionLevel == .empty, !dismissedSeedGuidance {
+        if completionLevel == .soil, !dismissedSeedGuidance {
             return .seed
         }
         let fifteenSlots = JournalViewModel.slotCount * 3
-        if completionLevel == .started || completionLevel == .growing || completionLevel == .balanced,
+        if completionLevel == .sprout || completionLevel == .twig || completionLevel == .leaf,
            chipsFilledCount < fifteenSlots,
            !dismissedHarvestGuidance {
             return .harvest

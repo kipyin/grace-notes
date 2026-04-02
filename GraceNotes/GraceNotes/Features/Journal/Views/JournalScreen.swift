@@ -163,13 +163,10 @@ struct JournalScreen: View {
     @State private var showSavedToPhotosToast = false
     @State private var savedToPhotosDismissTask: Task<Void, Never>?
     @State private var hasTrackedInitialLoad = false
-    @State private var gratitudeSummarizationTask: Task<Void, Never>?
-    @State private var needSummarizationTask: Task<Void, Never>?
-    @State private var personSummarizationTask: Task<Void, Never>?
     @State private var statusCelebrationDismissTask: Task<Void, Never>?
     @State private var celebratingLevel: JournalCompletionLevel?
     @State private var hasInitializedCompletionTracking = false
-    @State private var previousCompletionLevel: JournalCompletionLevel = .empty
+    @State private var previousCompletionLevel: JournalCompletionLevel = .soil
     @State private var previousGratitudesCount = 0
     @State private var previousNeedsCount = 0
     @State private var previousPeopleCount = 0
@@ -184,10 +181,10 @@ struct JournalScreen: View {
     @State private var journalKeyboardScrollTask: Task<Void, Never>?
     @State private var isClearingFocusAfterScrollDismiss = false
     @State private var tutorialProgress = JournalTutorialProgress()
-    @State private var showPostSeedJourney = false
-    @State private var postSeedJourneySkipsCongratulations = false
+    @State private var showAppTour = false
+    @State private var appTourSkipsCongratulations = false
     @AppStorage(JournalOnboardingStorageKeys.completedGuidedJournal) private var hasCompletedGuidedJournal = false
-    @AppStorage(JournalOnboardingStorageKeys.hasSeenPostSeedJourney) private var hasSeenPostSeedJourney = false
+    @AppStorage(JournalOnboardingStorageKeys.hasSeenAppTour) private var hasSeenAppTour = false
     @AppStorage(JournalOnboardingStorageKeys.dismissedRemindersSuggestion)
     private var dismissedRemindersSuggestion = false
     @AppStorage(JournalOnboardingStorageKeys.dismissedICloudSuggestion)
@@ -267,14 +264,14 @@ struct JournalScreen: View {
         } message: {
             Text(String(localized: "We couldn't create a share image right now. Please try again."))
         }
-        .fullScreenCover(isPresented: $showPostSeedJourney) {
-            PostSeedJourneyView(
-                onFinish: completePostSeedJourney,
-                skipsCongratulationsPage: postSeedJourneySkipsCongratulations
+        .fullScreenCover(isPresented: $showAppTour) {
+            AppTourView(
+                onFinish: completeAppTour,
+                skipsCongratulationsPage: appTourSkipsCongratulations
             )
         }
-        .onChange(of: showPostSeedJourney) { _, isPresented in
-            dismissAllJournalFocusIfPostSeedJourneyPresented(isPresented)
+        .onChange(of: showAppTour) { _, isPresented in
+            dismissAllJournalFocusIfAppTourPresented(isPresented)
         }
         .onChange(of: isAnyChipInputFocused) { wasFocused, isFocused in
             handleChipInputFocusChange(wasFocused: wasFocused, isFocused: isFocused)
@@ -283,9 +280,6 @@ struct JournalScreen: View {
             scheduleSavedToPhotosToast()
         }
         .onDisappear {
-            gratitudeSummarizationTask?.cancel()
-            needSummarizationTask?.cancel()
-            personSummarizationTask?.cancel()
             statusCelebrationDismissTask?.cancel()
         }
         .onChange(of: onboardingPresentation.step) { _, newStep in
@@ -547,8 +541,8 @@ private extension JournalScreen {
         }
     }
 
-    func dismissEmptyAddMorphOrSubmit(section: ChipSection, restoreFocusAfterSubmit: Bool) {
-        let adapter = chipSectionAdapter(for: section)
+    func dismissEmptyAddMorphOrSubmit(section: StripSection, restoreFocusAfterSubmit: Bool) {
+        let adapter = stripSectionAdapter(for: section)
         let trimmed = adapter.input.wrappedValue.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.isEmpty {
             clearAddMorphComposer(for: section)
@@ -558,7 +552,7 @@ private extension JournalScreen {
         }
     }
 
-    func clearAddMorphComposer(for section: ChipSection) {
+    func clearAddMorphComposer(for section: StripSection) {
         switch section {
         case .gratitude:
             isGratitudeAddMorphComposerVisible = false
@@ -569,7 +563,7 @@ private extension JournalScreen {
         }
     }
 
-    func isAddMorphComposerVisible(for section: ChipSection) -> Bool {
+    func isAddMorphComposerVisible(for section: StripSection) -> Bool {
         switch section {
         case .gratitude:
             return isGratitudeAddMorphComposerVisible
@@ -920,7 +914,7 @@ private extension JournalScreen {
                 scrollTarget: scrollTarget,
                 keyboardOverlapHeight: keyboardOverlapHeight,
                 reduceMotion: reduceMotion,
-                showPostSeedJourney: showPostSeedJourney
+                showAppTour: showAppTour
             ),
             existingTask: &journalKeyboardScrollTask
         )
@@ -965,7 +959,7 @@ private extension JournalScreen {
         }
     }
 
-    func dismissAllJournalFocusIfPostSeedJourneyPresented(_ isPresented: Bool) {
+    func dismissAllJournalFocusIfAppTourPresented(_ isPresented: Bool) {
         guard isPresented else { return }
         clearJournalFocusAndResignFirstResponder()
     }
@@ -998,7 +992,7 @@ private extension JournalScreen {
         previousPeopleCount = viewModel.people.count
         hasInitializedCompletionTracking = true
         syncGuidedJournalCompletionIfNeeded()
-        evaluatePostSeedJourneyIfNeeded()
+        evaluateAppTourIfNeeded()
     }
 
     private func processJournalProgressUpdate() {
@@ -1040,14 +1034,14 @@ private extension JournalScreen {
 
         if newRank < prevRank {
             dismissUnlockToastAndCelebrationForRankDown()
-            syncGuidedAndPostSeedOnTodayIfNeeded(for: newLevel)
+            syncGuidedAndAppTourOnTodayIfNeeded(for: newLevel)
             return
         }
 
-        let rankUp = newRank > prevRank && newLevel != .empty
+        let rankUp = newRank > prevRank && newLevel != .soil
 
         if milestoneOutcome == nil && !rankUp {
-            syncGuidedAndPostSeedOnTodayIfNeeded(for: newLevel)
+            syncGuidedAndAppTourOnTodayIfNeeded(for: newLevel)
             return
         }
 
@@ -1057,7 +1051,7 @@ private extension JournalScreen {
             applyGenericRankUpUnlockToast(newLevel: newLevel)
         }
 
-        syncGuidedAndPostSeedOnTodayIfNeeded(for: newLevel)
+        syncGuidedAndAppTourOnTodayIfNeeded(for: newLevel)
     }
 
     private func dismissUnlockToastAndCelebrationForRankDown() {
@@ -1075,10 +1069,10 @@ private extension JournalScreen {
         }
     }
 
-    private func syncGuidedAndPostSeedOnTodayIfNeeded(for newLevel: JournalCompletionLevel) {
+    private func syncGuidedAndAppTourOnTodayIfNeeded(for newLevel: JournalCompletionLevel) {
         guard entryDate == nil else { return }
         syncGuidedJournalCompletionIfNeeded()
-        evaluatePostSeedJourneyIfNeeded()
+        evaluateAppTourIfNeeded()
     }
 
     private func applyMilestoneUnlockToast(
@@ -1090,7 +1084,7 @@ private extension JournalScreen {
         let suppress = JournalTodayOrientationPolicy.shouldSuppressSeedUnlockToast(
             isTodayEntry: entryDate == nil,
             newLevel: newLevel,
-            hasSeenPostSeedJourney: hasSeenPostSeedJourney,
+            hasSeenAppTour: hasSeenAppTour,
             milestoneHighlight: milestoneOutcome.milestoneHighlight,
             hasAtLeastOneInEachChipSection: viewModel.hasAtLeastOneInEachChipSection
         )
@@ -1104,7 +1098,7 @@ private extension JournalScreen {
         let suppress = JournalTodayOrientationPolicy.shouldSuppressSeedUnlockToast(
             isTodayEntry: entryDate == nil,
             newLevel: newLevel,
-            hasSeenPostSeedJourney: hasSeenPostSeedJourney,
+            hasSeenAppTour: hasSeenAppTour,
             milestoneHighlight: .none,
             hasAtLeastOneInEachChipSection: viewModel.hasAtLeastOneInEachChipSection
         )
@@ -1143,7 +1137,7 @@ private extension JournalScreen {
         hasInitializedCompletionTracking = true
         syncGuidedJournalCompletionIfNeeded()
         focusOnboardingStepIfNeeded(onboardingPresentation.step)
-        evaluatePostSeedJourneyIfNeeded()
+        evaluateAppTourIfNeeded()
         PerformanceTrace.end("JournalScreen.loadTask", startedAt: loadTrace)
     }
 
@@ -1219,35 +1213,35 @@ private extension JournalScreen {
         hasCompletedGuidedJournal = true
     }
 
-    /// One-time post-Seed journey on Today when each chip section has at least one item and journey C not yet seen.
-    func evaluatePostSeedJourneyIfNeeded() {
-        guard let outcome = JournalTodayOrientationPolicy.postSeedJourneyOutcome(
+    /// One-time App Tour on Today when each section has at least one line and the tour has not been seen.
+    func evaluateAppTourIfNeeded() {
+        guard let outcome = JournalTodayOrientationPolicy.appTourOutcome(
             for: todayOrientationInputs()
         ) else { return }
 
-        postSeedJourneySkipsCongratulations = outcome.skipsCongratulationsPage
-        showPostSeedJourney = true
+        appTourSkipsCongratulations = outcome.skipsCongratulationsPage
+        showAppTour = true
     }
 
     func todayOrientationInputs() -> JournalTodayOrientationPolicy.Inputs {
         JournalTodayOrientationPolicy.Inputs(
             isTodayEntry: entryDate == nil,
             isRunningUITests: ProcessInfo.graceNotesIsRunningUITests,
-            hasSeenPostSeedJourney: hasSeenPostSeedJourney,
+            hasSeenAppTour: hasSeenAppTour,
             hasCompletedGuidedJournal: hasCompletedGuidedJournal,
             hasAtLeastOneInEachChipSection: viewModel.hasAtLeastOneInEachChipSection
         )
     }
 
-    func completePostSeedJourney() {
+    func completeAppTour() {
         JournalOnboardingProgress.applyAppTourCompletion(using: .standard)
-        showPostSeedJourney = false
+        showAppTour = false
     }
 
     func focusOnboardingStepIfNeeded(_ step: JournalOnboardingStep?) {
         guard entryDate == nil else { return }
         guard !hasCompletedGuidedJournal else { return }
-        guard !showPostSeedJourney else { return }
+        guard !showAppTour else { return }
         guard !isAnyJournalFieldFocused else { return }
         focusOnboardingStepForced(step)
     }
@@ -1256,7 +1250,7 @@ private extension JournalScreen {
     func focusOnboardingStepForced(_ step: JournalOnboardingStep?) {
         guard entryDate == nil else { return }
         guard !hasCompletedGuidedJournal else { return }
-        guard !showPostSeedJourney else { return }
+        guard !showAppTour else { return }
 
         switch step {
         case .gratitude:
@@ -1274,7 +1268,7 @@ private extension JournalScreen {
         }
     }
 
-    func shouldAdvanceGuidedFocusAfterChipSubmit(section: ChipSection) -> Bool {
+    func shouldAdvanceGuidedFocusAfterChipSubmit(section: StripSection) -> Bool {
         guard entryDate == nil, !hasCompletedGuidedJournal else { return false }
         switch onboardingPresentation.step {
         case .need where section == .gratitude:
@@ -1373,20 +1367,20 @@ private extension JournalScreen {
         }
     }
 
-    enum ChipSection {
+    enum StripSection {
         case gratitude, need, person
     }
-    struct ChipSectionAdapter {
+    struct StripSectionAdapter {
         let input: Binding<String>
         let editingIndex: Binding<Int?>
         let isTransitioning: Binding<Bool>
         let inputFocus: FocusState<Bool>.Binding
         let move: (Int, Int) -> Bool
         let remove: (Int) -> Bool
-        let operations: ChipSectionOperations
+        let operations: StripSectionOperations
 
-        var chipInteractionContext: JournalChipInteractionCoordinator.SectionContext {
-            JournalChipInteractionCoordinator.SectionContext(
+        var stripInteractionContext: JournalStripInteractionCoordinator.SectionContext {
+            JournalStripInteractionCoordinator.SectionContext(
                 input: input,
                 editingIndex: editingIndex,
                 isTransitioning: isTransitioning,
@@ -1395,7 +1389,7 @@ private extension JournalScreen {
             )
         }
     }
-    func chipSectionAdapter(for section: ChipSection) -> ChipSectionAdapter {
+    func stripSectionAdapter(for section: StripSection) -> StripSectionAdapter {
         switch section {
         case .gratitude:
             return makeGratitudeAdapter()
@@ -1405,83 +1399,74 @@ private extension JournalScreen {
             return makePersonAdapter()
         }
     }
-    func makeGratitudeAdapter() -> ChipSectionAdapter {
-        ChipSectionAdapter(
+    func makeGratitudeAdapter() -> StripSectionAdapter {
+        StripSectionAdapter(
             input: $gratitudeInput,
             editingIndex: $editingGratitudeIndex,
             isTransitioning: $isGratitudeTransitioning,
             inputFocus: $isGratitudeInputFocused,
             move: { from, toOffset in viewModel.moveGratitude(from: from, to: toOffset) },
             remove: { index in viewModel.removeGratitude(at: index) },
-            operations: ChipSectionOperations(
+            operations: StripSectionOperations(
                 updateImmediate: { index, text in
                     viewModel.updateGratitudeImmediate(at: index, fullText: text)
                 },
                 addImmediate: viewModel.addGratitudeImmediate,
                 remove: { index in viewModel.removeGratitude(at: index) },
                 fullText: { index in viewModel.fullTextForGratitude(at: index) },
-                count: viewModel.gratitudes.count,
-                summarizeAndUpdateChip: { index in
-                    scheduleSummarization(for: .gratitude, index: index)
-                }
+                count: viewModel.gratitudes.count
             )
         )
     }
-    func makeNeedAdapter() -> ChipSectionAdapter {
-        ChipSectionAdapter(
+    func makeNeedAdapter() -> StripSectionAdapter {
+        StripSectionAdapter(
             input: $needInput,
             editingIndex: $editingNeedIndex,
             isTransitioning: $isNeedTransitioning,
             inputFocus: $isNeedInputFocused,
             move: { from, toOffset in viewModel.moveNeed(from: from, to: toOffset) },
             remove: { index in viewModel.removeNeed(at: index) },
-            operations: ChipSectionOperations(
+            operations: StripSectionOperations(
                 updateImmediate: { index, text in
                     viewModel.updateNeedImmediate(at: index, fullText: text)
                 },
                 addImmediate: viewModel.addNeedImmediate,
                 remove: { index in viewModel.removeNeed(at: index) },
                 fullText: { index in viewModel.fullTextForNeed(at: index) },
-                count: viewModel.needs.count,
-                summarizeAndUpdateChip: { index in
-                    scheduleSummarization(for: .need, index: index)
-                }
+                count: viewModel.needs.count
             )
         )
     }
-    func makePersonAdapter() -> ChipSectionAdapter {
-        ChipSectionAdapter(
+    func makePersonAdapter() -> StripSectionAdapter {
+        StripSectionAdapter(
             input: $personInput,
             editingIndex: $editingPersonIndex,
             isTransitioning: $isPersonTransitioning,
             inputFocus: $isPersonInputFocused,
             move: { from, toOffset in viewModel.movePerson(from: from, to: toOffset) },
             remove: { index in viewModel.removePerson(at: index) },
-            operations: ChipSectionOperations(
+            operations: StripSectionOperations(
                 updateImmediate: { index, text in
                     viewModel.updatePersonImmediate(at: index, fullText: text)
                 },
                 addImmediate: viewModel.addPersonImmediate,
                 remove: { index in viewModel.removePerson(at: index) },
                 fullText: { index in viewModel.fullTextForPerson(at: index) },
-                count: viewModel.people.count,
-                summarizeAndUpdateChip: { index in
-                    scheduleSummarization(for: .person, index: index)
-                }
+                count: viewModel.people.count
             )
         )
     }
-    func addNewTapped(section: ChipSection) {
-        let adapter = chipSectionAdapter(for: section)
-        JournalChipInteractionCoordinator.addNewTapped(
-            context: adapter.chipInteractionContext,
+    func addNewTapped(section: StripSection) {
+        let adapter = stripSectionAdapter(for: section)
+        JournalStripInteractionCoordinator.addNewTapped(
+            context: adapter.stripInteractionContext,
             restoreInputFocus: restoreInputFocus
         )
     }
 
-    func deleteChip(section: ChipSection, index: Int) {
-        let adapter = chipSectionAdapter(for: section)
-        JournalScreenChipHandling.performDelete(
+    func deleteChip(section: StripSection, index: Int) {
+        let adapter = stripSectionAdapter(for: section)
+        JournalScreenStripHandling.performDelete(
             index: index,
             remove: adapter.remove,
             input: adapter.input,
@@ -1489,9 +1474,9 @@ private extension JournalScreen {
         )
     }
 
-    func moveChip(section: ChipSection, from sourceIndex: Int, toOffset destinationOffset: Int) {
-        let adapter = chipSectionAdapter(for: section)
-        JournalScreenChipHandling.performMove(
+    func moveChip(section: StripSection, from sourceIndex: Int, toOffset destinationOffset: Int) {
+        let adapter = stripSectionAdapter(for: section)
+        JournalScreenStripHandling.performMove(
             from: sourceIndex,
             to: destinationOffset,
             move: adapter.move,
@@ -1499,41 +1484,21 @@ private extension JournalScreen {
         )
     }
 
-    func chipTapped(section: ChipSection, index: Int) {
-        let adapter = chipSectionAdapter(for: section)
-        JournalChipInteractionCoordinator.chipTapped(
-            context: adapter.chipInteractionContext,
+    func chipTapped(section: StripSection, index: Int) {
+        let adapter = stripSectionAdapter(for: section)
+        JournalStripInteractionCoordinator.stripTapped(
+            context: adapter.stripInteractionContext,
             tapIndex: index,
             restoreInputFocus: restoreInputFocus
         )
     }
 
-    func scheduleSummarization(for section: ChipSection, index: Int) {
-        switch section {
-        case .gratitude:
-            gratitudeSummarizationTask?.cancel()
-            gratitudeSummarizationTask = Task {
-                await viewModel.summarizeAndUpdateChip(section: .gratitude, index: index)
-            }
-        case .need:
-            needSummarizationTask?.cancel()
-            needSummarizationTask = Task {
-                await viewModel.summarizeAndUpdateChip(section: .need, index: index)
-            }
-        case .person:
-            personSummarizationTask?.cancel()
-            personSummarizationTask = Task {
-                await viewModel.summarizeAndUpdateChip(section: .person, index: index)
-            }
-        }
-    }
-
-    func submit(section: ChipSection, restoreFocusAfterSubmit: Bool = true) {
-        let adapter = chipSectionAdapter(for: section)
+    func submit(section: StripSection, restoreFocusAfterSubmit: Bool = true) {
+        let adapter = stripSectionAdapter(for: section)
         let wasEditingExistingItem = adapter.editingIndex.wrappedValue != nil
         let shouldClearAddMorphAfterSubmit =
             adapter.editingIndex.wrappedValue == nil && isAddMorphComposerVisible(for: section)
-        let didSubmit = JournalScreenChipHandling.submitChipSection(
+        let didSubmit = JournalScreenStripHandling.submitStripSection(
             editingIndex: adapter.editingIndex,
             input: adapter.input,
             operations: adapter.operations,
@@ -1558,15 +1523,15 @@ private extension JournalScreen {
         }
     }
 
-    private func clearInlineChipEditingState(adapter: ChipSectionAdapter) {
+    private func clearInlineChipEditingState(adapter: StripSectionAdapter) {
         withAnimation(reduceMotion ? nil : .snappy(duration: 0.24)) {
             adapter.editingIndex.wrappedValue = nil
             adapter.input.wrappedValue = ""
         }
     }
 
-    func commitChipDraftOnInputFocusLost(section: ChipSection) {
-        let adapter = chipSectionAdapter(for: section)
+    func commitChipDraftOnInputFocusLost(section: StripSection) {
+        let adapter = stripSectionAdapter(for: section)
         // Keep add-button-first composition stable: losing focus from a "new draft" field
         // should not auto-submit and block immediate same-section strip taps.
         guard adapter.editingIndex.wrappedValue != nil else { return }
@@ -1579,7 +1544,7 @@ private extension JournalScreen {
                 return
             }
         }
-        let didSubmit = JournalScreenChipHandling.submitChipSection(
+        let didSubmit = JournalScreenStripHandling.submitStripSection(
             editingIndex: adapter.editingIndex,
             input: adapter.input,
             operations: adapter.operations,
@@ -1612,7 +1577,7 @@ private extension JournalScreen {
     /// Single source of truth for the list—add new focused editors here only.
     @discardableResult
     func restoreKeyboardFocusIfAnotherJournalTextFieldIsActive() -> Bool {
-        guard !showPostSeedJourney else { return false }
+        guard !showAppTour else { return false }
         let candidates: [(Bool, FocusState<Bool>.Binding)] = [
             (isGratitudeInputFocused, $isGratitudeInputFocused),
             (isNeedInputFocused, $isNeedInputFocused),
@@ -1628,14 +1593,14 @@ private extension JournalScreen {
     }
 
     func restoreInputFocus(_ focus: FocusState<Bool>.Binding) {
-        guard !showPostSeedJourney else { return }
+        guard !showAppTour else { return }
         guard !isClearingFocusAfterScrollDismiss else { return }
         // Apply focus immediately so keyboard spin-up starts without waiting a turn.
         focus.wrappedValue = true
 
         Task { @MainActor in
             await Task.yield()
-            guard !showPostSeedJourney else { return }
+            guard !showAppTour else { return }
             guard !isClearingFocusAfterScrollDismiss else { return }
             if !focus.wrappedValue {
                 focus.wrappedValue = true
@@ -1691,25 +1656,25 @@ private extension JournalScreen {
             return .opacity
         }
         switch level {
-        case .empty:
+        case .soil:
             return .opacity
-        case .started:
+        case .sprout:
             return .move(edge: .bottom).combined(with: .opacity)
-        case .growing:
+        case .twig:
             return .asymmetric(
                 insertion: .move(edge: .bottom)
                     .combined(with: .opacity)
                     .combined(with: .scale(scale: 0.97, anchor: .bottom)),
                 removal: .opacity.combined(with: .move(edge: .bottom))
             )
-        case .balanced:
+        case .leaf:
             return .asymmetric(
                 insertion: .move(edge: .bottom)
                     .combined(with: .opacity)
                     .combined(with: .scale(scale: 0.96, anchor: .bottom)),
                 removal: .opacity.combined(with: .move(edge: .bottom))
             )
-        case .full:
+        case .bloom:
             return .asymmetric(
                 insertion: .move(edge: .bottom)
                     .combined(with: .opacity)
@@ -1739,17 +1704,17 @@ private extension JournalScreen {
 
     func triggerStatusHaptics(for level: JournalCompletionLevel) {
         switch level {
-        case .empty:
+        case .soil:
             break
-        case .started:
+        case .sprout:
             let light = UIImpactFeedbackGenerator(style: .light)
             light.prepare()
             light.impactOccurred(intensity: reduceMotion ? 0.45 : 0.65)
-        case .growing:
+        case .twig:
             let light = UIImpactFeedbackGenerator(style: .light)
             light.prepare()
             light.impactOccurred(intensity: reduceMotion ? 0.5 : 0.72)
-        case .balanced:
+        case .leaf:
             let notification = UINotificationFeedbackGenerator()
             notification.prepare()
             notification.notificationOccurred(.success)
@@ -1759,7 +1724,7 @@ private extension JournalScreen {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
                 medium.impactOccurred(intensity: self.reduceMotion ? 0.6 : 0.85)
             }
-        case .full:
+        case .bloom:
             let notification = UINotificationFeedbackGenerator()
             notification.prepare()
             notification.notificationOccurred(.success)

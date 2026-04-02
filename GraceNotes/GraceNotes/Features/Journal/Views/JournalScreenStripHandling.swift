@@ -1,26 +1,23 @@
 import SwiftUI
 
-/// Parameters for chip tap operations. Used to reduce duplication across gratitude/need/person sections.
-/// Uses immediate update/add (no await) with background summarization for instant chip switching.
+/// Parameters for strip tap operations. Used to reduce duplication across gratitude/need/person sections.
 @MainActor
-struct ChipSectionOperations {
+struct StripSectionOperations {
     let updateImmediate: (Int, String) -> Int?
     let addImmediate: (String) -> Int?
     let remove: (Int) -> Bool
     let fullText: (Int) -> String?
     let count: Int
-    let summarizeAndUpdateChip: (Int) -> Void
 }
 
 @MainActor
-enum JournalScreenChipHandling {
-
+enum JournalScreenStripHandling {
     /// Submits the current input as an immediate update/add and clears the draft on success.
     /// Returns true when a state transition was applied.
-    static func submitChipSection(
+    static func submitStripSection(
         editingIndex: Binding<Int?>,
         input: Binding<String>,
-        operations: ChipSectionOperations,
+        operations: StripSectionOperations,
         isTransitioning: Binding<Bool>
     ) -> Bool {
         let trimmed = input.wrappedValue.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -42,13 +39,13 @@ enum JournalScreenChipHandling {
 
         if let index = editingIndex.wrappedValue {
             guard let updatedIndex = operations.updateImmediate(index, input.wrappedValue) else { return false }
-            operations.summarizeAndUpdateChip(updatedIndex)
+            _ = updatedIndex
             editingIndex.wrappedValue = nil
             input.wrappedValue = ""
             return true
         } else {
             guard let newIndex = operations.addImmediate(input.wrappedValue) else { return false }
-            operations.summarizeAndUpdateChip(newIndex)
+            _ = newIndex
             input.wrappedValue = ""
             return true
         }
@@ -56,10 +53,10 @@ enum JournalScreenChipHandling {
 
     /// Handles `(+)` tap without dropping an active draft.
     /// Returns true when the interaction was accepted.
-    static func handleAddChipTap(
+    static func handleAddStripTap(
         input: Binding<String>,
         editingIndex: Binding<Int?>,
-        operations: ChipSectionOperations,
+        operations: StripSectionOperations,
         isTransitioning: Binding<Bool>
     ) -> Bool {
         guard beginTransition(isTransitioning) else { return false }
@@ -76,10 +73,10 @@ enum JournalScreenChipHandling {
 
         if let currentIndex = editingIndex.wrappedValue, !trimmed.isEmpty {
             guard let updatedIndex = operations.updateImmediate(currentIndex, input.wrappedValue) else { return false }
-            operations.summarizeAndUpdateChip(updatedIndex)
+            _ = updatedIndex
         } else if !trimmed.isEmpty {
             guard let newIndex = operations.addImmediate(input.wrappedValue) else { return false }
-            operations.summarizeAndUpdateChip(newIndex)
+            _ = newIndex
         }
 
         input.wrappedValue = ""
@@ -87,7 +84,7 @@ enum JournalScreenChipHandling {
         return true
     }
 
-    /// Performs the delete-chip flow: removes the item and updates editing state.
+    /// Performs the delete flow: removes the item and updates editing state.
     static func performDelete(
         index: Int,
         remove: @MainActor (Int) -> Bool,
@@ -103,7 +100,7 @@ enum JournalScreenChipHandling {
         }
     }
 
-    /// Reorders a chip and remaps editing index to keep editing state on the same item.
+    /// Reorders a strip and remaps editing index to keep editing state on the same item.
     static func performMove(
         from sourceIndex: Int,
         to destinationOffset: Int,
@@ -122,14 +119,13 @@ enum JournalScreenChipHandling {
         }
     }
 
-    /// Performs the chip-tap-to-edit flow: commits any pending input, then loads the tapped chip into the editor.
-    /// Switch is immediate; summarization runs in background when input changed.
+    /// Performs the strip-tap-to-edit flow: commits any pending input, then loads the tapped strip into the editor.
     /// Returns true when the interaction was accepted.
-    static func performChipTap(
+    static func performStripTap(
         tapIndex: Int,
         input: Binding<String>,
         editingIndex: Binding<Int?>,
-        operations: ChipSectionOperations,
+        operations: StripSectionOperations,
         isTransitioning: Binding<Bool>
     ) -> Bool {
         guard beginTransition(isTransitioning) else { return false }
@@ -139,7 +135,7 @@ enum JournalScreenChipHandling {
 
         if let currentIndex = editingIndex.wrappedValue, trimmed.isEmpty {
             guard operations.remove(currentIndex) else { return false }
-            applyChipTapAfterRemovingEmptyEdit(
+            applyStripTapAfterRemovingEmptyEdit(
                 tapIndex: tapIndex,
                 removedIndex: currentIndex,
                 input: input,
@@ -149,7 +145,7 @@ enum JournalScreenChipHandling {
             return true
         }
 
-        if switchChipTapWhenTextUnchangedFromStored(
+        if switchStripTapWhenTextUnchangedFromStored(
             trimmed: trimmed,
             tapIndex: tapIndex,
             input: input,
@@ -163,14 +159,14 @@ enum JournalScreenChipHandling {
         if let currentIndex = editingIndex.wrappedValue, !trimmed.isEmpty {
             if let updatedIndex = operations.updateImmediate(currentIndex, input.wrappedValue) {
                 input.wrappedValue = ""
-                operations.summarizeAndUpdateChip(updatedIndex)
+                _ = updatedIndex
             } else {
                 canSwitch = false
             }
         } else if !trimmed.isEmpty, operations.count < JournalViewModel.slotCount {
             if let newIndex = operations.addImmediate(input.wrappedValue) {
                 input.wrappedValue = ""
-                operations.summarizeAndUpdateChip(newIndex)
+                _ = newIndex
             } else {
                 canSwitch = false
             }
@@ -183,14 +179,12 @@ enum JournalScreenChipHandling {
         return true
     }
 
-    /// After deleting the edited row because input was whitespace-only, either exit editing or open
-    /// another strip (indices shift when the removed row was above the tap).
-    private static func applyChipTapAfterRemovingEmptyEdit(
+    private static func applyStripTapAfterRemovingEmptyEdit(
         tapIndex: Int,
         removedIndex: Int,
         input: Binding<String>,
         editingIndex: Binding<Int?>,
-        operations: ChipSectionOperations
+        operations: StripSectionOperations
     ) {
         input.wrappedValue = ""
         if tapIndex == removedIndex {
@@ -206,13 +200,12 @@ enum JournalScreenChipHandling {
         }
     }
 
-    /// When the draft matches the stored full text, switch to the tapped strip without persisting again.
-    private static func switchChipTapWhenTextUnchangedFromStored(
+    private static func switchStripTapWhenTextUnchangedFromStored(
         trimmed: String,
         tapIndex: Int,
         input: Binding<String>,
         editingIndex: Binding<Int?>,
-        operations: ChipSectionOperations
+        operations: StripSectionOperations
     ) -> Bool {
         guard let currentIndex = editingIndex.wrappedValue, !trimmed.isEmpty else { return false }
         let stored = operations.fullText(currentIndex) ?? ""

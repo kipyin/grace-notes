@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// One-time full-screen post-Seed journey from Today or Settings (**App tour**).
+/// One-time full-screen App Tour from Today or Settings.
 /// Styled like app onboarding; **Done** (last page) or **Skip** (earlier pages) ends the flow.
-struct PostSeedJourneyView: View {
+struct AppTourView: View {
     let onFinish: () -> Void
     /// When true, hides the Started congratulations page (user already completed guided journal before this journey).
     let skipsCongratulationsPage: Bool
@@ -92,7 +92,7 @@ struct PostSeedJourneyView: View {
 
 // MARK: - Path strip
 
-private enum PostSeedJourneyPathTitleMetricsKey: PreferenceKey {
+private enum AppTourPathTitleMetricsKey: PreferenceKey {
     static var defaultValue: CGFloat = 0
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
         value = nextValue()
@@ -100,7 +100,7 @@ private enum PostSeedJourneyPathTitleMetricsKey: PreferenceKey {
 }
 
 /// One row of the path strip: timeline dot is vertically centered on the **title** line only (not the criterion).
-private struct PostSeedJourneyPathStepRow: View {
+private struct AppTourPathStepRow: View {
     let index: Int
     let stepCount: Int
     let title: String
@@ -162,7 +162,7 @@ private struct PostSeedJourneyPathStepRow: View {
                 .background {
                     GeometryReader { geometry in
                         Color.clear.preference(
-                            key: PostSeedJourneyPathTitleMetricsKey.self,
+                            key: AppTourPathTitleMetricsKey.self,
                             value: geometry.size.height
                         )
                     }
@@ -182,7 +182,7 @@ private struct PostSeedJourneyPathStepRow: View {
                         .padding(.bottom, AppTheme.spacingTight)
                 }
             }
-            .onPreferenceChange(PostSeedJourneyPathTitleMetricsKey.self) { titleLineHeight = $0 }
+            .onPreferenceChange(AppTourPathTitleMetricsKey.self) { titleLineHeight = $0 }
 
             Spacer(minLength: 0)
         }
@@ -241,11 +241,11 @@ private struct PostSeedJourneyPathStepRow: View {
     }
 }
 
-struct PostSeedJourneyPathStrip: View {
+struct AppTourPathStrip: View {
     let highlightedLevel: JournalCompletionLevel
 
     private static let orderedLevels: [JournalCompletionLevel] = [
-        .empty, .started, .growing, .balanced, .full
+        .soil, .sprout, .twig, .leaf, .bloom
     ]
 
     private var pathSpineStroke: Color {
@@ -255,7 +255,7 @@ struct PostSeedJourneyPathStrip: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             ForEach(Array(Self.orderedLevels.enumerated()), id: \.offset) { index, level in
-                PostSeedJourneyPathStepRow(
+                AppTourPathStepRow(
                     index: index,
                     stepCount: Self.orderedLevels.count,
                     title: displayName(for: level),
@@ -281,31 +281,31 @@ struct PostSeedJourneyPathStrip: View {
 
     private func displayName(for level: JournalCompletionLevel) -> String {
         switch level {
-        case .empty:
+        case .soil:
             return String(localized: "Empty")
-        case .started:
+        case .sprout:
             return String(localized: "Started")
-        case .growing:
+        case .twig:
             return String(localized: "Growing")
-        case .balanced:
+        case .leaf:
             return String(localized: "Balanced")
-        case .full:
+        case .bloom:
             return String(localized: "Full")
         }
     }
 
     private func criterion(for level: JournalCompletionLevel) -> String {
         switch level {
-        case .empty:
-            return String(localized: "PostSeedJourney.path.criterion.empty")
-        case .started:
-            return String(localized: "PostSeedJourney.path.criterion.started")
-        case .growing:
-            return String(localized: "PostSeedJourney.path.criterion.growing")
-        case .balanced:
-            return String(localized: "PostSeedJourney.path.criterion.balanced")
-        case .full:
-            return String(localized: "PostSeedJourney.path.criterion.full")
+        case .soil:
+            return String(localized: "AppTour.path.criterion.empty")
+        case .sprout:
+            return String(localized: "AppTour.path.criterion.started")
+        case .twig:
+            return String(localized: "AppTour.path.criterion.growing")
+        case .leaf:
+            return String(localized: "AppTour.path.criterion.balanced")
+        case .bloom:
+            return String(localized: "AppTour.path.criterion.full")
         }
     }
 
@@ -326,14 +326,14 @@ struct PostSeedJourneyPathStrip: View {
 
 // MARK: - Sample insights preview
 
-struct PostSeedJourneyInsightsPreview: View {
+struct AppTourInsightsPreview: View {
     /// Soft scrim over the bottom of the clip (matches ``AppTheme.reviewBackground``).
     private static let fadeBandHeight: CGFloat = 120
     /// Shows roughly the source row + upper ~4/5 of the Reflection rhythm panel, then fades before Observation.
     private static let previewClipHeight: CGFloat = 360
 
     private var sampleInsights: ReviewInsights {
-        ReviewInsights.postSeedJourneyTutorialPreview()
+        ReviewInsights.appTourTutorialPreview()
     }
 
     var body: some View {
@@ -373,13 +373,13 @@ struct PostSeedJourneyInsightsPreview: View {
             .allowsHitTesting(false)
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(String(localized: "PostSeedJourney.sampleInsights.a11yLabel"))
+        .accessibilityLabel(String(localized: "AppTour.sampleInsights.a11yLabel"))
     }
 }
 
 // MARK: - iCloud card (parity with Data & Privacy)
 
-struct PostSeedJourneyICloudCard: View {
+struct AppTourICloudCard: View {
     @Binding var isICloudSyncEnabled: Bool
     @ObservedObject var iCloudAccountState: ICloudAccountStatusModel
     let persistenceRuntimeSnapshot: PersistenceRuntimeSnapshot

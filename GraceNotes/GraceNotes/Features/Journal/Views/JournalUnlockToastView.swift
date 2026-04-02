@@ -55,52 +55,52 @@ struct JournalUnlockToastView: View {
             break
         }
         switch level {
-        case .empty:
+        case .soil:
             return ""
-        case .started:
+        case .sprout:
             return String(localized: "You reached Sprout today.")
-        case .growing:
+        case .twig:
             return String(localized: "Keep going in each section toward Leaf.")
-        case .balanced:
+        case .leaf:
             return String(localized: "You reached Leaf today.")
-        case .full:
+        case .bloom:
             return String(localized: "You reached Bloom today. All five lines are filled in each section.")
         }
     }
 
     private var borderTint: Color {
         switch level {
-        case .empty:
+        case .soil:
             return palette.border
-        case .started:
+        case .sprout:
             return palette.quickCheckInBorder
-        case .growing:
+        case .twig:
             return palette.standardBorder
-        case .balanced:
+        case .leaf:
             return palette.standardBorder
-        case .full:
+        case .bloom:
             return palette.fullBorder
         }
     }
 
     private var shadowTint: Color {
         switch level {
-        case .empty:
+        case .soil:
             return .clear
-        case .started:
+        case .sprout:
             return palette.quickCheckInGlow
-        case .growing:
+        case .twig:
             return palette.standardGlow
-        case .balanced:
+        case .leaf:
             return palette.standardGlow
-        case .full:
+        case .bloom:
             return palette.fullGlow
         }
     }
 
     private var glowAccentColor: Color {
         switch level {
-        case .empty:
+        case .soil:
             return palette.border
         default:
             return shadowTint

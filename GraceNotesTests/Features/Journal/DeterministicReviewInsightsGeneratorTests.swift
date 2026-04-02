@@ -138,9 +138,9 @@ final class DeterministicReviewInsightsTests: XCTestCase {
                 makeEntry(on: seedDay, gratitudes: ["Family"], needs: ["Rest"], people: ["Mia"]),
                 JournalEntry(
                     entryDate: harvestDay,
-                    gratitudes: (1...5).map { JournalItem(fullText: "Gratitude \($0)", chipLabel: "Gratitude \($0)") },
-                    needs: (1...5).map { JournalItem(fullText: "Need \($0)", chipLabel: "Need \($0)") },
-                    people: (1...5).map { JournalItem(fullText: "Person \($0)", chipLabel: "Person \($0)") }
+                    gratitudes: (1...5).map { JournalItem(fullText: "Gratitude \($0)") },
+                    needs: (1...5).map { JournalItem(fullText: "Need \($0)") },
+                    people: (1...5).map { JournalItem(fullText: "Person \($0)") }
                 ),
                 makeEntry(on: textOnlyDay, readingNotes: "Short note from the day")
             ],
@@ -152,19 +152,19 @@ final class DeterministicReviewInsightsTests: XCTestCase {
             insights.weekStats.activity
                 .first(where: { calendar.isDate($0.date, inSameDayAs: seedDay) })?
                 .strongestCompletionLevel,
-            .started
+            .sprout
         )
         XCTAssertEqual(
             insights.weekStats.activity
                 .first(where: { calendar.isDate($0.date, inSameDayAs: harvestDay) })?
                 .strongestCompletionLevel,
-            .full
+            .bloom
         )
         XCTAssertEqual(
             insights.weekStats.activity
                 .first(where: { calendar.isDate($0.date, inSameDayAs: textOnlyDay) })?
                 .strongestCompletionLevel,
-            .empty
+            .soil
         )
     }
 
@@ -197,18 +197,18 @@ final class DeterministicReviewInsightsTests: XCTestCase {
     ) -> JournalEntry {
         JournalEntry(
             entryDate: date,
-            gratitudes: gratitudes.map { JournalItem(fullText: $0, chipLabel: $0) },
-            needs: needs.map { JournalItem(fullText: $0, chipLabel: $0) },
-            people: people.map { JournalItem(fullText: $0, chipLabel: $0) },
+            gratitudes: gratitudes.map { JournalItem(fullText: $0) },
+            needs: needs.map { JournalItem(fullText: $0) },
+            people: people.map { JournalItem(fullText: $0) },
             readingNotes: readingNotes,
             reflections: reflections
         )
     }
 
     func makeFullEntry(on date: Date) -> JournalEntry {
-        let gratitudes = (1...5).map { JournalItem(fullText: "Gratitude \($0)", chipLabel: "Gratitude \($0)") }
-        let needs = (1...5).map { JournalItem(fullText: "Need \($0)", chipLabel: "Need \($0)") }
-        let people = (1...5).map { JournalItem(fullText: "Person \($0)", chipLabel: "Person \($0)") }
+        let gratitudes = (1...5).map { JournalItem(fullText: "Gratitude \($0)") }
+        let needs = (1...5).map { JournalItem(fullText: "Need \($0)") }
+        let people = (1...5).map { JournalItem(fullText: "Person \($0)") }
         return JournalEntry(
             entryDate: date,
             gratitudes: gratitudes,

@@ -41,7 +41,7 @@ struct JournalRepository {
             return true
         }
         let entries = try fetchAllEntries(context: context)
-        return entries.contains { $0.completionLevel == .full }
+        return entries.contains { $0.completionLevel == .bloom }
     }
 
     /// Fetches the journal row for `[dayStart, nextDay)` using the same interval semantics as import and demo seeding.
@@ -123,14 +123,11 @@ struct JournalRepository {
     ) {
         let dayStart = calendar.startOfDay(for: entry.entryDate)
 
-        func appendChip(item: JournalItem, source: ReviewThemeSourceCategory) {
+        func appendStripLine(item: JournalItem, source: ReviewThemeSourceCategory) {
             guard matches.count < maxRows else { return }
-            let label = item.displayLabel
             let full = item.fullText
-            let queryMatchesChip =
-                Self.textContains(trimmedQuery, in: full) || Self.textContains(trimmedQuery, in: label)
-            guard queryMatchesChip else { return }
-            let displayContent = full.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? label : full
+            guard Self.textContains(trimmedQuery, in: full) else { return }
+            let displayContent = full
             matches.append(
                 JournalSearchMatch(
                     entryDate: dayStart,
@@ -156,13 +153,13 @@ struct JournalRepository {
         }
 
         for item in entry.gratitudes ?? [] {
-            appendChip(item: item, source: .gratitudes)
+            appendStripLine(item: item, source: .gratitudes)
         }
         for item in entry.needs ?? [] {
-            appendChip(item: item, source: .needs)
+            appendStripLine(item: item, source: .needs)
         }
         for item in entry.people ?? [] {
-            appendChip(item: item, source: .people)
+            appendStripLine(item: item, source: .people)
         }
 
         let notes = entry.readingNotes

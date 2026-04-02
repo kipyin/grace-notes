@@ -100,8 +100,7 @@ extension JournalViewModelMutationTests {
     func makeViewModel(now: Date) -> JournalViewModel {
         JournalViewModel(
             calendar: calendar,
-            nowProvider: { now },
-            summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer())
+            nowProvider: { now }
         )
     }
 

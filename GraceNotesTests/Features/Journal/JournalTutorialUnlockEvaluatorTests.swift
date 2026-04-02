@@ -5,8 +5,8 @@ final class JournalTutorialUnlockEvaluatorTests: XCTestCase {
     func test_milestone_firstTripleOne() {
         let outcome = JournalTutorialUnlockEvaluator.milestoneOutcome(
             JournalTutorialUnlockEvaluator.MilestoneEvaluationInput(
-                previousLevel: .empty,
-                newLevel: .started,
+                previousLevel: .soil,
+                newLevel: .sprout,
                 previousGratitudes: 0,
                 previousNeeds: 0,
                 previousPeople: 0,
@@ -25,8 +25,8 @@ final class JournalTutorialUnlockEvaluatorTests: XCTestCase {
     func test_milestone_noTripleOneWhenAlreadyHadOneEach() {
         let outcome = JournalTutorialUnlockEvaluator.milestoneOutcome(
             JournalTutorialUnlockEvaluator.MilestoneEvaluationInput(
-                previousLevel: .started,
-                newLevel: .started,
+                previousLevel: .sprout,
+                newLevel: .sprout,
                 previousGratitudes: 1,
                 previousNeeds: 1,
                 previousPeople: 1,
@@ -44,8 +44,8 @@ final class JournalTutorialUnlockEvaluatorTests: XCTestCase {
     func test_milestone_firstBalanced() {
         let outcome = JournalTutorialUnlockEvaluator.milestoneOutcome(
             JournalTutorialUnlockEvaluator.MilestoneEvaluationInput(
-                previousLevel: .growing,
-                newLevel: .balanced,
+                previousLevel: .twig,
+                newLevel: .leaf,
                 previousGratitudes: 5,
                 previousNeeds: 2,
                 previousPeople: 2,
@@ -63,8 +63,8 @@ final class JournalTutorialUnlockEvaluatorTests: XCTestCase {
     func test_milestone_firstFull() {
         let outcome = JournalTutorialUnlockEvaluator.milestoneOutcome(
             JournalTutorialUnlockEvaluator.MilestoneEvaluationInput(
-                previousLevel: .balanced,
-                newLevel: .full,
+                previousLevel: .leaf,
+                newLevel: .bloom,
                 previousGratitudes: 5,
                 previousNeeds: 5,
                 previousPeople: 4,
@@ -82,8 +82,8 @@ final class JournalTutorialUnlockEvaluatorTests: XCTestCase {
     func test_milestone_nilWhenAlreadyCelebrated() {
         let outcome = JournalTutorialUnlockEvaluator.milestoneOutcome(
             JournalTutorialUnlockEvaluator.MilestoneEvaluationInput(
-                previousLevel: .growing,
-                newLevel: .balanced,
+                previousLevel: .twig,
+                newLevel: .leaf,
                 previousGratitudes: 3,
                 previousNeeds: 2,
                 previousPeople: 2,

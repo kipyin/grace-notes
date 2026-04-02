@@ -128,31 +128,31 @@ private struct GrowthStageDrilldownSheet: View {
 
     private func growthStageDisplayTitle(for level: JournalCompletionLevel) -> String {
         switch level {
-        case .empty:
+        case .soil:
             String(localized: "Empty")
-        case .started:
+        case .sprout:
             String(localized: "Started")
-        case .growing:
+        case .twig:
             String(localized: "Growing")
-        case .balanced:
+        case .leaf:
             String(localized: "Balanced")
-        case .full:
+        case .bloom:
             String(localized: "Full")
         }
     }
 
     private func growthStageCriterion(for level: JournalCompletionLevel) -> String {
         switch level {
-        case .empty:
-            String(localized: "PostSeedJourney.path.criterion.empty")
-        case .started:
-            String(localized: "PostSeedJourney.path.criterion.started")
-        case .growing:
-            String(localized: "PostSeedJourney.path.criterion.growing")
-        case .balanced:
-            String(localized: "PostSeedJourney.path.criterion.balanced")
-        case .full:
-            String(localized: "PostSeedJourney.path.criterion.full")
+        case .soil:
+            String(localized: "AppTour.path.criterion.empty")
+        case .sprout:
+            String(localized: "AppTour.path.criterion.started")
+        case .twig:
+            String(localized: "AppTour.path.criterion.growing")
+        case .leaf:
+            String(localized: "AppTour.path.criterion.balanced")
+        case .bloom:
+            String(localized: "AppTour.path.criterion.full")
         }
     }
 }

@@ -19,7 +19,6 @@ final class JournalViewModel {
     @ObservationIgnored private let calendar: Calendar
     @ObservationIgnored private let nowProvider: () -> Date
     @ObservationIgnored private let repository: JournalRepository
-    @ObservationIgnored let summarizerProvider: SummarizerProvider
     @ObservationIgnored private let streakCalculator: StreakCalculator
     @ObservationIgnored private let autosaveTrigger = PassthroughSubject<Void, Never>()
     @ObservationIgnored private var cancellables: Set<AnyCancellable> = []
@@ -34,14 +33,12 @@ final class JournalViewModel {
         calendar: Calendar = .current,
         nowProvider: @escaping () -> Date = Date.init,
         repository: JournalRepository? = nil,
-        summarizerProvider: SummarizerProvider = .shared,
         streakCalculator: StreakCalculator? = nil,
         autosaveDebounceMilliseconds: Int? = nil
     ) {
         self.calendar = calendar
         self.nowProvider = nowProvider
         self.repository = repository ?? JournalRepository(calendar: calendar)
-        self.summarizerProvider = summarizerProvider
         self.streakCalculator = streakCalculator ?? StreakCalculator(calendar: calendar)
 
         let debounceMs: Int

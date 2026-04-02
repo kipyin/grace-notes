@@ -29,8 +29,8 @@ enum JournalTutorialUnlockEvaluator {
         let newTripleOne = input.newGratitudes >= 1 && input.newNeeds >= 1 && input.newPeople >= 1
         let crossedTripleOne = !prevTripleOne && newTripleOne
 
-        let crossedBalanced = input.previousLevel != .balanced && input.newLevel == .balanced
-        let crossedFull = input.previousLevel != .full && input.newLevel == .full
+        let crossedBalanced = input.previousLevel != .leaf && input.newLevel == .leaf
+        let crossedFull = input.previousLevel != .bloom && input.newLevel == .bloom
 
         let shouldRecordTripleOne = crossedTripleOne && !input.hasCelebratedFirstTripleOne
         let shouldRecordBalanced = crossedBalanced && !input.hasCelebratedFirstBalanced

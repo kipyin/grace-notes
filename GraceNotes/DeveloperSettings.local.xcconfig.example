@@ -1,2 +1,1 @@
-// Copy to DeveloperSettings.local.xcconfig (gitignored) and set your key.
-GRACE_NOTES_CLOUD_API_KEY = YOUR_KEY_HERE
+// Copy to DeveloperSettings.local.xcconfig (gitignored) for local-only Xcode overrides.

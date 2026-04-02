@@ -1,10 +1,10 @@
 import XCTest
 @testable import GraceNotes
 
-final class PostSeedJourneyTriggerTests: XCTestCase {
+final class AppTourTriggerTests: XCTestCase {
     func test_evaluate_whenAlreadySeen_returnsNil() {
-        let outcome = PostSeedJourneyTrigger.evaluate(
-            hasSeenPostSeedJourney: true,
+        let outcome = AppTourTrigger.evaluate(
+            hasSeenAppTour: true,
             hasCompletedGuidedJournal: true,
             hasAtLeastOneInEachChipSection: true
         )
@@ -12,8 +12,8 @@ final class PostSeedJourneyTriggerTests: XCTestCase {
     }
 
     func test_evaluate_whenNotTripleOne_neverShows_evenIfLevelsWouldBeStartedOrHigher() {
-        let outcome = PostSeedJourneyTrigger.evaluate(
-            hasSeenPostSeedJourney: false,
+        let outcome = AppTourTrigger.evaluate(
+            hasSeenAppTour: false,
             hasCompletedGuidedJournal: false,
             hasAtLeastOneInEachChipSection: false
         )
@@ -21,8 +21,8 @@ final class PostSeedJourneyTriggerTests: XCTestCase {
     }
 
     func test_evaluate_whenTripleOne_notSeenPostSeed_showsJourneyWithCongratulations() {
-        let outcome = PostSeedJourneyTrigger.evaluate(
-            hasSeenPostSeedJourney: false,
+        let outcome = AppTourTrigger.evaluate(
+            hasSeenAppTour: false,
             hasCompletedGuidedJournal: false,
             hasAtLeastOneInEachChipSection: true
         )
@@ -31,8 +31,8 @@ final class PostSeedJourneyTriggerTests: XCTestCase {
     }
 
     func test_evaluate_whenTripleOne_guidedComplete_skipsCongratulations() {
-        let outcome = PostSeedJourneyTrigger.evaluate(
-            hasSeenPostSeedJourney: false,
+        let outcome = AppTourTrigger.evaluate(
+            hasSeenAppTour: false,
             hasCompletedGuidedJournal: true,
             hasAtLeastOneInEachChipSection: true
         )

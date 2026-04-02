@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - Growth stages (history skyline)
 
-/// History-scoped completion mix as a five-column skyline (``.empty`` → ``.full``). Issue #152.
+/// History-scoped completion mix as a five-column skyline (``.soil`` → ``.bloom``). Issue #152.
 struct ReviewHistoryGrowthStagesPanel: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -83,7 +83,7 @@ private struct ReviewHistoryGrowthSkyline: View {
     let onSelectGrowthStage: (JournalCompletionLevel) -> Void
 
     private static let columnOrder: [JournalCompletionLevel] = [
-        .empty, .started, .growing, .balanced, .full
+        .soil, .sprout, .twig, .leaf, .bloom
     ]
 
     var body: some View {
@@ -110,15 +110,15 @@ private struct ReviewHistoryGrowthSkyline: View {
 
     private func count(for level: JournalCompletionLevel, mix: ReviewWeekCompletionMix) -> Int {
         switch level {
-        case .empty:
+        case .soil:
             mix.emptyDays
-        case .started:
+        case .sprout:
             mix.startedDays
-        case .growing:
+        case .twig:
             mix.growingDays
-        case .balanced:
+        case .leaf:
             mix.balancedDays
-        case .full:
+        case .bloom:
             mix.fullDays
         }
     }
@@ -483,15 +483,15 @@ enum ReviewCompletionLevelFormatting {
     /// VoiceOver: abstract stages (Empty…Full), not rhythm metaphors (Soil…Bloom). Issue #152.
     static func accessibilityLocalizedStageName(for level: JournalCompletionLevel) -> String {
         switch level {
-        case .empty:
+        case .soil:
             String(localized: "Review growth stage accessibility Empty")
-        case .started:
+        case .sprout:
             String(localized: "Review growth stage accessibility Started")
-        case .growing:
+        case .twig:
             String(localized: "Review growth stage accessibility Growing")
-        case .balanced:
+        case .leaf:
             String(localized: "Review growth stage accessibility Balanced")
-        case .full:
+        case .bloom:
             String(localized: "Review growth stage accessibility Full")
         }
     }

@@ -154,7 +154,7 @@ final class WeeklyReviewHistoryRollupsTests: XCTestCase {
     /// Skyline column order is weakest → strongest and matches monotonic ``tutorialCompletionRank`` (see
     /// `ReviewHistoryGrowthSkyline` in `ReviewHistoryInsightsPanels.swift`).
     func test_growthSkylineColumnOrder_matchesAscendingTutorialCompletionRank() {
-        let columnOrder: [JournalCompletionLevel] = [.empty, .started, .growing, .balanced, .full]
+        let columnOrder: [JournalCompletionLevel] = [.soil, .sprout, .twig, .leaf, .bloom]
         let ranks = columnOrder.map(\.tutorialCompletionRank)
         XCTAssertEqual(ranks, [0, 1, 2, 3, 4])
         for index in 0..<(ranks.count - 1) {
@@ -219,13 +219,13 @@ final class WeeklyReviewHistoryRollupsTests: XCTestCase {
         )
         let strongest = ReviewHistoryWindowing.strongestCompletionByDay(from: windowed, calendar: calendar)
         let fullDays = ReviewHistoryWindowing.calendarDaysMatchingStrongestCompletionLevel(
-            .full,
+            .bloom,
             strongestByDay: strongest
         )
         XCTAssertEqual(fullDays.count, 1)
         XCTAssertEqual(
             ReviewHistoryWindowing.calendarDaysMatchingStrongestCompletionLevel(
-                .started,
+                .sprout,
                 strongestByDay: strongest
             ).count,
             0
@@ -259,15 +259,15 @@ private extension WeeklyReviewHistoryRollupsTests {
         var fullDays = 0
         for level in strongestByDay.values {
             switch level {
-            case .empty:
+            case .soil:
                 emptyDays += 1
-            case .started:
+            case .sprout:
                 startedDays += 1
-            case .growing:
+            case .twig:
                 growingDays += 1
-            case .balanced:
+            case .leaf:
                 balancedDays += 1
-            case .full:
+            case .bloom:
                 fullDays += 1
             }
         }
@@ -294,9 +294,9 @@ private extension WeeklyReviewHistoryRollupsTests {
     ) -> JournalEntry {
         JournalEntry(
             entryDate: date,
-            gratitudes: gratitudes.map { JournalItem(fullText: $0, chipLabel: $0) },
-            needs: needs.map { JournalItem(fullText: $0, chipLabel: $0) },
-            people: people.map { JournalItem(fullText: $0, chipLabel: $0) },
+            gratitudes: gratitudes.map { JournalItem(fullText: $0) },
+            needs: needs.map { JournalItem(fullText: $0) },
+            people: people.map { JournalItem(fullText: $0) },
             readingNotes: readingNotes,
             reflections: reflections
         )

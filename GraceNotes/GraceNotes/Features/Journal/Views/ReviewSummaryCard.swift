@@ -384,7 +384,7 @@ struct ReviewDaysYouWrotePanel: View {
     }
 
     private func effectiveCompletionLevel(for day: ReviewDayActivity) -> JournalCompletionLevel {
-        day.strongestCompletionLevel ?? .empty
+        day.strongestCompletionLevel ?? .soil
     }
 
     private func accessibilityRhythmColumnId(for day: ReviewDayActivity) -> String {
@@ -393,32 +393,32 @@ struct ReviewDaysYouWrotePanel: View {
     }
 
     private func levelRowIndexFromTop(for day: ReviewDayActivity) -> Int {
-        let level = day.strongestCompletionLevel ?? .empty
+        let level = day.strongestCompletionLevel ?? .soil
         switch level {
-        case .full:
+        case .bloom:
             return 0
-        case .balanced:
+        case .leaf:
             return 1
-        case .growing:
+        case .twig:
             return 2
-        case .started:
+        case .sprout:
             return 3
-        case .empty:
+        case .soil:
             return 4
         }
     }
 
     private func localizedCompletionStageName(for level: JournalCompletionLevel) -> String {
         switch level {
-        case .empty:
+        case .soil:
             String(localized: "Empty")
-        case .started:
+        case .sprout:
             String(localized: "Started")
-        case .growing:
+        case .twig:
             String(localized: "Growing")
-        case .balanced:
+        case .leaf:
             String(localized: "Balanced")
-        case .full:
+        case .bloom:
             String(localized: "Full")
         }
     }
@@ -426,7 +426,7 @@ struct ReviewDaysYouWrotePanel: View {
     private func activityAccessibilityLabel(for day: ReviewDayActivity) -> String {
         let dateText = day.date.formatted(date: .abbreviated, time: .omitted)
         if let level = day.strongestCompletionLevel {
-            if level == .empty {
+            if level == .soil {
                 return String(
                     format: String(localized: "You wrote on %@"),
                     dateText

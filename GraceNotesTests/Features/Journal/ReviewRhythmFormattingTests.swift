@@ -69,11 +69,11 @@ final class ReviewRhythmFormattingTests: XCTestCase {
     }
 
     func test_assetName_mapsAllCompletionLevels() {
-        XCTAssertEqual(ReviewRhythmFormatting.assetName(for: .empty), "empty")
-        XCTAssertEqual(ReviewRhythmFormatting.assetName(for: .started), "started")
-        XCTAssertEqual(ReviewRhythmFormatting.assetName(for: .growing), "growing")
-        XCTAssertEqual(ReviewRhythmFormatting.assetName(for: .balanced), "balanced")
-        XCTAssertEqual(ReviewRhythmFormatting.assetName(for: .full), "full")
+        XCTAssertEqual(ReviewRhythmFormatting.assetName(for: .soil), "soil")
+        XCTAssertEqual(ReviewRhythmFormatting.assetName(for: .sprout), "sprout")
+        XCTAssertEqual(ReviewRhythmFormatting.assetName(for: .twig), "twig")
+        XCTAssertEqual(ReviewRhythmFormatting.assetName(for: .leaf), "leaf")
+        XCTAssertEqual(ReviewRhythmFormatting.assetName(for: .bloom), "bloom")
     }
 
     private func date(year: Int, month: Int, day: Int) -> Date {

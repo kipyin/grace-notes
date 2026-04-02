@@ -1,21 +1,21 @@
 import Foundation
 
 extension ReviewInsights {
-    /// Sample payload for the post-Seed App tour so ``ReviewDaysYouWrotePanel`` matches the live Past tab layout.
-    static func postSeedJourneyTutorialPreview(
+    /// Sample payload for the App Tour so ``ReviewDaysYouWrotePanel`` matches the live Past tab layout.
+    static func appTourTutorialPreview(
         calendar: Calendar = ReviewWeekBoundaryPreference.defaultValue.configuredCalendar(),
         referenceDate: Date = .now
     ) -> ReviewInsights {
         let period = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
-        let levels: [JournalCompletionLevel] = [.started, .growing, .balanced, .full, .empty, .started, .growing]
+        let levels: [JournalCompletionLevel] = [.sprout, .twig, .leaf, .bloom, .soil, .sprout, .twig]
         let days: [ReviewDayActivity] = (0..<7).compactMap { offset in
             guard let date = calendar.date(byAdding: .day, value: offset, to: period.lowerBound) else { return nil }
             let dayStart = calendar.startOfDay(for: date)
             let level = levels[offset]
             return ReviewDayActivity(
                 date: dayStart,
-                hasReflectiveActivity: level != .empty,
-                strongestCompletionLevel: level == .empty ? nil : level,
+                hasReflectiveActivity: level != .soil,
+                strongestCompletionLevel: level == .soil ? nil : level,
                 hasPersistedEntry: false
             )
         }
@@ -33,8 +33,8 @@ extension ReviewInsights {
         )
         let weeklyInsight = ReviewWeeklyInsight(
             pattern: .sparseFallback,
-            observation: String(localized: "PostSeedJourney.sampleInsights.row1.observation"),
-            action: String(localized: "PostSeedJourney.sampleInsights.row1.action"),
+            observation: String(localized: "AppTour.sampleInsights.row1.observation"),
+            action: String(localized: "AppTour.sampleInsights.row1.action"),
             primaryTheme: nil,
             mentionCount: nil,
             dayCount: nil

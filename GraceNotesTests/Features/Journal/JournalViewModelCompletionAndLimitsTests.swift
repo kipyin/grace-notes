@@ -53,7 +53,7 @@ final class JournalViewModelCompletionAndLimitsTests: XCTestCase {
         viewModel.loadEntry(for: now, using: context)
         _ = await viewModel.addGratitude("One")
 
-        XCTAssertEqual(viewModel.completionLevel, .started)
+        XCTAssertEqual(viewModel.completionLevel, .sprout)
         XCTAssertFalse(viewModel.completedToday)
     }
 
@@ -69,7 +69,7 @@ final class JournalViewModelCompletionAndLimitsTests: XCTestCase {
             _ = await viewModel.addPerson("Person \(index)")
         }
 
-        XCTAssertEqual(viewModel.completionLevel, .balanced)
+        XCTAssertEqual(viewModel.completionLevel, .leaf)
         XCTAssertFalse(viewModel.completedToday)
     }
 
@@ -96,7 +96,7 @@ final class JournalViewModelCompletionAndLimitsTests: XCTestCase {
                 15
             )
         )
-        XCTAssertEqual(viewModel.completionLevel, .full)
+        XCTAssertEqual(viewModel.completionLevel, .bloom)
         XCTAssertTrue(viewModel.completedToday)
     }
 
@@ -175,8 +175,7 @@ final class JournalViewModelCompletionAndLimitsTests: XCTestCase {
     private func makeViewModel(now: Date) -> JournalViewModel {
         JournalViewModel(
             calendar: calendar,
-            nowProvider: { now },
-            summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer())
+            nowProvider: { now }
         )
     }
 

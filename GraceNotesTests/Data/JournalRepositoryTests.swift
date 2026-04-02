@@ -44,7 +44,7 @@ final class JournalRepositoryTests: XCTestCase {
         let startOfDay = calendar.startOfDay(for: now)
         let entry = JournalEntry(
             entryDate: startOfDay,
-            gratitudes: [JournalItem(fullText: "Test", chipLabel: nil)],
+            gratitudes: [JournalItem(fullText: "Test")],
             needs: [],
             people: [],
             readingNotes: "",
@@ -77,7 +77,7 @@ final class JournalRepositoryTests: XCTestCase {
         let day = calendar.startOfDay(for: Date(timeIntervalSince1970: 1_742_147_200))
         let entry = JournalEntry(
             entryDate: day,
-            gratitudes: [JournalItem(fullText: "a", chipLabel: "a")],
+            gratitudes: [JournalItem(fullText: "a")],
             needs: [],
             people: [],
             completedAt: day
@@ -111,7 +111,7 @@ final class JournalRepositoryTests: XCTestCase {
         let day = calendar.startOfDay(for: Date(timeIntervalSince1970: 1_742_147_200))
         let entry = JournalEntry(
             entryDate: day,
-            gratitudes: [JournalItem(fullText: "a", chipLabel: "a")],
+            gratitudes: [JournalItem(fullText: "a")],
             needs: [],
             people: [],
             completedAt: nil
@@ -130,7 +130,7 @@ final class JournalRepositoryTests: XCTestCase {
 
         let entry1 = JournalEntry(
             entryDate: day1,
-            gratitudes: [JournalItem(fullText: "Morning coffee ritual", chipLabel: nil)],
+            gratitudes: [JournalItem(fullText: "Morning coffee ritual")],
             needs: [],
             people: [],
             readingNotes: "Psalm study notes",
@@ -179,7 +179,7 @@ final class JournalRepositoryTests: XCTestCase {
         let entry = JournalEntry(
             id: entryId,
             entryDate: day,
-            gratitudes: [JournalItem(fullText: "Thankful for morning coffee", chipLabel: "Thanks", id: itemId)],
+            gratitudes: [JournalItem(fullText: "Thankful for morning coffee", id: itemId)],
             needs: [],
             people: [],
             readingNotes: "",
@@ -211,7 +211,7 @@ final class JournalRepositoryTests: XCTestCase {
             )
             let entry = JournalEntry(
                 entryDate: day,
-                gratitudes: [JournalItem(fullText: "match token", chipLabel: nil)],
+                gratitudes: [JournalItem(fullText: "match token")],
                 needs: [],
                 people: [],
                 readingNotes: "",
@@ -228,7 +228,7 @@ final class JournalRepositoryTests: XCTestCase {
     }
 
     private static func fiveStubItems(prefix: String) -> [JournalItem] {
-        (0..<5).map { JournalItem(fullText: "\(prefix)\($0)", chipLabel: "\($0)") }
+        (0..<5).map { JournalItem(fullText: "\(prefix)\($0)") }
     }
 
     private func makeInMemoryContext() throws -> ModelContext {

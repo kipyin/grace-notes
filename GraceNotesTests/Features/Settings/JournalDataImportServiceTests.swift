@@ -229,7 +229,7 @@ final class JournalDataImportServiceTests: XCTestCase {
     }
 
     private func exportItem(fullText: String) -> JournalDataExportItem {
-        JournalDataExportItem(id: UUID(), fullText: fullText, chipLabel: nil, isTruncated: false)
+        JournalDataExportItem(id: UUID(), fullText: fullText)
     }
 
 }

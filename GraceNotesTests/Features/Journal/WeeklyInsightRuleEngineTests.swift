@@ -220,18 +220,18 @@ final class WeeklyInsightRuleEngineTests: XCTestCase {
     ) -> JournalEntry {
         JournalEntry(
             entryDate: date,
-            gratitudes: gratitudes.map { JournalItem(fullText: $0, chipLabel: $0) },
-            needs: needs.map { JournalItem(fullText: $0, chipLabel: $0) },
-            people: people.map { JournalItem(fullText: $0, chipLabel: $0) },
+            gratitudes: gratitudes.map { JournalItem(fullText: $0) },
+            needs: needs.map { JournalItem(fullText: $0) },
+            people: people.map { JournalItem(fullText: $0) },
             readingNotes: readingNotes,
             reflections: reflections
         )
     }
 
     private func makeFullEntry(on date: Date) -> JournalEntry {
-        let gratitudes = (1...5).map { JournalItem(fullText: "Gratitude \($0)", chipLabel: "Gratitude \($0)") }
-        let needs = (1...5).map { JournalItem(fullText: "Need \($0)", chipLabel: "Need \($0)") }
-        let people = (1...5).map { JournalItem(fullText: "Person \($0)", chipLabel: "Person \($0)") }
+        let gratitudes = (1...5).map { JournalItem(fullText: "Gratitude \($0)") }
+        let needs = (1...5).map { JournalItem(fullText: "Need \($0)") }
+        let people = (1...5).map { JournalItem(fullText: "Person \($0)") }
         return JournalEntry(
             entryDate: date,
             gratitudes: gratitudes,

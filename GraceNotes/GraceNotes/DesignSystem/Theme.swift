@@ -98,39 +98,39 @@ enum AppTheme {
 
     static func reviewRhythmPillBackground(for level: JournalCompletionLevel) -> Color {
         switch level {
-        case .empty:
+        case .soil:
             return reviewPaper
-        case .started:
+        case .sprout:
             return reviewQuickStartBackground
-        case .growing, .balanced:
+        case .twig, .leaf:
             return reviewStandardBackground
-        case .full:
+        case .bloom:
             return reviewCompleteBackground
         }
     }
 
     static func reviewRhythmPillBorder(for level: JournalCompletionLevel) -> Color {
         switch level {
-        case .empty:
+        case .soil:
             return reviewRhythmColumnStroke.opacity(0.9)
-        case .started:
+        case .sprout:
             return reviewQuickStartBorder
-        case .growing, .balanced:
+        case .twig, .leaf:
             return reviewStandardBorder
-        case .full:
+        case .bloom:
             return reviewCompleteBorder
         }
     }
 
     static func reviewRhythmPillShadow(for level: JournalCompletionLevel) -> Color {
         switch level {
-        case .empty:
+        case .soil:
             return reviewRhythmColumnStroke.opacity(0.12)
-        case .started:
+        case .sprout:
             return reviewQuickStartBorder.opacity(0.24)
-        case .growing, .balanced:
+        case .twig, .leaf:
             return reviewStandardBorder.opacity(0.24)
-        case .full:
+        case .bloom:
             return reviewCompleteBorder.opacity(0.28)
         }
     }
@@ -184,91 +184,91 @@ enum AppTheme {
 
     static func celebrationVisibleSeconds(for level: JournalCompletionLevel) -> Double {
         switch level {
-        case .empty:
+        case .soil:
             return 0
-        case .started:
+        case .sprout:
             return 0.65
-        case .growing:
+        case .twig:
             return 0.78
-        case .balanced:
+        case .leaf:
             return 0.95
-        case .full:
+        case .bloom:
             return 1.2
         }
     }
 
     static func celebrationEntranceAnimation(for level: JournalCompletionLevel) -> Animation {
         switch level {
-        case .empty:
+        case .soil:
             return .easeOut(duration: 0.12)
-        case .started:
+        case .sprout:
             return .easeOut(duration: 0.16)
-        case .growing:
+        case .twig:
             return .spring(response: 0.3, dampingFraction: 0.78)
-        case .balanced:
+        case .leaf:
             return .spring(response: 0.34, dampingFraction: 0.76)
-        case .full:
+        case .bloom:
             return .spring(response: 0.42, dampingFraction: 0.68)
         }
     }
 
     static func celebrationExitAnimation(for level: JournalCompletionLevel) -> Animation {
         switch level {
-        case .empty:
+        case .soil:
             return .easeOut(duration: 0.12)
-        case .started:
+        case .sprout:
             return .easeOut(duration: 0.14)
-        case .growing:
+        case .twig:
             return .easeOut(duration: 0.17)
-        case .balanced:
+        case .leaf:
             return .easeOut(duration: 0.2)
-        case .full:
+        case .bloom:
             return .easeOut(duration: 0.24)
         }
     }
 
     static func celebrationPulseAnimation(for level: JournalCompletionLevel) -> Animation {
         switch level {
-        case .empty:
+        case .soil:
             return .easeOut(duration: 0.12)
-        case .started:
+        case .sprout:
             return .easeOut(duration: 0.14)
-        case .growing:
+        case .twig:
             return .easeOut(duration: 0.17)
-        case .balanced:
+        case .leaf:
             return .easeOut(duration: 0.2)
-        case .full:
+        case .bloom:
             return .easeOut(duration: 0.24)
         }
     }
 
     static func unlockToastEntranceAnimation(for level: JournalCompletionLevel) -> Animation {
         switch level {
-        case .empty:
+        case .soil:
             return .easeOut(duration: 0.12)
-        case .started:
+        case .sprout:
             return .easeOut(duration: 0.22)
-        case .growing:
-            return celebrationEntranceAnimation(for: .growing)
-        case .balanced:
-            return celebrationEntranceAnimation(for: .balanced)
-        case .full:
-            return celebrationEntranceAnimation(for: .full)
+        case .twig:
+            return celebrationEntranceAnimation(for: .twig)
+        case .leaf:
+            return celebrationEntranceAnimation(for: .leaf)
+        case .bloom:
+            return celebrationEntranceAnimation(for: .bloom)
         }
     }
 
     static func unlockToastExitAnimation(for level: JournalCompletionLevel) -> Animation {
         switch level {
-        case .empty:
+        case .soil:
             return .easeOut(duration: 0.12)
-        case .started:
+        case .sprout:
             return .easeOut(duration: 0.2)
-        case .growing:
-            return celebrationExitAnimation(for: .growing)
-        case .balanced:
-            return celebrationExitAnimation(for: .balanced)
-        case .full:
-            return celebrationExitAnimation(for: .full)
+        case .twig:
+            return celebrationExitAnimation(for: .twig)
+        case .leaf:
+            return celebrationExitAnimation(for: .leaf)
+        case .bloom:
+            return celebrationExitAnimation(for: .bloom)
         }
     }
 }

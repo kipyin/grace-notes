@@ -42,13 +42,13 @@ Avoid **chip** and **strip** in new user-facing or contributor prose; identifier
 
 | Swift (`JournalCompletionLevel`) | English UI (localized value) | zh-Hans UI (localized value) | Legacy raw strings decoded from storage |
 |----------------------------------|-----------------------------|------------------------------|----------------------------------------|
-| `.empty` | Soil | 静待播种 | `empty`, `soil` |
-| `.started` | Sprout | 初露新芽 | `started`, `seed` |
-| `.growing` | Twig | 枝条初成 | `growing` |
-| `.balanced` | Leaf | 叶茂成形 | `balanced`, `ripening` |
-| `.full` | Bloom | 花开有成 | `full`, `harvest`, `abundance` |
+| `.soil` | Soil | 静待播种 | `soil`, `empty` |
+| `.sprout` | Sprout | 初露新芽 | `sprout`, `started`, `seed` |
+| `.twig` | Twig | 枝条初成 | `twig`, `growing` |
+| `.leaf` | Leaf | 叶茂成形 | `leaf`, `balanced`, `ripening` |
+| `.bloom` | Bloom | 花开有成 | `bloom`, `full`, `harvest`, `abundance` |
 
-Main tabs: **Today** (journaling), **Past** (history and insights), **Settings**. Full-screen onboarding continuation: **`PostSeedJourney`** / **App tour** in code and Settings. **Post-Seed** eligibility uses at least one line in each structured section (1/1/1) plus related flags (milestone copy uses **Sprout** / **初露新芽**, not the old “five cubed” naming).
+Main tabs: **Today** (journaling), **Past** (history and insights), **Settings**. Full-screen **App Tour** (`AppTourView` in code) can open from Today or Settings. Tour eligibility uses at least one line in each structured section (1/1/1) plus related flags (milestone copy uses **Sprout** / **初露新芽**, not the old “five cubed” naming).
 
 ## Requirements
 

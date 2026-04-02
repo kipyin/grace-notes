@@ -9,7 +9,9 @@ enum JournalOnboardingStorageKeys {
     static let completedGuidedJournal = "journalOnboarding.completedGuidedJournal"
     /// Legacy upgrade cohort: Today clears this after one branch resolution. Listed for iCloud continuity.
     static let legacy051GuidedBranchResolution = "journalOnboarding.pending051GuidedJournalBranchResolution"
-    static let hasSeenPostSeedJourney = "journalOnboarding.hasSeenPostSeedJourney"
+    static let hasSeenAppTour = "journalOnboarding.hasSeenAppTour"
+    /// Legacy key; value is copied once into ``hasSeenAppTour`` by ``migrateLegacyAppTourSeenFlagIfNeeded``.
+    static let legacyHasSeenPostSeedJourney = "journalOnboarding.hasSeenPostSeedJourney"
     static let dismissedRemindersSuggestion = "journalOnboarding.dismissedRemindersSuggestion"
     static let dismissedICloudSuggestion = "journalOnboarding.dismissedICloudSuggestion"
     static let openedRemindersSuggestion = "journalOnboarding.openedRemindersSuggestion"
@@ -70,7 +72,7 @@ final class JournalOnboardingProgress {
     /// Finishing the App Tour from Today or Settings: journey seen, guided journal complete, and milestone
     /// Settings cards (Reminders / iCloud) dismissed so they do not duplicate Tour content.
     static func applyAppTourCompletion(using defaults: UserDefaults = .standard) {
-        defaults.set(true, forKey: JournalOnboardingStorageKeys.hasSeenPostSeedJourney)
+        defaults.set(true, forKey: JournalOnboardingStorageKeys.hasSeenAppTour)
         defaults.set(true, forKey: JournalOnboardingStorageKeys.completedGuidedJournal)
         defaults.set(true, forKey: JournalOnboardingStorageKeys.dismissedRemindersSuggestion)
         defaults.set(true, forKey: JournalOnboardingStorageKeys.dismissedICloudSuggestion)
@@ -95,6 +97,18 @@ final class JournalOnboardingProgress {
         defaults.removeObject(forKey: upgradeKey)
     }
 
+    /// Copies ``legacyHasSeenPostSeedJourney`` into ``hasSeenAppTour`` once so existing installs keep tour state.
+    static func migrateLegacyAppTourSeenFlagIfNeeded(using defaults: UserDefaults = .standard) {
+        guard defaults.object(forKey: JournalOnboardingStorageKeys.hasSeenAppTour) == nil else { return }
+        guard defaults.object(forKey: JournalOnboardingStorageKeys.legacyHasSeenPostSeedJourney) != nil else {
+            return
+        }
+        defaults.set(
+            defaults.bool(forKey: JournalOnboardingStorageKeys.legacyHasSeenPostSeedJourney),
+            forKey: JournalOnboardingStorageKeys.hasSeenAppTour
+        )
+    }
+
     /// After Today’s entry loads, finalize legacy upgrade cohort branch for `completedGuidedJournal`.
     static func resolvePending051GuidedJournalBranch(
         todayCompletionLevel: JournalCompletionLevel,
@@ -104,7 +118,7 @@ final class JournalOnboardingProgress {
             return
         }
 
-        let startedRank = JournalCompletionLevel.started.tutorialCompletionRank
+        let startedRank = JournalCompletionLevel.sprout.tutorialCompletionRank
         if todayCompletionLevel.tutorialCompletionRank >= startedRank {
             defaults.set(true, forKey: JournalOnboardingStorageKeys.completedGuidedJournal)
         }
@@ -117,7 +131,8 @@ final class JournalOnboardingProgress {
             JournalOnboardingStorageKeys.completedGuidedJournal,
             LegacyJournalOnboardingStorageKeys.pending051UpgradeOrientation,
             JournalOnboardingStorageKeys.legacy051GuidedBranchResolution,
-            JournalOnboardingStorageKeys.hasSeenPostSeedJourney,
+            JournalOnboardingStorageKeys.hasSeenAppTour,
+            JournalOnboardingStorageKeys.legacyHasSeenPostSeedJourney,
             JournalOnboardingStorageKeys.dismissedRemindersSuggestion,
             JournalOnboardingStorageKeys.dismissedICloudSuggestion,
             JournalOnboardingStorageKeys.openedRemindersSuggestion,
@@ -135,10 +150,6 @@ final class JournalOnboardingProgress {
         }
 
         if defaults.object(forKey: ReminderSettings.timeIntervalKey) != nil {
-            return true
-        }
-
-        if defaults.object(forKey: SummarizerProvider.useCloudUserDefaultsKey) != nil {
             return true
         }
 

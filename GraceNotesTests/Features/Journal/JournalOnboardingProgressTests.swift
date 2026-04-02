@@ -44,10 +44,29 @@ final class JournalOnboardingProgressTests: XCTestCase {
 
         JournalOnboardingProgress.applyAppTourCompletion(using: defaults)
 
-        XCTAssertTrue(defaults.bool(forKey: JournalOnboardingStorageKeys.hasSeenPostSeedJourney))
+        XCTAssertTrue(defaults.bool(forKey: JournalOnboardingStorageKeys.hasSeenAppTour))
         XCTAssertTrue(progress.hasCompletedGuidedJournal)
         XCTAssertTrue(progress.hasDismissedSuggestion(.reminders))
         XCTAssertTrue(progress.hasDismissedSuggestion(.iCloudSync))
+    }
+
+    func test_migrateLegacyAppTourSeenFlag_copiesTrueFromLegacyKeyOnce() {
+        let defaults = makeIsolatedDefaults()
+        defaults.set(true, forKey: JournalOnboardingStorageKeys.legacyHasSeenPostSeedJourney)
+
+        JournalOnboardingProgress.migrateLegacyAppTourSeenFlagIfNeeded(using: defaults)
+
+        XCTAssertTrue(defaults.bool(forKey: JournalOnboardingStorageKeys.hasSeenAppTour))
+    }
+
+    func test_migrateLegacyAppTourSeenFlag_skipsWhenNewKeyAlreadyPresent() {
+        let defaults = makeIsolatedDefaults()
+        defaults.set(true, forKey: JournalOnboardingStorageKeys.hasSeenAppTour)
+        defaults.set(false, forKey: JournalOnboardingStorageKeys.legacyHasSeenPostSeedJourney)
+
+        JournalOnboardingProgress.migrateLegacyAppTourSeenFlagIfNeeded(using: defaults)
+
+        XCTAssertTrue(defaults.bool(forKey: JournalOnboardingStorageKeys.hasSeenAppTour))
     }
 }
 

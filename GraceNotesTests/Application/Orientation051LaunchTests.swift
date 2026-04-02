@@ -80,7 +80,7 @@ final class Orientation051LaunchTests: XCTestCase {
         defaults.set(false, forKey: JournalOnboardingStorageKeys.completedGuidedJournal)
 
         JournalOnboardingProgress.resolvePending051GuidedJournalBranch(
-            todayCompletionLevel: .empty,
+            todayCompletionLevel: .soil,
             using: defaults
         )
 
@@ -89,11 +89,11 @@ final class Orientation051LaunchTests: XCTestCase {
     }
 
     func test_resolveBranch_atStarted_setsGuidedComplete() {
-        assertResolveBranchAtOrAboveStartedSetsGuidedComplete(level: .started)
+        assertResolveBranchAtOrAboveStartedSetsGuidedComplete(level: .sprout)
     }
 
     func test_resolveBranch_atGrowing_setsGuidedComplete() {
-        assertResolveBranchAtOrAboveStartedSetsGuidedComplete(level: .growing)
+        assertResolveBranchAtOrAboveStartedSetsGuidedComplete(level: .twig)
     }
 
     func test_resolvedHasCompletedGuidedJournal_afterMigrateFromUpgrade_returnsFalse() {

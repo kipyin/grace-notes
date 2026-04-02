@@ -1,6 +1,6 @@
 import SwiftUI
 
-extension PostSeedJourneyView {
+extension AppTourView {
     var pageIndicatorRow: some View {
         HStack(spacing: 6) {
             ForEach(firstPageIndex ... lastPageIndex, id: \.self) { index in
@@ -20,7 +20,7 @@ extension PostSeedJourneyView {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(
             String(
-                format: String(localized: "PostSeedJourney.pageIndicator"),
+                format: String(localized: "AppTour.pageIndicator"),
                 locale: .current,
                 pageIndex - firstPageIndex + 1,
                 lastPageIndex - firstPageIndex + 1
@@ -78,7 +78,7 @@ extension PostSeedJourneyView {
     var congratulationsPage: some View {
         journeyPage {
             HStack(alignment: .firstTextBaseline, spacing: AppTheme.spacingRegular) {
-                Text(String(localized: "PostSeedJourney.congrats.headline"))
+                Text(String(localized: "AppTour.congrats.headline"))
                     .font(AppTheme.warmPaperHeader)
                     .foregroundStyle(AppTheme.settingsTextPrimary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -91,7 +91,7 @@ extension PostSeedJourneyView {
 
             Text(
                 String(
-                    localized: "PostSeedJourney.congrats.body"
+                    localized: "AppTour.congrats.body"
                 )
             )
             .font(AppTheme.warmPaperBody)
@@ -119,14 +119,14 @@ extension PostSeedJourneyView {
 
             Text(
                 String(
-                    localized: "PostSeedJourney.path.intro"
+                    localized: "AppTour.path.intro"
                 )
             )
             .font(AppTheme.warmPaperBody)
             .foregroundStyle(AppTheme.settingsTextMuted)
             .fixedSize(horizontal: false, vertical: true)
 
-            PostSeedJourneyPathStrip(highlightedLevel: .started)
+            AppTourPathStrip(highlightedLevel: .sprout)
         }
     }
 
@@ -139,7 +139,7 @@ extension PostSeedJourneyView {
 
                 Text(
                     String(
-                        localized: "PostSeedJourney.insights.intro"
+                        localized: "AppTour.insights.intro"
                     )
                 )
                 .font(AppTheme.warmPaperBody)
@@ -147,10 +147,10 @@ extension PostSeedJourneyView {
                 .fixedSize(horizontal: false, vertical: true)
             }
 
-            PostSeedJourneyInsightsPreview()
+            AppTourInsightsPreview()
                 .padding(.top, AppTheme.spacingWide)
 
-            Text(String(localized: "PostSeedJourney.sampleInsights.filler"))
+            Text(String(localized: "AppTour.sampleInsights.filler"))
                 .font(AppTheme.warmPaperMeta)
                 .foregroundStyle(AppTheme.settingsTextMuted)
                 .fixedSize(horizontal: false, vertical: true)
@@ -164,7 +164,7 @@ extension PostSeedJourneyView {
                 .font(AppTheme.warmPaperHeader)
                 .foregroundStyle(AppTheme.settingsTextPrimary)
 
-            Text(String(localized: "PostSeedJourney.reminders.intro"))
+            Text(String(localized: "AppTour.reminders.intro"))
                 .font(AppTheme.warmPaperBody)
                 .foregroundStyle(AppTheme.settingsTextMuted)
                 .fixedSize(horizontal: false, vertical: true)
@@ -184,7 +184,7 @@ extension PostSeedJourneyView {
                 }
             }
 
-            Text(String(localized: "PostSeedJourney.footer.settingsNote"))
+            Text(String(localized: "AppTour.footer.settingsNote"))
                 .font(AppTheme.warmPaperMeta)
                 .foregroundStyle(AppTheme.settingsTextMuted)
                 .fixedSize(horizontal: false, vertical: true)
@@ -197,19 +197,19 @@ extension PostSeedJourneyView {
                 .font(AppTheme.warmPaperHeader)
                 .foregroundStyle(AppTheme.settingsTextPrimary)
 
-            Text(String(localized: "PostSeedJourney.icloud.intro"))
+            Text(String(localized: "AppTour.icloud.intro"))
                 .font(AppTheme.warmPaperBody)
                 .foregroundStyle(AppTheme.settingsTextMuted)
                 .fixedSize(horizontal: false, vertical: true)
 
-            PostSeedJourneyICloudCard(
+            AppTourICloudCard(
                 isICloudSyncEnabled: $isICloudSyncEnabled,
                 iCloudAccountState: iCloudAccountState,
                 persistenceRuntimeSnapshot: persistenceRuntimeSnapshot,
                 openSystemSettings: openSystemSettings
             )
 
-            Text(String(localized: "PostSeedJourney.footer.settingsNote"))
+            Text(String(localized: "AppTour.footer.settingsNote"))
                 .font(AppTheme.warmPaperMeta)
                 .foregroundStyle(AppTheme.settingsTextMuted)
                 .fixedSize(horizontal: false, vertical: true)

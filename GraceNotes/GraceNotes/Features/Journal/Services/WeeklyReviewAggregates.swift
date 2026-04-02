@@ -222,11 +222,7 @@ private extension WeeklyReviewAggregatesBuilder {
     }
 
     private func preferredItemLabel(_ item: JournalItem) -> String {
-        let label = textNormalizer.trimmed(item.fullText)
-        if !label.isEmpty {
-            return label
-        }
-        return textNormalizer.trimmed(item.displayLabel)
+        textNormalizer.trimmed(item.fullText)
     }
 
     private func accumulateTheme(
@@ -670,15 +666,15 @@ private extension WeeklyReviewAggregatesBuilder {
         var fullDays = 0
         for completion in strongestByDay.values {
             switch completion {
-            case .empty:
+            case .soil:
                 emptyDays += 1
-            case .started:
+            case .sprout:
                 startedDays += 1
-            case .growing:
+            case .twig:
                 growingDays += 1
-            case .balanced:
+            case .leaf:
                 balancedDays += 1
-            case .full:
+            case .bloom:
                 fullDays += 1
             }
         }

@@ -24,19 +24,19 @@ enum ReviewRhythmFormatting {
         return formatter.string(from: dayStart)
     }
 
-    /// Asset catalog names (`empty`, `started`, …) for rhythm column pills.
+    /// Asset catalog image names for rhythm column pills (`soil` … `bloom`).
     static func assetName(for level: JournalCompletionLevel) -> String {
         switch level {
-        case .empty:
-            "empty"
-        case .started:
-            "started"
-        case .growing:
-            "growing"
-        case .balanced:
-            "balanced"
-        case .full:
-            "full"
+        case .soil:
+            "soil"
+        case .sprout:
+            "sprout"
+        case .twig:
+            "twig"
+        case .leaf:
+            "leaf"
+        case .bloom:
+            "bloom"
         }
     }
 }

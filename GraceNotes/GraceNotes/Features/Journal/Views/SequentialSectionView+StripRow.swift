@@ -30,7 +30,7 @@ private extension View {
 // swiftlint:disable type_body_length nesting
 
 /// Namespace for chip-row implementation details used by `SequentialSectionView`.
-enum SequentialSectionChipRow {
+enum SequentialSectionStripRow {
     struct HorizontalScrollMetrics: Equatable {
         var viewportWidth: CGFloat = 0
         var contentWidth: CGFloat = 0
@@ -39,7 +39,7 @@ enum SequentialSectionChipRow {
 
     // MARK: - Chip row scroll metrics (elastic stretch disabled; keeps edge masks in sync)
 
-    struct ChipRowScrollSnapshot: Equatable {
+    struct StripRowScrollSnapshot: Equatable {
         var metrics: HorizontalScrollMetrics
         /// Added to 1.0 for `scaleEffect`; kept at zero (no rubber-band scaling).
         var elasticDeltaX: CGFloat
@@ -47,12 +47,12 @@ enum SequentialSectionChipRow {
     }
 
     /// Drives `.animation(nil, value:)` so chip-row scale stays non-animated.
-    struct ChipRowElasticAnimationKey: Equatable {
+    struct StripRowElasticAnimationKey: Equatable {
         var deltaX: CGFloat
         var deltaY: CGFloat
     }
 
-    enum ChipRowScrollElasticity {
+    enum StripRowScrollElasticity {
         static func deltas(
             metrics _: HorizontalScrollMetrics,
             velocityPointsPerSec _: CGFloat,
@@ -87,7 +87,7 @@ enum SequentialSectionChipRow {
         }
     }
 
-    struct AddChipView: View {
+    struct AddStripRowView: View {
         let buttonTitle: String
         let accessibilityHint: String
         /// Stable query for UI tests (`XCUIApplication` matches this as the element identifier).
@@ -193,7 +193,7 @@ enum SequentialSectionChipRow {
 
     struct HorizontalScrollMetricsReader: UIViewRepresentable {
         let reduceMotion: Bool
-        let onChange: (ChipRowScrollSnapshot) -> Void
+        let onChange: (StripRowScrollSnapshot) -> Void
 
         func makeCoordinator() -> Coordinator {
             Coordinator(reduceMotion: reduceMotion, onChange: onChange)
@@ -219,7 +219,7 @@ enum SequentialSectionChipRow {
             weak var hostView: UIView?
             weak var observedScrollView: UIScrollView?
             var reduceMotion: Bool
-            var onChange: (ChipRowScrollSnapshot) -> Void
+            var onChange: (StripRowScrollSnapshot) -> Void
             private var contentSizeObservation: NSKeyValueObservation?
             private var contentOffsetObservation: NSKeyValueObservation?
             private var boundsObservation: NSKeyValueObservation?
@@ -228,10 +228,10 @@ enum SequentialSectionChipRow {
             private var lastSampleTime: CFTimeInterval?
             private var smoothedVelocity: CGFloat = 0
             private var isUserDraggingScroll = false
-            private var lastPublishedSnapshot: ChipRowScrollSnapshot?
+            private var lastPublishedSnapshot: StripRowScrollSnapshot?
             private var pendingPublishWorkItem: DispatchWorkItem?
 
-            init(reduceMotion: Bool, onChange: @escaping (ChipRowScrollSnapshot) -> Void) {
+            init(reduceMotion: Bool, onChange: @escaping (StripRowScrollSnapshot) -> Void) {
                 self.reduceMotion = reduceMotion
                 self.onChange = onChange
             }
@@ -325,14 +325,14 @@ enum SequentialSectionChipRow {
                 lastOffsetX = metrics.contentOffsetX
                 lastSampleTime = now
 
-                let (deltaX, deltaY) = ChipRowScrollElasticity.deltas(
+                let (deltaX, deltaY) = StripRowScrollElasticity.deltas(
                     metrics: metrics,
                     velocityPointsPerSec: smoothedVelocity,
                     isUserDragging: isUserDraggingScroll,
                     reduceMotion: reduceMotion
                 )
 
-                let snapshot = ChipRowScrollSnapshot(
+                let snapshot = StripRowScrollSnapshot(
                     metrics: metrics,
                     elasticDeltaX: deltaX,
                     elasticDeltaY: deltaY
@@ -382,16 +382,16 @@ enum SequentialSectionChipRow {
         }
     }
 
-    struct ChipReorderDropDelegate: DropDelegate {
+    struct StripReorderDropDelegate: DropDelegate {
         let targetIndex: Int
         let items: [JournalItem]
         @Binding var draggingItemID: UUID?
         @Binding var hoverTargetItemID: UUID?
         let reduceMotion: Bool
-        let onMoveChip: ((Int, Int) -> Void)?
+        let onMoveStrip: ((Int, Int) -> Void)?
 
-        /// Indices for `JournalViewModel.moveItem`-compatible `onMoveChip`, or nil when no reorder should run.
-        static func chipReorderMoveParameters(
+        /// Indices for `JournalViewModel.moveItem`-compatible `onMoveStrip`, or nil when no reorder should run.
+        static func stripReorderMoveParameters(
             activeDragID: UUID,
             items: [JournalItem],
             targetIndex: Int
@@ -420,7 +420,7 @@ enum SequentialSectionChipRow {
 
         func performDrop() -> Bool {
             guard let activeDragID = draggingItemID else { return false }
-            guard let onMoveChip else {
+            guard let onMoveStrip else {
                 clearDraggingState()
                 return false
             }
@@ -436,13 +436,13 @@ enum SequentialSectionChipRow {
             let liveAlreadyAppliedForThisTarget = hoverTargetItemID == targetItemID
             defer { clearDraggingState() }
             if !liveAlreadyAppliedForThisTarget,
-               let params = Self.chipReorderMoveParameters(
+               let params = Self.stripReorderMoveParameters(
                    activeDragID: activeDragID,
                    items: items,
                    targetIndex: targetIndex
                ) {
                 animateReorder {
-                    onMoveChip(params.source, params.destination)
+                    onMoveStrip(params.source, params.destination)
                 }
             }
             return true
@@ -450,7 +450,7 @@ enum SequentialSectionChipRow {
 
         /// Also invoked from unit tests (`DropInfo` is not publicly constructible).
         internal func applyLiveReorderIfNeeded() {
-            guard let onMoveChip, let activeDragID = draggingItemID else { return }
+            guard let onMoveStrip, let activeDragID = draggingItemID else { return }
             guard items.indices.contains(targetIndex) else { return }
             let targetItemID = items[targetIndex].id
             if activeDragID == targetItemID {
@@ -458,14 +458,14 @@ enum SequentialSectionChipRow {
                 return
             }
             if hoverTargetItemID == targetItemID { return }
-            guard let params = Self.chipReorderMoveParameters(
+            guard let params = Self.stripReorderMoveParameters(
                 activeDragID: activeDragID,
                 items: items,
                 targetIndex: targetIndex
             ) else { return }
 
             animateReorder {
-                onMoveChip(params.source, params.destination)
+                onMoveStrip(params.source, params.destination)
             }
             hoverTargetItemID = targetItemID
         }

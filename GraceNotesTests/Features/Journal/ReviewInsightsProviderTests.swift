@@ -140,9 +140,9 @@ private extension ReviewInsightsProviderTests {
     func makeSeedEntry(on date: Date) -> JournalEntry {
         JournalEntry(
             entryDate: date,
-            gratitudes: [JournalItem(fullText: "Gratitude", chipLabel: "Gratitude")],
-            needs: [JournalItem(fullText: "Need", chipLabel: "Need")],
-            people: [JournalItem(fullText: "Person", chipLabel: "Person")]
+            gratitudes: [JournalItem(fullText: "Gratitude")],
+            needs: [JournalItem(fullText: "Need")],
+            people: [JournalItem(fullText: "Person")]
         )
     }
 

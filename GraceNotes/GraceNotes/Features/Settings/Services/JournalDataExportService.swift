@@ -54,9 +54,7 @@ struct JournalDataExportService {
     private func makeExportItem(from item: JournalItem) -> JournalDataExportItem {
         JournalDataExportItem(
             id: item.id,
-            fullText: item.fullText,
-            chipLabel: item.chipLabel,
-            isTruncated: item.isTruncated
+            fullText: item.fullText
         )
     }
 
@@ -92,6 +90,4 @@ struct JournalDataExportEntry: Codable, Equatable {
 struct JournalDataExportItem: Codable, Equatable {
     let id: UUID
     let fullText: String
-    let chipLabel: String?
-    let isTruncated: Bool
 }

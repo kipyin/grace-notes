@@ -1,11 +1,11 @@
 import SwiftUI
 
-private enum SequentialSectionChipScrollerLayout {
+private enum SequentialSectionStripScrollerLayout {
     static let edgeFeatherWidth: CGFloat = 28
 }
 
 /// Horizontal chip row with scroll metrics, masks, and optional add control.
-struct SequentialSectionChipScroller<ChipRow: View>: View {
+struct SequentialSectionStripScroller<ChipRow: View>: View {
     @Environment(\.todayJournalPalette) private var palette
     let reduceMotion: Bool
     let title: String
@@ -19,7 +19,7 @@ struct SequentialSectionChipScroller<ChipRow: View>: View {
     let canScrollChipsRight: Bool
     let onAddNew: (() -> Void)?
 
-    @Binding var chipScrollSnapshot: SequentialSectionChipRow.ChipRowScrollSnapshot
+    @Binding var chipScrollSnapshot: SequentialSectionStripRow.StripRowScrollSnapshot
 
     @ViewBuilder var chipRow: () -> ChipRow
 
@@ -28,7 +28,7 @@ struct SequentialSectionChipScroller<ChipRow: View>: View {
             HStack(spacing: AppTheme.spacingTight) {
                 chipRow()
                 if showAddChip, let addNew = onAddNew {
-                    SequentialSectionChipRow.AddChipView(
+                    SequentialSectionStripRow.AddStripRowView(
                         buttonTitle: addButtonTitle,
                         accessibilityHint: addButtonAccessibilityHint,
                         accessibilityIdentifier: addChipAccessibilityIdentifier,
@@ -45,13 +45,13 @@ struct SequentialSectionChipScroller<ChipRow: View>: View {
             )
             .animation(
                 nil,
-                value: SequentialSectionChipRow.ChipRowElasticAnimationKey(
+                value: SequentialSectionStripRow.StripRowElasticAnimationKey(
                     deltaX: chipScrollSnapshot.elasticDeltaX,
                     deltaY: chipScrollSnapshot.elasticDeltaY
                 )
             )
             .background {
-                SequentialSectionChipRow.HorizontalScrollMetricsReader(reduceMotion: reduceMotion) { snapshot in
+                SequentialSectionStripRow.HorizontalScrollMetricsReader(reduceMotion: reduceMotion) { snapshot in
                     if chipScrollSnapshot != snapshot {
                         chipScrollSnapshot = snapshot
                     }
@@ -88,7 +88,7 @@ struct SequentialSectionChipScroller<ChipRow: View>: View {
             startPoint: .leading,
             endPoint: .trailing
         )
-        .frame(width: SequentialSectionChipScrollerLayout.edgeFeatherWidth)
+        .frame(width: SequentialSectionStripScrollerLayout.edgeFeatherWidth)
     }
 
     private func edgeMask(_ edge: HorizontalEdge) -> some View {
@@ -98,14 +98,14 @@ struct SequentialSectionChipScroller<ChipRow: View>: View {
                 startPoint: .leading,
                 endPoint: .trailing
             )
-            .frame(width: SequentialSectionChipScrollerLayout.edgeFeatherWidth)
+            .frame(width: SequentialSectionStripScrollerLayout.edgeFeatherWidth)
         } else {
             LinearGradient(
                 colors: canScrollChipsRight ? [.black, .clear] : [.black, .black],
                 startPoint: .leading,
                 endPoint: .trailing
             )
-            .frame(width: SequentialSectionChipScrollerLayout.edgeFeatherWidth)
+            .frame(width: SequentialSectionStripScrollerLayout.edgeFeatherWidth)
         }
     }
 }

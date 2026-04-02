@@ -5,7 +5,7 @@ final class JournalTutorialHintPresentationTests: XCTestCase {
     func test_hintKind_balancedBelowFullSlots_returnsHarvest() {
         let kind = JournalTutorialHintPresentation.hintKind(
             entryDate: nil,
-            completionLevel: .balanced,
+            completionLevel: .leaf,
             chipsFilledCount: 10,
             dismissedSeedGuidance: true,
             dismissedHarvestGuidance: false
@@ -17,7 +17,7 @@ final class JournalTutorialHintPresentationTests: XCTestCase {
         let fifteenSlots = JournalViewModel.slotCount * 3
         let kind = JournalTutorialHintPresentation.hintKind(
             entryDate: nil,
-            completionLevel: .balanced,
+            completionLevel: .leaf,
             chipsFilledCount: fifteenSlots,
             dismissedSeedGuidance: true,
             dismissedHarvestGuidance: false

@@ -40,9 +40,9 @@ final class JournalViewModelTests: XCTestCase {
         let startOfDay = calendar.startOfDay(for: now)
         let existingEntry = JournalEntry(
             entryDate: startOfDay,
-            gratitudes: [JournalItem(fullText: "Family", chipLabel: nil)],
-            needs: [JournalItem(fullText: "Wisdom", chipLabel: nil)],
-            people: [JournalItem(fullText: "Friend", chipLabel: nil)],
+            gratitudes: [JournalItem(fullText: "Family")],
+            needs: [JournalItem(fullText: "Wisdom")],
+            people: [JournalItem(fullText: "Friend")],
             readingNotes: "Psalm 23",
             reflections: "Trusting God",
             createdAt: now,
@@ -68,9 +68,9 @@ final class JournalViewModelTests: XCTestCase {
         let startOfPastDay = calendar.startOfDay(for: pastDate)
         let pastEntry = JournalEntry(
             entryDate: startOfPastDay,
-            gratitudes: [JournalItem(fullText: "Past gratitude", chipLabel: nil)],
-            needs: [JournalItem(fullText: "Past need", chipLabel: nil)],
-            people: [JournalItem(fullText: "Past person", chipLabel: nil)],
+            gratitudes: [JournalItem(fullText: "Past gratitude")],
+            needs: [JournalItem(fullText: "Past need")],
+            people: [JournalItem(fullText: "Past person")],
             readingNotes: "Past notes",
             reflections: "Past reflection",
             createdAt: pastDate,
@@ -98,7 +98,7 @@ final class JournalViewModelTests: XCTestCase {
 
         let todayEntry = JournalEntry(
             entryDate: startOfToday,
-            gratitudes: [JournalItem(fullText: "Today", chipLabel: nil)],
+            gratitudes: [JournalItem(fullText: "Today")],
             needs: [],
             people: [],
             readingNotes: "",
@@ -108,7 +108,7 @@ final class JournalViewModelTests: XCTestCase {
         )
         let pastEntry = JournalEntry(
             entryDate: startOfPastDay,
-            gratitudes: [JournalItem(fullText: "Past", chipLabel: nil)],
+            gratitudes: [JournalItem(fullText: "Past")],
             needs: [],
             people: [],
             readingNotes: "",
@@ -133,8 +133,7 @@ final class JournalViewModelTests: XCTestCase {
         let now = Date(timeIntervalSince1970: 1_742_147_200)
         let viewModel = JournalViewModel(
             calendar: calendar,
-            nowProvider: { now },
-            summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer())
+            nowProvider: { now }
         )
 
         viewModel.loadEntry(for: now, using: context)
@@ -160,8 +159,7 @@ final class JournalViewModelTests: XCTestCase {
         let now = Date(timeIntervalSince1970: 1_742_147_200)
         let viewModel = JournalViewModel(
             calendar: calendar,
-            nowProvider: { now },
-            summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer())
+            nowProvider: { now }
         )
 
         viewModel.loadEntry(for: now, using: context)
@@ -183,7 +181,6 @@ final class JournalViewModelTests: XCTestCase {
         let viewModel = JournalViewModel(
             calendar: calendar,
             nowProvider: { now },
-            summarizerProvider: SummarizerProvider(fixedSummarizer: MockSummarizer()),
             autosaveDebounceMilliseconds: 50
         )
 

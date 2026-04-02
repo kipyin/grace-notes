@@ -172,7 +172,7 @@ struct JournalKeyboardScrollRequest {
     let scrollTarget: JournalScrollTarget
     let keyboardOverlapHeight: CGFloat
     let reduceMotion: Bool
-    let showPostSeedJourney: Bool
+    let showAppTour: Bool
 }
 
 /// Single entry point for Today keyboard scroll policy (outer `scrollTo`, overlap jitter, notes caret nudge).
@@ -203,12 +203,12 @@ enum JournalKeyboardScrollCoordinator {
         let domain = JournalKeyboardScrollDomain.domain(for: request.scrollTarget)
         let scrollTarget = request.scrollTarget
         let keyboardOverlap = request.keyboardOverlapHeight
-        let postSeed = request.showPostSeedJourney
+        let appTourShowing = request.showAppTour
         let proxy = request.proxy
         existingTask = Task { @MainActor in
             await Task.yield()
             guard !Task.isCancelled else { return }
-            guard !postSeed else { return }
+            guard !appTourShowing else { return }
             let comfort = JournalKeyboardScrollMetrics.comfortMarginAboveKeyboard()
             if domain == .notesMultiline {
                 JournalCaretVisibilityReader.nudgeFirstResponderUITextViewCaretIntoVisibleContent()

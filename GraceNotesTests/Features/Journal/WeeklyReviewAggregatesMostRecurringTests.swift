@@ -459,9 +459,9 @@ private extension WeeklyReviewAggregatesMostRecurringTests {
     ) -> JournalEntry {
         JournalEntry(
             entryDate: date,
-            gratitudes: gratitudes.map { JournalItem(fullText: $0, chipLabel: $0) },
-            needs: needs.map { JournalItem(fullText: $0, chipLabel: $0) },
-            people: people.map { JournalItem(fullText: $0, chipLabel: $0) },
+            gratitudes: gratitudes.map { JournalItem(fullText: $0) },
+            needs: needs.map { JournalItem(fullText: $0) },
+            people: people.map { JournalItem(fullText: $0) },
             readingNotes: readingNotes,
             reflections: reflections
         )

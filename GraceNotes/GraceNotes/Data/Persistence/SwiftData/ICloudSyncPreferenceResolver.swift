@@ -13,7 +13,7 @@ enum ICloudSyncPreferenceResolver {
         GraceNotesLaunchStorageKeys.lastLaunchedMarketingVersion,
         JournalOnboardingStorageKeys.completedGuidedJournal,
         JournalOnboardingStorageKeys.legacy051GuidedBranchResolution,
-        JournalOnboardingStorageKeys.hasSeenPostSeedJourney,
+        JournalOnboardingStorageKeys.hasSeenAppTour,
         JournalOnboardingStorageKeys.dismissedRemindersSuggestion,
         JournalOnboardingStorageKeys.dismissedICloudSuggestion,
         JournalOnboardingStorageKeys.openedRemindersSuggestion,
@@ -36,10 +36,6 @@ enum ICloudSyncPreferenceResolver {
         }
 
         if defaults.object(forKey: ReminderSettings.timeIntervalKey) != nil {
-            return true
-        }
-
-        if defaults.object(forKey: SummarizerProvider.useCloudUserDefaultsKey) != nil {
             return true
         }
 

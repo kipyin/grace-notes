@@ -2,12 +2,13 @@ import Foundation
 import SwiftData
 
 /// Chip-section completion status (Gratitudes, Needs, People in Mind only). Reading notes and reflections are excluded.
+/// Raw values match localized growth-stage naming (Soil → Bloom).
 enum JournalCompletionLevel: String, Equatable, Hashable, Sendable {
-    case empty
-    case started
-    case growing
-    case balanced
-    case full
+    case soil
+    case sprout
+    case twig
+    case leaf
+    case bloom
 }
 
 extension JournalCompletionLevel: Codable {
@@ -22,21 +23,21 @@ extension JournalCompletionLevel: Codable {
         try container.encode(rawValue)
     }
 
-    /// Maps persisted raw strings from older app versions (pre–chip-status rename) and unknown values.
+    /// Maps persisted raw strings from older app versions and unknown values.
     init(decodingLegacyRawValue raw: String) {
-        switch raw {
-        case "empty", "soil":
-            self = .empty
-        case "started", "seed":
-            self = .started
-        case "growing":
-            self = .growing
-        case "balanced", "ripening":
-            self = .balanced
-        case "full", "harvest", "abundance":
-            self = .full
+        switch raw.lowercased() {
+        case "soil", "empty":
+            self = .soil
+        case "sprout", "started", "seed":
+            self = .sprout
+        case "twig", "growing":
+            self = .twig
+        case "leaf", "balanced", "ripening":
+            self = .leaf
+        case "bloom", "full", "harvest", "abundance":
+            self = .bloom
         default:
-            self = .empty
+            self = .soil
         }
     }
 }
@@ -70,24 +71,14 @@ final class JournalEntry {
     ) {
         self.id = id
         self.entryDate = entryDate // Callers must pass start-of-day
-        self.gratitudes = Self.normalizedItems(gratitudes)
-        self.needs = Self.normalizedItems(needs)
-        self.people = Self.normalizedItems(people)
+        self.gratitudes = gratitudes
+        self.needs = needs
+        self.people = people
         self.readingNotes = readingNotes
         self.reflections = reflections
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.completedAt = completedAt
-    }
-
-    private static func normalizedItems(_ items: [JournalItem]) -> [JournalItem] {
-        items.map { item in
-            var normalized = item
-            if normalized.chipLabel == nil {
-                normalized.chipLabel = normalized.fullText
-            }
-            return normalized
-        }
     }
 
     /// All chip slots filled (5 gratitudes, 5 needs, 5 people). Notes and reflections do not change it.
@@ -136,30 +127,30 @@ final class JournalEntry {
         peopleCount: Int
     ) -> JournalCompletionLevel {
         if gratitudesCount == 0 && needsCount == 0 && peopleCount == 0 {
-            return .empty
+            return .soil
         }
 
         if gratitudesCount == slotCount && needsCount == slotCount && peopleCount == slotCount {
-            return .full
+            return .bloom
         }
 
         if gratitudesCount >= 3 && needsCount >= 3 && peopleCount >= 3 {
-            return .balanced
+            return .leaf
         }
 
         let hasAtLeastThree = gratitudesCount >= 3 || needsCount >= 3 || peopleCount >= 3
         let hasBelowThree = gratitudesCount < 3 || needsCount < 3 || peopleCount < 3
         if hasAtLeastThree && hasBelowThree {
-            return .growing
+            return .twig
         }
 
-        return .started
+        return .sprout
     }
 
     /// True when chips show progress or the day has reading notes / reflections
     /// (streaks and review eligibility).
     var hasMeaningfulContent: Bool {
-        if completionLevel != .empty {
+        if completionLevel != .soil {
             return true
         }
         let notesTrimmed = readingNotes.trimmingCharacters(in: .whitespacesAndNewlines)

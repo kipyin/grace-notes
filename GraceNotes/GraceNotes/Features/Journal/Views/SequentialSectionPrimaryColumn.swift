@@ -113,7 +113,7 @@ struct SequentialSectionPrimaryColumn<ProgressDots: View>: View {
                 )
             }
             if showMorphAddSlot, let addNew = onAddNew {
-                SequentialSectionChipRow.AddSentenceMorphSlot(
+                SequentialSectionStripRow.AddSentenceMorphSlot(
                     sectionTitle: title,
                     addButtonTitle: addButtonTitle,
                     addButtonAccessibilityHint: addButtonAccessibilityHint,
@@ -300,13 +300,13 @@ struct SequentialSectionPrimaryColumn<ProgressDots: View>: View {
                 }
                 .onDrop(
                     of: [UTType.text],
-                    delegate: SequentialSectionChipRow.ChipReorderDropDelegate(
+                    delegate: SequentialSectionStripRow.StripReorderDropDelegate(
                         targetIndex: index,
                         items: items,
                         draggingItemID: $draggingItemID,
                         hoverTargetItemID: $itemReorderHoverTargetItemID,
                         reduceMotion: reduceMotion,
-                        onMoveChip: onMoveItem
+                        onMoveStrip: onMoveItem
                     )
                 )
         } else {

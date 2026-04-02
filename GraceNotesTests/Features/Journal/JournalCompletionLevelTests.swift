@@ -3,119 +3,119 @@ import XCTest
 @testable import GraceNotes
 
 final class JournalCompletionLevelTests: XCTestCase {
-    func test_completionLevel_empty_whenEntryIsBlank() {
+    func test_completionLevel_soil_whenEntryIsBlank() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 0,
             needsCount: 0,
             peopleCount: 0
         )
 
-        XCTAssertEqual(level, .empty)
+        XCTAssertEqual(level, .soil)
     }
 
-    func test_completionLevel_started_withSingleGratitudeOnly() {
+    func test_completionLevel_sprout_withSingleGratitudeOnly() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 1,
             needsCount: 0,
             peopleCount: 0
         )
 
-        XCTAssertEqual(level, .started)
+        XCTAssertEqual(level, .sprout)
     }
 
-    func test_completionLevel_started_twoZeroZero() {
+    func test_completionLevel_sprout_twoZeroZero() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 2,
             needsCount: 0,
             peopleCount: 0
         )
 
-        XCTAssertEqual(level, .started)
+        XCTAssertEqual(level, .sprout)
     }
 
-    func test_completionLevel_started_twoTwoTwo() {
+    func test_completionLevel_sprout_twoTwoTwo() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 2,
             needsCount: 2,
             peopleCount: 2
         )
 
-        XCTAssertEqual(level, .started)
+        XCTAssertEqual(level, .sprout)
     }
 
-    func test_completionLevel_started_oneOneOne() {
+    func test_completionLevel_sprout_oneOneOne() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 1,
             needsCount: 1,
             peopleCount: 1
         )
 
-        XCTAssertEqual(level, .started)
+        XCTAssertEqual(level, .sprout)
     }
 
-    func test_completionLevel_growing_fiveTwoThree() {
+    func test_completionLevel_twig_fiveTwoThree() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 5,
             needsCount: 2,
             peopleCount: 3
         )
 
-        XCTAssertEqual(level, .growing)
+        XCTAssertEqual(level, .twig)
     }
 
-    func test_completionLevel_growing_threeZeroZero() {
+    func test_completionLevel_twig_threeZeroZero() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 3,
             needsCount: 0,
             peopleCount: 0
         )
 
-        XCTAssertEqual(level, .growing)
+        XCTAssertEqual(level, .twig)
     }
 
-    func test_completionLevel_growing_fiveTwoTwo() {
+    func test_completionLevel_twig_fiveTwoTwo() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 5,
             needsCount: 2,
             peopleCount: 2
         )
 
-        XCTAssertEqual(level, .growing)
+        XCTAssertEqual(level, .twig)
     }
 
-    func test_completionLevel_balanced_fiveThreeThree() {
+    func test_completionLevel_leaf_fiveThreeThree() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 5,
             needsCount: 3,
             peopleCount: 3
         )
 
-        XCTAssertEqual(level, .balanced)
+        XCTAssertEqual(level, .leaf)
     }
 
-    func test_completionLevel_balanced_fiveFiveFour() {
+    func test_completionLevel_leaf_fiveFiveFour() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 5,
             needsCount: 5,
             peopleCount: 4
         )
 
-        XCTAssertEqual(level, .balanced)
+        XCTAssertEqual(level, .leaf)
     }
 
-    func test_completionLevel_full_fiveFiveFive() {
+    func test_completionLevel_bloom_fiveFiveFive() {
         let level = JournalEntry.completionLevel(
             gratitudesCount: 5,
             needsCount: 5,
             peopleCount: 5
         )
 
-        XCTAssertEqual(level, .full)
+        XCTAssertEqual(level, .bloom)
     }
 
-    func test_hasHarvestChips_alignsWithFullLevel_withOrWithoutNotes() throws {
+    func test_hasHarvestChips_alignsWithBloomLevel_withOrWithoutNotes() throws {
         let context = try makeInMemoryContext()
-        let items = (1...JournalEntry.slotCount).map { JournalItem(fullText: "x\($0)", chipLabel: nil) }
+        let items = (1...JournalEntry.slotCount).map { JournalItem(fullText: "x\($0)") }
         let harvestOnly = JournalEntry(
             gratitudes: items,
             needs: items,
@@ -136,28 +136,37 @@ final class JournalCompletionLevelTests: XCTestCase {
 
         XCTAssertTrue(harvestOnly.hasHarvestChips)
         XCTAssertTrue(harvestOnly.isComplete)
-        XCTAssertEqual(harvestOnly.completionLevel, .full)
+        XCTAssertEqual(harvestOnly.completionLevel, .bloom)
 
         XCTAssertTrue(harvestWithNotes.hasHarvestChips)
-        XCTAssertEqual(harvestWithNotes.completionLevel, .full)
+        XCTAssertEqual(harvestWithNotes.completionLevel, .bloom)
     }
 
     func test_tutorialCompletionRank_isMonotonic() {
-        XCTAssertEqual(JournalCompletionLevel.empty.tutorialCompletionRank, 0)
-        XCTAssertEqual(JournalCompletionLevel.started.tutorialCompletionRank, 1)
-        XCTAssertEqual(JournalCompletionLevel.growing.tutorialCompletionRank, 2)
-        XCTAssertEqual(JournalCompletionLevel.balanced.tutorialCompletionRank, 3)
-        XCTAssertEqual(JournalCompletionLevel.full.tutorialCompletionRank, 4)
+        XCTAssertEqual(JournalCompletionLevel.soil.tutorialCompletionRank, 0)
+        XCTAssertEqual(JournalCompletionLevel.sprout.tutorialCompletionRank, 1)
+        XCTAssertEqual(JournalCompletionLevel.twig.tutorialCompletionRank, 2)
+        XCTAssertEqual(JournalCompletionLevel.leaf.tutorialCompletionRank, 3)
+        XCTAssertEqual(JournalCompletionLevel.bloom.tutorialCompletionRank, 4)
     }
 
     func test_completionLevel_JSON_decodesLegacyRawStrings() throws {
         let decoder = JSONDecoder()
         let legacyPairs: [(String, JournalCompletionLevel)] = [
-            ("soil", .empty),
-            ("seed", .started),
-            ("ripening", .balanced),
-            ("harvest", .full),
-            ("abundance", .full)
+            ("empty", .soil),
+            ("started", .sprout),
+            ("seed", .sprout),
+            ("growing", .twig),
+            ("balanced", .leaf),
+            ("ripening", .leaf),
+            ("full", .bloom),
+            ("harvest", .bloom),
+            ("abundance", .bloom),
+            ("soil", .soil),
+            ("sprout", .sprout),
+            ("twig", .twig),
+            ("leaf", .leaf),
+            ("bloom", .bloom)
         ]
         for (raw, expected) in legacyPairs {
             let jsonString = "\"\(raw)\""
@@ -168,11 +177,11 @@ final class JournalCompletionLevelTests: XCTestCase {
     }
 
     func test_completionLevel_JSON_encodesCurrentRawStrings() throws {
-        let data = try JSONEncoder().encode(JournalCompletionLevel.balanced)
-        XCTAssertEqual(String(data: data, encoding: .utf8), "\"balanced\"")
+        let data = try JSONEncoder().encode(JournalCompletionLevel.leaf)
+        XCTAssertEqual(String(data: data, encoding: .utf8), "\"leaf\"")
     }
 
-    func test_hasMeaningfulContent_trueWhenOnlyReadingNotesOnEmptyChips() {
+    func test_hasMeaningfulContent_trueWhenOnlyReadingNotesOnEmptyStrips() {
         let entry = JournalEntry(
             entryDate: .now,
             gratitudes: [],
@@ -181,7 +190,7 @@ final class JournalCompletionLevelTests: XCTestCase {
             readingNotes: "A verse stood out.",
             reflections: ""
         )
-        XCTAssertEqual(entry.completionLevel, .empty)
+        XCTAssertEqual(entry.completionLevel, .soil)
         XCTAssertTrue(entry.hasMeaningfulContent)
     }
 

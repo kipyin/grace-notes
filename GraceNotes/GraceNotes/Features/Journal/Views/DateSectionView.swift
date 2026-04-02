@@ -67,15 +67,15 @@ struct DateSectionView: View {
     private var completionStatusLabel: some View {
         Group {
             switch completionLevel {
-            case .empty:
+            case .soil:
                 statusButton(.empty)
-            case .started:
+            case .sprout:
                 statusButton(.started)
-            case .growing:
+            case .twig:
                 statusButton(.growing)
-            case .balanced:
+            case .leaf:
                 statusButton(.balanced)
-            case .full:
+            case .bloom:
                 statusButton(.full)
             }
         }
@@ -110,29 +110,29 @@ private extension CompletionBadgeInfo {
     var completionLevel: JournalCompletionLevel {
         switch self {
         case .empty:
-            return .empty
+            return .soil
         case .started:
-            return .started
+            return .sprout
         case .growing:
-            return .growing
+            return .twig
         case .balanced:
-            return .balanced
+            return .leaf
         case .full:
-            return .full
+            return .bloom
         }
     }
 
     static func matching(_ level: JournalCompletionLevel) -> CompletionBadgeInfo {
         switch level {
-        case .empty:
+        case .soil:
             return .empty
-        case .started:
+        case .sprout:
             return .started
-        case .growing:
+        case .twig:
             return .growing
-        case .balanced:
+        case .leaf:
             return .balanced
-        case .full:
+        case .bloom:
             return .full
         }
     }

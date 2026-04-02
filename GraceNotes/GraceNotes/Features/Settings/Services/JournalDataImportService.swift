@@ -169,8 +169,6 @@ struct JournalDataImportService {
         items.map { item in
             JournalItem(
                 fullText: clampString(item.fullText),
-                chipLabel: item.chipLabel.map { clampString($0) },
-                isTruncated: item.isTruncated,
                 id: item.id
             )
         }

@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-extension PostSeedJourneyView {
+extension AppTourView {
     // MARK: - Reminders (aligned with Settings)
 
     var shouldUseCompactReminderPicker: Bool {

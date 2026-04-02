@@ -1,13 +1,4 @@
-// Cloud summarization API key for local Xcode builds (Cmd+B / Run / Archive).
-// Info.plist references $(GRACE_NOTES_CLOUD_API_KEY); Xcode expands it at build time.
-// Default keeps cloud features disabled until you add a real key.
-//
-// Local override (gitignored): create DeveloperSettings.local.xcconfig next to this file with:
-//   GRACE_NOTES_CLOUD_API_KEY = your-key
-//
-// CI / Xcode Cloud (no committed secrets):
-//   • Export GRACE_NOTES_CLOUD_API_KEY in the environment before xcodebuild, or
-//   • Write DeveloperSettings.local.xcconfig from a secret in a pre-build step (same as local dev).
+// Optional local overrides for developer-only build settings.
+// Gitignored file lives next to this one: create `DeveloperSettings.local.xcconfig` when needed.
 
-GRACE_NOTES_CLOUD_API_KEY = YOUR_KEY_HERE
 #include? "DeveloperSettings.local.xcconfig"
