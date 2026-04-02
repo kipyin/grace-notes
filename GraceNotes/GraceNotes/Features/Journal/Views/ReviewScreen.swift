@@ -18,6 +18,21 @@ private enum ReviewBrowseSheet: Identifiable {
     }
 }
 
+private struct ReviewJournalDaySheetItem: Identifiable, Equatable {
+    let id: String
+    let entryDate: Date
+
+    init(dayStart: Date, calendar: Calendar) {
+        let normalized = calendar.startOfDay(for: dayStart)
+        entryDate = normalized
+        let parts = calendar.dateComponents([.year, .month, .day], from: normalized)
+        let year = parts.year ?? 0
+        let month = parts.month ?? 0
+        let day = parts.day ?? 0
+        id = "\(year)-\(month)-\(day)"
+    }
+}
+
 struct ReviewScreen: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \JournalEntry.entryDate, order: .reverse) private var entries: [JournalEntry]
@@ -32,6 +47,7 @@ struct ReviewScreen: View {
     @State private var browseSheet: ReviewBrowseSheet?
     @State private var trendingThemeDrilldown: ReviewThemeDrilldownPayload?
     @State private var historyDrilldown: ReviewHistoryDrilldownPayload?
+    @State private var journalDaySheetItem: ReviewJournalDaySheetItem?
     @State private var journalSearchText = ""
     @State private var journalSearchMatches: [JournalSearchMatch] = []
     @FocusState private var isPastSearchFieldFocused: Bool
@@ -194,6 +210,13 @@ struct ReviewScreen: View {
                 pastStatisticsInterval: pastStatisticsInterval
             )
         }
+        .sheet(item: $journalDaySheetItem) { item in
+            ReviewJournalDaySheetHost(entryDate: item.entryDate)
+        }
+    }
+
+    private func presentJournalDaySheet(for day: Date) {
+        journalDaySheetItem = ReviewJournalDaySheetItem(dayStart: day, calendar: calendar)
     }
 
     private var emptyStateWithSearch: some View {
@@ -218,7 +241,8 @@ struct ReviewScreen: View {
                     matches: journalSearchMatches,
                     calendar: calendar,
                     highlightQuery: trimmedJournalSearchQuery,
-                    onDismissSearchFocus: dismissPastSearchFocus
+                    onDismissSearchFocus: dismissPastSearchFocus,
+                    onOpenJournalDay: presentJournalDaySheet
                 )
             }
         }
@@ -245,7 +269,8 @@ struct ReviewScreen: View {
                     matches: journalSearchMatches,
                     calendar: calendar,
                     highlightQuery: trimmedJournalSearchQuery,
-                    onDismissSearchFocus: dismissPastSearchFocus
+                    onDismissSearchFocus: dismissPastSearchFocus,
+                    onOpenJournalDay: presentJournalDaySheet
                 )
             }
         }
@@ -275,7 +300,8 @@ struct ReviewScreen: View {
             if reviewInsights != nil || isLoadingInsights {
                 ReviewDaysYouWrotePanel(
                     insights: reviewInsights,
-                    isLoading: isLoadingInsights
+                    isLoading: isLoadingInsights,
+                    onPersistedDaySelected: presentJournalDaySheet
                 )
                 .listRowInsets(PastTabListLayout.cardRowInsets)
                 .listRowBackground(AppTheme.reviewBackground)
@@ -403,6 +429,24 @@ private extension ReviewScreen {
             weekBoundaryPreferenceRawValue: reviewWeekBoundaryRawValue,
             pastStatisticsIntervalToken: pastStatisticsInterval.cacheKeyToken
         )
+    }
+}
+
+private struct ReviewJournalDaySheetHost: View {
+    let entryDate: Date
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            JournalScreen(entryDate: entryDate)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button(String(localized: "Done")) {
+                            dismiss()
+                        }
+                    }
+                }
+        }
     }
 }
 

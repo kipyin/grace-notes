@@ -49,7 +49,9 @@ private struct GrowthStageDrilldownSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     let level: JournalCompletionLevel
-    private let matchingDays: [Date]
+    private let matchingDayStarts: Set<Date>
+    private let historyDayRange: Range<Date>
+    private let drilldownCalendar: Calendar
 
     init(
         level: JournalCompletionLevel,
@@ -59,6 +61,12 @@ private struct GrowthStageDrilldownSheet: View {
         pastStatisticsInterval: PastStatisticsIntervalSelection
     ) {
         self.level = level
+        drilldownCalendar = calendar
+        historyDayRange = pastStatisticsInterval.validated.resolvedHistoryRange(
+            referenceDate: referenceDate,
+            calendar: calendar,
+            allEntries: entries
+        )
         let historyEntries = ReviewHistoryWindowing.entriesInValidatedHistoryWindow(
             allEntries: entries,
             referenceDate: referenceDate,
@@ -69,10 +77,11 @@ private struct GrowthStageDrilldownSheet: View {
             from: historyEntries,
             calendar: calendar
         )
-        matchingDays = ReviewHistoryWindowing.calendarDaysMatchingStrongestCompletionLevel(
+        let matchedDays = ReviewHistoryWindowing.calendarDaysMatchingStrongestCompletionLevel(
             level,
             strongestByDay: strongestByDay
         )
+        matchingDayStarts = Set(matchedDays.map { calendar.startOfDay(for: $0) })
     }
 
     var body: some View {
@@ -92,19 +101,26 @@ private struct GrowthStageDrilldownSheet: View {
                 }
 
                 Section {
-                    ForEach(matchingDays, id: \.self) { day in
-                        NavigationLink {
-                            JournalScreen(entryDate: day)
-                        } label: {
-                            Text(day.formatted(date: .abbreviated, time: .omitted))
+                    if matchingDayStarts.isEmpty {
+                        ContentUnavailableView {
+                            Label(
+                                String(localized: "Review history growth drilldown calendar empty title"),
+                                systemImage: "calendar"
+                            )
+                        } description: {
+                            Text(String(localized: "Review history growth drilldown calendar empty description"))
                                 .font(AppTheme.warmPaperBody)
-                                .foregroundStyle(AppTheme.reviewTextPrimary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.vertical, 2)
+                                .foregroundStyle(AppTheme.reviewTextMuted)
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(day.formatted(date: .complete, time: .omitted))
-                        .accessibilityHint(String(localized: "ThemeDrilldown.openEntry.a11yHint"))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.vertical, 8)
+                    } else {
+                        ReviewHistoryDrilldownCalendarMonthStack(
+                            matchingDayStarts: matchingDayStarts,
+                            calendar: drilldownCalendar,
+                            historyDayRange: historyDayRange
+                        )
+                        .padding(.vertical, 4)
                     }
                 } header: {
                     Text(String(localized: "Review history growth drilldown dates section"))
@@ -164,6 +180,9 @@ private struct SectionEntriesDrilldownSheet: View {
 
     let section: ReviewStatsSectionKind
     private let contributingEntries: [JournalEntry]
+    private let sectionMatchingDayStarts: Set<Date>
+    private let historyDayRange: Range<Date>
+    private let drilldownCalendar: Calendar
 
     init(
         section: ReviewStatsSectionKind,
@@ -173,6 +192,12 @@ private struct SectionEntriesDrilldownSheet: View {
         pastStatisticsInterval: PastStatisticsIntervalSelection
     ) {
         self.section = section
+        drilldownCalendar = calendar
+        historyDayRange = pastStatisticsInterval.validated.resolvedHistoryRange(
+            referenceDate: referenceDate,
+            calendar: calendar,
+            allEntries: entries
+        )
         let historyEntries = ReviewHistoryWindowing.entriesInValidatedHistoryWindow(
             allEntries: entries,
             referenceDate: referenceDate,
@@ -182,6 +207,9 @@ private struct SectionEntriesDrilldownSheet: View {
         contributingEntries = ReviewHistoryWindowing.entriesContributingToSection(
             section,
             in: historyEntries
+        )
+        sectionMatchingDayStarts = Set(
+            contributingEntries.map { calendar.startOfDay(for: $0.entryDate) }
         )
     }
 
@@ -206,21 +234,20 @@ private struct SectionEntriesDrilldownSheet: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
-                    List(contributingEntries, id: \.id) { entry in
-                        NavigationLink {
-                            JournalScreen(entryDate: entry.entryDate)
-                        } label: {
-                            Text(entry.entryDate.formatted(date: .abbreviated, time: .omitted))
-                                .font(AppTheme.warmPaperBody)
-                                .foregroundStyle(AppTheme.reviewTextPrimary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.vertical, 2)
+                    List {
+                        Section {
+                            ReviewHistoryDrilldownCalendarMonthStack(
+                                matchingDayStarts: sectionMatchingDayStarts,
+                                calendar: drilldownCalendar,
+                                historyDayRange: historyDayRange
+                            )
+                            .padding(.vertical, 4)
+                        } header: {
+                            Text(String(localized: "Review history section drilldown calendar section"))
+                                .font(AppTheme.warmPaperMeta)
+                                .foregroundStyle(AppTheme.reviewTextMuted)
+                                .textCase(nil)
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(
-                            entry.entryDate.formatted(date: .complete, time: .omitted)
-                        )
-                        .accessibilityHint(String(localized: "ThemeDrilldown.openEntry.a11yHint"))
                     }
                     .scrollContentBackground(.hidden)
                 }
