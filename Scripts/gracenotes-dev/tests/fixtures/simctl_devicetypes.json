@@ -1,0 +1,16 @@
+{
+  "devicetypes": [
+    {
+      "name": "iPhone 17 Pro",
+      "identifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro"
+    },
+    {
+      "name": "Apple Watch Series 9 (45mm)",
+      "identifier": "com.apple.CoreSimulator.SimDeviceType.Apple-Watch-Series-9-45mm"
+    },
+    {
+      "name": "iPad Pro 11-inch (M4)",
+      "identifier": "com.apple.CoreSimulator.SimDeviceType.iPad-Pro-11-inch-M4-8GB"
+    }
+  ]
+}

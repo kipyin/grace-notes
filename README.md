@@ -108,7 +108,7 @@ python3 -m unittest discover -s Scripts/gracenotes-dev/tests
 - `grace ci --profile full` – Lint, tests on iPhone 17 Pro, UI smoke on iPhone SE (3rd generation) @ iOS **18.5** per `gracenotes-dev.toml`.
 - `grace sim runtime install` / `grace sim runtime list` / `grace sim runtime delete …` – Install and manage simulator runtimes (then use `grace sim list` to confirm destination availability).
 - `grace sim list` / `grace sim list --physical` / `grace sim resolve SPEC` / `grace sim reset` – Simulator destinations, connected **physical** devices (as `platform=iOS,id=…`), and hygiene.
-- `grace sim add "Device Name@os"` – Guided steps to create a missing **Simulator instance** when the runtime is already installed (explains `simctl create`; install runtimes with `grace sim runtime install` first). Pair this with `grace doctor` when a default destination will not resolve.
+- `grace sim add` – Create a Simulator instance with `grace sim add "Device Name@os"` or `grace sim add -i` for separate device-type and iOS runtime prompts (install runtimes with `grace sim runtime install` first). Pair with `grace doctor` when a default destination will not resolve.
 - `grace run` – Build, install, and launch on a booted **simulator** or a **connected, provisioned** device (`xcrun devicectl` for install/launch after `xcodebuild`). Use `--preset` and `--` to pass [app process arguments](GraceNotes/GraceNotes/Application/GraceNotesApp.swift).
 - **Physical devices:** use `grace sim list --physical` to copy a destination, then `grace build --destination 'platform=iOS,id=…'` / `grace run …`. Code signing and team selection remain Xcode’s responsibility. **`grace test`** stays simulator-only ([issue #175](https://github.com/kipyin/grace-notes/issues/175) scope).
 

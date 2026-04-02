@@ -1,0 +1,22 @@
+{
+  "runtimes": [
+    {
+      "identifier": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+      "version": "18.5",
+      "isAvailable": true,
+      "name": "iOS 18.5"
+    },
+    {
+      "identifier": "com.apple.CoreSimulator.SimRuntime.iOS-26-0",
+      "version": "26.0",
+      "isAvailable": true,
+      "name": "iOS 26.0"
+    },
+    {
+      "identifier": "com.apple.CoreSimulator.SimRuntime.iOS-17-0",
+      "version": "17.0",
+      "isAvailable": false,
+      "name": "iOS 17.0"
+    }
+  ]
+}

@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import json
 import unittest
+from pathlib import Path
 
 from gracenotes_dev import simulator
+
+_FIXTURES = Path(__file__).resolve().parent / "fixtures"
 
 
 class SimulatorParsingTest(unittest.TestCase):
@@ -96,3 +100,38 @@ class SimulatorParsingTest(unittest.TestCase):
         ]
         out = simulator.resolve_physical_destination("platform=iOS,name=P", devices)
         self.assertEqual(out, "platform=iOS,id=u1")
+
+    def test_parse_devicetypes_json_filters_ios_handsets(self) -> None:
+        raw = json.loads((_FIXTURES / "simctl_devicetypes.json").read_text(encoding="utf-8"))
+        rows = simulator.parse_simctl_devicetypes_json_payload(raw)
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[0].name, "iPad Pro 11-inch (M4)")
+        self.assertEqual(rows[1].name, "iPhone 17 Pro")
+
+    def test_parse_runtimes_json_orders_available_before_version(self) -> None:
+        raw = json.loads((_FIXTURES / "simctl_runtimes.json").read_text(encoding="utf-8"))
+        rows = simulator.parse_simctl_runtimes_json_payload(raw)
+        self.assertEqual(len(rows), 3)
+        self.assertEqual(rows[0].version, "18.5")
+        self.assertEqual(rows[1].version, "26.0")
+        self.assertFalse(rows[2].is_available)
+
+    def test_resolve_ios_runtime_latest_prefers_available(self) -> None:
+        raw = json.loads((_FIXTURES / "simctl_runtimes.json").read_text(encoding="utf-8"))
+        rows = simulator.parse_simctl_runtimes_json_payload(raw)
+        pick = simulator.resolve_ios_runtime_for_os_spec(rows, "latest")
+        self.assertIsNotNone(pick)
+        assert pick is not None
+        self.assertEqual(pick.version, "26.0")
+
+    def test_devicetype_for_name_case_insensitive(self) -> None:
+        dts = [
+            simulator.DeviceTypeRecord(
+                name="iPhone 17 Pro",
+                identifier="com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro",
+            )
+        ]
+        found = simulator.devicetype_for_name(dts, "iphone 17 pro")
+        self.assertIsNotNone(found)
+        assert found is not None
+        self.assertEqual(found.identifier, dts[0].identifier)

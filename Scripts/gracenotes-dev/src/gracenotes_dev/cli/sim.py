@@ -65,13 +65,77 @@ def _print_sim_list_plain(
         console.print(f"{mark:<8}{name:<42}{os_version:<8}available")
 
 
-def _destination_prompt_choices(default_destination: str, rows: list[dict[str, str]]) -> list[str]:
-    shortcuts = [f"{name}@{runtime}" for _, name, runtime in _sim_list_entries(rows)]
-    ordered = [default_destination]
-    for item in shortcuts:
-        if item not in ordered:
-            ordered.append(item)
-    return ordered
+def _split_default_destination_shorthand(default_shorthand: str) -> tuple[str | None, str | None]:
+    text = default_shorthand.strip()
+    if not text:
+        return None, None
+    if text.startswith("platform="):
+        fields = simulator.parse_destination(text)
+        return fields.get("name"), fields.get("OS")
+    if "@" not in text:
+        return None, None
+    device_name, os_part = text.rsplit("@", 1)
+    return device_name.strip(), os_part.strip()
+
+
+def _prompt_destination_shorthand(
+    *,
+    message_device: str,
+    message_os: str,
+    default_shorthand: str,
+    rows: list[dict[str, str]],
+) -> str:
+    """Interactive ``device@os`` shorthand using separate device and iOS picks."""
+    names = sorted({row["name"] for row in rows if row.get("name")}, key=str.lower)
+    if not names:
+        cli_core._fail(
+            code=3,
+            title="No installed iOS simulators",
+            problem="There are no available iOS Simulator devices to choose from.",
+            likely_cause="Install an iOS runtime in Xcode (Settings → Platforms) and create a simulator.",
+            try_commands=("grace sim list", "grace sim runtime install"),
+        )
+
+    default_name, default_os = _split_default_destination_shorthand(default_shorthand)
+    device_default = default_name if default_name in names else names[0]
+
+    choice_name = cli_core._require_prompt_answer(
+        cli_core._q_select(
+            message_device,
+            choices=names,
+            default=device_default,
+        ).ask(),
+    )
+
+    versions_sorted = sorted(
+        {row["runtime_version"] for row in rows if row["name"] == choice_name},
+        key=simulator.version_tuple,
+    )
+    if not versions_sorted:
+        cli_core._fail(
+            code=3,
+            title="No runtimes for device",
+            problem=f"No iOS versions are available for `{choice_name}` on this machine.",
+            try_commands=("grace sim list", "grace sim add --interactive"),
+        )
+
+    if default_os == "latest" or default_os is None:
+        os_default_key = versions_sorted[-1]
+    elif default_os in versions_sorted:
+        os_default_key = default_os
+    else:
+        os_default_key = versions_sorted[-1]
+
+    version_labels = list(versions_sorted)
+    choice_os = cli_core._require_prompt_answer(
+        cli_core._q_select(
+            message_os,
+            choices=version_labels,
+            default=os_default_key,
+        ).ask(),
+    )
+
+    return f"{choice_name}@{choice_os}"
 
 
 def _prompt_destination_value(
@@ -80,12 +144,12 @@ def _prompt_destination_value(
     default_destination: str,
     rows: list[dict[str, str]],
 ) -> str:
-    choice = cli_core._q_select(
-        message,
-        choices=_destination_prompt_choices(default_destination, rows),
-        default=default_destination,
-    ).ask()
-    return cli_core._require_prompt_answer(choice)
+    return _prompt_destination_shorthand(
+        message_device=f"{message} — device",
+        message_os=f"{message} — iOS version",
+        default_shorthand=default_destination,
+        rows=rows,
+    )
 
 
 def _prompt_optional_text(*, message: str, default_value: str = "") -> str | None:
@@ -298,6 +362,163 @@ def _prompt_run_options(
     )
 
 
+def _devicetype_labels_for_interactive(
+    devicetypes: list[simulator.DeviceTypeRecord],
+) -> tuple[list[str], list[simulator.DeviceTypeRecord]]:
+    by_name: dict[str, list[simulator.DeviceTypeRecord]] = {}
+    for dt in devicetypes:
+        by_name.setdefault(dt.name, []).append(dt)
+    labels: list[str] = []
+    records: list[simulator.DeviceTypeRecord] = []
+    for name in sorted(by_name.keys(), key=str.lower):
+        group = sorted(by_name[name], key=lambda item: item.identifier)
+        if len(group) == 1:
+            labels.append(name)
+            records.append(group[0])
+            continue
+        for dt in group:
+            short_id = dt.identifier.rsplit(".", maxsplit=1)[-1]
+            labels.append(f"{name} — {short_id}")
+            records.append(dt)
+    return labels, records
+
+
+def _runtime_labels_for_interactive(
+    runtimes: list[simulator.IosRuntimeSimctlRecord],
+) -> tuple[list[str], list[simulator.IosRuntimeSimctlRecord]]:
+    version_counts: dict[str, int] = {}
+    for row in runtimes:
+        version_counts[row.version] = version_counts.get(row.version, 0) + 1
+    labels: list[str] = []
+    records: list[simulator.IosRuntimeSimctlRecord] = []
+    for row in runtimes:
+        suffix = "" if row.is_available else " (unavailable)"
+        if version_counts[row.version] > 1:
+            short_id = row.identifier.rsplit(".", maxsplit=1)[-1]
+            labels.append(f"{row.version}{suffix} — {short_id}")
+        else:
+            labels.append(f"{row.version}{suffix}")
+        records.append(row)
+    return labels, records
+
+
+def _execute_sim_create(
+    *,
+    display_name: str,
+    devicetype: simulator.DeviceTypeRecord,
+    runtime: simulator.IosRuntimeSimctlRecord,
+) -> None:
+    repo_root = cli_core._repo_root()
+    argv = simulator.simctl_create_argv(
+        device_name=display_name,
+        devicetype_identifier=devicetype.identifier,
+        runtime_identifier=runtime.identifier,
+    )
+    completed = cli_core._run_capture(argv, cwd=repo_root, check=False)
+    if completed.returncode != 0:
+        detail = (completed.stderr or completed.stdout or "").strip()
+        cli_core._fail(
+            code=completed.returncode if completed.returncode else 3,
+            title="simctl create failed",
+            problem=detail or "`simctl create` exited without output.",
+            try_commands=("grace sim list", "xcrun simctl list runtimes"),
+        )
+    udid = (completed.stdout or "").strip()
+    if udid:
+        cli_core._stdout_console().print(f"Created simulator `{display_name}` ({udid}).")
+    else:
+        cli_core._stdout_console().print(f"Created simulator `{display_name}`.")
+
+
+def _sim_add_from_spec(spec: str) -> None:
+    text = spec.strip()
+    if "@" not in text:
+        cli_core._fail(
+            code=2,
+            title="Invalid simulator spec",
+            problem=f"Expected `device@os` (for example `iPhone 17 Pro@26.0`), got `{spec!r}`.",
+            try_commands=('grace sim add "iPhone 17 Pro@26.0"', "grace sim add --interactive"),
+        )
+    name_part, os_part = text.rsplit("@", 1)
+    devicetypes = simulator.load_ios_devicetypes()
+    runtimes = simulator.load_ios_runtimes_simctl()
+    devicetype = simulator.devicetype_for_name(devicetypes, name_part)
+    if devicetype is None:
+        cli_core._fail(
+            code=3,
+            title="Unknown device type",
+            problem=f"No iOS Simulator device type matches `{name_part.strip()}`.",
+            try_commands=("grace sim add --interactive",),
+        )
+    resolved_runtime = simulator.resolve_ios_runtime_for_os_spec(runtimes, os_part.strip())
+    if resolved_runtime is None:
+        cli_core._fail(
+            code=3,
+            title="Unknown or unavailable iOS runtime",
+            problem=f"No runtime matches `{os_part.strip()}` on this machine.",
+            try_commands=("grace sim runtime list", "grace sim add --interactive"),
+        )
+    _execute_sim_create(
+        display_name=name_part.strip(),
+        devicetype=devicetype,
+        runtime=resolved_runtime,
+    )
+
+
+def _sim_add_interactive() -> None:
+    devicetypes = simulator.load_ios_devicetypes()
+    runtimes = simulator.load_ios_runtimes_simctl()
+    if not devicetypes:
+        cli_core._fail(
+            code=3,
+            title="No device types from simctl",
+            problem="`simctl list devicetypes` did not return any iOS handset types.",
+            try_commands=("xcode-select -p", "grace doctor"),
+        )
+    if not runtimes:
+        cli_core._fail(
+            code=3,
+            title="No iOS runtimes installed",
+            problem="Install an iOS Simulator runtime before adding a device.",
+            try_commands=("grace sim runtime install", "xcodebuild -downloadPlatform iOS"),
+        )
+
+    dt_labels, dt_records = _devicetype_labels_for_interactive(devicetypes)
+    dt_choice = cli_core._require_prompt_answer(
+        cli_core._q_select(
+            "Device type:",
+            choices=dt_labels,
+            default=dt_labels[0],
+        ).ask(),
+    )
+    dt_index = dt_labels.index(dt_choice)
+    chosen_devicetype = dt_records[dt_index]
+
+    rt_labels, rt_records = _runtime_labels_for_interactive(runtimes)
+    rt_choice = cli_core._require_prompt_answer(
+        cli_core._q_select(
+            "iOS runtime:",
+            choices=rt_labels,
+            default=rt_labels[0],
+        ).ask(),
+    )
+    rt_index = rt_labels.index(rt_choice)
+    chosen_runtime = rt_records[rt_index]
+
+    default_sim_name = chosen_devicetype.name
+    sim_name_raw = _prompt_optional_text(
+        message="Simulator display name:",
+        default_value=default_sim_name,
+    )
+    display_name = (sim_name_raw.strip() if sim_name_raw else default_sim_name) or default_sim_name
+
+    _execute_sim_create(
+        display_name=display_name,
+        devicetype=chosen_devicetype,
+        runtime=chosen_runtime,
+    )
+
+
 def _load_runtime_records(repo_root: Path) -> list[simulator_runtime.RuntimeRecord]:
     completed = cli_core._run_capture(
         simulator_runtime.simctl_runtime_list_argv(json_out=True),
@@ -351,6 +572,7 @@ def _sim_interactive(*, cfg: config.DevConfig) -> None:
             "Simulator action:",
             choices=[
                 "List destinations",
+                "Add simulator",
                 "Resolve destination",
                 "Reset simulators",
                 "Install runtime",
@@ -365,6 +587,9 @@ def _sim_interactive(*, cfg: config.DevConfig) -> None:
         return
     if choice == "List destinations":
         sim_list()
+        return
+    if choice == "Add simulator":
+        _sim_add_interactive()
         return
     if choice == "Resolve destination":
         spec = (
@@ -909,3 +1134,45 @@ def sim_reset() -> None:
     """Shutdown and erase all simulators."""
     cli_core._require_macos_xcode()
     cli_core._reset_sims(cli_core._repo_root())
+
+
+@sim_app.command("add")
+def sim_add(
+    spec: Annotated[
+        str | None,
+        typer.Argument(
+            help='Device type and iOS version as device@os (example: "iPhone 17 Pro@26.0").',
+        ),
+    ] = None,
+    interactive: Annotated[
+        bool,
+        typer.Option(
+            "--interactive",
+            "-i",
+            help="Pick device type and iOS runtime from separate lists.",
+        ),
+    ] = False,
+) -> None:
+    """Create an iOS Simulator using ``simctl create`` (non-interactive spec or ``-i``)."""
+    cli_core._require_macos_xcode()
+    if interactive and spec:
+        cli_core._fail(
+            code=2,
+            title="Conflicting arguments",
+            problem="Use either a SPEC argument or `--interactive`, not both.",
+            try_commands=("grace sim add --interactive", 'grace sim add "iPhone 17 Pro@26.0"'),
+        )
+    if interactive:
+        repo_root = cli_core._repo_root()
+        cfg = cli_core._load_config(repo_root)
+        cli_core._require_interactive_cli(cfg=cfg, command_name="grace sim add --interactive")
+        _sim_add_interactive()
+        return
+    if not spec or not spec.strip():
+        cli_core._fail(
+            code=2,
+            title="Missing simulator spec",
+            problem="Provide `device@os` or pass `--interactive`.",
+            try_commands=('grace sim add "iPhone 17 Pro@26.0"', "grace sim add -i"),
+        )
+    _sim_add_from_spec(spec)

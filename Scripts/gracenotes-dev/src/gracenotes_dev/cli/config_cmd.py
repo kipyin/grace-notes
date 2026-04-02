@@ -13,9 +13,10 @@ import typer
 from rich.table import Table
 from rich.text import Text
 
-from gracenotes_dev import config
+from gracenotes_dev import config, simulator
 from gracenotes_dev.cli import core as cli_core
 from gracenotes_dev.cli.apps import config_app
+from gracenotes_dev.cli.sim import _prompt_destination_shorthand
 
 
 def _editable_key_help_lines() -> tuple[str, ...]:
@@ -206,6 +207,16 @@ def config_interactive() -> None:
                         default=bool(current_value),
                     ).ask(),
                 ),
+            )
+        elif dotted_key == "defaults.destination":
+            cli_core._require_macos_xcode()
+            rows = simulator.load_available_ios_devices()
+            default_text = cli_core._format_config_value(current_value)
+            raw_next_value = _prompt_destination_shorthand(
+                message_device=f"Set {dotted_key} — device",
+                message_os=f"Set {dotted_key} — iOS version",
+                default_shorthand=default_text,
+                rows=rows,
             )
         else:
             default_text = cli_core._format_config_value(current_value)

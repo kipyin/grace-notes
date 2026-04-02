@@ -8,11 +8,158 @@ import re
 import subprocess
 import sys
 import tempfile
+from dataclasses import dataclass
 from pathlib import Path
 
 
 def version_tuple(version: str) -> tuple[int, ...]:
     return tuple(int(piece) for piece in version.split("."))
+
+
+@dataclass(frozen=True)
+class DeviceTypeRecord:
+    """An entry from ``simctl list devicetypes --json`` (iOS handset types only)."""
+
+    name: str
+    identifier: str
+
+
+@dataclass(frozen=True)
+class IosRuntimeSimctlRecord:
+    """An iOS Simulator runtime from ``simctl list runtimes --json``."""
+
+    identifier: str
+    version: str
+    is_available: bool
+
+
+def _is_ios_handset_devicetype_identifier(identifier: str) -> bool:
+    if not identifier.startswith("com.apple.CoreSimulator.SimDeviceType."):
+        return False
+    slug = identifier.removeprefix("com.apple.CoreSimulator.SimDeviceType.").lower()
+    if slug.startswith("apple-watch") or slug.startswith("apple-tv"):
+        return False
+    if "realitydevice" in slug or slug.startswith("apple-vision"):
+        return False
+    return slug.startswith("iphone") or slug.startswith("ipad") or slug.startswith("ipod")
+
+
+def parse_simctl_devicetypes_json_payload(data: object) -> list[DeviceTypeRecord]:
+    """Parse ``simctl list devicetypes`` JSON. Pure function for tests."""
+    if not isinstance(data, dict):
+        return []
+    raw = data.get("devicetypes")
+    if not isinstance(raw, list):
+        return []
+    rows: list[DeviceTypeRecord] = []
+    for entry in raw:
+        if not isinstance(entry, dict):
+            continue
+        identifier = str(entry.get("identifier", "")).strip()
+        name = str(entry.get("name", "")).strip()
+        if not identifier or not name:
+            continue
+        if not _is_ios_handset_devicetype_identifier(identifier):
+            continue
+        rows.append(DeviceTypeRecord(name=name, identifier=identifier))
+    rows.sort(key=lambda r: (r.name.lower(), r.identifier))
+    return rows
+
+
+def parse_simctl_runtimes_json_payload(data: object) -> list[IosRuntimeSimctlRecord]:
+    """Parse ``simctl list runtimes`` JSON; keep iOS Simulator runtimes only."""
+    if not isinstance(data, dict):
+        return []
+    raw = data.get("runtimes")
+    if not isinstance(raw, list):
+        return []
+    rows: list[IosRuntimeSimctlRecord] = []
+    for entry in raw:
+        if not isinstance(entry, dict):
+            continue
+        identifier = str(entry.get("identifier", "")).strip()
+        if not identifier.startswith("com.apple.CoreSimulator.SimRuntime.iOS"):
+            continue
+        version = str(entry.get("version", "")).strip()
+        if not version:
+            continue
+        is_available = bool(entry.get("isAvailable", False))
+        rows.append(
+            IosRuntimeSimctlRecord(
+                identifier=identifier,
+                version=version,
+                is_available=is_available,
+            ),
+        )
+
+    def sort_key(row: IosRuntimeSimctlRecord) -> tuple[bool, tuple[int, ...], str]:
+        return (not row.is_available, version_tuple(row.version), row.identifier)
+
+    rows.sort(key=sort_key)
+    return rows
+
+
+def load_ios_devicetypes() -> list[DeviceTypeRecord]:
+    data = _simctl_json(["list", "devicetypes", "--json"])
+    return parse_simctl_devicetypes_json_payload(data)
+
+
+def load_ios_runtimes_simctl() -> list[IosRuntimeSimctlRecord]:
+    data = _simctl_json(["list", "runtimes", "--json"])
+    return parse_simctl_runtimes_json_payload(data)
+
+
+def simctl_create_argv(*, device_name: str, devicetype_identifier: str, runtime_identifier: str) -> list[str]:
+    return [
+        "xcrun",
+        "simctl",
+        "create",
+        device_name,
+        devicetype_identifier,
+        runtime_identifier,
+    ]
+
+
+def devicetype_for_name(devicetypes: list[DeviceTypeRecord], product_name: str) -> DeviceTypeRecord | None:
+    """Match ``simctl`` device type by human-readable name (exact, then case-insensitive)."""
+    target = product_name.strip()
+    if not target:
+        return None
+    for row in devicetypes:
+        if row.name == target:
+            return row
+    lower = target.lower()
+    for row in devicetypes:
+        if row.name.lower() == lower:
+            return row
+    return None
+
+
+def resolve_ios_runtime_for_os_spec(
+    runtimes: list[IosRuntimeSimctlRecord],
+    os_spec: str,
+) -> IosRuntimeSimctlRecord | None:
+    """Pick a runtime for shorthand OS (``26.0``, ``26``, or ``latest``)."""
+    spec = os_spec.strip()
+    if not spec:
+        return None
+    candidates = list(runtimes)
+    if spec == "latest":
+        usable = [row for row in candidates if row.is_available]
+        pool = usable or candidates
+        if not pool:
+            return None
+        return max(pool, key=lambda row: version_tuple(row.version))
+
+    exact = [
+        row
+        for row in candidates
+        if row.version == spec or row.version.startswith(f"{spec}.")
+    ]
+    pool = [row for row in exact if row.is_available] or exact
+    if not pool:
+        return None
+    return max(pool, key=lambda row: version_tuple(row.version))
 
 
 def parse_destination(destination: str) -> dict[str, str]:

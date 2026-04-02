@@ -72,8 +72,27 @@ class CLISurfaceTest(unittest.TestCase):
         result = runner.invoke(app, ["sim", "--help"])
 
         self.assertEqual(result.exit_code, 0)
-        for token in ["list", "resolve", "reset", "runtime", "add", "--interactive", "--physical"]:
+        for token in ["list", "add", "resolve", "reset", "runtime", "--interactive", "--physical"]:
             self.assertIn(token, result.output)
+
+    def test_sim_add_help_includes_interactive(self) -> None:
+        runner = CliRunner()
+        result = runner.invoke(app, ["sim", "add", "--help"])
+
+        self.assertEqual(result.exit_code, 0, msg=f"{result.stdout}\n{result.stderr}")
+        self.assertIn("--interactive", result.output)
+        self.assertIn("-i", result.output)
+
+    def test_sim_add_without_spec_or_interactive_fails(self) -> None:
+        repo_root = Path(__file__).resolve().parents[3]
+        with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli_core, "_require_macos_xcode"):
+                runner = CliRunner()
+                result = runner.invoke(app, ["sim", "add"])
+
+        self.assertEqual(result.exit_code, 2)
+        combined = f"{result.stdout}\n{result.stderr}"
+        self.assertIn("Missing simulator spec", combined)
 
     def test_config_help_includes_required_subcommands(self) -> None:
         runner = CliRunner()
