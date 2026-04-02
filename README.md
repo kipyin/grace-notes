@@ -1,10 +1,37 @@
 # Grace Notes
 
-A journaling iOS app for daily gratitude, reflection, and people in mind.
+Structured daily reflection for gratitude, needs, and people in mind.
 
-## Overview
+## Why Grace Notes
 
-Grace Notes (`感恩记`) guides you through a simple daily rhythm: 5 gratitudes, 5 needs, 5 people in mind, reading notes, and space for what you're thinking and learning. The app offers a quiet, low-friction place for gratitude and reflection, with a gentle framing that feels welcoming rather than pushy.
+Grace Notes (`感恩记`) is for people who want more than a blank page, a streak counter, or a rotating list of prompts. Many journaling apps help you write, but do not help your writing add up to reflection. Grace Notes gives each day a clear structure, then helps patterns emerge over time.
+
+The app centers three lenses that belong together:
+
+- **Gratitudes** - not to deny difficulty, but to interrupt the mindset that life is only happening against you or owes you something.
+- **Needs** - to name what is actually missing, needed, or neglected instead of staying vague.
+- **People in Mind** - to widen attention beyond the self and keep relationships in view.
+
+## How The Sections Work Together
+
+Each section is useful on its own, but the value compounds when they are read together. Repeated needs can show where something important stays unnamed or unaddressed. Gratitudes can reveal where care, provision, or progress is already present. People in Mind can show where attention, concern, and responsibility keep returning.
+
+Across a week, those parts create a more useful picture than a single mood or diary entry. You may notice that a need keeps appearing without movement, that it never shows up alongside gratitude, or that a person and a gratitude keep recurring together. Grace Notes is built to help entries add up to weekly reflection, not just accumulate in an archive.
+
+## Why It Feels Different
+
+Grace Notes is lightweight, private by default, and still powerful enough to surface patterns. Entries save as you type, weekly reflection summaries stay on-device, and JSON export/import keeps ownership with you. In a category crowded with cloud-first AI products, Grace Notes aims to stay useful without turning reflection into a black box or making AI a prerequisite.
+
+## Features
+
+- **Today** - Structured daily entry with five lines each for Gratitudes, Needs, and People in Mind, plus reading notes and reflections. Entries auto-create and save as you type.
+  - **Sequential input** – Type a full sentence, press Enter; your full line stays easy to read on Today. Tap a line to edit inline. Each section holds up to five lines.
+- **Past** – Browse past entries by month, review the week's Reflection rhythm, and reopen saved days from the timeline.
+- **Weekly insights** – See recurring themes across sections, continuity prompts, and a deterministic weekly reflection summary generated on-device.
+- **Privacy and ownership** – Storage is private by default, with JSON export/import for backup and ownership plus optional iCloud sync when you want it.
+- **Shareable cards** – Generate a formatted image of a day's entry and share via the iOS share sheet.
+- **Reminders and onboarding** – Optional daily reminders plus a guided first-entry path and milestone-based suggestions for reminders and iCloud.
+- **Habit support** – Streak plus tiered completion on the structured sections; perfect streak days match a full fifteen-line grid, while reading notes and reflections stay optional.
 
 ## Release notes
 
@@ -14,31 +41,18 @@ Version history, per-build notes, and git tag shape (**`v{marketing}+{build}`**,
 
 **Shipped** scope is authoritative in **CHANGELOG.md**. **Forward** work is sequenced with [GitHub milestones and issues](https://github.com/kipyin/grace-notes/milestones) on [kipyin/grace-notes](https://github.com/kipyin/grace-notes). Milestones name **scope lanes**, not necessarily a new App Store **marketing** version every time. The app ships a **fixed marketing version per line** with a **monotonic build**; tags look like **`v{marketing}+{build}`**. Bump marketing only when opening the next line. Full convention: `.agents/skills/vc/SKILL.md` (**Versioning**).
 
-## Features
-
-- **Daily journaling** - Today's entry with five gratitudes, five needs, five people in mind, reading notes, and reflections. Entries auto-create and save as you type.
-  - **Sequential input** – Type a full sentence, press Enter; your full line stays easy to read on Today. Tap a line to edit inline. Each section holds up to five lines (5 gratitudes, 5 needs, 5 people).
-- **Past** – Middle tab: browse past entries by month with weekly recurring-theme insights and continuity prompts.
-- **Weekly insights** – Insights-first layout on **Past** with a scrollable **Reflection rhythm** chart (tap a day that has a saved entry to open that day’s journal).
-- **Shareable cards** – Generate a formatted image of a day's entry and share via the iOS share sheet.
-- **Reminders** – Optional daily notification to complete today’s entry (including a fully filled structured entry when you want it).
-- **Advanced weekly insights** – Deterministic weekly reflection summary generated on-device.
-- **Data trust controls** – private-by-default storage plus JSON export and import for backup and ownership.
-- **First-run onboarding** – A minimal welcome followed by a guided first journal path on Today, with milestone-based opt-in suggestions for reminders and iCloud.
-- **Habit support** – Streak plus tiered completion on the structured sections; **perfect** streak days match a full fifteen-line grid (optional reading notes and reflections do not gate the perfect count).
-
 ## Terminology (contributors)
 
-**Product English:** **entry** / **entries** (one calendar day’s journal on Today; type `JournalEntry` in code). The three structured groups are **Gratitudes**, **Needs**, and **People in mind** (each holds up to five **lines**).
+**Product English:** **entry** / **entries** (one calendar day’s journal on Today; type `JournalEntry` in code). The three structured groups are **Gratitudes**, **Needs**, and **People in Mind** (each holds up to five **lines**).
 
 **Simplified Chinese (user-facing copy):** Prefer **记录** for day-level entry, **部分** for each structured group, and **条** for one slot/line in a section. Avoid **句子条** in completion or tutorial wording. Do not reintroduce **Abundance** or **满溢** in customer strings.
 
-**Code vs UI labels:** Swift uses `JournalCompletionLevel` cases **`empty` … `full`**. On screen, the String Catalog maps those to the growth metaphor (**Soil → Sprout → Twig → Leaf → Bloom** in English; **静待播种 → 初露新芽 → 枝条初成 → 叶茂成形 → 花开有成** in zh-Hans). `String(localized:)` keys in code are still the enum-style words **Empty**, **Started**, **Growing**, **Balanced**, **Full**; localized **values** are the metaphor labels above.
+**Code vs UI labels:** Swift uses `JournalCompletionLevel` cases **`soil` … `bloom`**. On screen, the String Catalog maps those to the growth metaphor (**Soil → Sprout → Twig → Leaf → Bloom** in English; **静待播种 → 初露新芽 → 枝条初成 → 叶茂成形 → 花开有成** in zh-Hans). Legacy raw strings such as `empty`, `started`, `growing`, `balanced`, `full`, and `abundance` still decode into the current scale.
 
 Avoid **chip** and **strip** in new user-facing or contributor prose; identifiers and UI tests may still use them.
 
 - **Completion status** — Derived only from line counts in the three structured sections (`JournalCompletionLevel`). Reading notes and reflections do **not** change the status.
-- **Top tier (`.full`)** — Five lines in each section (fifteen lines total), labeled **Bloom** / **花开有成** in the catalog. This is what **`JournalViewModel.completedToday`**, the **perfect** streak predicate, and first-run guided completion on Today use. Notes and reflections stay optional.
+- **Top tier (`.bloom`)** — Five lines in each section (fifteen lines total), labeled **Bloom** / **花开有成** in the catalog. This is what **`JournalViewModel.completedToday`**, the **perfect** streak predicate, and first-run guided completion on Today use. Notes and reflections stay optional.
 
 | Swift (`JournalCompletionLevel`) | English UI (localized value) | zh-Hans UI (localized value) | Legacy raw strings decoded from storage |
 |----------------------------------|-----------------------------|------------------------------|----------------------------------------|
