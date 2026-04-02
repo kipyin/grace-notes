@@ -16,7 +16,7 @@ Decide what to build next and why, with clear user value, priority, and acceptan
 
 ## Inputs
 
-- Product and design docs in `doc/` and `GraceNotes/docs/`
+- Product context in `README.md`, `CHANGELOG.md`, GitHub issues/milestones, and `AGENTS.md`
 - Existing project docs in `README.md` and `CHANGELOG.md`
 - GitHub issues (`gh issue list`, `gh issue view`)
 - Current known constraints from `AGENTS.md`

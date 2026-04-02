@@ -8,7 +8,11 @@ Grace Notes (`感恩记`) guides you through a simple daily rhythm: 5 gratitudes
 
 ## Release notes
 
-Version history, per-build notes, and git tag shape (**`v{marketing}+{build}`**, e.g. **`v0.5.0+8`**) are maintained only in [CHANGELOG.md](CHANGELOG.md). Scope and sequencing: [GraceNotes/docs/07-release-roadmap.md](GraceNotes/docs/07-release-roadmap.md).
+Version history, per-build notes, and git tag shape (**`v{marketing}+{build}`**, e.g. **`v0.5.0+8`**) are maintained in [CHANGELOG.md](CHANGELOG.md).
+
+### Roadmap
+
+**Shipped** scope is authoritative in **CHANGELOG.md**. **Forward** work is sequenced with [GitHub milestones and issues](https://github.com/kipyin/grace-notes/milestones) on [kipyin/grace-notes](https://github.com/kipyin/grace-notes). Milestones name **scope lanes**, not necessarily a new App Store **marketing** version every time. The app ships a **fixed marketing version per line** with a **monotonic build**; tags look like **`v{marketing}+{build}`**. Bump marketing only when opening the next line. Full convention: `.agents/skills/vc/SKILL.md` (**Versioning**).
 
 ## Features
 

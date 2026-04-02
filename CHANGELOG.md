@@ -2,7 +2,7 @@
 
 ## [0.5.0]
 
-Marketing version **0.5.0** ships as successive **builds** (TestFlight / App Store); git tags **`v0.5.0+{build}`**. GitHub milestones **0.5.2**, **0.5.3**, etc. name **scope lanes**, not separate marketing versions — see `GraceNotes/docs/07-release-roadmap.md`. Older docs or issues may still mention interim labels (**0.5.1**, **0.5.2**); **ship truth** is **0.5.0 + build** below.
+Marketing version **0.5.0** ships as successive **builds** (TestFlight / App Store); git tags **`v0.5.0+{build}`**. GitHub milestones **0.5.2**, **0.5.3**, etc. name **scope lanes**, not separate marketing versions — see **README.md** (Roadmap) and GitHub milestones. Older docs or issues may still mention interim labels (**0.5.1**, **0.5.2**); **ship truth** is **0.5.0 + build** below.
 
 ### Build 8 — 2026-03-28
 
@@ -36,7 +36,7 @@ Work tracked toward milestone **0.5.2** (Settings cohesion and insight follow-th
 - Journal: post-Seed journey (**C**) is **version-free**—eligibility uses `hasSeenPostSeedJourney`, Today completion **≥ Seed**, and `completedGuidedJournal` (skip congratulations only). Removed `OrientationReleaseGate` and launch-time cohort flags; `JournalOnboardingProgress.migrateLegacyPostSeedOrientationFlagsIfNeeded` normalizes legacy `pending051UpgradeOrientation` into guided/branch state, clears the upgrade key, and keeps `legacy051GuidedBranchResolution` until Today runs `resolvePending051GuidedJournalBranch`. Settings **App tour** sets `hasSeenPostSeedJourney` on finish without completing guided journal and skips the Seed congratulations page when guided journal is already complete. `AppLaunchVersionTracker` still records last marketing/bundle only.
 - Journal (Abundance removal): `JournalEntry` drops `hasAbundanceRhythm` / `criteriaMet`; `StreakCalculator` “perfect” uses `hasHarvestChips`; `JournalOnboardingFlowEvaluator` drops the post-harvest notes gate; `JournalOnboardingContext` no longer carries reading-notes fields for onboarding. Unit tests updated (`StreakCalculatorTests`, `JournalOnboardingFlowEvaluatorTests`, `JournalCompletionLevelTests`, `JournalViewModelCompletionAndLimitsTests`).
 - Versioning: Grace Notes app **marketing version** stays **0.5.0** for this lane; **bundle** (`CURRENT_PROJECT_VERSION`) **8** (increment build under the minor for faster TestFlight review; build **7** was the previous ship).
-- Contributor workflow: removed `GraceNotes/docs/agent-log/`, `Scripts/validate-agent-log.sh`, and `make verify-agent-log*`; use GitHub issues/PRs and `AGENTS.md` for coordination.
+- Contributor workflow: removed the in-repo **agent-log** docs tree (under the former GraceNotes docs folder), `Scripts/validate-agent-log.sh`, and `make verify-agent-log*`; use GitHub issues/PRs and `AGENTS.md` for coordination.
 - Journal architecture: `JournalExportPayload` / `JournalExportSnapshotSource`, `JournalStreakSummaryRefresher`, and `JournalChipLabelSummarizationCoordinator` split from `JournalViewModel` responsibilities; behavior unchanged (#90).
 - UI tests: Today journal inputs use `UITextView` (`InlineSentenceEditorField`); `JournalUITests` query **TextView** for composer and strip editor identifiers. `test_todayScreen_submitKeepsKeyboardAvailableForNextEntry` expects the keyboard after the strip appears and the user opens the composer for the next line (#102).
 - Review: `ReviewDayActivity.hasPersistedEntry` gates rhythm-column drill-in so empty history days do not create journal rows; `JournalUITests.test_reviewScreen_rhythmDrillInOpensJournalWithShare` covers Past tab → rhythm column → journal (#115).
@@ -64,7 +64,7 @@ Packaging, upgrade orientation, localization, and stability under marketing **0.
 
 ### Developer
 
-- Product docs: Review insight work is split on GitHub — **#40** (insight-first presentation redo) and **#80** (deeper engine iteration); see `GraceNotes/docs/07-release-roadmap.md` and `03-review-insight-quality-contract.md`.
+- Product docs: Review insight work is split on GitHub — **#40** (insight-first presentation redo) and **#80** (deeper engine iteration); track progress via GitHub milestones and issues.
 - UI tests: launch flag **`-grace-notes-reset-uitest-store`** clears the shared UI-test SwiftData store on bootstrap (default in `JournalUITests`); the journal persistence UI test omits it after `terminate()` so relaunch still reads the same file.
 - Unit tests: **`ApiSecrets.cloudApiKeyOverrideForTesting`** keeps hosted `SummarizerProvider` expectations stable when `Info.plist` carries a non-placeholder developer key.
 - UI tests: section **(+)** controls expose stable **`accessibilityIdentifier`** values (`JournalSectionAdd.*`) under `-ui-testing`; `addGratitude` waits for the first gratitude chip after submit.
@@ -82,7 +82,7 @@ Packaging, upgrade orientation, localization, and stability under marketing **0.
 
 ### 2026-03-21 — Foundation
 
-Insight quality: Review that feels specific and grounded, better chip source material, calmer completion feedback. Release scope context: `GraceNotes/docs/07-release-roadmap.md` §0.5.0. Shipped as marketing **0.5.0** (initial line ship; bundle per Xcode at time of release).
+Insight quality: Review that feels specific and grounded, better chip source material, calmer completion feedback. Release scope context: **0.5.0** lane (GitHub milestones). Shipped as marketing **0.5.0** (initial line ship; bundle per Xcode at time of release).
 
 ### Added
 - Journal: first-run guided tutorial on Today—dismissible hints toward Seed (at least one gratitude, need, and person) and Harvest (15 chips), plus one-time congratulations when each milestone is first reached; progress is per install with an optional UI-test reset launch argument (`#60`).
@@ -104,7 +104,7 @@ Insight quality: Review that feels specific and grounded, better chip source mat
 
 ## [0.4.0] - 2026-03-20
 
-iCloud / SwiftData trust in Settings (storage and attention copy aligned with real persistence), optional JSON **import** to restore or merge backups by calendar day, and AI connection status polish. Release scope context: `GraceNotes/docs/07-release-roadmap.md`.
+iCloud / SwiftData trust in Settings (storage and attention copy aligned with real persistence), optional JSON **import** to restore or merge backups by calendar day, and AI connection status polish. Release scope context: trust / iCloud lane on GitHub milestones.
 
 ### Added
 - Settings → Data & Privacy → **Restore from a backup**: pick an export file, confirm replace-by-day behavior, then merge in a background `ModelContext` (security-scoped file access). Invalid files and unsupported export schema versions surface clear errors; success summarizes inserted vs replaced days.
@@ -136,7 +136,7 @@ iCloud / SwiftData trust in Settings (storage and attention copy aligned with re
 ### Developer
 - Bumped app `MARKETING_VERSION` to `0.3.5` for Grace Notes app configurations.
 - Updated `README.md` "What's new" content to align with this release scope.
-- Aligned `GraceNotes/docs/07-release-roadmap.md` with shipped `0.3.5`, reframed `0.4.0` as iCloud/SwiftData sync reliability, and renumbered later milestones.
+- Aligned the in-repo release roadmap with shipped `0.3.5`, reframed `0.4.0` as iCloud/SwiftData sync reliability, and renumbered later milestones.
 
 ## [0.3.4] - 2026-03-19
 
@@ -228,9 +228,9 @@ iCloud / SwiftData trust in Settings (storage and attention copy aligned with re
 - Corrected deterministic summarizer test expectations to match the current 20-character chip-label budget behavior.
 
 ### Developer
-- Reorganized GraceNotes docs into numbered structure (01–07), archived legacy plans to docs/archive.
-- Added release roadmap (07-release-roadmap.md) mapping strategy to version sequence.
-- Consolidated review insight examples into 04-review-insight-examples.md; removed obsolete doc/review-insight-examples-and-spec.md.
+- Reorganized Grace Notes product docs into a numbered structure (01–07) with an archive (that tree was later removed in favor of README and GitHub).
+- Added a release roadmap document mapping strategy to version sequence (superseded; see README Roadmap and GitHub milestones).
+- Consolidated review insight examples into a single doc; removed obsolete `doc/review-insight-examples-and-spec.md`.
 - Added agent-log initiative structure and validate-agent-log script for issue #41.
 - Added role governance section to AGENTS.md; Makefile verify-agent-log targets.
 - Consolidated test-suite updates across Journal and repository coverage after the naming migration cleanup.
