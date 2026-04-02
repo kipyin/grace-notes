@@ -109,7 +109,12 @@ def load_ios_runtimes_simctl() -> list[IosRuntimeSimctlRecord]:
     return parse_simctl_runtimes_json_payload(data)
 
 
-def simctl_create_argv(*, device_name: str, devicetype_identifier: str, runtime_identifier: str) -> list[str]:
+def simctl_create_argv(
+    *,
+    device_name: str,
+    devicetype_identifier: str,
+    runtime_identifier: str,
+) -> list[str]:
     return [
         "xcrun",
         "simctl",
@@ -120,7 +125,10 @@ def simctl_create_argv(*, device_name: str, devicetype_identifier: str, runtime_
     ]
 
 
-def devicetype_for_name(devicetypes: list[DeviceTypeRecord], product_name: str) -> DeviceTypeRecord | None:
+def devicetype_for_name(
+    devicetypes: list[DeviceTypeRecord],
+    product_name: str,
+) -> DeviceTypeRecord | None:
     """Match ``simctl`` device type by human-readable name (exact, then case-insensitive)."""
     target = product_name.strip()
     if not target:
@@ -151,11 +159,7 @@ def resolve_ios_runtime_for_os_spec(
             return None
         return max(pool, key=lambda row: version_tuple(row.version))
 
-    exact = [
-        row
-        for row in candidates
-        if row.version == spec or row.version.startswith(f"{spec}.")
-    ]
+    exact = [row for row in candidates if row.version == spec or row.version.startswith(f"{spec}.")]
     pool = [row for row in exact if row.is_available] or exact
     if not pool:
         return None

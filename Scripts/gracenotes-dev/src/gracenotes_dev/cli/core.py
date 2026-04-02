@@ -554,9 +554,7 @@ def _xcodebuild_show_full_logs(*, verbose: bool) -> bool:
     return not sys.stdout.isatty()
 
 
-def _prepare_xcodebuild_argv(
-    argv: list[str], *, verbose: bool, silent: bool = False
-) -> list[str]:
+def _prepare_xcodebuild_argv(argv: list[str], *, verbose: bool, silent: bool = False) -> list[str]:
     """Insert ``-quiet`` for xcodebuild when logs should stay concise.
 
     ``silent=True`` (captured ``grace run`` steps) always uses ``-quiet`` unless ``verbose``.

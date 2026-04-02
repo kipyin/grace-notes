@@ -92,7 +92,9 @@ def _prompt_destination_shorthand(
             code=3,
             title="No installed iOS simulators",
             problem="There are no available iOS Simulator devices to choose from.",
-            likely_cause="Install an iOS runtime in Xcode (Settings → Platforms) and create a simulator.",
+            likely_cause=(
+                "Install an iOS runtime in Xcode (Settings → Platforms) and create a simulator."
+            ),
             try_commands=("grace sim list", "grace sim runtime install"),
         )
 
@@ -428,41 +430,6 @@ def _execute_sim_create(
         cli_core._stdout_console().print(f"Created simulator `{display_name}` ({udid}).")
     else:
         cli_core._stdout_console().print(f"Created simulator `{display_name}`.")
-
-
-def _sim_add_from_spec(spec: str) -> None:
-    text = spec.strip()
-    if "@" not in text:
-        cli_core._fail(
-            code=2,
-            title="Invalid simulator spec",
-            problem=f"Expected `device@os` (for example `iPhone 17 Pro@26.0`), got `{spec!r}`.",
-            try_commands=('grace sim add "iPhone 17 Pro@26.0"', "grace sim add --interactive"),
-        )
-    name_part, os_part = text.rsplit("@", 1)
-    devicetypes = simulator.load_ios_devicetypes()
-    runtimes = simulator.load_ios_runtimes_simctl()
-    devicetype = simulator.devicetype_for_name(devicetypes, name_part)
-    if devicetype is None:
-        cli_core._fail(
-            code=3,
-            title="Unknown device type",
-            problem=f"No iOS Simulator device type matches `{name_part.strip()}`.",
-            try_commands=("grace sim add --interactive",),
-        )
-    resolved_runtime = simulator.resolve_ios_runtime_for_os_spec(runtimes, os_part.strip())
-    if resolved_runtime is None:
-        cli_core._fail(
-            code=3,
-            title="Unknown or unavailable iOS runtime",
-            problem=f"No runtime matches `{os_part.strip()}` on this machine.",
-            try_commands=("grace sim runtime list", "grace sim add --interactive"),
-        )
-    _execute_sim_create(
-        display_name=name_part.strip(),
-        devicetype=devicetype,
-        runtime=resolved_runtime,
-    )
 
 
 def _sim_add_interactive() -> None:
@@ -965,16 +932,59 @@ def sim_list(
 @sim_app.command("add")
 def sim_add(
     spec: Annotated[
-        str,
-        typer.Argument(help="Simulator shortcut, e.g. iPhone 17 Pro@18.5 or iPhone 17 Pro@latest."),
-    ],
+        str | None,
+        typer.Argument(
+            help=(
+                "Simulator shortcut, e.g. iPhone 17 Pro@18.5 or iPhone 17 Pro@latest. "
+                "Omit when using --interactive."
+            ),
+        ),
+    ] = None,
+    interactive: Annotated[
+        bool,
+        typer.Option(
+            "--interactive",
+            "-i",
+            help="Pick device type and iOS runtime from separate lists.",
+        ),
+    ] = False,
     dry_run: Annotated[
         bool,
         typer.Option("--dry-run", help="Print the planned simctl steps without creating a device."),
     ] = False,
 ) -> None:
-    """Guided workflow to create a missing Simulator instance (runtime must exist)."""
+    """Create a missing Simulator instance (guided steps, or ``-i`` for pickers)."""
     cli_core._require_macos_xcode()
+    if interactive and spec and spec.strip():
+        cli_core._fail(
+            code=2,
+            title="Conflicting arguments",
+            problem="Use either a SPEC argument or `--interactive`, not both.",
+            try_commands=("grace sim add --interactive", 'grace sim add "iPhone 17 Pro@26.0"'),
+        )
+    if interactive and dry_run:
+        cli_core._fail(
+            code=2,
+            title="Invalid flag combination",
+            problem="`--dry-run` is not supported with `--interactive`.",
+            try_commands=(
+                "grace sim add --interactive",
+                'grace sim add "iPhone 17 Pro@26.0" --dry-run',
+            ),
+        )
+    if interactive:
+        repo_root = cli_core._repo_root()
+        cfg = cli_core._load_config(repo_root)
+        cli_core._require_interactive_cli(cfg=cfg, command_name="grace sim add --interactive")
+        _sim_add_interactive()
+        return
+    if not spec or not spec.strip():
+        cli_core._fail(
+            code=2,
+            title="Missing simulator spec",
+            problem="Provide `device@os` or pass `--interactive`.",
+            try_commands=('grace sim add "iPhone 17 Pro@latest"', "grace sim add -i"),
+        )
     stripped = spec.strip()
     if stripped.startswith("platform="):
         cli_core._fail(
@@ -1134,45 +1144,3 @@ def sim_reset() -> None:
     """Shutdown and erase all simulators."""
     cli_core._require_macos_xcode()
     cli_core._reset_sims(cli_core._repo_root())
-
-
-@sim_app.command("add")
-def sim_add(
-    spec: Annotated[
-        str | None,
-        typer.Argument(
-            help='Device type and iOS version as device@os (example: "iPhone 17 Pro@26.0").',
-        ),
-    ] = None,
-    interactive: Annotated[
-        bool,
-        typer.Option(
-            "--interactive",
-            "-i",
-            help="Pick device type and iOS runtime from separate lists.",
-        ),
-    ] = False,
-) -> None:
-    """Create an iOS Simulator using ``simctl create`` (non-interactive spec or ``-i``)."""
-    cli_core._require_macos_xcode()
-    if interactive and spec:
-        cli_core._fail(
-            code=2,
-            title="Conflicting arguments",
-            problem="Use either a SPEC argument or `--interactive`, not both.",
-            try_commands=("grace sim add --interactive", 'grace sim add "iPhone 17 Pro@26.0"'),
-        )
-    if interactive:
-        repo_root = cli_core._repo_root()
-        cfg = cli_core._load_config(repo_root)
-        cli_core._require_interactive_cli(cfg=cfg, command_name="grace sim add --interactive")
-        _sim_add_interactive()
-        return
-    if not spec or not spec.strip():
-        cli_core._fail(
-            code=2,
-            title="Missing simulator spec",
-            problem="Provide `device@os` or pass `--interactive`.",
-            try_commands=('grace sim add "iPhone 17 Pro@26.0"', "grace sim add -i"),
-        )
-    _sim_add_from_spec(spec)
