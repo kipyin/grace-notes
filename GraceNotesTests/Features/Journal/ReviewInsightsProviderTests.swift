@@ -96,11 +96,11 @@ private extension ReviewInsightsProviderTests {
             reflectionDays: 3,
             meaningfulEntryCount: 3,
             completionMix: ReviewWeekCompletionMix(
-                emptyDays: 0,
-                startedDays: 0,
-                growingDays: 1,
-                balancedDays: 2,
-                fullDays: 0
+                soilDayCount: 0,
+                sproutDayCount: 0,
+                twigDayCount: 1,
+                leafDayCount: 2,
+                bloomDayCount: 0
             ),
             activity: [
                 ReviewDayActivity(

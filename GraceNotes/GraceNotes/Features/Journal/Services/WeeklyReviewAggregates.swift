@@ -659,31 +659,31 @@ private extension WeeklyReviewAggregatesBuilder {
     }
 
     private func buildCompletionMix(from strongestByDay: [Date: JournalCompletionLevel]) -> ReviewWeekCompletionMix {
-        var emptyDays = 0
-        var startedDays = 0
-        var growingDays = 0
-        var balancedDays = 0
-        var fullDays = 0
+        var soilDayCount = 0
+        var sproutDayCount = 0
+        var twigDayCount = 0
+        var leafDayCount = 0
+        var bloomDayCount = 0
         for completion in strongestByDay.values {
             switch completion {
             case .soil:
-                emptyDays += 1
+                soilDayCount += 1
             case .sprout:
-                startedDays += 1
+                sproutDayCount += 1
             case .twig:
-                growingDays += 1
+                twigDayCount += 1
             case .leaf:
-                balancedDays += 1
+                leafDayCount += 1
             case .bloom:
-                fullDays += 1
+                bloomDayCount += 1
             }
         }
         return ReviewWeekCompletionMix(
-            emptyDays: emptyDays,
-            startedDays: startedDays,
-            growingDays: growingDays,
-            balancedDays: balancedDays,
-            fullDays: fullDays
+            soilDayCount: soilDayCount,
+            sproutDayCount: sproutDayCount,
+            twigDayCount: twigDayCount,
+            leafDayCount: leafDayCount,
+            bloomDayCount: bloomDayCount
         )
     }
 

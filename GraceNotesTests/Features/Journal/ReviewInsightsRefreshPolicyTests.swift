@@ -247,11 +247,11 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
             reflectionDays: 2,
             meaningfulEntryCount: 2,
             completionMix: ReviewWeekCompletionMix(
-                emptyDays: 0,
-                startedDays: 1,
-                growingDays: 0,
-                balancedDays: 1,
-                fullDays: 0
+                soilDayCount: 0,
+                sproutDayCount: 1,
+                twigDayCount: 0,
+                leafDayCount: 1,
+                bloomDayCount: 0
             ),
             activity: [ReviewDayActivity(date: weekStart, hasReflectiveActivity: true, hasPersistedEntry: true)],
             rhythmHistory: nil,

@@ -213,15 +213,15 @@ final class ReviewInsightsCacheTests: XCTestCase {
         let stats = try JSONDecoder().decode(ReviewWeekStats.self, from: data)
         XCTAssertEqual(stats.sectionTotals.gratitudeMentions, 2)
         XCTAssertEqual(stats.historySectionTotals.gratitudeMentions, 0)
-        XCTAssertEqual(stats.historyCompletionMix.emptyDays, 0)
-        XCTAssertEqual(stats.historyCompletionMix.startedDays, 0)
-        XCTAssertEqual(stats.historyCompletionMix.growingDays, 0)
-        XCTAssertEqual(stats.historyCompletionMix.balancedDays, 0)
-        XCTAssertEqual(stats.historyCompletionMix.fullDays, 0)
+        XCTAssertEqual(stats.historyCompletionMix.soilDayCount, 0)
+        XCTAssertEqual(stats.historyCompletionMix.sproutDayCount, 0)
+        XCTAssertEqual(stats.historyCompletionMix.twigDayCount, 0)
+        XCTAssertEqual(stats.historyCompletionMix.leafDayCount, 0)
+        XCTAssertEqual(stats.historyCompletionMix.bloomDayCount, 0)
     }
 
     func test_ReviewWeekCompletionMix_totalDaysRepresented_sumsBuckets() {
-        let mix = ReviewWeekCompletionMix(emptyDays: 2, startedDays: 1, growingDays: 3, balancedDays: 0, fullDays: 4)
+        let mix = ReviewWeekCompletionMix(soilDayCount: 2, sproutDayCount: 1, twigDayCount: 3, leafDayCount: 0, bloomDayCount: 4)
         XCTAssertEqual(mix.totalDaysRepresented, 10)
     }
 
@@ -231,11 +231,11 @@ final class ReviewInsightsCacheTests: XCTestCase {
         """
         let data = try XCTUnwrap(json.data(using: .utf8))
         let mix = try JSONDecoder().decode(ReviewWeekCompletionMix.self, from: data)
-        XCTAssertEqual(mix.emptyDays, 1)
-        XCTAssertEqual(mix.startedDays, 2)
-        XCTAssertEqual(mix.growingDays, 0)
-        XCTAssertEqual(mix.balancedDays, 3)
-        XCTAssertEqual(mix.fullDays, 9)
+        XCTAssertEqual(mix.soilDayCount, 1)
+        XCTAssertEqual(mix.sproutDayCount, 2)
+        XCTAssertEqual(mix.twigDayCount, 0)
+        XCTAssertEqual(mix.leafDayCount, 3)
+        XCTAssertEqual(mix.bloomDayCount, 9)
     }
 
     func test_ReviewMostRecurringTheme_decodesIgnoringLegacyTrendKey() throws {
@@ -360,11 +360,11 @@ final class ReviewInsightsCacheTests: XCTestCase {
             reflectionDays: 2,
             meaningfulEntryCount: 2,
             completionMix: ReviewWeekCompletionMix(
-                emptyDays: 0,
-                startedDays: 1,
-                growingDays: 0,
-                balancedDays: 1,
-                fullDays: 0
+                soilDayCount: 0,
+                sproutDayCount: 1,
+                twigDayCount: 0,
+                leafDayCount: 1,
+                bloomDayCount: 0
             ),
             activity: [
                 ReviewDayActivity(date: weekStart, hasReflectiveActivity: true, hasPersistedEntry: true),
@@ -386,11 +386,11 @@ final class ReviewInsightsCacheTests: XCTestCase {
                 peopleMentions: 1
             ),
             historyCompletionMix: ReviewWeekCompletionMix(
-                emptyDays: 1,
-                startedDays: 0,
-                growingDays: 2,
-                balancedDays: 0,
-                fullDays: 1
+                soilDayCount: 1,
+                sproutDayCount: 0,
+                twigDayCount: 2,
+                leafDayCount: 0,
+                bloomDayCount: 1
             )
         )
     }

@@ -250,63 +250,76 @@ struct ReviewDayActivity: Equatable, Hashable, Sendable, Codable {
 }
 
 struct ReviewWeekCompletionMix: Equatable, Sendable, Codable {
-    let emptyDays: Int
-    let startedDays: Int
-    let growingDays: Int
-    let balancedDays: Int
-    let fullDays: Int
+    let soilDayCount: Int
+    let sproutDayCount: Int
+    let twigDayCount: Int
+    let leafDayCount: Int
+    let bloomDayCount: Int
 
     var highCompletionDays: Int {
-        balancedDays + fullDays
+        leafDayCount + bloomDayCount
     }
 
-    /// Sum of the five buckets: distinct calendar days with a persisted entry in the slice used to build this mix.
+    /// Sum of the five buckets: distinct calendar days with a persisted journal in the slice used to build this mix.
     var totalDaysRepresented: Int {
-        emptyDays + startedDays + growingDays + balancedDays + fullDays
+        soilDayCount + sproutDayCount + twigDayCount + leafDayCount + bloomDayCount
     }
 
-    init(emptyDays: Int, startedDays: Int, growingDays: Int, balancedDays: Int, fullDays: Int) {
-        self.emptyDays = emptyDays
-        self.startedDays = startedDays
-        self.growingDays = growingDays
-        self.balancedDays = balancedDays
-        self.fullDays = fullDays
+    init(
+        soilDayCount: Int,
+        sproutDayCount: Int,
+        twigDayCount: Int,
+        leafDayCount: Int,
+        bloomDayCount: Int
+    ) {
+        self.soilDayCount = soilDayCount
+        self.sproutDayCount = sproutDayCount
+        self.twigDayCount = twigDayCount
+        self.leafDayCount = leafDayCount
+        self.bloomDayCount = bloomDayCount
     }
 
     private enum CodingKeys: String, CodingKey {
+        case soilDayCount, sproutDayCount, twigDayCount, leafDayCount, bloomDayCount
         case emptyDays, startedDays, growingDays, balancedDays, fullDays
         case soilDays, seedDays, ripeningDays, harvestDays, abundanceDays
     }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        if container.contains(.emptyDays) {
-            emptyDays = try container.decode(Int.self, forKey: .emptyDays)
-            startedDays = try container.decode(Int.self, forKey: .startedDays)
-            growingDays = try container.decode(Int.self, forKey: .growingDays)
-            balancedDays = try container.decode(Int.self, forKey: .balancedDays)
-            fullDays = try container.decode(Int.self, forKey: .fullDays)
+        if container.contains(.soilDayCount) {
+            soilDayCount = try container.decode(Int.self, forKey: .soilDayCount)
+            sproutDayCount = try container.decode(Int.self, forKey: .sproutDayCount)
+            twigDayCount = try container.decode(Int.self, forKey: .twigDayCount)
+            leafDayCount = try container.decode(Int.self, forKey: .leafDayCount)
+            bloomDayCount = try container.decode(Int.self, forKey: .bloomDayCount)
+        } else if container.contains(.emptyDays) {
+            soilDayCount = try container.decode(Int.self, forKey: .emptyDays)
+            sproutDayCount = try container.decode(Int.self, forKey: .startedDays)
+            twigDayCount = try container.decode(Int.self, forKey: .growingDays)
+            leafDayCount = try container.decode(Int.self, forKey: .balancedDays)
+            bloomDayCount = try container.decode(Int.self, forKey: .fullDays)
         } else {
             let soil = try container.decode(Int.self, forKey: .soilDays)
             let seed = try container.decode(Int.self, forKey: .seedDays)
             let ripening = try container.decode(Int.self, forKey: .ripeningDays)
             let harvest = try container.decode(Int.self, forKey: .harvestDays)
             let abundance = try container.decode(Int.self, forKey: .abundanceDays)
-            emptyDays = soil
-            startedDays = seed
-            growingDays = 0
-            balancedDays = ripening
-            fullDays = harvest + abundance
+            soilDayCount = soil
+            sproutDayCount = seed
+            twigDayCount = 0
+            leafDayCount = ripening
+            bloomDayCount = harvest + abundance
         }
     }
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(emptyDays, forKey: .emptyDays)
-        try container.encode(startedDays, forKey: .startedDays)
-        try container.encode(growingDays, forKey: .growingDays)
-        try container.encode(balancedDays, forKey: .balancedDays)
-        try container.encode(fullDays, forKey: .fullDays)
+        try container.encode(soilDayCount, forKey: .soilDayCount)
+        try container.encode(sproutDayCount, forKey: .sproutDayCount)
+        try container.encode(twigDayCount, forKey: .twigDayCount)
+        try container.encode(leafDayCount, forKey: .leafDayCount)
+        try container.encode(bloomDayCount, forKey: .bloomDayCount)
     }
 }
 
@@ -366,11 +379,11 @@ struct ReviewWeekStats: Equatable, Sendable, Codable {
             peopleMentions: 0
         ),
         historyCompletionMix: ReviewWeekCompletionMix = ReviewWeekCompletionMix(
-            emptyDays: 0,
-            startedDays: 0,
-            growingDays: 0,
-            balancedDays: 0,
-            fullDays: 0
+            soilDayCount: 0,
+            sproutDayCount: 0,
+            twigDayCount: 0,
+            leafDayCount: 0,
+            bloomDayCount: 0
         ),
         mostRecurringThemes: [ReviewMostRecurringTheme] = [],
         movementThemes: [ReviewMovementTheme] = [],
@@ -425,11 +438,11 @@ struct ReviewWeekStats: Equatable, Sendable, Codable {
             historyCompletionMix = decoded
         } else {
             historyCompletionMix = ReviewWeekCompletionMix(
-                emptyDays: 0,
-                startedDays: 0,
-                growingDays: 0,
-                balancedDays: 0,
-                fullDays: 0
+                soilDayCount: 0,
+                sproutDayCount: 0,
+                twigDayCount: 0,
+                leafDayCount: 0,
+                bloomDayCount: 0
             )
         }
         mostRecurringThemes =
