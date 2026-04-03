@@ -45,7 +45,7 @@ enum ReviewRhythmFormatting {
         formatter.calendar = cal
         formatter.locale = cal.locale ?? .current
         formatter.timeZone = cal.timeZone
-        formatter.dateFormat = "M/d"
+        formatter.setLocalizedDateFormatFromTemplate("Md")
         return formatter.string(from: dayStart)
     }
 

@@ -83,7 +83,15 @@ struct ReviewDaysYouWrotePanel: View {
             byDay[dayKey] = day
         }
         let sortedKeys = byDay.keys.sorted()
-        let days: [ReviewDayActivity] = sortedKeys.compactMap { byDay[$0] }
+        let days: [ReviewDayActivity] = sortedKeys.compactMap { dayKey in
+            guard let row = byDay[dayKey] else { return nil }
+            return ReviewDayActivity(
+                date: dayKey,
+                hasReflectiveActivity: row.hasReflectiveActivity,
+                strongestCompletionLevel: row.strongestCompletionLevel,
+                hasPersistedEntry: row.hasPersistedEntry
+            )
+        }
         guard let first = days.first,
               let last = days.last,
               let displayEndExclusive = calendar.date(
@@ -107,7 +115,7 @@ struct ReviewDaysYouWrotePanel: View {
     private func rhythmHistoryCurve(for insights: ReviewInsights) -> some View {
         let stats = insights.weekStats
         let rawDays = stats.rhythmHistory ?? stats.activity
-        let referenceNow = Date()
+        let referenceNow = insights.generatedAt
         let calendar = reviewRhythmCalendar
         let (days, displayInterval) = Self.rollingRhythmDaysForDisplay(
             rawDays,
@@ -265,13 +273,17 @@ struct ReviewDaysYouWrotePanel: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(activityAccessibilityLabel(for: day))
-        .accessibilityHint(rhythmColumnAccessibilityHint())
+        .accessibilityHint(rhythmColumnAccessibilityHint(for: day))
         .accessibilityIdentifier(accessibilityRhythmColumnId(for: day))
         .id(day.date)
     }
 
-    private func rhythmColumnAccessibilityHint() -> String {
-        String(localized: "Opens the journal entry for that day.")
+    private func rhythmColumnAccessibilityHint(for day: ReviewDayActivity) -> String {
+        if day.hasPersistedEntry {
+            String(localized: "Opens the journal entry for that day.")
+        } else {
+            String(localized: "Opens this day to start or continue writing.")
+        }
     }
 
     /// Weekday / M·d labels aligned under columns (below column fills).

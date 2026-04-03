@@ -3833,6 +3833,22 @@
         }
       }
     },
+    "Opens this day to start or continue writing.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens this day to start or continue writing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开这一天以开始或继续记录。"
+          }
+        }
+      }
+    },
     "Opens Today and starts the guided first entry.": {
       "localizations": {
         "en": {
