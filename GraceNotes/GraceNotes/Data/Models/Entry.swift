@@ -1,6 +1,7 @@
 import Foundation
 
-struct Entry: Codable {
+/// Chip line item. Persisted composite uses the type name ``JournalItem`` inside stored journal rows.
+struct JournalItem: Codable {
     var id: UUID
     var fullText: String
 
@@ -32,3 +33,5 @@ struct Entry: Codable {
         case isTruncated
     }
 }
+
+typealias Entry = JournalItem

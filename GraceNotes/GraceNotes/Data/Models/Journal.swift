@@ -42,8 +42,9 @@ extension JournalCompletionLevel: Codable {
     }
 }
 
+/// Persisted name must stay ``JournalEntry`` so existing stores and CloudKit keep the same entity identity.
 @Model
-final class Journal {
+final class JournalEntry {
     // CloudKit: non-optional transformable arrays do not get a recognized default in
     // the Core Data stack; use optional (`nil` = empty) so the store can load.
     var id: UUID = UUID()
@@ -170,3 +171,6 @@ final class Journal {
     /// The journal design means each section holds at most 5 items.
     static let slotCount = 5
 }
+
+/// Code name for ``JournalEntry`` (call sites stay “Journal”; persistence stays compatible).
+typealias Journal = JournalEntry

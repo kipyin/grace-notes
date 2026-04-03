@@ -29,6 +29,7 @@ Work tracked toward milestone **0.5.2** (Settings cohesion and insight follow-th
 
 ### Fixed
 
+- SwiftData + CloudKit: `@Model` types are again named **`JournalEntry`** / composite **`JournalItem`**, with **`Journal`** / **`Entry`** as `typealias`es for app code, so existing on-disk stores and iCloud sync match the persisted entity identity after the #187 rename.
 - Review: **Reflection rhythm** horizontal strip pins to the trailing edge on first layout when the week is wider than the card, so the current day is not left under the trailing edge fade (`UIScrollView` KVO + `contentOffset`; issue #127).
 
 ### Developer
