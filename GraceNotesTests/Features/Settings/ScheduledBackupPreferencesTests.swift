@@ -7,7 +7,22 @@ final class ScheduledBackupPreferencesTests: XCTestCase {
     override func tearDown() {
         defaults.removeObject(forKey: "ScheduledBackup.folderDisplayName")
         defaults.removeObject(forKey: "ScheduledBackup.folderBookmark")
+        defaults.removeObject(forKey: "ScheduledBackup.intervalRaw")
+        defaults.removeObject(forKey: "ScheduledBackup.lastRunAt")
+        defaults.removeObject(forKey: "ScheduledBackup.lastFailedAttemptAt")
         super.tearDown()
+    }
+
+    func test_isDue_suppressedDuringFailureBackoff() {
+        ScheduledBackupPreferences.interval = .daily
+        let twoDaysAgo = Date().addingTimeInterval(-86400 * 2)
+        ScheduledBackupPreferences.lastRunAt = twoDaysAgo
+        ScheduledBackupPreferences.lastFailedAttemptAt = Date()
+        XCTAssertFalse(ScheduledBackupPreferences.isDue(now: Date()))
+
+        let pastFailure = Date().addingTimeInterval(-ScheduledBackupPreferences.failureBackoff - 1)
+        ScheduledBackupPreferences.lastFailedAttemptAt = pastFailure
+        XCTAssertTrue(ScheduledBackupPreferences.isDue(now: Date()))
     }
 
     func test_storeFolderBookmark_persistsDisplayName() throws {

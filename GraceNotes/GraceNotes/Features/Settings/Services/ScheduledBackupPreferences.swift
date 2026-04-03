@@ -29,10 +29,15 @@ enum ScheduledBackupInterval: String, CaseIterable, Codable {
 }
 
 enum ScheduledBackupPreferences {
+    /// After a failed scheduled backup, wait this long before `isDue` returns true again.
+    /// Export history still records each attempt.
+    static let failureBackoff: TimeInterval = 60 * 60
+
     private static let intervalKey = "ScheduledBackup.intervalRaw"
     private static let bookmarkKey = "ScheduledBackup.folderBookmark"
     private static let folderDisplayNameKey = "ScheduledBackup.folderDisplayName"
     private static let lastRunKey = "ScheduledBackup.lastRunAt"
+    private static let lastFailedAttemptKey = "ScheduledBackup.lastFailedAttemptAt"
 
     static var interval: ScheduledBackupInterval {
         get {
@@ -73,6 +78,11 @@ enum ScheduledBackupPreferences {
         set { UserDefaults.standard.set(newValue, forKey: lastRunKey) }
     }
 
+    static var lastFailedAttemptAt: Date? {
+        get { UserDefaults.standard.object(forKey: lastFailedAttemptKey) as? Date }
+        set { UserDefaults.standard.set(newValue, forKey: lastFailedAttemptKey) }
+    }
+
     static func storeFolderBookmark(for url: URL) throws {
         let data = try url.bookmarkData(
             options: [.minimalBookmark],
@@ -98,13 +108,38 @@ enum ScheduledBackupPreferences {
             bookmarkDataIsStale: &isStale
         )
         if isStale {
-            throw ScheduledBackupError.staleBookmark
+            try storeFolderBookmark(for: url)
         }
         return url
     }
 
+    /// Whether `fileURL` lies inside the bookmarked backup folder (for security-scoped reads via the folder bookmark).
+    static func fileURLIsUnderScheduledBackupFolder(_ fileURL: URL) -> Bool {
+        guard let folderURL = try? resolveFolderURL() else { return false }
+        let folderPath = folderURL.standardizedFileURL.path
+        let path = fileURL.standardizedFileURL.path
+        return path != folderPath && path.hasPrefix(folderPath + "/")
+    }
+
+    /// Runs `body` while the resolved backup folder holds an active security scope.
+    static func withFolderSecurityScopedAccess<T>(_ body: (URL) throws -> T) throws -> T {
+        let folderURL = try resolveFolderURL()
+        guard folderURL.startAccessingSecurityScopedResource() else {
+            throw ScheduledBackupError.securityScopeDenied
+        }
+        defer {
+            folderURL.stopAccessingSecurityScopedResource()
+        }
+        return try body(folderURL)
+    }
+
     static func isDue(now: Date = .now) -> Bool {
-        interval.isDue(lastRun: lastRunAt, now: now)
+        guard interval != .off else { return false }
+        if let lastFail = lastFailedAttemptAt,
+           now.timeIntervalSince(lastFail) < failureBackoff {
+            return false
+        }
+        return interval.isDue(lastRun: lastRunAt, now: now)
     }
 }
 
@@ -112,4 +147,5 @@ enum ScheduledBackupError: Error, Equatable {
     case noFolderBookmark
     case staleBookmark
     case exportFailed
+    case securityScopeDenied
 }

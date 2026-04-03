@@ -3,7 +3,6 @@ import SwiftData
 
 enum ScheduledBackupRunner {
     /// Writes a JSON export into the user’s appointed folder when the schedule says it is time.
-    @MainActor
     static func runIfDue(modelContainer: ModelContainer) async {
         let interval = ScheduledBackupPreferences.interval
         guard interval != .off else { return }
@@ -13,48 +12,89 @@ enum ScheduledBackupRunner {
         do {
             folderURL = try ScheduledBackupPreferences.resolveFolderURL()
         } catch {
+            await recordScheduledFailure(detail: String(localized: "DataPrivacy.scheduledBackup.folderError"))
             return
         }
 
         guard folderURL.startAccessingSecurityScopedResource() else {
+            await recordScheduledFailure(detail: String(localized: "DataPrivacy.scheduledBackup.folderError"))
             return
         }
         defer {
             folderURL.stopAccessingSecurityScopedResource()
         }
 
+        let exportResult = await Task.detached(priority: .utility) {
+            Self.exportToTemporaryFile(modelContainer: modelContainer)
+        }.value
+
+        let tempFile: URL
+        switch exportResult {
+        case .success(let url):
+            tempFile = url
+        case .failure:
+            await recordScheduledFailure(detail: String(localized: "DataPrivacy.scheduledBackup.failureDetail"))
+            return
+        }
+        defer {
+            try? FileManager.default.removeItem(at: tempFile)
+        }
+
+        do {
+            let fileName = try copyTempExport(at: tempFile, to: folderURL)
+            await MainActor.run {
+                ScheduledBackupPreferences.lastRunAt = Date()
+                ScheduledBackupPreferences.lastFailedAttemptAt = nil
+                BackupExportHistoryStore.record(
+                    success: true,
+                    kind: .scheduledFolder,
+                    detail: fileName
+                )
+            }
+        } catch {
+            await recordScheduledFailure(detail: String(localized: "DataPrivacy.scheduledBackup.failureDetail"))
+        }
+    }
+
+    private static func copyTempExport(at tempFile: URL, to folderURL: URL) throws -> String {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyyMMdd-HHmmss"
+        let name = "grace-notes-scheduled-\(formatter.string(from: .now)).json"
+        let destination = folderURL.appendingPathComponent(name, isDirectory: false)
+
+        if FileManager.default.fileExists(atPath: destination.path) {
+            try FileManager.default.removeItem(at: destination)
+        }
+        try FileManager.default.copyItem(at: tempFile, to: destination)
+        return name
+    }
+
+    private enum ExportToTempResult {
+        case success(URL)
+        case failure
+    }
+
+    private static func exportToTemporaryFile(modelContainer: ModelContainer) -> ExportToTempResult {
         do {
             let exportService = JournalDataExportService()
             let backgroundContext = ModelContext(modelContainer)
             let tempFile = try exportService.exportArchiveFile(context: backgroundContext)
-            defer {
-                try? FileManager.default.removeItem(at: tempFile)
-            }
-
-            let formatter = DateFormatter()
-            formatter.calendar = Calendar(identifier: .gregorian)
-            formatter.locale = Locale(identifier: "en_US_POSIX")
-            formatter.timeZone = TimeZone(secondsFromGMT: 0)
-            formatter.dateFormat = "yyyyMMdd-HHmmss"
-            let name = "grace-notes-scheduled-\(formatter.string(from: .now)).json"
-            let destination = folderURL.appendingPathComponent(name, isDirectory: false)
-
-            if FileManager.default.fileExists(atPath: destination.path) {
-                try FileManager.default.removeItem(at: destination)
-            }
-            try FileManager.default.copyItem(at: tempFile, to: destination)
-
-            ScheduledBackupPreferences.lastRunAt = Date()
-            BackupExportHistoryStore.record(
-                success: true,
-                kind: .scheduledFolder,
-                detail: name
-            )
+            return .success(tempFile)
         } catch {
+            return .failure
+        }
+    }
+
+    private static func recordScheduledFailure(detail: String) async {
+        await MainActor.run {
+            ScheduledBackupPreferences.lastFailedAttemptAt = Date()
             BackupExportHistoryStore.record(
                 success: false,
                 kind: .scheduledFolder,
-                detail: String(localized: "DataPrivacy.scheduledBackup.failureDetail")
+                detail: detail
             )
         }
     }
@@ -69,9 +109,11 @@ enum BackupFolderLibrary {
         )
         let json = urls.filter { $0.pathExtension.lowercased() == "json" }
         return json.sorted { lhs, rhs in
-            let l = (try? lhs.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
-            let r = (try? rhs.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
-            return l > r
+            let left = (try? lhs.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate)
+                ?? .distantPast
+            let right = (try? rhs.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate)
+                ?? .distantPast
+            return left > right
         }
     }
 }

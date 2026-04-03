@@ -237,12 +237,7 @@ struct ImportExportSettingsScreen: View {
             }
             Button(String(localized: "Cancel"), role: .cancel) {}
         } message: {
-            Text(
-                String(
-                    format: String(localized: "DataPrivacy.import.mergeConflict.message"),
-                    mergeConflictDays.count
-                )
-            )
+            Text(mergeConflictAlertMessage(count: mergeConflictDays.count))
         }
         .alert(String(localized: "DataPrivacy.import.success.title"), isPresented: $showImportSuccess) {
             Button(String(localized: "OK"), role: .cancel) {
@@ -473,17 +468,8 @@ private extension ImportExportSettingsScreen {
         let importService = dataImportService
         let mode = importMode
         let calendar = Calendar.current
-        let accessed = url.startAccessingSecurityScopedResource()
-        defer {
-            if accessed {
-                url.stopAccessingSecurityScopedResource()
-            }
-        }
         do {
-            if let byteCount = JournalDataImportService.resolvedFileByteCount(at: url) {
-                try JournalDataImportService.checkImportPayloadByteCount(byteCount)
-            }
-            let fileData = try Data(contentsOf: url)
+            let fileData = try loadManualImportFileData(from: url)
             let summary = try await Task.detached(priority: .userInitiated) {
                 let backgroundContext = ModelContext(container)
                 return try importService.importData(
@@ -543,5 +529,34 @@ private extension ImportExportSettingsScreen {
             }
         }
         return String(localized: "DataPrivacy.import.error.generic")
+    }
+
+    private func loadManualImportFileData(from url: URL) throws -> Data {
+        if ScheduledBackupPreferences.fileURLIsUnderScheduledBackupFolder(url) {
+            return try ScheduledBackupPreferences.withFolderSecurityScopedAccess { _ in
+                try readImportFileData(from: url)
+            }
+        }
+        let accessed = url.startAccessingSecurityScopedResource()
+        defer {
+            if accessed {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+        return try readImportFileData(from: url)
+    }
+
+    private func readImportFileData(from url: URL) throws -> Data {
+        if let byteCount = JournalDataImportService.resolvedFileByteCount(at: url) {
+            try JournalDataImportService.checkImportPayloadByteCount(byteCount)
+        }
+        return try Data(contentsOf: url)
+    }
+
+    private func mergeConflictAlertMessage(count: Int) -> String {
+        let template = count == 1
+            ? String(localized: "DataPrivacy.import.mergeConflict.message.one")
+            : String(localized: "DataPrivacy.import.mergeConflict.message.other")
+        return String(format: template, locale: .current, count)
     }
 }

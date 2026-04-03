@@ -2600,18 +2600,34 @@
         }
       }
     },
-    "DataPrivacy.import.mergeConflict.message": {
+    "DataPrivacy.import.mergeConflict.message.one": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%d journal days differ between this device and the file. Choose how to resolve them."
+            "value": "%lld journal day differs between this device and the file. Choose how to resolve it."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "设备与文件中有 %d 天的内容不一致。请选择如何处理。"
+            "value": "设备与文件中有 1 天的内容不一致。请选择如何处理。"
+          }
+        }
+      }
+    },
+    "DataPrivacy.import.mergeConflict.message.other": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld journal days differ between this device and the file. Choose how to resolve them."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设备与文件中有 %lld 天的内容不一致。请选择如何处理。"
           }
         }
       }
