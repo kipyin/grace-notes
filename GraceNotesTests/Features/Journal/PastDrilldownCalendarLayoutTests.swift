@@ -10,6 +10,17 @@ final class PastDrilldownCalendarLayoutTests: XCTestCase {
         return cal
     }
 
+    /// Month banners in the feathered drill-down viewport must sit below the top fade so short
+    /// (single-month) grids stay legible.
+    func test_drilldownCalendarGrid_topScrollInset_coversTopFeatherBand() {
+        let viewport = ReviewHistoryDrilldownCalendarGrid.Metrics.scrollViewportHeight
+        let featherTop = viewport * ReviewHistoryDrilldownCalendarGrid.Metrics.featherOpaqueStartsAt
+        XCTAssertGreaterThanOrEqual(
+            ReviewHistoryDrilldownCalendarGrid.Metrics.scrollContentTopInset + 0.5,
+            featherTop
+        )
+    }
+
     func test_continuousRows_twoMonthSpan_insertsTwoBanners() {
         let cal = gregorianCalendar()
         let lower = cal.date(from: DateComponents(year: 2026, month: 1, day: 1))!

@@ -34,6 +34,14 @@ struct ReviewHistoryDrilldownCalendarGrid: View {
     enum Metrics {
         /// Roughly 1.5 months of vertical space for the scrolling region (issue #186).
         static let scrollViewportHeight: CGFloat = 396
+        /// Fraction of masked viewport height where the top feather reaches full opacity (matches gradient stop).
+        static let featherOpaqueStartsAt: CGFloat = 0.07
+        /// Fraction where bottom feather begins (matches gradient stop).
+        static let featherOpaqueEndsAt: CGFloat = 0.93
+        /// Keeps the first month banner out of the top feather when content is short.
+        static var scrollContentTopInset: CGFloat {
+            (scrollViewportHeight * featherOpaqueStartsAt).rounded(.up)
+        }
         /// Keeps the last week row clear of the bottom feather when scrolled to the end.
         static let scrollContentBottomInset: CGFloat = 36
         /// Avoid y: 1 — it pins the week row into the bottom feather on first layout; lower-mid band stays clear.
@@ -77,8 +85,8 @@ struct ReviewHistoryDrilldownCalendarGrid: View {
         LinearGradient(
             stops: [
                 .init(color: .clear, location: 0),
-                .init(color: .black, location: 0.07),
-                .init(color: .black, location: 0.93),
+                .init(color: .black, location: Metrics.featherOpaqueStartsAt),
+                .init(color: .black, location: Metrics.featherOpaqueEndsAt),
                 .init(color: .clear, location: 1)
             ],
             startPoint: .top,
@@ -123,6 +131,7 @@ struct ReviewHistoryDrilldownCalendarGrid: View {
                     }
                 }
                 .scrollTargetLayout()
+                .padding(.top, Metrics.scrollContentTopInset)
                 .padding(.bottom, Metrics.scrollContentBottomInset)
             }
             .scrollPosition(id: $scrollPositionRowID, anchor: Metrics.scrollLatestMatchAnchor)
