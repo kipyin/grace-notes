@@ -201,7 +201,7 @@ final class PersistenceController {
         let today = calendar.startOfDay(for: now)
         let previousDay = calendar.date(byAdding: .day, value: -1, to: today) ?? today
 
-        if ProcessInfo.graceNotesUITestRequestsWideReviewRhythmSeed {
+        if ProcessInfo.graceNotesUITestWideReviewRhythmSeed {
             try insertWideReviewRhythmUITestSeed(
                 context: context,
                 calendar: calendar,

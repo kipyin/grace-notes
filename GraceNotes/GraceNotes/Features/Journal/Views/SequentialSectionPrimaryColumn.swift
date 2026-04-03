@@ -47,7 +47,9 @@ struct SequentialSectionPrimaryColumn<ProgressDots: View>: View {
     let progressDots: ProgressDots
     /// When set, `ScrollViewReader` targets chip list + input only (not the section header).
     let keyboardScrollAnchorID: JournalScrollTarget?
+}
 
+extension SequentialSectionPrimaryColumn {
     private var activeEditingIndex: Int? {
         guard let editingIndex, items.indices.contains(editingIndex) else { return nil }
         return editingIndex
@@ -378,7 +380,6 @@ struct SequentialSectionPrimaryColumn<ProgressDots: View>: View {
             }
         }
     }
-
 }
 
 private extension View {

@@ -232,6 +232,31 @@ final class WeeklyReviewHistoryRollupsTests: XCTestCase {
         )
     }
 
+    func test_rhythmHistory_startsAtEarliestEntry_notClippedToFixedShortWindow() throws {
+        let referenceDate = date(year: 2026, month: 3, day: 18)
+        let period = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
+        let previous = ReviewInsightsPeriod.previousPeriod(before: period, calendar: calendar)
+
+        let ancient = date(year: 2025, month: 1, day: 1)
+        let recent = date(year: 2026, month: 3, day: 17)
+        let ancientEntry = makeEntry(on: ancient, gratitudes: ["old"])
+        let recentEntry = makeEntry(on: recent, gratitudes: ["new"])
+        let allEntries = [ancientEntry, recentEntry]
+
+        let aggregates = builder.build(
+            currentPeriod: period,
+            currentWeekEntries: allEntries.filter { period.contains($0.entryDate) },
+            previousWeekEntries: allEntries.filter { previous.contains($0.entryDate) },
+            allEntries: allEntries,
+            calendar: calendar,
+            referenceDate: referenceDate
+        )
+
+        let rhythm = try XCTUnwrap(aggregates.stats.rhythmHistory)
+        XCTAssertEqual(calendar.startOfDay(for: rhythm.first!.date), calendar.startOfDay(for: ancient))
+        XCTAssertGreaterThan(rhythm.count, 180, "Uncapped history should span ancient entry through week end.")
+    }
+
     func test_reviewHistoryWindowing_entriesContributingToSection_sortsNewestFirst() {
         let dayOlder = date(year: 2026, month: 3, day: 10)
         let dayNewer = date(year: 2026, month: 3, day: 11)

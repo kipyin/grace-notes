@@ -36,16 +36,16 @@ private struct PaperFibersCanvas: View {
             let grainCount = 90
             var rng = SeededRandom(seed: 42)
             for _ in 0..<grainCount {
-                let x = CGFloat(rng.next()) * canvasSize.width
-                let y = CGFloat(rng.next()) * canvasSize.height
+                let grainX = CGFloat(rng.next()) * canvasSize.width
+                let grainY = CGFloat(rng.next()) * canvasSize.height
                 let length = 6 + CGFloat(rng.next()) * 22
                 let angle = CGFloat(rng.next()) * .pi
                 var path = Path()
-                path.move(to: CGPoint(x: x, y: y))
+                path.move(to: CGPoint(x: grainX, y: grainY))
                 path.addLine(
                     to: CGPoint(
-                        x: x + cos(angle) * length,
-                        y: y + sin(angle) * length
+                        x: grainX + cos(angle) * length,
+                        y: grainY + sin(angle) * length
                     )
                 )
                 context.stroke(

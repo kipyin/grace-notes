@@ -3833,6 +3833,22 @@
         }
       }
     },
+    "Opens this day to start or continue writing.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens this day to start or continue writing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开这一天以开始或继续记录。"
+          }
+        }
+      }
+    },
     "Opens Today and starts the guided first entry.": {
       "localizations": {
         "en": {
@@ -4204,6 +4220,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "你写过的"
+          }
+        }
+      }
+    },
+    "No journaling days to show here yet. After you write, they will appear in this strip.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No journaling days to show here yet. After you write, they will appear in this strip."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时没有可显示的日记日。开始书写后，对应的日期会出现在这里。"
           }
         }
       }

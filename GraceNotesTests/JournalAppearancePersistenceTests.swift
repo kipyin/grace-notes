@@ -30,6 +30,9 @@ final class JournalAppearancePersistenceTests: XCTestCase {
         UserDefaults.standard.set("summer", forKey: key)
         JournalAppearanceMode.migrateLegacySummerRawValueIfNeeded(defaults: .standard)
         XCTAssertEqual(UserDefaults.standard.string(forKey: key), JournalAppearanceMode.bloom.rawValue)
-        XCTAssertEqual(JournalAppearanceMode.resolveStored(rawValue: UserDefaults.standard.string(forKey: key) ?? ""), .bloom)
+        XCTAssertEqual(
+            JournalAppearanceMode.resolveStored(rawValue: UserDefaults.standard.string(forKey: key) ?? ""),
+            .bloom
+        )
     }
 }

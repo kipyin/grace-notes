@@ -25,7 +25,9 @@ final class ReviewInsightsCacheTests: XCTestCase {
         userDefaults = UserDefaults(suiteName: suiteName)!
         cache = ReviewInsightsCache(userDefaults: userDefaults)
     }
+}
 
+extension ReviewInsightsCacheTests {
     func test_storeAndLoad_roundTripsForMatchingWeek() async {
         let weekStart = date(year: 2026, month: 3, day: 12)
         let insights = sampleInsights(weekStart: weekStart)
@@ -185,7 +187,9 @@ final class ReviewInsightsCacheTests: XCTestCase {
         XCTAssertEqual(loaded?.weekStats.historySectionTotals, insights.weekStats.historySectionTotals)
         XCTAssertEqual(loaded?.weekStats.historyCompletionMix, insights.weekStats.historyCompletionMix)
     }
+}
 
+extension ReviewInsightsCacheTests {
     func test_ReviewWeekStats_decodesOmittedHistoryRollupsAsZeros() throws {
         let json = """
         {
@@ -221,7 +225,13 @@ final class ReviewInsightsCacheTests: XCTestCase {
     }
 
     func test_ReviewWeekCompletionMix_totalDaysRepresented_sumsBuckets() {
-        let mix = ReviewWeekCompletionMix(soilDayCount: 2, sproutDayCount: 1, twigDayCount: 3, leafDayCount: 0, bloomDayCount: 4)
+        let mix = ReviewWeekCompletionMix(
+            soilDayCount: 2,
+            sproutDayCount: 1,
+            twigDayCount: 3,
+            leafDayCount: 0,
+            bloomDayCount: 4
+        )
         XCTAssertEqual(mix.totalDaysRepresented, 10)
     }
 
@@ -288,7 +298,9 @@ final class ReviewInsightsCacheTests: XCTestCase {
         )
         XCTAssertEqual(afterStore, insights)
     }
+}
 
+extension ReviewInsightsCacheTests {
     // MARK: - Helpers
 
     private func date(year: Int, month: Int, day: Int) -> Date {

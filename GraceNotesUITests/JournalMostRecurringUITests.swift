@@ -126,7 +126,10 @@ final class JournalMostRecurringUITests: XCTestCase {
         }
         return false
     }
+}
 
+extension JournalMostRecurringUITests {
+    // swiftlint:disable function_body_length
     @MainActor
     func test_reviewScreen_browseAndDrilldown_showMatchingSurfaceContent() {
         let app = launchAppWithWideReviewSeed()
@@ -178,7 +181,11 @@ final class JournalMostRecurringUITests: XCTestCase {
 
         if !openedTrendingViaBrowse {
             let trendingRows = mainTrendingRows(in: app)
-            XCTAssertGreaterThan(trendingRows.count, 0, "Expected at least one Trending row when browse link is hidden.")
+            XCTAssertGreaterThan(
+                trendingRows.count,
+                0,
+                "Expected at least one Trending row when browse link is hidden."
+            )
             let firstTrendRow = trendingRows.element(boundBy: 0)
             XCTAssertTrue(firstTrendRow.waitForExistence(timeout: 8))
             var scrollAttempts = 0
@@ -198,6 +205,7 @@ final class JournalMostRecurringUITests: XCTestCase {
             "Expected per-surface evidence section in drilldown."
         )
     }
+    // swiftlint:enable function_body_length
 
     @MainActor
     func test_reviewScreen_mostRecurringAndTrending_cappedAtThreeOnMainPastCard() {

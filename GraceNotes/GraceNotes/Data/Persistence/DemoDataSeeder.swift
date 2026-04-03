@@ -4,7 +4,7 @@ import SwiftData
 
 @MainActor
 enum DemoDataSeeder {
-    private static let seedVersion = 3
+    private static let seedVersion = 4
     private static let seedVersionKey = "demoDataSeedVersion"
 
     static func seedIfNeeded(context: ModelContext, calendar: Calendar = .current) {
@@ -93,7 +93,8 @@ enum DemoDataSeeder {
             makeThreeDaysAgoPayload(entryDate: threeDaysAgo, completedAt: now),
             makeFourDaysAgoPayload(entryDate: fourDaysAgo),
             makeFiveDaysAgoPayload(entryDate: fiveDaysAgo),
-            makeSixDaysAgoPayload(entryDate: sixDaysAgo)
+            makeSixDaysAgoPayload(entryDate: sixDaysAgo),
+            demoDecember2025Entry(calendar: calendar, now: now)
         ]
     }
 
@@ -258,6 +259,40 @@ enum DemoDataSeeder {
     private static func item(_ fullText: String) -> Entry {
         Entry(fullText: fullText)
     }
+}
+
+/// Anchored historical row so Demo builds can sanity-check Past/review behavior across calendar years.
+private func demoDecember2025Entry(calendar: Calendar, now: Date) -> DemoEntryPayload {
+    var parts = DateComponents()
+    parts.year = 2025
+    parts.month = 12
+    parts.day = 10
+    parts.hour = 9
+    parts.minute = 30
+    let entryDate = calendar.date(from: parts) ?? calendar.startOfDay(for: now)
+    return DemoEntryPayload(
+        entryDate: entryDate,
+        gratitudes: [
+            demoLine("Grateful for closing out 2025 with calm routines"),
+            demoLine("Thankful for friends who checked in"),
+            demoLine("Quiet evening to reflect")
+        ],
+        needs: [
+            demoLine("Need margin before the new year"),
+            demoLine("Want to plan January lightly")
+        ],
+        people: [
+            demoLine("Thinking of family gathering plans"),
+            demoLine("Grateful for community support")
+        ],
+        readingNotes: "Demo note dated in 2025 for Past-tab and rhythm checks.",
+        reflections: "This entry is intentionally in December 2025 to verify history outside the current week.",
+        completedAt: nil
+    )
+}
+
+private func demoLine(_ fullText: String) -> Entry {
+    Entry(fullText: fullText)
 }
 
 private struct DemoEntryPayload {

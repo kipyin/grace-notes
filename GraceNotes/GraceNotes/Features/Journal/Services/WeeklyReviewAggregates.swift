@@ -58,11 +58,11 @@ struct WeeklyReviewAggregates {
 }
 
 struct WeeklyReviewAggregatesBuilder {
-    private let maxThemesPerSection = 3
-    private let chipWeight = 3
-    private let textWeight = 1
-    private let minimumMostRecurringSignalCount = 2
-    private let textNormalizer = WeeklyInsightTextNormalizer()
+    let maxThemesPerSection = 3
+    let chipWeight = 3
+    let textWeight = 1
+    let minimumMostRecurringSignalCount = 2
+    let textNormalizer = WeeklyInsightTextNormalizer()
 
     // swiftlint:disable:next function_parameter_count
     func build(
@@ -124,11 +124,11 @@ struct WeeklyReviewAggregatesBuilder {
 }
 
 private extension WeeklyReviewAggregatesBuilder {
-    private func sortedEntries(_ entries: [Journal]) -> [Journal] {
+    func sortedEntries(_ entries: [Journal]) -> [Journal] {
         ReviewHistoryWindowing.sortedEntries(entries)
     }
 
-    private func reflectionDayCount(from entries: [Journal], calendar: Calendar) -> Int {
+    func reflectionDayCount(from entries: [Journal], calendar: Calendar) -> Int {
         Set(
             entries
                 .filter { $0.hasMeaningfulContent || hasReflectionSurfaceText($0) }
@@ -136,16 +136,16 @@ private extension WeeklyReviewAggregatesBuilder {
         ).count
     }
 
-    private func meaningfulEntryCount(from entries: [Journal]) -> Int {
+    func meaningfulEntryCount(from entries: [Journal]) -> Int {
         entries.filter(\.hasMeaningfulContent).count
     }
 
-    private func hasReflectionSurfaceText(_ entry: Journal) -> Bool {
+    func hasReflectionSurfaceText(_ entry: Journal) -> Bool {
         !textNormalizer.trimmed(entry.readingNotes).isEmpty
             || !textNormalizer.trimmed(entry.reflections).isEmpty
     }
 
-    private func buildChipStats(
+    func buildChipStats(
         from entries: [Journal],
         itemsExtractor: (Journal) -> [Entry],
         calendar: Calendar
@@ -171,7 +171,7 @@ private extension WeeklyReviewAggregatesBuilder {
         return sortedThemeSummaries(from: themeMap)
     }
 
-    private func buildContinuityStats(
+    func buildContinuityStats(
         from entries: [Journal],
         calendar: Calendar
     ) -> [ThemeSummary] {
@@ -206,7 +206,7 @@ private extension WeeklyReviewAggregatesBuilder {
         return sortedThemeSummaries(from: themeMap)
     }
 
-    private func topThemes(from summaries: [ThemeSummary]) -> [ReviewInsightTheme] {
+    func topThemes(from summaries: [ThemeSummary]) -> [ReviewInsightTheme] {
         summaries
             .sorted {
                 if $0.mentionCount != $1.mentionCount {
@@ -221,11 +221,11 @@ private extension WeeklyReviewAggregatesBuilder {
             .map { ReviewInsightTheme(label: $0.displayLabel, count: $0.mentionCount) }
     }
 
-    private func preferredItemLabel(_ item: Entry) -> String {
+    func preferredItemLabel(_ item: Entry) -> String {
         textNormalizer.trimmed(item.fullText)
     }
 
-    private func accumulateTheme(
+    func accumulateTheme(
         label: String,
         day: Date,
         weight: Int,
@@ -255,7 +255,7 @@ private extension WeeklyReviewAggregatesBuilder {
         map[normalized]?.days.insert(day)
     }
 
-    private func sortedThemeSummaries(from map: [String: ThemeAccumulator]) -> [ThemeSummary] {
+    func sortedThemeSummaries(from map: [String: ThemeAccumulator]) -> [ThemeSummary] {
         map.values
             .map {
                 ThemeSummary(
@@ -284,8 +284,8 @@ private extension WeeklyReviewAggregatesBuilder {
             }
     }
 
-    // swiftlint:disable:next function_parameter_count
-    private func buildWeekStats(
+    // swiftlint:disable:next function_body_length function_parameter_count
+    func buildWeekStats(
         currentPeriod: Range<Date>,
         entries: [Journal],
         allEntries: [Journal],
@@ -306,7 +306,8 @@ private extension WeeklyReviewAggregatesBuilder {
         let rhythmHistory = buildRhythmHistory(
             allEntries: allEntries,
             currentPeriod: currentPeriod,
-            calendar: calendar
+            calendar: calendar,
+            referenceDate: referenceDate
         )
         let sectionTotals = ReviewWeekSectionTotals(
             gratitudeMentions: entries.reduce(0) { $0 + ($1.gratitudes ?? []).count },
@@ -357,283 +358,13 @@ private extension WeeklyReviewAggregatesBuilder {
         )
     }
 
-    // swiftlint:disable:next cyclomatic_complexity function_body_length
-    private func buildThemeSections(
-        from entries: [Journal],
-        currentPeriod: Range<Date>,
-        calendar: Calendar,
-        referenceDate: Date,
-        mostRecurringWindow: Range<Date>
-    ) -> (mostRecurring: [ReviewMostRecurringTheme], trending: ReviewTrendingBuckets) {
-        let isWarmUpPhase = ReviewWeekTrendPolicy.isWarmUpPhase(
-            currentPeriod: currentPeriod,
-            referenceDate: referenceDate,
-            calendar: calendar
-        )
-        guard !entries.isEmpty else {
-            return ([], ReviewTrendingBuckets(newThemes: [], upThemes: [], downThemes: []))
-        }
-        let trendRanges = calendarWeekComparisonPeriods(currentPeriod: currentPeriod, calendar: calendar)
-        var map: [String: DistilledThemeAccumulator] = [:]
-        var sequence = 0
-
-        for entry in entries {
-            let day = calendar.startOfDay(for: entry.entryDate)
-            guard mostRecurringWindow.contains(day)
-                || trendRanges.current.contains(day)
-                || trendRanges.previous.contains(day) else {
-                continue
-            }
-
-            for surface in structuredSurfaces(for: entry) {
-                let concepts = textNormalizer.distillConcepts(
-                    from: surface.content,
-                    source: surface.source,
-                    maximumCount: 3,
-                    highConfidenceOnly: true
-                )
-                let uniqueConcepts = Dictionary(grouping: concepts, by: \.canonicalConcept)
-                    .compactMap { _, candidates in candidates.max(by: { $0.score < $1.score }) }
-
-                for concept in uniqueConcepts {
-                    var accumulator = map[concept.canonicalConcept] ?? DistilledThemeAccumulator(
-                        canonicalConcept: concept.canonicalConcept,
-                        displayLabel: concept.displayLabel,
-                        totalCount: 0,
-                        days: [],
-                        evidence: [],
-                        evidenceIds: [],
-                        currentWeekCount: 0,
-                        previousWeekCount: 0,
-                        firstSeenOrder: sequence
-                    )
-                    if mostRecurringWindow.contains(day) {
-                        accumulator.totalCount += 1
-                        accumulator.days.insert(day)
-                    }
-                    if trendRanges.current.contains(day) {
-                        accumulator.currentWeekCount += 1
-                    } else if trendRanges.previous.contains(day) {
-                        accumulator.previousWeekCount += 1
-                    }
-                    accumulator.addEvidence(
-                        ReviewThemeSurfaceEvidence(
-                            entryDate: day,
-                            source: surface.source,
-                            content: surface.content
-                        )
-                    )
-                    map[concept.canonicalConcept] = accumulator
-                }
-                sequence += 1
-            }
-        }
-
-        appendSupportingEvidence(
-            into: &map,
-            entries: entries,
-            mostRecurringWindow: mostRecurringWindow,
-            calendar: calendar
-        )
-
-        let mostRecurring = map.values
-            .filter { $0.totalCount >= minimumMostRecurringSignalCount }
-            .map { value in
-                ReviewMostRecurringTheme(
-                    label: value.displayLabel,
-                    totalCount: value.totalCount,
-                    dayCount: value.days.count,
-                    currentWeekCount: value.currentWeekCount,
-                    previousWeekCount: value.previousWeekCount,
-                    evidence: sortedEvidence(value.evidence)
-                )
-            }
-            .sorted {
-                if $0.totalCount != $1.totalCount {
-                    return $0.totalCount > $1.totalCount
-                }
-                if $0.dayCount != $1.dayCount {
-                    return $0.dayCount > $1.dayCount
-                }
-                let lhsOrder = map[textNormalizer.normalizeThemeLabel($0.label)]?.firstSeenOrder ?? .max
-                let rhsOrder = map[textNormalizer.normalizeThemeLabel($1.label)]?.firstSeenOrder ?? .max
-                if lhsOrder != rhsOrder {
-                    return lhsOrder < rhsOrder
-                }
-                return $0.label.localizedCaseInsensitiveCompare($1.label) == .orderedAscending
-            }
-
-        let movementCandidates = map.values
-            .compactMap { value -> ReviewMovementTheme? in
-                let trend = ReviewWeekTrendPolicy.trendingSurfacingTrend(
-                    current: value.currentWeekCount,
-                    previous: value.previousWeekCount,
-                    isWarmUpPhase: isWarmUpPhase
-                )
-                guard trend != .stable else { return nil }
-                guard value.currentWeekCount > 0 || value.previousWeekCount > 0 else { return nil }
-                return ReviewMovementTheme(
-                    label: value.displayLabel,
-                    currentWeekCount: value.currentWeekCount,
-                    previousWeekCount: value.previousWeekCount,
-                    trend: trend,
-                    totalCount: value.totalCount,
-                    evidence: sortedEvidence(value.evidence)
-                )
-            }
-        let trending = ReviewTrendingBuckets(
-            newThemes: movementCandidates.filter { $0.trend == .new }.sorted(by: ReviewMovementTheme.trendingSort),
-            upThemes: movementCandidates.filter { $0.trend == .rising }.sorted(by: ReviewMovementTheme.trendingSort),
-            downThemes: movementCandidates.filter { $0.trend == .down }.sorted(by: ReviewMovementTheme.trendingSort)
-        )
-
-        return (mostRecurring, trending)
-    }
-
-    private func appendSupportingEvidence(
-        into map: inout [String: DistilledThemeAccumulator],
-        entries: [Journal],
-        mostRecurringWindow: Range<Date>,
-        calendar: Calendar
-    ) {
-        let topLevelThemes = Array(map.keys)
-        guard !topLevelThemes.isEmpty else { return }
-
-        for entry in entries {
-            let day = calendar.startOfDay(for: entry.entryDate)
-            guard mostRecurringWindow.contains(day) else { continue }
-
-            for surface in supportSurfaces(for: entry) {
-                let supportConcepts = Set(
-                    textNormalizer.distillConcepts(
-                        from: surface.content,
-                        source: surface.source,
-                        maximumCount: 4,
-                        highConfidenceOnly: false
-                    ).map(\.canonicalConcept)
-                )
-                guard !supportConcepts.isEmpty else { continue }
-
-                for theme in topLevelThemes {
-                    guard var accumulator = map[theme] else { continue }
-                    let matches = supportConcepts.contains(theme)
-                        || textNormalizer.themesMatch(theme, against: supportConcepts)
-                        || moderateSurfaceSemanticMatch(themeConcept: theme, supportText: surface.content)
-                    guard matches else { continue }
-                    accumulator.addEvidence(
-                        ReviewThemeSurfaceEvidence(
-                            entryDate: day,
-                            source: surface.source,
-                            content: surface.content
-                        )
-                    )
-                    map[theme] = accumulator
-                }
-            }
-        }
-    }
-
-    /// The current calendar week vs the immediately preceding calendar week (``ReviewInsightsPeriod``).
-    private func calendarWeekComparisonPeriods(
-        currentPeriod: Range<Date>,
-        calendar: Calendar
-    ) -> (current: Range<Date>, previous: Range<Date>) {
-        let previous = ReviewInsightsPeriod.previousPeriod(before: currentPeriod, calendar: calendar)
-        return (currentPeriod, previous)
-    }
-
-    private func structuredSurfaces(for entry: Journal) -> [ThemeSurface] {
-        var surfaces: [ThemeSurface] = []
-
-        for item in entry.gratitudes ?? [] {
-            let content = textNormalizer.trimmed(item.fullText)
-            if !content.isEmpty {
-                surfaces.append(ThemeSurface(source: .gratitudes, content: content))
-            }
-        }
-        for item in entry.needs ?? [] {
-            let content = textNormalizer.trimmed(item.fullText)
-            if !content.isEmpty {
-                surfaces.append(ThemeSurface(source: .needs, content: content))
-            }
-        }
-        for item in entry.people ?? [] {
-            let content = textNormalizer.trimmed(item.fullText)
-            if !content.isEmpty {
-                surfaces.append(ThemeSurface(source: .people, content: content))
-            }
-        }
-
-        return surfaces
-    }
-
-    private func supportSurfaces(for entry: Journal) -> [ThemeSurface] {
-        var surfaces: [ThemeSurface] = []
-        let notes = textNormalizer.trimmed(entry.readingNotes)
-        if !notes.isEmpty {
-            surfaces.append(ThemeSurface(source: .readingNotes, content: notes))
-        }
-        let reflections = textNormalizer.trimmed(entry.reflections)
-        if !reflections.isEmpty {
-            surfaces.append(ThemeSurface(source: .reflections, content: reflections))
-        }
-        return surfaces
-    }
-
-    private func moderateSurfaceSemanticMatch(themeConcept: String, supportText: String) -> Bool {
-        let normalizedSupport = textNormalizer.normalizeThemeLabel(supportText)
-        guard !normalizedSupport.isEmpty else { return false }
-        if normalizedSupport.contains(themeConcept) || themeConcept.contains(normalizedSupport) {
-            return true
-        }
-        if containsHanCharacters(themeConcept) {
-            return normalizedSupport.contains(themeConcept)
-        }
-        let themeTokens = Set(themeConcept.split(separator: " ").map(String.init).filter { $0.count >= 3 })
-        let supportTokens = Set(normalizedSupport.split(separator: " ").map(String.init).filter { $0.count >= 3 })
-        if themeTokens.isEmpty || supportTokens.isEmpty {
-            return false
-        }
-        return !themeTokens.isDisjoint(with: supportTokens)
-    }
-
-    private func containsHanCharacters(_ text: String) -> Bool {
-        text.unicodeScalars.contains { scalar in
-            switch scalar.value {
-            case 0x3400...0x4DBF,
-                 0x4E00...0x9FFF,
-                 0xF900...0xFAFF,
-                 0x20000...0x2A6DF,
-                 0x2A700...0x2B73F,
-                 0x2B740...0x2B81F,
-                 0x2B820...0x2CEAF,
-                 0x2CEB0...0x2EBEF,
-                 0x2F800...0x2FA1F:
-                return true
-            default:
-                return false
-            }
-        }
-    }
-
-    private func sortedEvidence(_ evidence: [ReviewThemeSurfaceEvidence]) -> [ReviewThemeSurfaceEvidence] {
-        evidence.sorted { lhs, rhs in
-            if lhs.entryDate != rhs.entryDate {
-                return lhs.entryDate > rhs.entryDate
-            }
-            if lhs.source != rhs.source {
-                return lhs.source.rawValue < rhs.source.rawValue
-            }
-            return lhs.content.localizedCaseInsensitiveCompare(rhs.content) == .orderedAscending
-        }
-    }
-
-    /// Builds a longer oldest-to-newest activity sequence ending on the last day of `currentPeriod`,
-    /// capped for performance.
-    private func buildRhythmHistory(
+    /// Builds a dense oldest-to-newest activity sequence from the earliest journal day through
+    /// ``min(lastDayOfReviewWeek, startOfReferenceDay)`` (one row per calendar day, including hollow days).
+    func buildRhythmHistory(
         allEntries: [Journal],
         currentPeriod: Range<Date>,
-        calendar: Calendar
+        calendar: Calendar,
+        referenceDate: Date
     ) -> [ReviewDayActivity]? {
         guard !allEntries.isEmpty else { return nil }
 
@@ -641,11 +372,15 @@ private extension WeeklyReviewAggregatesBuilder {
             from: allEntries,
             calendar: calendar
         )
-        let endDayInclusive = calendar.date(byAdding: .day, value: -1, to: currentPeriod.upperBound)
+        let weekLastInclusive = calendar.date(byAdding: .day, value: -1, to: currentPeriod.upperBound)
             ?? currentPeriod.lowerBound
-        let entryMin = allEntries.map { calendar.startOfDay(for: $0.entryDate) }.min()
-        let capBack = calendar.date(byAdding: .day, value: -179, to: endDayInclusive) ?? endDayInclusive
-        let startDay = max(capBack, entryMin ?? capBack)
+        let weekLastStart = calendar.startOfDay(for: weekLastInclusive)
+        let referenceDayStart = calendar.startOfDay(for: referenceDate)
+        let endDayInclusive = min(weekLastStart, referenceDayStart)
+        guard let entryMinRaw = allEntries.map({ calendar.startOfDay(for: $0.entryDate) }).min() else {
+            return nil
+        }
+        let startDay = entryMinRaw
         guard startDay <= endDayInclusive else { return nil }
 
         let rangeEndExclusive = calendar.date(byAdding: .day, value: 1, to: endDayInclusive) ?? currentPeriod.upperBound
@@ -658,7 +393,7 @@ private extension WeeklyReviewAggregatesBuilder {
         return history.isEmpty ? nil : history
     }
 
-    private func buildCompletionMix(from strongestByDay: [Date: JournalCompletionLevel]) -> ReviewWeekCompletionMix {
+    func buildCompletionMix(from strongestByDay: [Date: JournalCompletionLevel]) -> ReviewWeekCompletionMix {
         var soilDayCount = 0
         var sproutDayCount = 0
         var twigDayCount = 0
@@ -687,7 +422,7 @@ private extension WeeklyReviewAggregatesBuilder {
         )
     }
 
-    private func buildDayActivity(
+    func buildDayActivity(
         currentPeriod: Range<Date>,
         entries: [Journal],
         strongestCompletionByDay: [Date: JournalCompletionLevel],
@@ -719,7 +454,7 @@ private extension WeeklyReviewAggregatesBuilder {
     }
 }
 
-private struct ThemeAccumulator {
+struct ThemeAccumulator {
     let normalizedLabel: String
     let displayLabel: String
     var mentionCount: Int
@@ -728,12 +463,12 @@ private struct ThemeAccumulator {
     let firstSeenOrder: Int
 }
 
-private struct ThemeSurface {
+struct ThemeSurface {
     let source: ReviewThemeSourceCategory
     let content: String
 }
 
-private struct DistilledThemeAccumulator {
+struct DistilledThemeAccumulator {
     let canonicalConcept: String
     let displayLabel: String
     var totalCount: Int

@@ -58,6 +58,13 @@ struct ReviewScreen: View {
     /// When true, keep Review list chrome even with zero entries so UI tests can navigate.
     private let isUiTestingExperience: Bool
 
+    init() {
+        let isUiTesting = ProcessInfo.graceNotesIsRunningUITests
+        isUiTestingExperience = isUiTesting
+    }
+}
+
+extension ReviewScreen {
     private enum PastTabListLayout {
         static var cardRowInsets: EdgeInsets {
             let inset = AppTheme.spacingWide
@@ -68,11 +75,6 @@ struct ReviewScreen: View {
             let inset = AppTheme.spacingWide
             return EdgeInsets(top: 6, leading: inset, bottom: 8, trailing: inset)
         }
-    }
-
-    init() {
-        let isUiTesting = ProcessInfo.graceNotesIsRunningUITests
-        isUiTestingExperience = isUiTesting
     }
 
     private var pastStatisticsInterval: PastStatisticsIntervalSelection {
@@ -301,7 +303,7 @@ struct ReviewScreen: View {
                 ReviewDaysYouWrotePanel(
                     insights: reviewInsights,
                     isLoading: isLoadingInsights,
-                    onPersistedDaySelected: presentJournalDaySheet
+                    onRhythmDaySelected: presentJournalDaySheet
                 )
                 .listRowInsets(PastTabListLayout.cardRowInsets)
                 .listRowBackground(AppTheme.reviewBackground)
@@ -363,9 +365,7 @@ struct ReviewScreen: View {
             .listRowSeparator(.hidden)
         }
     }
-}
 
-private extension ReviewScreen {
     func dismissPastSearchFocus() {
         isPastSearchFieldFocused = false
         UIApplication.shared.sendAction(
