@@ -159,11 +159,12 @@ final class JournalViewModel {
 
     /// Today mode only: if the calendar day is past the loaded journal, persist then load the current day.
     func refreshTodayIfStale(using context: ModelContext) {
+        let now = nowProvider()
         let shownStart = calendar.startOfDay(for: entryDate)
-        let todayStart = calendar.startOfDay(for: nowProvider())
+        let todayStart = calendar.startOfDay(for: now)
         guard todayStart > shownStart else { return }
         persistImmediately()
-        loadEntry(for: nowProvider(), using: context)
+        loadEntry(for: now, using: context)
     }
 
     private func refreshStreakSummary() {

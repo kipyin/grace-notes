@@ -164,6 +164,8 @@ struct JournalScreen: View {
     @State private var showSavedToPhotosToast = false
     @State private var savedToPhotosDismissTask: Task<Void, Never>?
     @State private var hasTrackedInitialLoad = false
+    /// Blocks session-resume refresh until the first `.task` load finishes (avoids racing the empty ViewModel).
+    @State private var hasCompletedInitialJournalLoadTask = false
     @State private var statusCelebrationDismissTask: Task<Void, Never>?
     @State private var celebratingLevel: JournalCompletionLevel?
     @State private var hasInitializedCompletionTracking = false
@@ -291,6 +293,7 @@ struct JournalScreen: View {
         }
         .onChange(of: scenePhase) { oldPhase, newPhase in
             guard oldPhase != .active, newPhase == .active else { return }
+            guard appNavigation.selectedTab == .today else { return }
             refreshTodayAfterSessionResumeIfNeeded()
         }
         .onChange(of: appNavigation.selectedTab) { oldTab, newTab in
@@ -1140,11 +1143,13 @@ private extension JournalScreen {
             }
         }
         applyJournalScreenLoadFollowUps()
+        hasCompletedInitialJournalLoadTask = true
         PerformanceTrace.end("JournalScreen.loadTask", startedAt: loadTrace)
     }
 
     private func refreshTodayAfterSessionResumeIfNeeded() {
         guard entryDate == nil else { return }
+        guard hasCompletedInitialJournalLoadTask else { return }
         viewModel.refreshTodayIfStale(using: modelContext)
         applyJournalScreenLoadFollowUps()
     }
