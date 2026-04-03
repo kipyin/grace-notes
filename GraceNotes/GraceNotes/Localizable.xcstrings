@@ -5844,6 +5844,118 @@
         }
       }
     },
+    "PastDrilldown.calendarDay.a11y.matchedFormat": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, matches this filter"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@，符合当前筛选条件"
+          }
+        }
+      }
+    },
+    "PastDrilldown.calendarDay.a11y.journalNotMatchedFormat": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, has a journal, does not match this filter"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@，有手记记录，但不符合当前筛选条件"
+          }
+        }
+      }
+    },
+    "PastDrilldown.calendarDay.a11y.emptyFormat": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, no journal in this statistics range"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@，在统计时间范围内没有手记"
+          }
+        }
+      }
+    },
+    "PastDrilldown.calendarDay.a11y.outsideRangeFormat": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, outside statistics range"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@，不在统计时间范围内"
+          }
+        }
+      }
+    },
+    "PastDrilldown.calendarDay.a11yHint.journalNotMatched": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This day is not part of the highlighted set for this drill-down."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这一天不在当前下钻视图的高亮集合中。"
+          }
+        }
+      }
+    },
+    "PastDrilldown.calendarDay.a11yHint.emptyHistoryDay": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No journal saved on this day in the statistics range."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在统计范围内，这一天没有保存手记。"
+          }
+        }
+      }
+    },
+    "PastDrilldown.calendarDay.a11yHint.outsideStatisticsRange": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shown for calendar context; not counted in the selected statistics window."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅用于日历上下文显示，不计入所选统计时间窗口。"
+          }
+        }
+      }
+    },
     "Start writing this week to unlock review insights.": {
       "localizations": {
         "en": {
@@ -8403,22 +8515,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "当前时间范围内没有符合该成长阶段的日记日期。"
-          }
-        }
-      }
-    },
-    "Review history section drilldown calendar section": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Days with entries"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "有内容的日期"
           }
         }
       }

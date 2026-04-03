@@ -97,6 +97,7 @@ private struct ReviewHistoryGrowthSkyline: View {
                     count: counts[index],
                     maxCount: maxCount,
                     metrics: metrics,
+                    dynamicTypeSize: dynamicTypeSize,
                     onSelect: {
                         onSelectGrowthStage(level)
                     }
@@ -127,16 +128,12 @@ private struct ReviewHistoryGrowthSkyline: View {
         let chartHeight: CGFloat
         let minBarHeight: CGFloat
         let columnSpacing: CGFloat
-        let glyphSize: CGFloat
-        let glyphChrome: CGFloat
 
         init(dynamicTypeSize: DynamicTypeSize) {
             let scale = ReviewHistoryPanelLayoutScale.skylineMetricsScale(for: dynamicTypeSize)
             chartHeight = (88 * scale).rounded(.toNearestOrAwayFromZero)
             minBarHeight = (6 * scale).rounded(.toNearestOrAwayFromZero)
             columnSpacing = max(3, (5 * scale).rounded(.toNearestOrAwayFromZero))
-            glyphSize = (14 * scale).rounded(.toNearestOrAwayFromZero)
-            glyphChrome = (26 * scale).rounded(.toNearestOrAwayFromZero)
         }
     }
 
@@ -145,6 +142,7 @@ private struct ReviewHistoryGrowthSkyline: View {
         let count: Int
         let maxCount: Int
         let metrics: SkylineMetrics
+        let dynamicTypeSize: DynamicTypeSize
         let onSelect: () -> Void
 
         private var barHeight: CGFloat {
@@ -178,23 +176,7 @@ private struct ReviewHistoryGrowthSkyline: View {
                     }
                     .frame(height: metrics.chartHeight)
 
-                    Image(ReviewRhythmFormatting.assetName(for: level))
-                        .renderingMode(.template)
-                        .resizable()
-                        .scaledToFit()
-                        .foregroundStyle(AppTheme.reviewRhythmIconTint)
-                        .frame(width: metrics.glyphSize, height: metrics.glyphSize)
-                        .frame(width: metrics.glyphChrome, height: metrics.glyphChrome)
-                        .background {
-                            Capsule(style: .continuous)
-                                .fill(AppTheme.reviewRhythmPillBackground(for: level))
-                        }
-                        .overlay {
-                            Capsule(style: .continuous)
-                                .strokeBorder(AppTheme.reviewRhythmPillBorder(for: level), lineWidth: 1)
-                        }
-                        .shadow(color: AppTheme.reviewRhythmPillShadow(for: level), radius: 3, x: 0, y: 1.2)
-                        .accessibilityHidden(true)
+                    ReviewGrowthStageSkylineGlyph(level: level, dynamicTypeSize: dynamicTypeSize)
 
                     Text("\(count)")
                         .font(AppTheme.warmPaperCaption)
@@ -361,9 +343,9 @@ private struct ReviewHistorySectionStrip: View {
                 )
                 HStack(spacing: spacing) {
                     ForEach(Array(segments.enumerated()), id: \.offset) { index, item in
-                        let fill = SectionDistributionPalette.fill(for: item.kind)
+                        let fill = ReviewSectionDistributionPalette.fill(for: item.kind)
                             .opacity(item.count > 0 ? 1 : 0.38)
-                        let border = SectionDistributionPalette.border(for: item.kind)
+                        let border = ReviewSectionDistributionPalette.border(for: item.kind)
                         Button {
                             onSelectSection(item.kind)
                         } label: {
@@ -407,11 +389,14 @@ private struct ReviewHistorySectionStrip: View {
                     } label: {
                         HStack(alignment: .firstTextBaseline, spacing: 8) {
                             Circle()
-                                .fill(SectionDistributionPalette.fill(for: item.kind))
+                                .fill(ReviewSectionDistributionPalette.fill(for: item.kind))
                                 .frame(width: 10, height: 10)
                                 .overlay {
                                     Circle()
-                                        .strokeBorder(SectionDistributionPalette.border(for: item.kind), lineWidth: 0.6)
+                                        .strokeBorder(
+                                            ReviewSectionDistributionPalette.border(for: item.kind),
+                                            lineWidth: 0.6
+                                        )
                                 }
                                 .accessibilityHidden(true)
                             Text(localizedSectionName(for: item.kind))
@@ -453,7 +438,7 @@ private struct ReviewHistorySectionStrip: View {
     }
 }
 
-private enum SectionDistributionPalette {
+enum ReviewSectionDistributionPalette {
     static func fill(for kind: ReviewStatsSectionKind) -> Color {
         switch kind {
         case .gratitudes:
@@ -511,7 +496,7 @@ private struct ReviewHistoryPanelUITestID: ViewModifier {
     }
 }
 
-private enum ReviewHistoryPanelLayoutScale {
+enum ReviewHistoryPanelLayoutScale {
     // Aligns with reflection rhythm column scaling.
     // swiftlint:disable:next cyclomatic_complexity
     static func skylineMetricsScale(for dynamicTypeSize: DynamicTypeSize) -> CGFloat {

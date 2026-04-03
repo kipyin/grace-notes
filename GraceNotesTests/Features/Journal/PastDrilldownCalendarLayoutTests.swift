@@ -10,6 +10,17 @@ final class PastDrilldownCalendarLayoutTests: XCTestCase {
         return cal
     }
 
+    /// Month banners in the feathered drill-down viewport must sit below the top fade so short
+    /// (single-month) grids stay legible.
+    func test_drilldownCalendarGrid_topScrollInset_coversTopFeatherBand() {
+        let viewport = ReviewHistoryDrilldownCalendarGrid.Metrics.scrollViewportHeight
+        let featherTop = viewport * ReviewHistoryDrilldownCalendarGrid.Metrics.featherOpaqueStartsAt
+        XCTAssertGreaterThanOrEqual(
+            ReviewHistoryDrilldownCalendarGrid.Metrics.scrollContentTopInset + 0.5,
+            featherTop
+        )
+    }
+
     func test_continuousRows_twoMonthSpan_insertsTwoBanners() {
         let cal = gregorianCalendar()
         let lower = cal.date(from: DateComponents(year: 2026, month: 1, day: 1))!
@@ -111,5 +122,118 @@ final class PastDrilldownCalendarLayoutTests: XCTestCase {
         }
         let leadingMon = firstWeekMon.prefix(while: { $0 == nil }).count
         XCTAssertEqual(leadingMon, 3)
+    }
+
+    func test_dayDisposition_matchedAndJournalNotMatchedAndEmpty() {
+        let cal = gregorianCalendar()
+        let rangeLower = cal.date(from: DateComponents(year: 2026, month: 1, day: 1))!
+        let rangeUpper = cal.date(from: DateComponents(year: 2026, month: 3, day: 1))!
+        let range = rangeLower ..< rangeUpper
+
+        let matchedDay = cal.date(from: DateComponents(year: 2026, month: 1, day: 10))!
+        let otherJournalDay = cal.date(from: DateComponents(year: 2026, month: 1, day: 11))!
+        let emptyDay = cal.date(from: DateComponents(year: 2026, month: 1, day: 12))!
+        let journalDays: Set<Date> = [
+            cal.startOfDay(for: matchedDay),
+            cal.startOfDay(for: otherJournalDay)
+        ]
+        let matching: Set<Date> = [cal.startOfDay(for: matchedDay)]
+
+        XCTAssertEqual(
+            ReviewHistoryDrilldownDayDisposition.resolve(
+                dayStart: cal.startOfDay(for: matchedDay),
+                historyDayRange: range,
+                journalDaysInHistoryWindow: journalDays,
+                matchingDayStarts: matching
+            ),
+            .matched
+        )
+        XCTAssertEqual(
+            ReviewHistoryDrilldownDayDisposition.resolve(
+                dayStart: cal.startOfDay(for: otherJournalDay),
+                historyDayRange: range,
+                journalDaysInHistoryWindow: journalDays,
+                matchingDayStarts: matching
+            ),
+            .journalDayNotMatched
+        )
+        XCTAssertEqual(
+            ReviewHistoryDrilldownDayDisposition.resolve(
+                dayStart: cal.startOfDay(for: emptyDay),
+                historyDayRange: range,
+                journalDaysInHistoryWindow: journalDays,
+                matchingDayStarts: matching
+            ),
+            .emptyHistoryDay
+        )
+    }
+
+    func test_dayDisposition_outsideHistoryWindow() {
+        let cal = gregorianCalendar()
+        let rangeLower = cal.date(from: DateComponents(year: 2026, month: 2, day: 1))!
+        let rangeUpper = cal.date(from: DateComponents(year: 2026, month: 3, day: 1))!
+        let range = rangeLower ..< rangeUpper
+        let paddingDay = cal.date(from: DateComponents(year: 2026, month: 1, day: 20))!
+
+        XCTAssertEqual(
+            ReviewHistoryDrilldownDayDisposition.resolve(
+                dayStart: cal.startOfDay(for: paddingDay),
+                historyDayRange: range,
+                journalDaysInHistoryWindow: [],
+                matchingDayStarts: []
+            ),
+            .outsideHistoryWindow
+        )
+    }
+
+    func test_weekRowIdContaining_findsWeekForDay() {
+        let cal = gregorianCalendar()
+        let lower = cal.date(from: DateComponents(year: 2026, month: 1, day: 1))!
+        let upper = cal.date(from: DateComponents(year: 2026, month: 2, day: 1))!
+        let rows = ReviewHistoryDrilldownCalendarLayout.continuousRows(displayRange: lower ..< upper, calendar: cal)
+        let midJanuary = cal.date(from: DateComponents(year: 2026, month: 1, day: 15))!
+        let rowId = ReviewHistoryDrilldownCalendarLayout.weekRowIdContaining(
+            dayStart: midJanuary,
+            rows: rows,
+            calendar: cal
+        )
+        XCTAssertNotNil(rowId)
+        XCTAssertTrue(rowId?.hasPrefix("week-") == true)
+    }
+
+    func test_weekRowIdContaining_returnsNilWhenDayOutsideGrid() {
+        let cal = gregorianCalendar()
+        let lower = cal.date(from: DateComponents(year: 2026, month: 1, day: 1))!
+        let upper = cal.date(from: DateComponents(year: 2026, month: 1, day: 8))!
+        let rows = ReviewHistoryDrilldownCalendarLayout.continuousRows(displayRange: lower ..< upper, calendar: cal)
+        let outside = cal.date(from: DateComponents(year: 2026, month: 3, day: 1))!
+        XCTAssertNil(
+            ReviewHistoryDrilldownCalendarLayout.weekRowIdContaining(dayStart: outside, rows: rows, calendar: cal)
+        )
+    }
+
+    func test_sectionChipCountByMatchedDays_prefersFirstContributingRow() {
+        let cal = gregorianCalendar()
+        let day = cal.date(from: DateComponents(year: 2026, month: 4, day: 1))!
+        let dayStart = cal.startOfDay(for: day)
+        let threeGratitudes = (0..<3).map { Entry(fullText: "\($0)") }
+        let newer = Journal(entryDate: day, gratitudes: threeGratitudes, needs: [], people: [])
+        let older = Journal(entryDate: day, gratitudes: [Entry(fullText: "solo")], needs: [], people: [])
+
+        let countsNewestFirst = ReviewHistoryWindowing.sectionChipCountByMatchedDays(
+            section: .gratitudes,
+            matchingDayStarts: [dayStart],
+            contributingEntriesNewestFirst: [newer, older],
+            calendar: cal
+        )
+        XCTAssertEqual(countsNewestFirst[dayStart], 3)
+
+        let countsOlderFirst = ReviewHistoryWindowing.sectionChipCountByMatchedDays(
+            section: .gratitudes,
+            matchingDayStarts: [dayStart],
+            contributingEntriesNewestFirst: [older, newer],
+            calendar: cal
+        )
+        XCTAssertEqual(countsOlderFirst[dayStart], 1)
     }
 }
