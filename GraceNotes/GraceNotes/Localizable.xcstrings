@@ -1875,7 +1875,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "该文件看起来不是 Grace Notes 的导出格式。"
+            "value": "该文件看起来不是感恩记的导出格式。"
           }
         }
       }
@@ -1987,7 +1987,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "导出 JSON 备份"
+            "value": "导出备份（JSON）"
           }
         }
       }
@@ -2003,7 +2003,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "导入 JSON 备份"
+            "value": "导入备份（JSON）"
           }
         }
       }
@@ -2099,7 +2099,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "最近导出"
+            "value": "最近一次导出"
           }
         }
       }
@@ -2115,7 +2115,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看导出历史"
+            "value": "查看全部导出记录"
           }
         }
       }
@@ -2131,7 +2131,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请先在“定时备份”中选择备份文件夹。"
+            "value": "请先在「自动备份」里选好备份文件夹。"
           }
         }
       }
@@ -2163,7 +2163,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "定时备份"
+            "value": "自动备份"
           }
         }
       }
@@ -2211,7 +2211,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "定时备份"
+            "value": "自动备份"
           }
         }
       }
@@ -2371,7 +2371,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "超过间隔后，在你下次打开应用时导出。请在“文件”或 iCloud 云盘中选择文件夹。从备份文件夹导入将使用同一位置。"
+            "value": "间隔到了以后，会在你下次打开 App 时自动导出。在「文件」或 iCloud 里选一个文件夹即可；从备份文件夹导入也用这里。"
           }
         }
       }
@@ -2387,7 +2387,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无法写入定时备份"
+            "value": "无法写入自动备份"
           }
         }
       }
@@ -2451,7 +2451,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "备份 JSON 文件"
+            "value": "JSON 备份文件"
           }
         }
       }
@@ -2467,7 +2467,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此文件夹中未找到 JSON 备份。"
+            "value": "这个文件夹里还没有 JSON 备份。"
           }
         }
       }
@@ -2483,7 +2483,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请先选择备份文件夹，或在“定时备份”中重新选择文件夹。"
+            "value": "请先选好备份文件夹，或在「自动备份」里重新选择。"
           }
         }
       }
@@ -2563,7 +2563,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "保留仅在本机存在的日记日。若同一天在设备与文件中内容不同，你需要选择保留哪一侧。"
+            "value": "会保留只存在于本机的日期。若某天在本机和备份文件里内容不同，需要你选择保留哪一边。"
           }
         }
       }
@@ -2579,7 +2579,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "删除文件中没有的本地日记日，然后按文件应用每一天。"
+            "value": "会删掉文件里没有的本机日期，再按文件写入每一天。"
           }
         }
       }
@@ -2627,7 +2627,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "冲突使用备份"
+            "value": "冲突以备份为准"
           }
         }
       }

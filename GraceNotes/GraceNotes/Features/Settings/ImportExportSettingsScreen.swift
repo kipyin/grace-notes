@@ -1,6 +1,5 @@
 import SwiftUI
 import SwiftData
-import UniformTypeIdentifiers
 
 // Large settings surface: export/import flows, sheets, and history.
 // Split further cautiously to avoid navigation breakages.
@@ -56,7 +55,8 @@ struct ImportExportSettingsScreen: View {
     }
 
     var body: some View {
-        List {
+        ZStack {
+            List {
             Section {
                 Button {
                     exportJournalData()
@@ -169,11 +169,47 @@ struct ImportExportSettingsScreen: View {
                     .foregroundStyle(AppTheme.settingsTextMuted)
                     .textCase(nil)
             }
+            }
+            .navigationTitle(String(localized: "DataPrivacy.importExport.title"))
+            .listRowBackground(AppTheme.settingsPaper.opacity(0.9))
+            .scrollContentBackground(.hidden)
+            .background(AppTheme.settingsBackground)
+
+            JSONImportFileImporterAnchor(isPresented: $showImportPicker) { result in
+                switch result {
+                case .success(let urls):
+                    guard let url = urls.first else { return }
+                    pendingImportURL = url
+                    importMode = .merge
+                    showImportReview = true
+                case .failure:
+                    importErrorMessage = String(localized: "DataPrivacy.import.error.readFailed")
+                    showImportError = true
+                }
+            }
+
+            ScheduledFolderFileImporterAnchor(isPresented: $showScheduledFolderPicker) { result in
+                switch result {
+                case .success(let urls):
+                    guard let url = urls.first else { return }
+                    let accessed = url.startAccessingSecurityScopedResource()
+                    defer {
+                        if accessed {
+                            url.stopAccessingSecurityScopedResource()
+                        }
+                    }
+                    do {
+                        try ScheduledBackupPreferences.storeFolderBookmark(for: url)
+                    } catch {
+                        scheduledFolderError = String(localized: "DataPrivacy.scheduledBackup.folderError")
+                        showScheduledFolderError = true
+                    }
+                case .failure:
+                    scheduledFolderError = String(localized: "DataPrivacy.scheduledBackup.folderError")
+                    showScheduledFolderError = true
+                }
+            }
         }
-        .navigationTitle(String(localized: "DataPrivacy.importExport.title"))
-        .listRowBackground(AppTheme.settingsPaper.opacity(0.9))
-        .scrollContentBackground(.hidden)
-        .background(AppTheme.settingsBackground)
         .onAppear {
             refreshHistory()
             scheduledInterval = ScheduledBackupPreferences.interval
@@ -191,47 +227,6 @@ struct ImportExportSettingsScreen: View {
             Button(String(localized: "OK"), role: .cancel) {}
         } message: {
             Text(exportErrorMessage ?? String(localized: "Please try again."))
-        }
-        .fileImporter(
-            isPresented: $showImportPicker,
-            allowedContentTypes: [.json],
-            allowsMultipleSelection: false
-        ) { result in
-            switch result {
-            case .success(let urls):
-                guard let url = urls.first else { return }
-                pendingImportURL = url
-                importMode = .merge
-                showImportReview = true
-            case .failure:
-                importErrorMessage = String(localized: "DataPrivacy.import.error.readFailed")
-                showImportError = true
-            }
-        }
-        .fileImporter(
-            isPresented: $showScheduledFolderPicker,
-            allowedContentTypes: [.folder],
-            allowsMultipleSelection: false
-        ) { result in
-            switch result {
-            case .success(let urls):
-                guard let url = urls.first else { return }
-                let accessed = url.startAccessingSecurityScopedResource()
-                defer {
-                    if accessed {
-                        url.stopAccessingSecurityScopedResource()
-                    }
-                }
-                do {
-                    try ScheduledBackupPreferences.storeFolderBookmark(for: url)
-                } catch {
-                    scheduledFolderError = String(localized: "DataPrivacy.scheduledBackup.folderError")
-                    showScheduledFolderError = true
-                }
-            case .failure:
-                scheduledFolderError = String(localized: "DataPrivacy.scheduledBackup.folderError")
-                showScheduledFolderError = true
-            }
         }
         .alert(String(localized: "DataPrivacy.import.mergeConflict.title"), isPresented: $showMergeConflictResolution) {
             Button(String(localized: "DataPrivacy.import.mergeConflict.useBackup")) {

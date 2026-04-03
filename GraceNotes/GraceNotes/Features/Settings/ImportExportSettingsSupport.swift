@@ -1,4 +1,38 @@
 import SwiftUI
+import UniformTypeIdentifiers
+
+/// iOS combines multiple `fileImporter` modifiers on one view; host each importer on its own minimal view.
+struct JSONImportFileImporterAnchor: View {
+    @Binding var isPresented: Bool
+    var onComplete: (Result<[URL], Error>) -> Void
+
+    var body: some View {
+        Color.clear
+            .frame(width: 0, height: 0)
+            .fileImporter(
+                isPresented: $isPresented,
+                allowedContentTypes: [.json],
+                allowsMultipleSelection: false,
+                onCompletion: onComplete
+            )
+    }
+}
+
+struct ScheduledFolderFileImporterAnchor: View {
+    @Binding var isPresented: Bool
+    var onComplete: (Result<[URL], Error>) -> Void
+
+    var body: some View {
+        Color.clear
+            .frame(width: 0, height: 0)
+            .fileImporter(
+                isPresented: $isPresented,
+                allowedContentTypes: [.folder],
+                allowsMultipleSelection: false,
+                onCompletion: onComplete
+            )
+    }
+}
 
 struct BackupFolderLinkHint: ViewModifier {
     let showDisabledHint: Bool
