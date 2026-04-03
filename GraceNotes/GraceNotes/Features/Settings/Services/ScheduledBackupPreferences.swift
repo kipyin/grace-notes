@@ -31,6 +31,7 @@ enum ScheduledBackupInterval: String, CaseIterable, Codable {
 enum ScheduledBackupPreferences {
     private static let intervalKey = "ScheduledBackup.intervalRaw"
     private static let bookmarkKey = "ScheduledBackup.folderBookmark"
+    private static let folderDisplayNameKey = "ScheduledBackup.folderDisplayName"
     private static let lastRunKey = "ScheduledBackup.lastRunAt"
 
     static var interval: ScheduledBackupInterval {
@@ -51,6 +52,22 @@ enum ScheduledBackupPreferences {
         set { UserDefaults.standard.set(newValue, forKey: bookmarkKey) }
     }
 
+    /// Best-effort folder title from the last successful folder pick (`lastPathComponent`).
+    static var folderDisplayName: String? {
+        get {
+            let value = UserDefaults.standard.string(forKey: folderDisplayNameKey)?
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            return (value?.isEmpty == false) ? value : nil
+        }
+        set {
+            if let newValue, !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                UserDefaults.standard.set(newValue, forKey: folderDisplayNameKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: folderDisplayNameKey)
+            }
+        }
+    }
+
     static var lastRunAt: Date? {
         get { UserDefaults.standard.object(forKey: lastRunKey) as? Date }
         set { UserDefaults.standard.set(newValue, forKey: lastRunKey) }
@@ -63,6 +80,10 @@ enum ScheduledBackupPreferences {
             relativeTo: nil
         )
         folderBookmarkData = data
+        let name = url.lastPathComponent.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !name.isEmpty {
+            folderDisplayName = name
+        }
     }
 
     static func resolveFolderURL() throws -> URL {
