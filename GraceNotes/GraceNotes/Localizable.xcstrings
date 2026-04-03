@@ -2088,6 +2088,54 @@
         }
       }
     },
+    "DataPrivacy.importExport.latestExport.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest export"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近导出"
+          }
+        }
+      }
+    },
+    "DataPrivacy.importExport.history.viewAll": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View export history"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看导出历史"
+          }
+        }
+      }
+    },
+    "DataPrivacy.importExport.backupFolder.disabledHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a backup folder in Scheduled backup first."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先在“定时备份”中选择备份文件夹。"
+          }
+        }
+      }
+    },
     "DataPrivacy.importExport.history.kind.manual": {
       "localizations": {
         "en": {
@@ -2276,6 +2324,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "选择备份文件夹"
+          }
+        }
+      }
+    },
+    "DataPrivacy.scheduledBackup.folderLabel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Folder"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件夹"
+          }
+        }
+      }
+    },
+    "DataPrivacy.scheduledBackup.folderAccessibilityFormat": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup folder, %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备份文件夹：%@"
           }
         }
       }
