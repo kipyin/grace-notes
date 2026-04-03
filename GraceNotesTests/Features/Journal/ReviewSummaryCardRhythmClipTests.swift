@@ -44,7 +44,8 @@ final class ReviewSummaryCardRhythmClipTests: XCTestCase {
         XCTAssertEqual(calendar.startOfDay(for: days[1].date), calendar.startOfDay(for: dayMarch11))
         XCTAssertEqual(calendar.startOfDay(for: days[2].date), calendar.startOfDay(for: dayMarch12))
         XCTAssertEqual(interval.lowerBound, calendar.startOfDay(for: dayMarch10))
-        guard let endExclusive = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: dayMarch12)) else {
+        let march12Start = calendar.startOfDay(for: dayMarch12)
+        guard let endExclusive = calendar.date(byAdding: .day, value: 1, to: march12Start) else {
             XCTFail("expected end")
             return
         }

@@ -220,7 +220,9 @@ final class JournalDataImportServiceTests: XCTestCase {
         XCTAssertEqual(entry.id, exportId)
         XCTAssertEqual((entry.gratitudes ?? []).map(\.fullText), ["One"])
     }
+}
 
+extension JournalDataImportServiceTests {
     func test_import_updatesExisting_keepsExistingId() throws {
         let controller = try PersistenceController.makeInMemoryForTesting()
         let context = ModelContext(controller.container)
@@ -288,7 +290,9 @@ final class JournalDataImportServiceTests: XCTestCase {
         XCTAssertEqual((entry.gratitudes ?? []).first?.fullText, "G1")
         XCTAssertEqual((entry.gratitudes ?? []).last?.fullText, "G5")
     }
+}
 
+extension JournalDataImportServiceTests {
     private func encodeArchive(_ archive: JournalDataExportArchive) throws -> Data {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601

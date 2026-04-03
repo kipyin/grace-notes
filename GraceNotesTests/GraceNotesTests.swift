@@ -215,7 +215,9 @@ final class JournalScreenEntryHandlingTests: XCTestCase {
         XCTAssertEqual(input, "")
         XCTAssertNil(editingIndex)
     }
+}
 
+extension JournalScreenEntryHandlingTests {
     func test_performEntryTap_withEmptyInlineEdit_opensTappedStripAfterDelete() {
         var input = "  \n"
         var editingIndex: Int? = 0

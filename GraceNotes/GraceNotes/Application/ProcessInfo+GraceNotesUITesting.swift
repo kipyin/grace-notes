@@ -12,7 +12,7 @@ extension ProcessInfo {
         return isUITestBundle || hasUITestLaunchArgument
     }
 
-    static var graceNotesUITestRequestsWideReviewRhythmSeed: Bool {
+    static var graceNotesUITestWideReviewRhythmSeed: Bool {
         processInfo.arguments.contains(Self.graceNotesUITestWideReviewRhythmArgument)
     }
 }

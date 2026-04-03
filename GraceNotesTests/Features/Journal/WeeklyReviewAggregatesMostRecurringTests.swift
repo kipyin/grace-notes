@@ -12,7 +12,9 @@ final class WeeklyReviewAggregatesMostRecurringTests: XCTestCase {
         calendar.firstWeekday = 1 // Sunday
         builder = WeeklyReviewAggregatesBuilder()
     }
+}
 
+extension WeeklyReviewAggregatesMostRecurringTests {
     func test_buildThemeSections_mostRecurringUsesCustomFourWeekWindowAndMinimumSignals() throws {
         let referenceDate = date(year: 2026, month: 3, day: 18)
         let period = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
@@ -254,7 +256,9 @@ final class WeeklyReviewAggregatesMostRecurringTests: XCTestCase {
 
         XCTAssertFalse(recurring.contains(where: { $0.label == "Work" }))
     }
+}
 
+extension WeeklyReviewAggregatesMostRecurringTests {
     func test_mostRecurringBrowseWindow_keepsPeopleEvidenceAlignedWithReviewCalendar() throws {
         let referenceDate = date(year: 2026, month: 3, day: 30)
         let period = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)

@@ -2,7 +2,7 @@ import Foundation
 import NaturalLanguage
 
 struct WeeklyInsightTextNormalizer {
-    private let conceptEngine = ReviewThemeConceptEngine(map: .v1)
+    private let conceptEngine = ReviewThemeConceptEngine(map: ReviewCuratedThemeMap.defaultMap)
 
     func extractThemesFromText(_ text: String) -> [String] {
         distillConcepts(from: text, source: .reflections).map(\.displayLabel)
@@ -97,171 +97,7 @@ struct ReviewDistilledConcept: Equatable, Hashable, Sendable {
     let score: Int
 }
 
-private struct ReviewCuratedThemeMap {
-    let globalAliases: [String: String]
-    let sectionOverrides: [ReviewThemeSourceCategory: [String: String]]
-    let hardBannedConcepts: Set<String>
-    let penalizedConcepts: Set<String>
-    let crossLanguageAliases: [String: String]
-    let canonicalDisplayLabels: [String: String]
-
-    static let v1 = ReviewCuratedThemeMap(
-        globalAliases: [
-            "sleep": "sleep",
-            "better sleep": "sleep",
-            "slept": "sleep",
-            "rest": "rest",
-            "recover": "rest",
-            "recovery": "rest",
-            "downtime": "rest",
-            "quiet": "quiet time",
-            "quiet time": "quiet time",
-            "stillness": "quiet time",
-            "calm": "calm",
-            "peace": "calm",
-            "focused": "focus",
-            "focus": "focus",
-            "concentration": "focus",
-            "boundaries": "boundaries",
-            "boundary": "boundaries",
-            "time boundaries": "boundaries",
-            "exercise": "movement",
-            "workout": "movement",
-            "training": "movement",
-            "walk": "walking",
-            "walking": "walking",
-            "morning walk": "walking",
-            "walks": "walking",
-            "run": "movement",
-            "running": "movement",
-            "stretching": "movement",
-            "scripture": "scripture",
-            "bible": "scripture",
-            "devotional": "scripture",
-            "family dinner": "family connection",
-            "family time": "family connection",
-            "time with family": "family connection",
-            "friends": "friendship",
-            "friend": "friendship",
-            "friendship": "friendship",
-            "partner": "partner connection",
-            "husband": "partner connection",
-            "wife": "partner connection",
-            "spouse": "partner connection",
-            "parenting": "parenting",
-            "kids": "parenting",
-            "children": "parenting",
-            "work stress": "work pressure",
-            "work pressure": "work pressure",
-            "busy at work": "work pressure",
-            "finances": "financial pressure",
-            "money stress": "financial pressure",
-            "budget": "financial pressure",
-            "home chores": "home care",
-            "house chores": "home care",
-            "cleaning": "home care",
-            "meal prep": "home care",
-            "therapy": "therapy",
-            "counseling": "therapy",
-            "nature": "nature",
-            "sunlight": "nature",
-            "outside": "nature",
-            "reading": "learning",
-            "study": "learning",
-            "learning": "learning",
-            "creative work": "creativity",
-            "writing": "creativity",
-            "drawing": "creativity"
-        ],
-        sectionOverrides: [
-            .needs: [
-                "time alone": "personal time",
-                "alone time": "personal time",
-                "quiet morning": "quiet time",
-                "less pressure": "work pressure",
-                "space to breathe": "calm",
-                "clear priorities": "focus"
-            ],
-            .gratitudes: [
-                "good weather": "nature",
-                "sunny weather": "nature",
-                "warm sunlight": "nature",
-                "my routine": "daily rhythm",
-                "morning routine": "daily rhythm"
-            ],
-            .people: [
-                "mom": "mom",
-                "mother": "mom",
-                "mama": "mom",
-                "dad": "dad",
-                "father": "dad",
-                "爸": "dad",
-                "妈妈": "mom",
-                "爸爸": "dad"
-            ]
-        ],
-        hardBannedConcepts: [
-            "today", "this week", "week", "thing", "things", "stuff", "something", "anything",
-            "nothing", "life", "moment", "moments", "reflection", "reflections", "entry",
-            "journal", "note", "notes", "feeling", "feelings",
-            "need", "needs", "needed",
-            "gratitude", "grateful", "thankful", "thankfulness", "thanks", "gratitude practice",
-            "pray", "prayer", "praying", "prayed",
-            "感恩", "祷告"
-        ],
-        penalizedConcepts: [
-            "work", "family", "health", "relationship", "home", "time", "people"
-        ],
-        crossLanguageAliases: [
-            "睡眠": "sleep",
-            "休息": "rest",
-            "安静": "quiet time",
-            "平静": "calm",
-            "专注": "focus",
-            "边界": "boundaries",
-            "散步": "walking",
-            "运动": "movement",
-            "圣经": "scripture",
-            "家人": "family connection",
-            "朋友": "friendship",
-            "伴侣": "partner connection",
-            "育儿": "parenting",
-            "工作压力": "work pressure",
-            "财务压力": "financial pressure",
-            "家务": "home care",
-            "大自然": "nature",
-            "学习": "learning",
-            "创造": "creativity"
-        ],
-        canonicalDisplayLabels: [
-            "sleep": "Sleep",
-            "rest": "Rest",
-            "quiet time": "Quiet time",
-            "calm": "Calm",
-            "focus": "Focus",
-            "boundaries": "Boundaries",
-            "movement": "Exercise",
-            "walking": "Walking",
-            "scripture": "Scripture",
-            "family connection": "Family connection",
-            "friendship": "Friendship",
-            "partner connection": "Partner connection",
-            "parenting": "Parenting",
-            "work pressure": "Work pressure",
-            "financial pressure": "Financial pressure",
-            "home care": "Home care",
-            "therapy": "Therapy",
-            "nature": "Nature",
-            "learning": "Learning",
-            "creativity": "Creativity",
-            "personal time": "Personal time",
-            "daily rhythm": "Daily rhythm",
-            "mom": "Mom",
-            "dad": "Dad"
-        ]
-    )
-}
-
+// swiftlint:disable type_body_length
 private struct ReviewThemeConceptEngine {
     /// Caps phrase n-gram mining so long chip text does not emit sentence-sized “themes.”
     private static let maxWordsForPhraseMining = 20
@@ -280,6 +116,7 @@ private struct ReviewThemeConceptEngine {
         self.map = map
     }
 
+    // swiftlint:disable:next cyclomatic_complexity function_body_length
     func distillConcepts(
         from text: String,
         source: ReviewThemeSourceCategory,
@@ -385,6 +222,7 @@ private struct ReviewThemeConceptEngine {
         }
     }
 
+    // swiftlint:disable:next cyclomatic_complexity
     private func deterministicCandidates(
         from text: String,
         normalizedSurface: String
@@ -600,3 +438,4 @@ private struct ReviewThemeConceptEngine {
         Self.stopWords.contains(normalizedToken)
     }
 }
+// swiftlint:enable type_body_length
