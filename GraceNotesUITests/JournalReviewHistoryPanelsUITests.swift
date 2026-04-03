@@ -28,13 +28,23 @@ final class JournalReviewHistoryPanelsUITests: XCTestCase {
             growth.waitForExistence(timeout: 15),
             "Expected Growth stages panel UITest identifier."
         )
+        // On small phones (e.g. SE), the distribution card can start below the first viewport; nudge the scroll view.
+        if !distribution.waitForExistence(timeout: 2) {
+            for _ in 0..<8 {
+                app.swipeUp()
+                if distribution.waitForExistence(timeout: 1) { break }
+            }
+        }
         XCTAssertTrue(
-            distribution.waitForExistence(timeout: 15),
+            distribution.waitForExistence(timeout: 5),
             "Expected section distribution panel UITest identifier."
         )
         let sectionCardTitle = app.staticTexts.matching(
             NSPredicate(format: "label == %@", "Section mix")
         ).firstMatch
-        XCTAssertTrue(sectionCardTitle.exists, "Expected Section mix card title on Past.")
+        if !sectionCardTitle.waitForExistence(timeout: 2) {
+            app.swipeUp()
+        }
+        XCTAssertTrue(sectionCardTitle.waitForExistence(timeout: 5), "Expected Section mix card title on Past.")
     }
 }
