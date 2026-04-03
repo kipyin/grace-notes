@@ -343,9 +343,9 @@ private struct ReviewHistorySectionStrip: View {
                 )
                 HStack(spacing: spacing) {
                     ForEach(Array(segments.enumerated()), id: \.offset) { index, item in
-                        let fill = SectionDistributionPalette.fill(for: item.kind)
+                        let fill = ReviewSectionDistributionPalette.fill(for: item.kind)
                             .opacity(item.count > 0 ? 1 : 0.38)
-                        let border = SectionDistributionPalette.border(for: item.kind)
+                        let border = ReviewSectionDistributionPalette.border(for: item.kind)
                         Button {
                             onSelectSection(item.kind)
                         } label: {
@@ -389,11 +389,14 @@ private struct ReviewHistorySectionStrip: View {
                     } label: {
                         HStack(alignment: .firstTextBaseline, spacing: 8) {
                             Circle()
-                                .fill(SectionDistributionPalette.fill(for: item.kind))
+                                .fill(ReviewSectionDistributionPalette.fill(for: item.kind))
                                 .frame(width: 10, height: 10)
                                 .overlay {
                                     Circle()
-                                        .strokeBorder(SectionDistributionPalette.border(for: item.kind), lineWidth: 0.6)
+                                        .strokeBorder(
+                                            ReviewSectionDistributionPalette.border(for: item.kind),
+                                            lineWidth: 0.6
+                                        )
                                 }
                                 .accessibilityHidden(true)
                             Text(localizedSectionName(for: item.kind))
@@ -435,7 +438,7 @@ private struct ReviewHistorySectionStrip: View {
     }
 }
 
-private enum SectionDistributionPalette {
+enum ReviewSectionDistributionPalette {
     static func fill(for kind: ReviewStatsSectionKind) -> Color {
         switch kind {
         case .gratitudes:

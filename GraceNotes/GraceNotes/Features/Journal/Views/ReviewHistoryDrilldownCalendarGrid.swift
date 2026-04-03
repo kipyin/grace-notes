@@ -34,6 +34,10 @@ struct ReviewHistoryDrilldownCalendarGrid: View {
     enum Metrics {
         /// Roughly 1.5 months of vertical space for the scrolling region (issue #186).
         static let scrollViewportHeight: CGFloat = 396
+        /// Keeps the last week row clear of the bottom feather when scrolled to the end.
+        static let scrollContentBottomInset: CGFloat = 36
+        /// Avoid y: 1 — it pins the week row into the bottom feather on first layout; lower-mid band stays clear.
+        static let scrollLatestMatchAnchor = UnitPoint(x: 0.5, y: 0.56)
     }
 
     let matchingDayStarts: Set<Date>
@@ -103,6 +107,7 @@ struct ReviewHistoryDrilldownCalendarGrid: View {
                             .id(row.id)
                         }
                     }
+                    .padding(.bottom, Metrics.scrollContentBottomInset)
                 }
                 .frame(maxHeight: Metrics.scrollViewportHeight)
                 .mask(calendarDayFeatherMask)
@@ -124,10 +129,11 @@ struct ReviewHistoryDrilldownCalendarGrid: View {
             return
         }
         func scroll() {
-            proxy.scrollTo(rowId, anchor: UnitPoint(x: 0.5, y: 1.0))
+            proxy.scrollTo(rowId, anchor: Metrics.scrollLatestMatchAnchor)
         }
         DispatchQueue.main.async(execute: scroll)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.12, execute: scroll)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.24, execute: scroll)
     }
 
     private func calendarWeekRow(cells: [Date?]) -> some View {
@@ -151,8 +157,14 @@ struct ReviewHistoryDrilldownCalendarGrid: View {
             let dayNumber = calendar.component(.day, from: dayStart)
             let dateSpeech = dayStart.formatted(date: .complete, time: .omitted)
 
-            switch disposition {
-            case .matched:
+            if disposition == .outsideHistoryWindow {
+                matchedDayLabel(dayNumber: dayNumber, dayStart: dayStart, disposition: disposition)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(
+                        nonMatchedAccessibilityLabel(dateSpeech: dateSpeech, disposition: disposition)
+                    )
+                    .accessibilityHint(nonMatchedAccessibilityHint(disposition: disposition))
+            } else {
                 Button {
                     onMatchingDaySelected(dayStart)
                 } label: {
@@ -163,15 +175,8 @@ struct ReviewHistoryDrilldownCalendarGrid: View {
                     )
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(matchedAccessibilityLabel(dateSpeech: dateSpeech))
+                .accessibilityLabel(dayCellAccessibilityLabel(dateSpeech: dateSpeech, disposition: disposition))
                 .accessibilityHint(String(localized: "ThemeDrilldown.openEntry.a11yHint"))
-            default:
-                matchedDayLabel(dayNumber: dayNumber, dayStart: dayStart, disposition: disposition)
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(
-                        nonMatchedAccessibilityLabel(dateSpeech: dateSpeech, disposition: disposition)
-                    )
-                    .accessibilityHint(nonMatchedAccessibilityHint(disposition: disposition))
             }
         } else {
             Color.clear
@@ -188,20 +193,13 @@ struct ReviewHistoryDrilldownCalendarGrid: View {
     ) -> some View {
         let stripCount = sectionStripChipCountsByDay?[dayStart]
         let growthLevel = growthStageForMatchedDays
-        let showGrowthChrome = disposition == .matched && growthLevel != nil
         let showSectionStrip = disposition == .matched && stripCount != nil
 
         VStack(spacing: 4) {
-            HStack(spacing: 4) {
-                Text("\(dayNumber)")
-                    .monospacedDigit()
-                    .font(textFont(disposition: disposition, matched: disposition == .matched))
-                    .foregroundStyle(textColor(disposition: disposition))
-
-                if showGrowthChrome, let level = growthLevel {
-                    ReviewGrowthStageSkylineGlyph(calendarDayCellLevel: level)
-                }
-            }
+            Text("\(dayNumber)")
+                .monospacedDigit()
+                .font(textFont(disposition: disposition, matched: disposition == .matched))
+                .foregroundStyle(textColor(disposition: disposition))
 
             if showSectionStrip, let stripCount {
                 ReviewHistorySectionStripDots(filledCount: stripCount)
@@ -305,11 +303,17 @@ struct ReviewHistoryDrilldownCalendarGrid: View {
         return AppTheme.reviewRhythmPillShadow(for: level)
     }
 
-    private func matchedAccessibilityLabel(dateSpeech: String) -> String {
-        String(
-            format: String(localized: "PastDrilldown.calendarDay.a11y.matchedFormat"),
-            dateSpeech
-        )
+    private func dayCellAccessibilityLabel(
+        dateSpeech: String,
+        disposition: ReviewHistoryDrilldownDayDisposition
+    ) -> String {
+        if disposition == .matched {
+            return String(
+                format: String(localized: "PastDrilldown.calendarDay.a11y.matchedFormat"),
+                dateSpeech
+            )
+        }
+        return nonMatchedAccessibilityLabel(dateSpeech: dateSpeech, disposition: disposition)
     }
 
     private func nonMatchedAccessibilityLabel(

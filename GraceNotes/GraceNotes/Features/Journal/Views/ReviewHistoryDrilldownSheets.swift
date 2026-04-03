@@ -159,10 +159,10 @@ private struct GrowthStageDrilldownSheet: View {
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     HStack(spacing: 10) {
+                        ReviewGrowthStageSkylineGlyph(level: level, dynamicTypeSize: dynamicTypeSize)
                         Text(growthStageDisplayTitle(for: level))
                             .font(AppTheme.warmPaperBody.weight(.semibold))
                             .foregroundStyle(AppTheme.reviewTextPrimary)
-                        ReviewGrowthStageSkylineGlyph(level: level, dynamicTypeSize: dynamicTypeSize)
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
@@ -307,19 +307,25 @@ private struct SectionEntriesDrilldownSheet: View {
                         .padding(.vertical, 4)
                     }
                     .scrollContentBackground(.hidden)
-                    .navigationDestination(item: $journalNavigationDay) { item in
-                        JournalScreen(entryDate: item.date)
-                    }
                 }
             }
             .background(AppTheme.reviewBackground)
-            .navigationTitle(localizedSectionTitle(for: section))
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text(localizedSectionTitle(for: section))
+                        .font(AppTheme.warmPaperBody.weight(.semibold))
+                        .foregroundStyle(AppTheme.reviewTextPrimary)
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(String(localized: "Done")) {
                         dismiss()
                     }
                 }
+            }
+            .navigationDestination(item: $journalNavigationDay) { item in
+                JournalScreen(entryDate: item.date)
             }
         }
     }
