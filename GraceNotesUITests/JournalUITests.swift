@@ -105,7 +105,7 @@ final class JournalUITests: XCTestCase {
     private func addGratitude(_ text: String, in app: XCUIApplication) {
         submitEntry(
             fieldIdentifier: "Gratitude 1",
-            stripIdentifier: "JournalGratitudeStrip.0",
+            stripIdentifier: "JournalGratitudeEntry.0",
             addButtonIdentifier: "JournalSectionAdd.gratitude",
             text: text,
             in: app
@@ -116,7 +116,7 @@ final class JournalUITests: XCTestCase {
     private func addNeed(_ text: String, in app: XCUIApplication) {
         submitEntry(
             fieldIdentifier: "Need 1",
-            stripIdentifier: "JournalNeedStrip.0",
+            stripIdentifier: "JournalNeedEntry.0",
             addButtonIdentifier: "JournalSectionAdd.need",
             text: text,
             in: app
@@ -127,7 +127,7 @@ final class JournalUITests: XCTestCase {
     private func addPerson(_ text: String, in app: XCUIApplication) {
         submitEntry(
             fieldIdentifier: "Person 1",
-            stripIdentifier: "JournalPersonStrip.0",
+            stripIdentifier: "JournalPersonEntry.0",
             addButtonIdentifier: "JournalSectionAdd.person",
             text: text,
             in: app
@@ -141,7 +141,7 @@ final class JournalUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Gratitudes"].waitForExistence(timeout: 5))
         addGratitude("Thankful for family", in: app)
         waitForDebouncedJournalSave()
-        let gratitudeStrip = app.buttons["JournalGratitudeStrip.0"]
+        let gratitudeStrip = app.buttons["JournalGratitudeEntry.0"]
         XCTAssertTrue(
             gratitudeStrip.waitForExistence(timeout: 12),
             "Expected submitted gratitude strip before relaunch."
@@ -156,7 +156,7 @@ final class JournalUITests: XCTestCase {
         )
 
         XCTAssertTrue(
-            app.buttons["JournalGratitudeStrip.0"].waitForExistence(timeout: 12),
+            app.buttons["JournalGratitudeEntry.0"].waitForExistence(timeout: 12),
             "Expected gratitude to persist across relaunch."
         )
     }
@@ -237,7 +237,7 @@ final class JournalUITests: XCTestCase {
         }
 
         XCTAssertTrue(
-            app.buttons["JournalGratitudeStrip.1"].waitForExistence(timeout: 8),
+            app.buttons["JournalGratitudeEntry.1"].waitForExistence(timeout: 8),
             "Expected active draft to submit into a new strip."
         )
     }
@@ -255,7 +255,7 @@ final class JournalUITests: XCTestCase {
         gratitudeField.typeText("First gratitude entry\n")
 
         XCTAssertTrue(
-            app.buttons["JournalGratitudeStrip.0"].waitForExistence(timeout: 8),
+            app.buttons["JournalGratitudeEntry.0"].waitForExistence(timeout: 8),
             "Expected first gratitude to appear as a strip after submit."
         )
 
@@ -282,8 +282,8 @@ final class JournalUITests: XCTestCase {
         addNeed("Need rest after work", in: app)
         addPerson("Thinking of Amy", in: app)
 
-        XCTAssertTrue(app.buttons["JournalNeedStrip.0"].waitForExistence(timeout: 8))
-        XCTAssertTrue(app.buttons["JournalPersonStrip.0"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.buttons["JournalNeedEntry.0"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.buttons["JournalPersonEntry.0"].waitForExistence(timeout: 8))
     }
 
     @MainActor
@@ -292,11 +292,11 @@ final class JournalUITests: XCTestCase {
         let sentence = "I am grateful for an unhurried walk after lunch."
         addGratitude(sentence, in: app)
 
-        let strip = app.buttons["JournalGratitudeStrip.0"]
+        let strip = app.buttons["JournalGratitudeEntry.0"]
         XCTAssertTrue(strip.waitForExistence(timeout: 5))
         strip.tap()
 
-        let gratitudeEditor = journalTextView("JournalGratitudeStrip.0.editor", in: app)
+        let gratitudeEditor = journalTextView("JournalGratitudeEntry.0.editor", in: app)
         XCTAssertTrue(gratitudeEditor.waitForExistence(timeout: 5))
         XCTAssertEqual(gratitudeEditor.value as? String, sentence)
     }
@@ -322,7 +322,7 @@ final class JournalUITests: XCTestCase {
             )
         }
 
-        let expandToggle = app.buttons["JournalGratitudeStrip.0.more"]
+        let expandToggle = app.buttons["JournalGratitudeEntry.0.more"]
         XCTAssertTrue(expandToggle.waitForExistence(timeout: 5))
         XCTAssertEqual(expandToggle.label, "Show more")
         XCTAssertFalse(
@@ -330,7 +330,7 @@ final class JournalUITests: XCTestCase {
             "SentenceStripView ignores child accessibility; the full line is not a standalone StaticText."
         )
         expandToggle.tap()
-        let collapseToggle = app.buttons["JournalGratitudeStrip.0.more"]
+        let collapseToggle = app.buttons["JournalGratitudeEntry.0.more"]
         XCTAssertTrue(collapseToggle.waitForExistence(timeout: 5))
         if !waitForLabel("Show less", on: collapseToggle, timeout: 1.5) {
             // First tap can clear lingering focus from the composer before the
@@ -341,7 +341,7 @@ final class JournalUITests: XCTestCase {
             waitForLabel("Show less", on: collapseToggle, timeout: 5),
             "Expected the preview toggle to reflect expanded state."
         )
-        let strip = app.buttons["JournalGratitudeStrip.0"]
+        let strip = app.buttons["JournalGratitudeEntry.0"]
         XCTAssertTrue(strip.waitForExistence(timeout: 5))
         XCTAssertEqual(
             strip.value as? String,
@@ -355,11 +355,11 @@ final class JournalUITests: XCTestCase {
         let app = launchApp()
         addGratitude("I am grateful for a calm start.", in: app)
 
-        let strip = app.buttons["JournalGratitudeStrip.0"]
+        let strip = app.buttons["JournalGratitudeEntry.0"]
         XCTAssertTrue(strip.waitForExistence(timeout: 5))
         strip.tap()
 
-        let gratitudeEditor = journalTextView("JournalGratitudeStrip.0.editor", in: app)
+        let gratitudeEditor = journalTextView("JournalGratitudeEntry.0.editor", in: app)
         XCTAssertTrue(gratitudeEditor.waitForExistence(timeout: 5))
         gratitudeEditor.tap()
         gratitudeEditor.typeText(" Added detail")
@@ -369,7 +369,7 @@ final class JournalUITests: XCTestCase {
         XCTAssertTrue(strip.waitForExistence(timeout: 5))
         strip.tap()
 
-        let reopenedEditor = journalTextView("JournalGratitudeStrip.0.editor", in: app)
+        let reopenedEditor = journalTextView("JournalGratitudeEntry.0.editor", in: app)
         XCTAssertTrue(reopenedEditor.waitForExistence(timeout: 5))
         let updatedValue = reopenedEditor.value as? String
         XCTAssertTrue(
@@ -397,11 +397,11 @@ final class JournalUITests: XCTestCase {
             gratitudeField.typeText("\n")
         }
 
-        let strip = app.buttons["JournalGratitudeStrip.0"]
+        let strip = app.buttons["JournalGratitudeEntry.0"]
         XCTAssertTrue(strip.waitForExistence(timeout: 5))
         strip.tap()
 
-        let gratitudeEditor = app.textViews["JournalGratitudeStrip.0.editor"]
+        let gratitudeEditor = app.textViews["JournalGratitudeEntry.0.editor"]
         XCTAssertTrue(gratitudeEditor.waitForExistence(timeout: 5))
         gratitudeEditor.tap()
 
@@ -426,28 +426,28 @@ final class JournalUITests: XCTestCase {
         addGratitude("First gratitude sentence", in: app)
         addGratitude("Second gratitude sentence", in: app)
 
-        let firstStrip = app.buttons["JournalGratitudeStrip.0"]
-        let secondStrip = app.buttons["JournalGratitudeStrip.1"]
+        let firstStrip = app.buttons["JournalGratitudeEntry.0"]
+        let secondStrip = app.buttons["JournalGratitudeEntry.1"]
         XCTAssertTrue(firstStrip.waitForExistence(timeout: 5))
         XCTAssertTrue(secondStrip.waitForExistence(timeout: 5))
 
         let firstEditor = openInlineEditor(
-            stripId: "JournalGratitudeStrip.0",
-            editorId: "JournalGratitudeStrip.0.editor",
+            stripId: "JournalGratitudeEntry.0",
+            editorId: "JournalGratitudeEntry.0.editor",
             in: app
         )
         firstEditor.typeText(" UPDATED")
 
         let secondEditor = openInlineEditor(
-            stripId: "JournalGratitudeStrip.1",
-            editorId: "JournalGratitudeStrip.1.editor",
+            stripId: "JournalGratitudeEntry.1",
+            editorId: "JournalGratitudeEntry.1.editor",
             in: app
         )
         XCTAssertEqual(secondEditor.value as? String, "Second gratitude sentence")
 
         let firstEditorReopened = openInlineEditor(
-            stripId: "JournalGratitudeStrip.0",
-            editorId: "JournalGratitudeStrip.0.editor",
+            stripId: "JournalGratitudeEntry.0",
+            editorId: "JournalGratitudeEntry.0.editor",
             in: app
         )
         let firstValue = firstEditorReopened.value as? String ?? ""
@@ -478,26 +478,26 @@ final class JournalUITests: XCTestCase {
             needField.typeText("\n")
         }
         XCTAssertTrue(
-            app.buttons["JournalNeedStrip.1"].waitForExistence(timeout: 10),
+            app.buttons["JournalNeedEntry.1"].waitForExistence(timeout: 10),
             "Expected second need strip after submitting draft."
         )
 
         let firstEditor = openInlineEditor(
-            stripId: "JournalNeedStrip.0",
-            editorId: "JournalNeedStrip.0.editor",
+            stripId: "JournalNeedEntry.0",
+            editorId: "JournalNeedEntry.0.editor",
             in: app
         )
         firstEditor.typeText(" edited")
 
         _ = openInlineEditor(
-            stripId: "JournalNeedStrip.1",
-            editorId: "JournalNeedStrip.1.editor",
+            stripId: "JournalNeedEntry.1",
+            editorId: "JournalNeedEntry.1.editor",
             in: app
         )
 
         let firstReopened = openInlineEditor(
-            stripId: "JournalNeedStrip.0",
-            editorId: "JournalNeedStrip.0.editor",
+            stripId: "JournalNeedEntry.0",
+            editorId: "JournalNeedEntry.0.editor",
             in: app
         )
         XCTAssertTrue(
@@ -516,8 +516,8 @@ final class JournalUITests: XCTestCase {
         addGratitude("Seed for long multiline test", in: app)
 
         let editor = openInlineEditor(
-            stripId: "JournalGratitudeStrip.0",
-            editorId: "JournalGratitudeStrip.0.editor",
+            stripId: "JournalGratitudeEntry.0",
+            editorId: "JournalGratitudeEntry.0.editor",
             in: app
         )
         let chunk = "One two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen. "

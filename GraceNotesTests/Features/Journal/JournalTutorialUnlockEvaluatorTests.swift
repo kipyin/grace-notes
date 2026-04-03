@@ -14,8 +14,8 @@ final class JournalTutorialUnlockEvaluatorTests: XCTestCase {
                 newNeeds: 1,
                 newPeople: 1,
                 hasCelebratedFirstTripleOne: false,
-                hasCelebratedFirstBalanced: false,
-                hasCelebratedFirstFull: false
+                hasCelebratedFirstLeaf: false,
+                hasCelebratedFirstBloom: false
             )
         )
         XCTAssertEqual(outcome?.milestoneHighlight, .firstOneOneOne)
@@ -34,8 +34,8 @@ final class JournalTutorialUnlockEvaluatorTests: XCTestCase {
                 newNeeds: 1,
                 newPeople: 1,
                 hasCelebratedFirstTripleOne: false,
-                hasCelebratedFirstBalanced: false,
-                hasCelebratedFirstFull: false
+                hasCelebratedFirstLeaf: false,
+                hasCelebratedFirstBloom: false
             )
         )
         XCTAssertNil(outcome)
@@ -53,8 +53,8 @@ final class JournalTutorialUnlockEvaluatorTests: XCTestCase {
                 newNeeds: 3,
                 newPeople: 3,
                 hasCelebratedFirstTripleOne: true,
-                hasCelebratedFirstBalanced: false,
-                hasCelebratedFirstFull: false
+                hasCelebratedFirstLeaf: false,
+                hasCelebratedFirstBloom: false
             )
         )
         XCTAssertEqual(outcome?.milestoneHighlight, .firstBalanced)
@@ -72,8 +72,8 @@ final class JournalTutorialUnlockEvaluatorTests: XCTestCase {
                 newNeeds: 5,
                 newPeople: 5,
                 hasCelebratedFirstTripleOne: true,
-                hasCelebratedFirstBalanced: true,
-                hasCelebratedFirstFull: false
+                hasCelebratedFirstLeaf: true,
+                hasCelebratedFirstBloom: false
             )
         )
         XCTAssertEqual(outcome?.milestoneHighlight, .firstFull)
@@ -91,8 +91,8 @@ final class JournalTutorialUnlockEvaluatorTests: XCTestCase {
                 newNeeds: 3,
                 newPeople: 3,
                 hasCelebratedFirstTripleOne: true,
-                hasCelebratedFirstBalanced: true,
-                hasCelebratedFirstFull: false
+                hasCelebratedFirstLeaf: true,
+                hasCelebratedFirstBloom: false
             )
         )
         XCTAssertNil(outcome)

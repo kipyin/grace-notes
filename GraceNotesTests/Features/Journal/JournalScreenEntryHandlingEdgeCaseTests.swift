@@ -3,12 +3,12 @@ import XCTest
 @testable import GraceNotes
 
 @MainActor
-final class JournalScreenStripHandlingEdgeCaseTests: XCTestCase {
-    func test_performStripTap_whenUpdateFails_doesNotSwitchToTappedStrip() {
+final class JournalScreenEntryHandlingEdgeCaseTests: XCTestCase {
+    func test_performEntryTap_whenUpdateFails_doesNotSwitchToTappedStrip() {
         var input = "Edited draft"
         var editingIndex: Int? = 0
         var isTransitioning = false
-        let operations = StripSectionOperations(
+        let operations = EntrySectionOperations(
             updateImmediate: { _, _ in nil },
             addImmediate: { _ in 99 },
             remove: { _ in false },
@@ -18,7 +18,7 @@ final class JournalScreenStripHandlingEdgeCaseTests: XCTestCase {
             count: 2
         )
 
-        let handled = JournalScreenStripHandling.performStripTap(
+        let handled = JournalScreenEntryHandling.performEntryTap(
             tapIndex: 1,
             input: Binding(get: { input }, set: { input = $0 }),
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
@@ -31,13 +31,13 @@ final class JournalScreenStripHandlingEdgeCaseTests: XCTestCase {
         XCTAssertEqual(editingIndex, 0)
     }
 
-    func test_submitStripSection_whenEditingWhitespaceOnly_deletesAndClearsDraft() {
+    func test_submitEntrySection_whenEditingWhitespaceOnly_deletesAndClearsDraft() {
         var input = "   \n"
         var editingIndex: Int? = 1
         var isTransitioning = false
         var didUpdate = false
         var didRemove = false
-        let operations = StripSectionOperations(
+        let operations = EntrySectionOperations(
             updateImmediate: { _, _ in
                 didUpdate = true
                 return 0
@@ -51,7 +51,7 @@ final class JournalScreenStripHandlingEdgeCaseTests: XCTestCase {
             count: 0
         )
 
-        let didSubmit = JournalScreenStripHandling.submitStripSection(
+        let didSubmit = JournalScreenEntryHandling.submitEntrySection(
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
             input: Binding(get: { input }, set: { input = $0 }),
             operations: operations,
@@ -66,14 +66,14 @@ final class JournalScreenStripHandlingEdgeCaseTests: XCTestCase {
         XCTAssertFalse(isTransitioning)
     }
 
-    func test_submitStripSection_whenAddingWhitespaceOnly_returnsFalseWithoutMutating() {
+    func test_submitEntrySection_whenAddingWhitespaceOnly_returnsFalseWithoutMutating() {
         var input = "   \n"
         var editingIndex: Int?
         var isTransitioning = false
         var didUpdate = false
         var didAdd = false
         var didRemove = false
-        let operations = StripSectionOperations(
+        let operations = EntrySectionOperations(
             updateImmediate: { _, _ in
                 didUpdate = true
                 return 0
@@ -90,7 +90,7 @@ final class JournalScreenStripHandlingEdgeCaseTests: XCTestCase {
             count: 0
         )
 
-        let didSubmit = JournalScreenStripHandling.submitStripSection(
+        let didSubmit = JournalScreenEntryHandling.submitEntrySection(
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
             input: Binding(get: { input }, set: { input = $0 }),
             operations: operations,
@@ -106,11 +106,11 @@ final class JournalScreenStripHandlingEdgeCaseTests: XCTestCase {
         XCTAssertFalse(isTransitioning)
     }
 
-    func test_submitStripSection_whenEditingAndUpdateSucceeds_clearsDraft() {
+    func test_submitEntrySection_whenEditingAndUpdateSucceeds_clearsDraft() {
         var input = "Revision"
         var editingIndex: Int? = 2
         var isTransitioning = false
-        let operations = StripSectionOperations(
+        let operations = EntrySectionOperations(
             updateImmediate: { index, _ in index },
             addImmediate: { _ in nil },
             remove: { _ in false },
@@ -118,7 +118,7 @@ final class JournalScreenStripHandlingEdgeCaseTests: XCTestCase {
             count: 3
         )
 
-        let didSubmit = JournalScreenStripHandling.submitStripSection(
+        let didSubmit = JournalScreenEntryHandling.submitEntrySection(
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
             input: Binding(get: { input }, set: { input = $0 }),
             operations: operations,
@@ -134,7 +134,7 @@ final class JournalScreenStripHandlingEdgeCaseTests: XCTestCase {
         var input = "Draft"
         var editingIndex: Int? = 2
 
-        JournalScreenStripHandling.performDelete(
+        JournalScreenEntryHandling.performDelete(
             index: 2,
             remove: { _ in true },
             input: Binding(get: { input }, set: { input = $0 }),
@@ -149,7 +149,7 @@ final class JournalScreenStripHandlingEdgeCaseTests: XCTestCase {
         var editingIndex: Int? = 2
         var didCallMove = false
 
-        JournalScreenStripHandling.performMove(
+        JournalScreenEntryHandling.performMove(
             from: 0,
             to: 1,
             move: { _, _ in
@@ -167,7 +167,7 @@ final class JournalScreenStripHandlingEdgeCaseTests: XCTestCase {
         var editingIndex: Int?
         var didCallMove = false
 
-        JournalScreenStripHandling.performMove(
+        JournalScreenEntryHandling.performMove(
             from: 0,
             to: 1,
             move: { _, _ in
@@ -181,12 +181,12 @@ final class JournalScreenStripHandlingEdgeCaseTests: XCTestCase {
         XCTAssertNil(editingIndex)
     }
 
-    func test_handleAddStripTap_whileTransitioning_returnsFalseWithoutMutating() {
+    func test_handleAddEntryTap_whileTransitioning_returnsFalseWithoutMutating() {
         var input = "Draft"
         var editingIndex: Int?
         var isTransitioning = true
         var didAdd = false
-        let operations = StripSectionOperations(
+        let operations = EntrySectionOperations(
             updateImmediate: { _, _ in 0 },
             addImmediate: { _ in
                 didAdd = true
@@ -197,7 +197,7 @@ final class JournalScreenStripHandlingEdgeCaseTests: XCTestCase {
             count: 0
         )
 
-        let handled = JournalScreenStripHandling.handleAddStripTap(
+        let handled = JournalScreenEntryHandling.handleAddEntryTap(
             input: Binding(get: { input }, set: { input = $0 }),
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
             operations: operations,
@@ -210,12 +210,12 @@ final class JournalScreenStripHandlingEdgeCaseTests: XCTestCase {
         XCTAssertFalse(didAdd)
     }
 
-    func test_performStripTap_whenNotEditingButDraftPresent_addsThenOpensTappedStrip() {
+    func test_performEntryTap_whenNotEditingButDraftPresent_addsThenOpensTappedStrip() {
         var input = "New draft line"
         var editingIndex: Int?
         var isTransitioning = false
         var addedIndex: Int?
-        let operations = StripSectionOperations(
+        let operations = EntrySectionOperations(
             updateImmediate: { _, _ in nil },
             addImmediate: { text in
                 addedIndex = 0
@@ -229,7 +229,7 @@ final class JournalScreenStripHandlingEdgeCaseTests: XCTestCase {
             count: 2
         )
 
-        let handled = JournalScreenStripHandling.performStripTap(
+        let handled = JournalScreenEntryHandling.performEntryTap(
             tapIndex: 1,
             input: Binding(get: { input }, set: { input = $0 }),
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),

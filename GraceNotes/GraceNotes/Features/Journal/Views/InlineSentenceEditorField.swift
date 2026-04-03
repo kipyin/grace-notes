@@ -199,7 +199,7 @@ struct InlineSentenceEditorField: View {
             .frame(minHeight: InlineSentenceEditorTextView.minimumHeight, alignment: .leading)
         }
         .warmPaperInputStyle()
-        .modifier(SequentialSectionStripRow.ConditionalAccessibilityIdentifier(identifier: editorIdentifier))
+        .modifier(SequentialSectionEntryRow.ConditionalAccessibilityIdentifier(identifier: editorIdentifier))
         .accessibilityLabel(inputAccessibilityLabel)
         .accessibilityHint(InlineSentenceEditorFieldCopy.editingAccessibilityHint)
         .disabled(!isInteractionEnabled)

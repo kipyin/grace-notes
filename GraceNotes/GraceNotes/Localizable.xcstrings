@@ -5139,13 +5139,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Turns on the warm Summer look for Today, including animated leaves."
+            "value": "Turns on the warm Bloom look for Today, including animated leaves."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "打开后，为今日日记启用温暖的夏日风格，包含树叶动画。"
+            "value": "打开后，为今日日记启用温暖的 Bloom 花期风格，包含树叶动画。"
           }
         }
       }
@@ -5156,13 +5156,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "When Summer mode is on, Grace Notes keeps the Summer look and ignores your device Light/Dark appearance."
+            "value": "When Bloom mode is on, Grace Notes keeps the Bloom look and ignores your device Light/Dark appearance."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "开启夏日模式后，Grace Notes 会保持夏日外观，不受设备浅色/深色模式影响。"
+            "value": "开启 Bloom 模式后，Grace Notes 会保持花期外观，不受设备浅色/深色模式影响。"
           }
         }
       }
@@ -5218,19 +5218,19 @@
         }
       }
     },
-    "Settings.todayJournalAppearance.summer": {
+    "Settings.todayJournalAppearance.bloom": {
       "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Summer"
+            "value": "Bloom"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "夏日"
+            "value": "Bloom"
           }
         }
       }

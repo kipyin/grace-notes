@@ -10,7 +10,7 @@ struct ThemeSummary {
 }
 
 struct CandidateInputs {
-    let entries: [JournalEntry]
+    let entries: [Journal]
     let currentDayCount: Int
     let needs: [ThemeSummary]
     let gratitudes: [ThemeSummary]
@@ -67,9 +67,9 @@ struct WeeklyReviewAggregatesBuilder {
     // swiftlint:disable:next function_parameter_count
     func build(
         currentPeriod: Range<Date>,
-        currentWeekEntries: [JournalEntry],
-        previousWeekEntries: [JournalEntry],
-        allEntries: [JournalEntry],
+        currentWeekEntries: [Journal],
+        previousWeekEntries: [Journal],
+        allEntries: [Journal],
         calendar: Calendar,
         referenceDate: Date,
         pastStatisticsInterval: PastStatisticsIntervalSelection = .default
@@ -124,11 +124,11 @@ struct WeeklyReviewAggregatesBuilder {
 }
 
 private extension WeeklyReviewAggregatesBuilder {
-    private func sortedEntries(_ entries: [JournalEntry]) -> [JournalEntry] {
+    private func sortedEntries(_ entries: [Journal]) -> [Journal] {
         ReviewHistoryWindowing.sortedEntries(entries)
     }
 
-    private func reflectionDayCount(from entries: [JournalEntry], calendar: Calendar) -> Int {
+    private func reflectionDayCount(from entries: [Journal], calendar: Calendar) -> Int {
         Set(
             entries
                 .filter { $0.hasMeaningfulContent || hasReflectionSurfaceText($0) }
@@ -136,18 +136,18 @@ private extension WeeklyReviewAggregatesBuilder {
         ).count
     }
 
-    private func meaningfulEntryCount(from entries: [JournalEntry]) -> Int {
+    private func meaningfulEntryCount(from entries: [Journal]) -> Int {
         entries.filter(\.hasMeaningfulContent).count
     }
 
-    private func hasReflectionSurfaceText(_ entry: JournalEntry) -> Bool {
+    private func hasReflectionSurfaceText(_ entry: Journal) -> Bool {
         !textNormalizer.trimmed(entry.readingNotes).isEmpty
             || !textNormalizer.trimmed(entry.reflections).isEmpty
     }
 
     private func buildChipStats(
-        from entries: [JournalEntry],
-        itemsExtractor: (JournalEntry) -> [JournalItem],
+        from entries: [Journal],
+        itemsExtractor: (Journal) -> [Entry],
         calendar: Calendar
     ) -> [ThemeSummary] {
         var themeMap: [String: ThemeAccumulator] = [:]
@@ -172,7 +172,7 @@ private extension WeeklyReviewAggregatesBuilder {
     }
 
     private func buildContinuityStats(
-        from entries: [JournalEntry],
+        from entries: [Journal],
         calendar: Calendar
     ) -> [ThemeSummary] {
         var themeMap: [String: ThemeAccumulator] = [:]
@@ -221,7 +221,7 @@ private extension WeeklyReviewAggregatesBuilder {
             .map { ReviewInsightTheme(label: $0.displayLabel, count: $0.mentionCount) }
     }
 
-    private func preferredItemLabel(_ item: JournalItem) -> String {
+    private func preferredItemLabel(_ item: Entry) -> String {
         textNormalizer.trimmed(item.fullText)
     }
 
@@ -287,8 +287,8 @@ private extension WeeklyReviewAggregatesBuilder {
     // swiftlint:disable:next function_parameter_count
     private func buildWeekStats(
         currentPeriod: Range<Date>,
-        entries: [JournalEntry],
-        allEntries: [JournalEntry],
+        entries: [Journal],
+        allEntries: [Journal],
         reflectionDays: Int,
         calendar: Calendar,
         referenceDate: Date,
@@ -359,7 +359,7 @@ private extension WeeklyReviewAggregatesBuilder {
 
     // swiftlint:disable:next cyclomatic_complexity function_body_length
     private func buildThemeSections(
-        from entries: [JournalEntry],
+        from entries: [Journal],
         currentPeriod: Range<Date>,
         calendar: Calendar,
         referenceDate: Date,
@@ -492,7 +492,7 @@ private extension WeeklyReviewAggregatesBuilder {
 
     private func appendSupportingEvidence(
         into map: inout [String: DistilledThemeAccumulator],
-        entries: [JournalEntry],
+        entries: [Journal],
         mostRecurringWindow: Range<Date>,
         calendar: Calendar
     ) {
@@ -542,7 +542,7 @@ private extension WeeklyReviewAggregatesBuilder {
         return (currentPeriod, previous)
     }
 
-    private func structuredSurfaces(for entry: JournalEntry) -> [ThemeSurface] {
+    private func structuredSurfaces(for entry: Journal) -> [ThemeSurface] {
         var surfaces: [ThemeSurface] = []
 
         for item in entry.gratitudes ?? [] {
@@ -567,7 +567,7 @@ private extension WeeklyReviewAggregatesBuilder {
         return surfaces
     }
 
-    private func supportSurfaces(for entry: JournalEntry) -> [ThemeSurface] {
+    private func supportSurfaces(for entry: Journal) -> [ThemeSurface] {
         var surfaces: [ThemeSurface] = []
         let notes = textNormalizer.trimmed(entry.readingNotes)
         if !notes.isEmpty {
@@ -631,7 +631,7 @@ private extension WeeklyReviewAggregatesBuilder {
     /// Builds a longer oldest-to-newest activity sequence ending on the last day of `currentPeriod`,
     /// capped for performance.
     private func buildRhythmHistory(
-        allEntries: [JournalEntry],
+        allEntries: [Journal],
         currentPeriod: Range<Date>,
         calendar: Calendar
     ) -> [ReviewDayActivity]? {
@@ -659,37 +659,37 @@ private extension WeeklyReviewAggregatesBuilder {
     }
 
     private func buildCompletionMix(from strongestByDay: [Date: JournalCompletionLevel]) -> ReviewWeekCompletionMix {
-        var emptyDays = 0
-        var startedDays = 0
-        var growingDays = 0
-        var balancedDays = 0
-        var fullDays = 0
+        var soilDayCount = 0
+        var sproutDayCount = 0
+        var twigDayCount = 0
+        var leafDayCount = 0
+        var bloomDayCount = 0
         for completion in strongestByDay.values {
             switch completion {
             case .soil:
-                emptyDays += 1
+                soilDayCount += 1
             case .sprout:
-                startedDays += 1
+                sproutDayCount += 1
             case .twig:
-                growingDays += 1
+                twigDayCount += 1
             case .leaf:
-                balancedDays += 1
+                leafDayCount += 1
             case .bloom:
-                fullDays += 1
+                bloomDayCount += 1
             }
         }
         return ReviewWeekCompletionMix(
-            emptyDays: emptyDays,
-            startedDays: startedDays,
-            growingDays: growingDays,
-            balancedDays: balancedDays,
-            fullDays: fullDays
+            soilDayCount: soilDayCount,
+            sproutDayCount: sproutDayCount,
+            twigDayCount: twigDayCount,
+            leafDayCount: leafDayCount,
+            bloomDayCount: bloomDayCount
         )
     }
 
     private func buildDayActivity(
         currentPeriod: Range<Date>,
-        entries: [JournalEntry],
+        entries: [Journal],
         strongestCompletionByDay: [Date: JournalCompletionLevel],
         calendar: Calendar
     ) -> [ReviewDayActivity] {

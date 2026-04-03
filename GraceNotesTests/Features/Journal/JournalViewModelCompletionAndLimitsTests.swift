@@ -73,7 +73,7 @@ final class JournalViewModelCompletionAndLimitsTests: XCTestCase {
         XCTAssertFalse(viewModel.completedToday)
     }
 
-    func test_isChipsFullGridComplete_withFiveByFiveByFive_returnsTrue() async throws {
+    func test_hasReachedBloom_withFiveByFiveByFive_returnsTrue() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
         let viewModel = makeViewModel(now: now)
@@ -85,10 +85,10 @@ final class JournalViewModelCompletionAndLimitsTests: XCTestCase {
             _ = await viewModel.addPerson("Person \(index)")
         }
 
-        XCTAssertTrue(viewModel.isChipsFullGridComplete)
-        XCTAssertEqual(viewModel.chipsFilledCount, 15)
+        XCTAssertTrue(viewModel.hasReachedBloom)
+        XCTAssertEqual(viewModel.filledEntryCount, 15)
         XCTAssertEqual(
-            viewModel.chipsProgressText,
+            viewModel.entryCapacityProgressText,
             String(
                 format: String(localized: "%d of %d"),
                 locale: Locale.current,
@@ -100,7 +100,7 @@ final class JournalViewModelCompletionAndLimitsTests: XCTestCase {
         XCTAssertTrue(viewModel.completedToday)
     }
 
-    func test_isChipsFullGridComplete_withMissingChip_returnsFalse() async throws {
+    func test_hasReachedBloom_withMissingEntry_returnsFalse() async throws {
         let context = try makeInMemoryContext()
         let now = Date(timeIntervalSince1970: 1_742_147_200)
         let viewModel = makeViewModel(now: now)
@@ -114,10 +114,10 @@ final class JournalViewModelCompletionAndLimitsTests: XCTestCase {
             _ = await viewModel.addPerson("Person \(index)")
         }
 
-        XCTAssertFalse(viewModel.isChipsFullGridComplete)
-        XCTAssertEqual(viewModel.chipsFilledCount, 14)
+        XCTAssertFalse(viewModel.hasReachedBloom)
+        XCTAssertEqual(viewModel.filledEntryCount, 14)
         XCTAssertEqual(
-            viewModel.chipsProgressText,
+            viewModel.entryCapacityProgressText,
             String(
                 format: String(localized: "%d of %d"),
                 locale: Locale.current,

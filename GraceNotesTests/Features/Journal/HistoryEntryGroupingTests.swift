@@ -11,9 +11,9 @@ final class HistoryEntryGroupingTests: XCTestCase {
     }
 
     func test_groupedByMonth_groupsEntriesAndSortsMonthsDescending() {
-        let marchEntry = JournalEntry(entryDate: date(year: 2026, month: 3, day: 17))
-        let januaryEntry = JournalEntry(entryDate: date(year: 2026, month: 1, day: 5))
-        let februaryEntry = JournalEntry(entryDate: date(year: 2026, month: 2, day: 28))
+        let marchEntry = Journal(entryDate: date(year: 2026, month: 3, day: 17))
+        let januaryEntry = Journal(entryDate: date(year: 2026, month: 1, day: 5))
+        let februaryEntry = Journal(entryDate: date(year: 2026, month: 2, day: 28))
 
         let grouped = HistoryEntryGrouping.groupedByMonth(
             entries: [januaryEntry, marchEntry, februaryEntry],
@@ -27,8 +27,8 @@ final class HistoryEntryGroupingTests: XCTestCase {
     }
 
     func test_groupedByMonth_keepsMultipleEntriesInSameMonth() {
-        let firstMarchEntry = JournalEntry(entryDate: date(year: 2026, month: 3, day: 1))
-        let secondMarchEntry = JournalEntry(entryDate: date(year: 2026, month: 3, day: 20))
+        let firstMarchEntry = Journal(entryDate: date(year: 2026, month: 3, day: 1))
+        let secondMarchEntry = Journal(entryDate: date(year: 2026, month: 3, day: 20))
 
         let grouped = HistoryEntryGrouping.groupedByMonth(
             entries: [firstMarchEntry, secondMarchEntry],

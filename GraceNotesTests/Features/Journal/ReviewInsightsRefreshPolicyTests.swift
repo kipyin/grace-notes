@@ -74,13 +74,13 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
         XCTAssertFalse(ctx.currentPeriod.contains(olderDay))
 
         let historyOnlyId = UUID(uuidString: "11111111-1111-1111-1111-111111111111")!
-        let historyOnly = JournalEntry(
+        let historyOnly = Journal(
             id: historyOnlyId,
             entryDate: olderDay,
             updatedAt: Date(timeIntervalSince1970: 100)
         )
         let thisWeekId = UUID(uuidString: "22222222-2222-2222-2222-222222222222")!
-        let thisWeek = JournalEntry(
+        let thisWeek = Journal(
             id: thisWeekId,
             entryDate: utcDate(year: 2026, month: 3, day: 17, calendar: ctx.calendar),
             updatedAt: Date(timeIntervalSince1970: 200)
@@ -98,12 +98,12 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
     func test_shouldRefresh_whenOnlyHistoryWindowEntryUpdatedAtChanges_returnsTrue() {
         let ctx = sundayUTCReviewContext()
         let olderDay = utcDate(year: 2026, month: 3, day: 5, calendar: ctx.calendar)
-        let historyOnly = JournalEntry(
+        let historyOnly = Journal(
             id: UUID(uuidString: "33333333-3333-3333-3333-333333333333")!,
             entryDate: olderDay,
             updatedAt: Date(timeIntervalSince1970: 300)
         )
-        let thisWeek = JournalEntry(
+        let thisWeek = Journal(
             id: UUID(uuidString: "44444444-4444-4444-4444-444444444444")!,
             entryDate: utcDate(year: 2026, month: 3, day: 17, calendar: ctx.calendar),
             updatedAt: Date(timeIntervalSince1970: 400)
@@ -247,11 +247,11 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
             reflectionDays: 2,
             meaningfulEntryCount: 2,
             completionMix: ReviewWeekCompletionMix(
-                emptyDays: 0,
-                startedDays: 1,
-                growingDays: 0,
-                balancedDays: 1,
-                fullDays: 0
+                soilDayCount: 0,
+                sproutDayCount: 1,
+                twigDayCount: 0,
+                leafDayCount: 1,
+                bloomDayCount: 0
             ),
             activity: [ReviewDayActivity(date: weekStart, hasReflectiveActivity: true, hasPersistedEntry: true)],
             rhythmHistory: nil,

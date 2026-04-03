@@ -2,25 +2,25 @@ import XCTest
 @testable import GraceNotes
 
 final class JournalTutorialHintPresentationTests: XCTestCase {
-    func test_hintKind_balancedBelowFullSlots_returnsHarvest() {
+    func test_hintKind_balancedBelowFullSlots_returnsBloom() {
         let kind = JournalTutorialHintPresentation.hintKind(
             entryDate: nil,
             completionLevel: .leaf,
-            chipsFilledCount: 10,
-            dismissedSeedGuidance: true,
-            dismissedHarvestGuidance: false
+            filledEntryCount: 10,
+            dismissedSproutGuidance: true,
+            dismissedBloomGuidance: false
         )
-        XCTAssertEqual(kind, .harvest)
+        XCTAssertEqual(kind, .bloom)
     }
 
-    func test_hintKind_balancedAtFifteenChips_returnsNil() {
+    func test_hintKind_balancedAtFifteenEntries_returnsNil() {
         let fifteenSlots = JournalViewModel.slotCount * 3
         let kind = JournalTutorialHintPresentation.hintKind(
             entryDate: nil,
             completionLevel: .leaf,
-            chipsFilledCount: fifteenSlots,
-            dismissedSeedGuidance: true,
-            dismissedHarvestGuidance: false
+            filledEntryCount: fifteenSlots,
+            dismissedSproutGuidance: true,
+            dismissedBloomGuidance: false
         )
         XCTAssertNil(kind)
     }

@@ -4,8 +4,8 @@ enum JournalTutorialUnlockEvaluator {
     /// Recording flags and toast highlight when a first-time milestone is crossed.
     struct MilestoneOutcome: Equatable {
         let recordFirstTripleOneCelebrated: Bool
-        let recordFirstBalancedCelebrated: Bool
-        let recordFirstFullCelebrated: Bool
+        let recordFirstLeafCelebrated: Bool
+        let recordFirstBloomCelebrated: Bool
         let milestoneHighlight: JournalUnlockMilestoneHighlight
     }
 
@@ -19,11 +19,11 @@ enum JournalTutorialUnlockEvaluator {
         let newNeeds: Int
         let newPeople: Int
         let hasCelebratedFirstTripleOne: Bool
-        let hasCelebratedFirstBalanced: Bool
-        let hasCelebratedFirstFull: Bool
+        let hasCelebratedFirstLeaf: Bool
+        let hasCelebratedFirstBloom: Bool
     }
 
-    /// First-time milestones: 1/1/1, first Balanced, first Full.
+    /// First-time milestones: 1/1/1, first Leaf, first Bloom.
     static func milestoneOutcome(_ input: MilestoneEvaluationInput) -> MilestoneOutcome? {
         let prevTripleOne = input.previousGratitudes >= 1 && input.previousNeeds >= 1 && input.previousPeople >= 1
         let newTripleOne = input.newGratitudes >= 1 && input.newNeeds >= 1 && input.newPeople >= 1
@@ -33,15 +33,15 @@ enum JournalTutorialUnlockEvaluator {
         let crossedFull = input.previousLevel != .bloom && input.newLevel == .bloom
 
         let shouldRecordTripleOne = crossedTripleOne && !input.hasCelebratedFirstTripleOne
-        let shouldRecordBalanced = crossedBalanced && !input.hasCelebratedFirstBalanced
-        let shouldRecordFull = crossedFull && !input.hasCelebratedFirstFull
+        let shouldRecordLeaf = crossedBalanced && !input.hasCelebratedFirstLeaf
+        let shouldRecordBloom = crossedFull && !input.hasCelebratedFirstBloom
 
         let highlight: JournalUnlockMilestoneHighlight
         if shouldRecordTripleOne {
             highlight = .firstOneOneOne
-        } else if shouldRecordBalanced {
+        } else if shouldRecordLeaf {
             highlight = .firstBalanced
-        } else if shouldRecordFull {
+        } else if shouldRecordBloom {
             highlight = .firstFull
         } else {
             return nil
@@ -49,8 +49,8 @@ enum JournalTutorialUnlockEvaluator {
 
         return MilestoneOutcome(
             recordFirstTripleOneCelebrated: shouldRecordTripleOne,
-            recordFirstBalancedCelebrated: shouldRecordBalanced,
-            recordFirstFullCelebrated: shouldRecordFull,
+            recordFirstLeafCelebrated: shouldRecordLeaf,
+            recordFirstBloomCelebrated: shouldRecordBloom,
             milestoneHighlight: highlight
         )
     }

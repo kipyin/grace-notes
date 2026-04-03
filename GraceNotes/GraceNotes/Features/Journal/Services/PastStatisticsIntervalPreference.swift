@@ -44,7 +44,7 @@ struct PastStatisticsIntervalSelection: Codable, Equatable, Hashable, Sendable {
     func resolvedHistoryRange(
         referenceDate: Date,
         calendar: Calendar,
-        allEntries: [JournalEntry]
+        allEntries: [Journal]
     ) -> Range<Date> {
         let refStart = calendar.startOfDay(for: referenceDate)
         guard let endExclusive = calendar.date(byAdding: .day, value: 1, to: refStart) else {

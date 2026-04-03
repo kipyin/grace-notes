@@ -7,15 +7,15 @@ import SwiftData
 @Observable
 final class JournalViewModel {
     var entryDate: Date = .now
-    var gratitudes: [JournalItem] = []
-    var needs: [JournalItem] = []
-    var people: [JournalItem] = []
+    var gratitudes: [Entry] = []
+    var needs: [Entry] = []
+    var people: [Entry] = []
     var readingNotes: String = ""
     var reflections: String = ""
     private(set) var saveErrorMessage: String?
     private(set) var streakSummary: StreakSummary = .empty
 
-    static let slotCount = JournalEntry.slotCount
+    static let slotCount = Journal.slotCount
     @ObservationIgnored private let calendar: Calendar
     @ObservationIgnored private let nowProvider: () -> Date
     @ObservationIgnored private let repository: JournalRepository
@@ -24,7 +24,7 @@ final class JournalViewModel {
     @ObservationIgnored private var cancellables: Set<AnyCancellable> = []
 
     @ObservationIgnored private var modelContext: ModelContext?
-    @ObservationIgnored private var journalEntry: JournalEntry?
+    @ObservationIgnored private var journalEntry: Journal?
     @ObservationIgnored private var hasLoadedToday = false
     @ObservationIgnored private var isHydrating = false
     @ObservationIgnored private var hasRecordedFirstSave = false
@@ -91,7 +91,7 @@ final class JournalViewModel {
         }
 
         let now = nowProvider()
-        let newEntry = JournalEntry(
+        let newEntry = Journal(
             entryDate: dayStart,
             createdAt: now,
             updatedAt: now
@@ -106,7 +106,7 @@ final class JournalViewModel {
         PerformanceTrace.end("JournalViewModel.loadEntry.newUnsaved", startedAt: loadTrace)
     }
 
-    private func hydrate(from entry: JournalEntry) {
+    private func hydrate(from entry: Journal) {
         journalEntry = entry
         isHydrating = true
         defer { isHydrating = false }
@@ -130,7 +130,7 @@ final class JournalViewModel {
         entry.reflections = reflections.trimmingCharacters(in: .whitespacesAndNewlines)
         entry.updatedAt = nowProvider()
         // First time the user reaches harvest (all chip slots); cleared if chips drop below 5/5/5.
-        entry.completedAt = entry.hasHarvestChips ? (entry.completedAt ?? nowProvider()) : nil
+        entry.completedAt = entry.hasReachedBloom ? (entry.completedAt ?? nowProvider()) : nil
 
         do {
             try context.save()
@@ -177,39 +177,39 @@ final class JournalViewModel {
     /// True when today's entry has all fifteen chips filled (Harvest / full grid).
     var completedToday: Bool {
         guard journalEntry != nil else { return false }
-        return isChipsFullGridComplete
+        return hasReachedBloom
     }
 
     /// Total chip slots across gratitudes, needs, and people (5 x 3 = 15).
-    var chipsFullGridSlotCount: Int {
+    var sectionEntryCapacity: Int {
         JournalViewModel.slotCount * 3
     }
 
     /// Number of chips currently filled across gratitudes, needs, and people.
-    var chipsFilledCount: Int {
+    var filledEntryCount: Int {
         gratitudes.count + needs.count + people.count
     }
 
     /// Whether all chip slots are filled, regardless of notes/reflections completion.
-    var isChipsFullGridComplete: Bool {
+    var hasReachedBloom: Bool {
         gratitudes.count >= JournalViewModel.slotCount &&
             needs.count >= JournalViewModel.slotCount &&
             people.count >= JournalViewModel.slotCount
     }
 
     /// Localized progress text for the chips-only milestone.
-    var chipsProgressText: String {
+    var entryCapacityProgressText: String {
         let formatKey = String(localized: "%d of %d")
         return String(
             format: formatKey,
             locale: Locale.current,
-            chipsFilledCount,
-            chipsFullGridSlotCount
+            filledEntryCount,
+            sectionEntryCapacity
         )
     }
 
     var completionLevel: JournalCompletionLevel {
-        JournalEntry.completionLevel(
+        Journal.completionLevel(
             gratitudesCount: gratitudes.count,
             needsCount: needs.count,
             peopleCount: people.count
@@ -217,8 +217,8 @@ final class JournalViewModel {
     }
 
     /// True when gratitudes, needs, and people each have at least one chip (milestone 1/1/1 minimum).
-    var hasAtLeastOneInEachChipSection: Bool {
-        JournalEntry.minChipSectionCount(
+    var hasAtLeastOneEntryInEachSection: Bool {
+        Journal.minimumEntryCountAcrossSections(
             gratitudesCount: gratitudes.count,
             needsCount: needs.count,
             peopleCount: people.count

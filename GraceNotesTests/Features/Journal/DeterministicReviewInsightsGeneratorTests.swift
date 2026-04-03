@@ -136,11 +136,11 @@ final class DeterministicReviewInsightsTests: XCTestCase {
         let insights = try await generator.generateInsights(
             from: [
                 makeEntry(on: seedDay, gratitudes: ["Family"], needs: ["Rest"], people: ["Mia"]),
-                JournalEntry(
+                Journal(
                     entryDate: harvestDay,
-                    gratitudes: (1...5).map { JournalItem(fullText: "Gratitude \($0)") },
-                    needs: (1...5).map { JournalItem(fullText: "Need \($0)") },
-                    people: (1...5).map { JournalItem(fullText: "Person \($0)") }
+                    gratitudes: (1...5).map { Entry(fullText: "Gratitude \($0)") },
+                    needs: (1...5).map { Entry(fullText: "Need \($0)") },
+                    people: (1...5).map { Entry(fullText: "Person \($0)") }
                 ),
                 makeEntry(on: textOnlyDay, readingNotes: "Short note from the day")
             ],
@@ -194,22 +194,22 @@ final class DeterministicReviewInsightsTests: XCTestCase {
         people: [String] = [],
         readingNotes: String = "",
         reflections: String = ""
-    ) -> JournalEntry {
-        JournalEntry(
+    ) -> Journal {
+        Journal(
             entryDate: date,
-            gratitudes: gratitudes.map { JournalItem(fullText: $0) },
-            needs: needs.map { JournalItem(fullText: $0) },
-            people: people.map { JournalItem(fullText: $0) },
+            gratitudes: gratitudes.map { Entry(fullText: $0) },
+            needs: needs.map { Entry(fullText: $0) },
+            people: people.map { Entry(fullText: $0) },
             readingNotes: readingNotes,
             reflections: reflections
         )
     }
 
-    func makeFullEntry(on date: Date) -> JournalEntry {
-        let gratitudes = (1...5).map { JournalItem(fullText: "Gratitude \($0)") }
-        let needs = (1...5).map { JournalItem(fullText: "Need \($0)") }
-        let people = (1...5).map { JournalItem(fullText: "Person \($0)") }
-        return JournalEntry(
+    func makeFullEntry(on date: Date) -> Journal {
+        let gratitudes = (1...5).map { Entry(fullText: "Gratitude \($0)") }
+        let needs = (1...5).map { Entry(fullText: "Need \($0)") }
+        let people = (1...5).map { Entry(fullText: "Person \($0)") }
+        return Journal(
             entryDate: date,
             gratitudes: gratitudes,
             needs: needs,

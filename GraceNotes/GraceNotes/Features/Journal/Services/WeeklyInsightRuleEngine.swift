@@ -19,9 +19,9 @@ struct WeeklyInsightRuleEngine {
     // swiftlint:disable:next function_parameter_count
     func analyze(
         currentPeriod: Range<Date>,
-        currentWeekEntries: [JournalEntry],
-        previousWeekEntries: [JournalEntry],
-        allEntries: [JournalEntry],
+        currentWeekEntries: [Journal],
+        previousWeekEntries: [Journal],
+        allEntries: [Journal],
         calendar: Calendar,
         referenceDate: Date,
         pastStatisticsInterval: PastStatisticsIntervalSelection = .default

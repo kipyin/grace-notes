@@ -1,27 +1,27 @@
 import SwiftUI
 
 enum JournalTutorialHintKind: Equatable {
-    case seed
-    case harvest
+    case sprout
+    case bloom
 }
 
 enum JournalTutorialHintPresentation {
     static func hintKind(
         entryDate: Date?,
         completionLevel: JournalCompletionLevel,
-        chipsFilledCount: Int,
-        dismissedSeedGuidance: Bool,
-        dismissedHarvestGuidance: Bool
+        filledEntryCount: Int,
+        dismissedSproutGuidance: Bool,
+        dismissedBloomGuidance: Bool
     ) -> JournalTutorialHintKind? {
         guard entryDate == nil else { return nil }
-        if completionLevel == .soil, !dismissedSeedGuidance {
-            return .seed
+        if completionLevel == .soil, !dismissedSproutGuidance {
+            return .sprout
         }
         let fifteenSlots = JournalViewModel.slotCount * 3
         if completionLevel == .sprout || completionLevel == .twig || completionLevel == .leaf,
-           chipsFilledCount < fifteenSlots,
-           !dismissedHarvestGuidance {
-            return .harvest
+           filledEntryCount < fifteenSlots,
+           !dismissedBloomGuidance {
+            return .bloom
         }
         return nil
     }
@@ -62,11 +62,11 @@ struct JournalTutorialHintView: View {
     // swiftlint:disable line_length
     private var message: String {
         switch kind {
-        case .seed:
+        case .sprout:
             return String(
                 localized: "Write one gratitude line to plant your first seed. Tap the status above anytime if you want a reminder."
             )
-        case .harvest:
+        case .bloom:
             return String(
                 localized: "Add one more line in any section. Small steps are easier to keep. Tap the status above anytime if you want a reminder."
             )

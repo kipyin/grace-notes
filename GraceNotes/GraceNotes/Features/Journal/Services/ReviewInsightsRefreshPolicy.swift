@@ -21,7 +21,7 @@ struct ReviewInsightsRefreshKey: Hashable {
     /// Snapshots for every loaded entry that can change Past-tab insights: the resolved past-statistics
     /// window plus the current and previous review weeks (trend comparison).
     static func entrySnapshotsAffectingInsights(
-        entries: [JournalEntry],
+        entries: [Journal],
         referenceDate: Date,
         calendar: Calendar,
         pastStatisticsInterval: PastStatisticsIntervalSelection,

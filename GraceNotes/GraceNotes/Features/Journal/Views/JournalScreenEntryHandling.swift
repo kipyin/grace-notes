@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// Parameters for strip tap operations. Used to reduce duplication across gratitude/need/person sections.
+/// Parameters for sequential entry (sentence chip) tap operations across gratitude/need/person sections.
 @MainActor
-struct StripSectionOperations {
+struct EntrySectionOperations {
     let updateImmediate: (Int, String) -> Int?
     let addImmediate: (String) -> Int?
     let remove: (Int) -> Bool
@@ -11,13 +11,13 @@ struct StripSectionOperations {
 }
 
 @MainActor
-enum JournalScreenStripHandling {
+enum JournalScreenEntryHandling {
     /// Submits the current input as an immediate update/add and clears the draft on success.
     /// Returns true when a state transition was applied.
-    static func submitStripSection(
+    static func submitEntrySection(
         editingIndex: Binding<Int?>,
         input: Binding<String>,
-        operations: StripSectionOperations,
+        operations: EntrySectionOperations,
         isTransitioning: Binding<Bool>
     ) -> Bool {
         let trimmed = input.wrappedValue.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -53,10 +53,10 @@ enum JournalScreenStripHandling {
 
     /// Handles `(+)` tap without dropping an active draft.
     /// Returns true when the interaction was accepted.
-    static func handleAddStripTap(
+    static func handleAddEntryTap(
         input: Binding<String>,
         editingIndex: Binding<Int?>,
-        operations: StripSectionOperations,
+        operations: EntrySectionOperations,
         isTransitioning: Binding<Bool>
     ) -> Bool {
         guard beginTransition(isTransitioning) else { return false }
@@ -100,7 +100,7 @@ enum JournalScreenStripHandling {
         }
     }
 
-    /// Reorders a strip and remaps editing index to keep editing state on the same item.
+    /// Reorders an entry row and remaps editing index to keep editing state on the same item.
     static func performMove(
         from sourceIndex: Int,
         to destinationOffset: Int,
@@ -119,13 +119,13 @@ enum JournalScreenStripHandling {
         }
     }
 
-    /// Performs the strip-tap-to-edit flow: commits any pending input, then loads the tapped strip into the editor.
+    /// Performs the entry-tap-to-edit flow: commits any pending input, then loads the tapped row into the editor.
     /// Returns true when the interaction was accepted.
-    static func performStripTap(
+    static func performEntryTap(
         tapIndex: Int,
         input: Binding<String>,
         editingIndex: Binding<Int?>,
-        operations: StripSectionOperations,
+        operations: EntrySectionOperations,
         isTransitioning: Binding<Bool>
     ) -> Bool {
         guard beginTransition(isTransitioning) else { return false }
@@ -135,7 +135,7 @@ enum JournalScreenStripHandling {
 
         if let currentIndex = editingIndex.wrappedValue, trimmed.isEmpty {
             guard operations.remove(currentIndex) else { return false }
-            applyStripTapAfterRemovingEmptyEdit(
+            applyEntryTapAfterRemovingEmptyEdit(
                 tapIndex: tapIndex,
                 removedIndex: currentIndex,
                 input: input,
@@ -145,7 +145,7 @@ enum JournalScreenStripHandling {
             return true
         }
 
-        if switchStripTapWhenTextUnchangedFromStored(
+        if switchEntryTapWhenTextUnchangedFromStored(
             trimmed: trimmed,
             tapIndex: tapIndex,
             input: input,
@@ -179,12 +179,12 @@ enum JournalScreenStripHandling {
         return true
     }
 
-    private static func applyStripTapAfterRemovingEmptyEdit(
+    private static func applyEntryTapAfterRemovingEmptyEdit(
         tapIndex: Int,
         removedIndex: Int,
         input: Binding<String>,
         editingIndex: Binding<Int?>,
-        operations: StripSectionOperations
+        operations: EntrySectionOperations
     ) {
         input.wrappedValue = ""
         if tapIndex == removedIndex {
@@ -200,12 +200,12 @@ enum JournalScreenStripHandling {
         }
     }
 
-    private static func switchStripTapWhenTextUnchangedFromStored(
+    private static func switchEntryTapWhenTextUnchangedFromStored(
         trimmed: String,
         tapIndex: Int,
         input: Binding<String>,
         editingIndex: Binding<Int?>,
-        operations: StripSectionOperations
+        operations: EntrySectionOperations
     ) -> Bool {
         guard let currentIndex = editingIndex.wrappedValue, !trimmed.isEmpty else { return false }
         let stored = operations.fullText(currentIndex) ?? ""

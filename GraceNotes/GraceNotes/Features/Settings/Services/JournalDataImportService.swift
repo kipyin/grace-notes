@@ -79,7 +79,7 @@ struct JournalDataImportService {
                 updated += 1
             } else {
                 context.insert(
-                    JournalEntry(
+                    Journal(
                         id: sanitized.id,
                         entryDate: dayStart,
                         gratitudes: sanitized.gratitudes,
@@ -149,9 +149,9 @@ struct JournalDataImportService {
     }
 
     private func sanitize(_ export: JournalDataExportEntry) -> SanitizedExport {
-        let gratitudes = mapItems(Array(export.gratitudes.prefix(JournalEntry.slotCount)))
-        let needs = mapItems(Array(export.needs.prefix(JournalEntry.slotCount)))
-        let people = mapItems(Array(export.people.prefix(JournalEntry.slotCount)))
+        let gratitudes = mapItems(Array(export.gratitudes.prefix(Journal.slotCount)))
+        let needs = mapItems(Array(export.needs.prefix(Journal.slotCount)))
+        let people = mapItems(Array(export.people.prefix(Journal.slotCount)))
         return SanitizedExport(
             id: export.id,
             gratitudes: gratitudes,
@@ -165,12 +165,12 @@ struct JournalDataImportService {
         )
     }
 
-    private func mapItems(_ items: [JournalDataExportItem]) -> [JournalItem] {
+    private func mapItems(_ items: [JournalDataExportItem]) -> [Entry] {
         items.compactMap { item in
             let trimmed = item.fullText.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !trimmed.isEmpty else { return nil }
             let capped = clampString(trimmed)
-            return JournalItem(fullText: capped, id: item.id)
+            return Entry(fullText: capped, id: item.id)
         }
     }
 
@@ -186,9 +186,9 @@ struct JournalDataImportService {
 
     private struct SanitizedExport {
         let id: UUID
-        let gratitudes: [JournalItem]
-        let needs: [JournalItem]
-        let people: [JournalItem]
+        let gratitudes: [Entry]
+        let needs: [Entry]
+        let people: [Entry]
         let readingNotes: String
         let reflections: String
         let createdAt: Date

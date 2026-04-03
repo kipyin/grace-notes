@@ -1,12 +1,12 @@
 import Foundation
 
 enum ICloudSyncPreferenceResolver {
-    private static let legacyTutorialKeys = [
-        JournalTutorialStorageKeys.dismissedSeedGuidance,
-        JournalTutorialStorageKeys.dismissedHarvestGuidance,
-        JournalTutorialStorageKeys.celebratedFirstSeed,
-        JournalTutorialStorageKeys.celebratedFirstBalanced,
-        JournalTutorialStorageKeys.celebratedFirstHarvest
+    private static let tutorialContinuityKeys = [
+        JournalTutorialStorageKeys.dismissedSproutGuidance,
+        JournalTutorialStorageKeys.dismissedBloomGuidance,
+        JournalTutorialStorageKeys.celebratedFirstSprout,
+        JournalTutorialStorageKeys.celebratedFirstLeaf,
+        JournalTutorialStorageKeys.celebratedFirstBloom
     ]
 
     private static let onboardingKeys = [
@@ -43,7 +43,7 @@ enum ICloudSyncPreferenceResolver {
             return true
         }
 
-        let continuityKeys = legacyTutorialKeys + onboardingKeys
+        let continuityKeys = tutorialContinuityKeys + onboardingKeys
         return continuityKeys.contains { defaults.object(forKey: $0) != nil }
     }
 }

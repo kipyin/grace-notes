@@ -6,7 +6,7 @@ final class AppTourTriggerTests: XCTestCase {
         let outcome = AppTourTrigger.evaluate(
             hasSeenAppTour: true,
             hasCompletedGuidedJournal: true,
-            hasAtLeastOneInEachChipSection: true
+            hasAtLeastOneEntryInEachSection: true
         )
         XCTAssertNil(outcome)
     }
@@ -15,7 +15,7 @@ final class AppTourTriggerTests: XCTestCase {
         let outcome = AppTourTrigger.evaluate(
             hasSeenAppTour: false,
             hasCompletedGuidedJournal: false,
-            hasAtLeastOneInEachChipSection: false
+            hasAtLeastOneEntryInEachSection: false
         )
         XCTAssertNil(outcome)
     }
@@ -24,7 +24,7 @@ final class AppTourTriggerTests: XCTestCase {
         let outcome = AppTourTrigger.evaluate(
             hasSeenAppTour: false,
             hasCompletedGuidedJournal: false,
-            hasAtLeastOneInEachChipSection: true
+            hasAtLeastOneEntryInEachSection: true
         )
         XCTAssertNotNil(outcome)
         XCTAssertEqual(outcome?.skipsCongratulationsPage, false)
@@ -34,7 +34,7 @@ final class AppTourTriggerTests: XCTestCase {
         let outcome = AppTourTrigger.evaluate(
             hasSeenAppTour: false,
             hasCompletedGuidedJournal: true,
-            hasAtLeastOneInEachChipSection: true
+            hasAtLeastOneEntryInEachSection: true
         )
         XCTAssertEqual(outcome?.skipsCongratulationsPage, true)
     }

@@ -2,7 +2,7 @@ import Foundation
 
 /// Shared history-window and per-day completion semantics for Past statistics (issue #169).
 enum ReviewHistoryWindowing {
-    static func sortedEntries(_ entries: [JournalEntry]) -> [JournalEntry] {
+    static func sortedEntries(_ entries: [Journal]) -> [Journal] {
         entries.sorted {
             if $0.entryDate != $1.entryDate {
                 return $0.entryDate < $1.entryDate
@@ -12,11 +12,11 @@ enum ReviewHistoryWindowing {
     }
 
     static func entriesInValidatedHistoryWindow(
-        allEntries: [JournalEntry],
+        allEntries: [Journal],
         referenceDate: Date,
         calendar: Calendar,
         pastStatisticsInterval: PastStatisticsIntervalSelection
-    ) -> [JournalEntry] {
+    ) -> [Journal] {
         let sortedAll = sortedEntries(allEntries)
         let historyRange = pastStatisticsInterval.validated.resolvedHistoryRange(
             referenceDate: referenceDate,
@@ -31,7 +31,7 @@ enum ReviewHistoryWindowing {
 
     /// Strongest completion level per calendar day (same rules as ``WeeklyReviewAggregatesBuilder`` / skyline mix).
     static func strongestCompletionByDay(
-        from entries: [JournalEntry],
+        from entries: [Journal],
         calendar: Calendar
     ) -> [Date: JournalCompletionLevel] {
         var strongestByDay: [Date: JournalCompletionLevel] = [:]
@@ -58,8 +58,8 @@ enum ReviewHistoryWindowing {
     /// Entries with at least one item in the section; newest first (issue #169 section drill-down).
     static func entriesContributingToSection(
         _ section: ReviewStatsSectionKind,
-        in entriesSortedOldestFirst: [JournalEntry]
-    ) -> [JournalEntry] {
+        in entriesSortedOldestFirst: [Journal]
+    ) -> [Journal] {
         let filtered = entriesSortedOldestFirst.filter { entry in
             switch section {
             case .gratitudes:

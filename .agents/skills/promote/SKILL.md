@@ -49,6 +49,7 @@ Ship-ready string edits (or a short table of key → old → new). When handing 
 
 ### Both
 
+- Keep **product terminology** aligned with shipped code names when strings describe behavior: **Journal** / **Entry** / **Bloom** (not legacy strip/chip/summer labels unless documenting a migration).
 - Onboarding and feature tours: **one primary idea per screen**; avoid stacked metaphors.
 - Accessibility strings: same standards—no English-only slop in `zh-Hans` regions.
 - After edits, grep for **orphan keys** and **stale** `String(localized:)` sources.

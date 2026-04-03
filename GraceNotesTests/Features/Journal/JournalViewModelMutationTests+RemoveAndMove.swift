@@ -105,7 +105,7 @@ extension JournalViewModelMutationTests {
     }
 
     func makeInMemoryContext() throws -> ModelContext {
-        let schema = Schema([JournalEntry.self])
+        let schema = Schema([Journal.self])
         let storeURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("GraceNotesTests-\(UUID().uuidString).store")
         let configuration = ModelConfiguration(schema: schema, url: storeURL)

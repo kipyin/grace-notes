@@ -19,7 +19,13 @@ extension ReviewInsights {
                 hasPersistedEntry: false
             )
         }
-        let mix = ReviewWeekCompletionMix(emptyDays: 1, startedDays: 2, growingDays: 2, balancedDays: 1, fullDays: 1)
+        let mix = ReviewWeekCompletionMix(
+            soilDayCount: 1,
+            sproutDayCount: 2,
+            twigDayCount: 2,
+            leafDayCount: 1,
+            bloomDayCount: 1
+        )
         let sectionTotals = ReviewWeekSectionTotals(gratitudeMentions: 3, needMentions: 2, peopleMentions: 2)
         let weekStats = ReviewWeekStats(
             reflectionDays: 5,

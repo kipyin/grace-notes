@@ -12,7 +12,7 @@ struct AdvancedSettingsScreen: View {
     private var reviewWeekBoundaryRawValue = ReviewWeekBoundaryPreference.defaultValue.rawValue
     @AppStorage(PastStatisticsIntervalPreference.appStorageKey)
     private var intervalEncoded = ""
-    @AppStorage(JournalTutorialStorageKeys.celebratedFirstHarvest) private var hasCelebratedFirstHarvest = false
+    @AppStorage(JournalTutorialStorageKeys.celebratedFirstBloom) private var hasCelebratedFirstBloom = false
     @AppStorage(JournalAppearanceStorageKeys.todayMode)
     private var journalTodayAppearanceRaw = JournalAppearanceMode.standard.rawValue
 
@@ -93,9 +93,9 @@ struct AdvancedSettingsScreen: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            if hasCelebratedFirstHarvest {
+            if hasCelebratedFirstBloom {
                 Section {
-                    Toggle(isOn: summerModeBinding) {
+                    Toggle(isOn: bloomModeBinding) {
                         Text(String(localized: "Bloom"))
                             .font(AppTheme.warmPaperBody)
                             .foregroundStyle(AppTheme.settingsTextPrimary)
@@ -125,15 +125,15 @@ struct AdvancedSettingsScreen: View {
     }
 
     private var settingsJournalTodayAppearance: JournalAppearanceMode {
-        JournalAppearanceMode(rawValue: journalTodayAppearanceRaw) ?? .standard
+        JournalAppearanceMode.resolveStored(rawValue: journalTodayAppearanceRaw)
     }
 
-    private var summerModeBinding: Binding<Bool> {
+    private var bloomModeBinding: Binding<Bool> {
         Binding(
-            get: { settingsJournalTodayAppearance == .summer },
+            get: { settingsJournalTodayAppearance == .bloom },
             set: { isEnabled in
                 journalTodayAppearanceRaw = isEnabled
-                    ? JournalAppearanceMode.summer.rawValue
+                    ? JournalAppearanceMode.bloom.rawValue
                     : JournalAppearanceMode.standard.rawValue
             }
         )

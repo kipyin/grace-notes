@@ -43,14 +43,14 @@ extension JournalCompletionLevel: Codable {
 }
 
 @Model
-final class JournalEntry {
+final class Journal {
     // CloudKit: non-optional transformable arrays do not get a recognized default in
     // the Core Data stack; use optional (`nil` = empty) so the store can load.
     var id: UUID = UUID()
     var entryDate: Date = Date.now
-    var gratitudes: [JournalItem]?
-    var needs: [JournalItem]?
-    var people: [JournalItem]?
+    var gratitudes: [Entry]?
+    var needs: [Entry]?
+    var people: [Entry]?
     @Attribute(originalName: "bibleNotes") var readingNotes: String = ""
     var reflections: String = ""
     var createdAt: Date = Date.now
@@ -60,9 +60,9 @@ final class JournalEntry {
     init(
         id: UUID = UUID(),
         entryDate: Date = .now,
-        gratitudes: [JournalItem] = [],
-        needs: [JournalItem] = [],
-        people: [JournalItem] = [],
+        gratitudes: [Entry] = [],
+        needs: [Entry] = [],
+        people: [Entry] = [],
         readingNotes: String = "",
         reflections: String = "",
         createdAt: Date = .now,
@@ -82,16 +82,16 @@ final class JournalEntry {
     }
 
     /// All chip slots filled (5 gratitudes, 5 needs, 5 people). Notes and reflections do not change it.
-    var hasHarvestChips: Bool {
-        Self.hasAllFifteenChips(
+    var hasReachedBloom: Bool {
+        Self.entriesIndicateBloom(
             gratitudesCount: (gratitudes ?? []).count,
             needsCount: (needs ?? []).count,
             peopleCount: (people ?? []).count
         )
     }
 
-    /// Same as ``hasHarvestChips``. Older call sites use this name for History and persistence.
-    var isComplete: Bool { hasHarvestChips }
+    /// Same as ``hasReachedBloom``. Older call sites use this name for History and persistence.
+    var isComplete: Bool { hasReachedBloom }
 
     var completionLevel: JournalCompletionLevel {
         Self.completionLevel(
@@ -101,7 +101,7 @@ final class JournalEntry {
         )
     }
 
-    static func hasAllFifteenChips(
+    static func entriesIndicateBloom(
         gratitudesCount: Int,
         needsCount: Int,
         peopleCount: Int
@@ -112,7 +112,7 @@ final class JournalEntry {
     }
 
     /// Minimum count across the three chip sections (weakest section).
-    static func minChipSectionCount(
+    static func minimumEntryCountAcrossSections(
         gratitudesCount: Int,
         needsCount: Int,
         peopleCount: Int
@@ -159,7 +159,7 @@ final class JournalEntry {
     }
 
     /// True when each chip section has at least one item (milestone “1/1/1”, independent of status name).
-    var hasAtLeastOneInEachChipSection: Bool {
+    var hasAtLeastOneEntryInEachSection: Bool {
         let gratitudesCount = (gratitudes ?? []).count
         let needsCount = (needs ?? []).count
         let peopleCount = (people ?? []).count

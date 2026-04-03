@@ -96,11 +96,11 @@ private extension ReviewInsightsProviderTests {
             reflectionDays: 3,
             meaningfulEntryCount: 3,
             completionMix: ReviewWeekCompletionMix(
-                emptyDays: 0,
-                startedDays: 0,
-                growingDays: 1,
-                balancedDays: 2,
-                fullDays: 0
+                soilDayCount: 0,
+                sproutDayCount: 0,
+                twigDayCount: 1,
+                leafDayCount: 2,
+                bloomDayCount: 0
             ),
             activity: [
                 ReviewDayActivity(
@@ -137,12 +137,12 @@ private extension ReviewInsightsProviderTests {
         return calendar.date(from: components)!
     }
 
-    func makeSeedEntry(on date: Date) -> JournalEntry {
-        JournalEntry(
+    func makeSeedEntry(on date: Date) -> Journal {
+        Journal(
             entryDate: date,
-            gratitudes: [JournalItem(fullText: "Gratitude")],
-            needs: [JournalItem(fullText: "Need")],
-            people: [JournalItem(fullText: "Person")]
+            gratitudes: [Entry(fullText: "Gratitude")],
+            needs: [Entry(fullText: "Need")],
+            people: [Entry(fullText: "Person")]
         )
     }
 
@@ -157,7 +157,7 @@ private extension ReviewInsightsProviderTests {
         )
     }
 
-    func threeSeedEntriesInWeek(of referenceDate: Date) -> [JournalEntry] {
+    func threeSeedEntriesInWeek(of referenceDate: Date) -> [Journal] {
         let range = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
         let start = range.lowerBound
         let day2 = calendar.date(byAdding: .day, value: 1, to: start) ?? start
@@ -178,7 +178,7 @@ private struct StubReviewInsightsGenerator: ReviewInsightsGenerating {
     let result: Result<ReviewInsights, Error>
 
     func generateInsights(
-        from entries: [JournalEntry],
+        from entries: [Journal],
         referenceDate: Date,
         calendar: Calendar,
         pastStatisticsInterval: PastStatisticsIntervalSelection

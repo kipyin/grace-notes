@@ -1,14 +1,41 @@
 import Foundation
 
+/// UserDefaults keys for optional Today tutorial hints. Values migrate once from legacy Harvest/Seed spellings (#144).
 enum JournalTutorialStorageKeys {
-    static let dismissedSeedGuidance = "journalTutorial.dismissedSeedGuidance"
-    static let dismissedHarvestGuidance = "journalTutorial.dismissedHarvestGuidance"
-    /// First time each chip section had at least one item (1/1/1). Key name retained for installs.
-    static let celebratedFirstSeed = "journalTutorial.celebratedFirstSeed"
-    /// First time all three sections reached three or more chips (Balanced status).
-    static let celebratedFirstBalanced = "journalTutorial.celebratedFirstBalanced"
-    /// First time all fifteen chip slots were filled (Full). Key name retained for installs.
-    static let celebratedFirstHarvest = "journalTutorial.celebratedFirstHarvest"
+    static let dismissedSproutGuidance = "journalTutorial.dismissedSproutGuidance"
+    static let dismissedBloomGuidance = "journalTutorial.dismissedBloomGuidance"
+    /// First time each Section had at least one Entry (1/1/1).
+    static let celebratedFirstSprout = "journalTutorial.celebratedFirstSprout"
+    /// First time all three Sections reached Leaf (balanced grid).
+    static let celebratedFirstLeaf = "journalTutorial.celebratedFirstLeaf"
+    /// First time all fifteen Entries were filled (Bloom).
+    static let celebratedFirstBloom = "journalTutorial.celebratedFirstBloom"
+
+    /// Copies legacy keys into the keys above, then removes legacy entries.
+    /// Call early at launch before CloudKit continuity checks.
+    static func migrateLegacyKeysIfNeeded(using defaults: UserDefaults = .standard) {
+        migrateBool(from: Legacy.dismissedSeedGuidance, to: dismissedSproutGuidance, defaults: defaults)
+        migrateBool(from: Legacy.dismissedHarvestGuidance, to: dismissedBloomGuidance, defaults: defaults)
+        migrateBool(from: Legacy.celebratedFirstSeed, to: celebratedFirstSprout, defaults: defaults)
+        migrateBool(from: Legacy.celebratedFirstBalanced, to: celebratedFirstLeaf, defaults: defaults)
+        migrateBool(from: Legacy.celebratedFirstHarvest, to: celebratedFirstBloom, defaults: defaults)
+    }
+
+    private static func migrateBool(from legacyKey: String, to key: String, defaults: UserDefaults) {
+        guard defaults.object(forKey: legacyKey) != nil else { return }
+        if defaults.object(forKey: key) == nil {
+            defaults.set(defaults.bool(forKey: legacyKey), forKey: key)
+        }
+        defaults.removeObject(forKey: legacyKey)
+    }
+
+    private enum Legacy {
+        static let dismissedSeedGuidance = "journalTutorial.dismissedSeedGuidance"
+        static let dismissedHarvestGuidance = "journalTutorial.dismissedHarvestGuidance"
+        static let celebratedFirstSeed = "journalTutorial.celebratedFirstSeed"
+        static let celebratedFirstBalanced = "journalTutorial.celebratedFirstBalanced"
+        static let celebratedFirstHarvest = "journalTutorial.celebratedFirstHarvest"
+    }
 }
 
 /// Per-install tutorial flags (UserDefaults). Not CloudKit-synced.
@@ -19,55 +46,64 @@ final class JournalTutorialProgress {
         self.defaults = defaults
     }
 
-    var hasDismissedSeedGuidance: Bool {
-        get { defaults.bool(forKey: JournalTutorialStorageKeys.dismissedSeedGuidance) }
-        set { defaults.set(newValue, forKey: JournalTutorialStorageKeys.dismissedSeedGuidance) }
+    var hasDismissedSproutGuidance: Bool {
+        get { defaults.bool(forKey: JournalTutorialStorageKeys.dismissedSproutGuidance) }
+        set { defaults.set(newValue, forKey: JournalTutorialStorageKeys.dismissedSproutGuidance) }
     }
 
-    var hasDismissedHarvestGuidance: Bool {
-        get { defaults.bool(forKey: JournalTutorialStorageKeys.dismissedHarvestGuidance) }
-        set { defaults.set(newValue, forKey: JournalTutorialStorageKeys.dismissedHarvestGuidance) }
+    var hasDismissedBloomGuidance: Bool {
+        get { defaults.bool(forKey: JournalTutorialStorageKeys.dismissedBloomGuidance) }
+        set { defaults.set(newValue, forKey: JournalTutorialStorageKeys.dismissedBloomGuidance) }
     }
 
-    /// First celebration of having at least one chip in Gratitudes, Needs, and People in Mind.
+    /// First celebration of 1/1/1 Entries across Gratitudes, Needs, and People in Mind.
     var hasCelebratedFirstTripleOne: Bool {
-        get { defaults.bool(forKey: JournalTutorialStorageKeys.celebratedFirstSeed) }
-        set { defaults.set(newValue, forKey: JournalTutorialStorageKeys.celebratedFirstSeed) }
+        get { defaults.bool(forKey: JournalTutorialStorageKeys.celebratedFirstSprout) }
+        set { defaults.set(newValue, forKey: JournalTutorialStorageKeys.celebratedFirstSprout) }
     }
 
-    var hasCelebratedFirstBalanced: Bool {
-        get { defaults.bool(forKey: JournalTutorialStorageKeys.celebratedFirstBalanced) }
-        set { defaults.set(newValue, forKey: JournalTutorialStorageKeys.celebratedFirstBalanced) }
+    var hasCelebratedFirstLeaf: Bool {
+        get { defaults.bool(forKey: JournalTutorialStorageKeys.celebratedFirstLeaf) }
+        set { defaults.set(newValue, forKey: JournalTutorialStorageKeys.celebratedFirstLeaf) }
     }
 
-    /// First celebration of filling all fifteen chip slots (Full).
-    var hasCelebratedFirstFull: Bool {
-        get { defaults.bool(forKey: JournalTutorialStorageKeys.celebratedFirstHarvest) }
-        set { defaults.set(newValue, forKey: JournalTutorialStorageKeys.celebratedFirstHarvest) }
+    /// First celebration of Bloom (all fifteen Entries).
+    var hasCelebratedFirstBloom: Bool {
+        get { defaults.bool(forKey: JournalTutorialStorageKeys.celebratedFirstBloom) }
+        set { defaults.set(newValue, forKey: JournalTutorialStorageKeys.celebratedFirstBloom) }
     }
 
     func applyRecording(from outcome: JournalTutorialUnlockEvaluator.MilestoneOutcome) {
         if outcome.recordFirstTripleOneCelebrated {
             hasCelebratedFirstTripleOne = true
         }
-        if outcome.recordFirstBalancedCelebrated {
-            hasCelebratedFirstBalanced = true
+        if outcome.recordFirstLeafCelebrated {
+            hasCelebratedFirstLeaf = true
         }
-        if outcome.recordFirstFullCelebrated {
-            hasCelebratedFirstFull = true
+        if outcome.recordFirstBloomCelebrated {
+            hasCelebratedFirstBloom = true
         }
     }
 
     static func resetAll(in defaults: UserDefaults = .standard) {
         let keys = [
-            JournalTutorialStorageKeys.dismissedSeedGuidance,
-            JournalTutorialStorageKeys.dismissedHarvestGuidance,
-            JournalTutorialStorageKeys.celebratedFirstSeed,
-            JournalTutorialStorageKeys.celebratedFirstBalanced,
-            JournalTutorialStorageKeys.celebratedFirstHarvest
+            JournalTutorialStorageKeys.dismissedSproutGuidance,
+            JournalTutorialStorageKeys.dismissedBloomGuidance,
+            JournalTutorialStorageKeys.celebratedFirstSprout,
+            JournalTutorialStorageKeys.celebratedFirstLeaf,
+            JournalTutorialStorageKeys.celebratedFirstBloom
         ]
         for key in keys {
             defaults.removeObject(forKey: key)
+        }
+        for legacy in [
+            "journalTutorial.dismissedSeedGuidance",
+            "journalTutorial.dismissedHarvestGuidance",
+            "journalTutorial.celebratedFirstSeed",
+            "journalTutorial.celebratedFirstBalanced",
+            "journalTutorial.celebratedFirstHarvest"
+        ] {
+            defaults.removeObject(forKey: legacy)
         }
     }
 }

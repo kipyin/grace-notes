@@ -31,7 +31,7 @@ struct TodayJournalPalette: Equatable {
     var journalError: Color
     /// Opacity for `WarmPaperInputStyle` paper fill.
     var inputPaperOpacity: CGFloat
-    /// Extra translucency for section chrome (completion pill, strips) in Summer.
+    /// Extra translucency for section chrome (completion pill, entry rows) in Bloom mode.
     var sectionPaperOpacity: CGFloat
 
     static let standard = TodayJournalPalette(
@@ -67,7 +67,7 @@ struct TodayJournalPalette: Equatable {
     )
 
     /// Warmer cream paper and ink-forward typography; tier accent colors stay asset-backed for parity.
-    static let summer = TodayJournalPalette(
+    static let bloom = TodayJournalPalette(
         background: Color.clear,
         ambientEditingBackground: summerHex(0xE5DDD0),
         paper: summerHex(0xFFF8EE),
@@ -102,7 +102,7 @@ struct TodayJournalPalette: Equatable {
     static func resolve(mode: JournalAppearanceMode) -> TodayJournalPalette {
         switch mode {
         case .standard: return .standard
-        case .summer: return .summer
+        case .bloom: return .bloom
         }
     }
 }
@@ -125,15 +125,15 @@ extension EnvironmentValues {
     }
 }
 
-private struct JournalSummerAtmosphereHostedKey: EnvironmentKey {
-    /// Default: journal draws summer paper + leaves inside `JournalScreen` (e.g. embedded routes).
+private struct JournalBloomAtmosphereHostedKey: EnvironmentKey {
+    /// Default: journal draws Bloom paper + leaves inside `JournalScreen` (e.g. embedded routes).
     static let defaultValue = false
 }
 
 extension EnvironmentValues {
-    /// When `true`, summer paper and leaves are provided by `TodayTabRoot`; `JournalScreen` must not duplicate them.
-    var journalSummerAtmosphereHosted: Bool {
-        get { self[JournalSummerAtmosphereHostedKey.self] }
-        set { self[JournalSummerAtmosphereHostedKey.self] = newValue }
+    /// When `true`, Bloom paper and leaves are provided by `TodayTabRoot`; `JournalScreen` must not duplicate them.
+    var journalBloomAtmosphereHosted: Bool {
+        get { self[JournalBloomAtmosphereHostedKey.self] }
+        set { self[JournalBloomAtmosphereHostedKey.self] = newValue }
     }
 }

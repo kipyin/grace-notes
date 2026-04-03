@@ -1,6 +1,6 @@
 import Foundation
 
-struct JournalItem: Codable {
+struct Entry: Codable {
     var id: UUID
     var fullText: String
 
@@ -13,6 +13,7 @@ struct JournalItem: Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
         fullText = try container.decode(String.self, forKey: .fullText)
+        _ = try container.decodeIfPresent(String.self, forKey: .entryLabel)
         _ = try container.decodeIfPresent(String.self, forKey: .chipLabel)
         _ = try container.decodeIfPresent(Bool.self, forKey: .isTruncated)
     }
@@ -26,6 +27,7 @@ struct JournalItem: Codable {
     private enum CodingKeys: String, CodingKey {
         case id
         case fullText
+        case entryLabel
         case chipLabel
         case isTruncated
     }

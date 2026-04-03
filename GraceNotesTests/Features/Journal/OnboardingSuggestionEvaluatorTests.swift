@@ -18,7 +18,7 @@ final class OnboardingSuggestionEvaluatorTests: XCTestCase {
     func test_currentSuggestion_remindersAndFullMet_remindersWins() {
         var context = baseContext(entryDate: nil)
         context.hasCelebratedFirstTripleOne = true
-        context.hasCelebratedFirstFull = true
+        context.hasCelebratedFirstBloom = true
 
         XCTAssertEqual(JournalOnboardingSuggestionEvaluator.currentSuggestion(context: context), .reminders)
     }
@@ -44,7 +44,7 @@ final class OnboardingSuggestionEvaluatorTests: XCTestCase {
         let context = JournalOnboardingSuggestionContext(
             entryDate: nil,
             hasCelebratedFirstTripleOne: true,
-            hasCelebratedFirstFull: true,
+            hasCelebratedFirstBloom: true,
             dismissedRemindersSuggestion: true,
             openedRemindersSuggestion: false,
             hasConfiguredReminderTime: false,
@@ -61,7 +61,7 @@ final class OnboardingSuggestionEvaluatorTests: XCTestCase {
         JournalOnboardingSuggestionContext(
             entryDate: entryDate,
             hasCelebratedFirstTripleOne: false,
-            hasCelebratedFirstFull: false,
+            hasCelebratedFirstBloom: false,
             dismissedRemindersSuggestion: false,
             openedRemindersSuggestion: false,
             hasConfiguredReminderTime: false,

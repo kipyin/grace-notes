@@ -77,7 +77,7 @@ struct SentenceStripView: View {
                 }
                 .buttonStyle(.plain)
                 .modifier(
-                    SequentialSectionStripRow.ConditionalAccessibilityIdentifier(
+                    SequentialSectionEntryRow.ConditionalAccessibilityIdentifier(
                         identifier: expansionAccessibilityIdentifier
                     )
                 )
@@ -130,7 +130,7 @@ struct SentenceStripView: View {
         .accessibilityValue(sentence)
         .accessibilityHint(rowAccessibilityHint)
         .modifier(
-            SequentialSectionStripRow.ConditionalAccessibilityIdentifier(
+            SequentialSectionEntryRow.ConditionalAccessibilityIdentifier(
                 identifier: accessibilityIdentifier
             )
         )

@@ -31,8 +31,8 @@ final class PastDrilldownCalendarLayoutTests: XCTestCase {
         let historyRange = historyLower ..< upper
         let midFeb = cal.date(from: DateComponents(year: 2026, month: 2, day: 15))!
         let earlyJan = cal.date(from: DateComponents(year: 2026, month: 1, day: 20))!
-        let februaryEntry = JournalEntry(entryDate: midFeb)
-        let januaryEntry = JournalEntry(entryDate: earlyJan)
+        let februaryEntry = Journal(entryDate: midFeb)
+        let januaryEntry = Journal(entryDate: earlyJan)
         let display = ReviewHistoryDrilldownCalendarLayout.drilldownGridDisplayRange(
             entries: [februaryEntry, januaryEntry],
             historyDayRange: historyRange,

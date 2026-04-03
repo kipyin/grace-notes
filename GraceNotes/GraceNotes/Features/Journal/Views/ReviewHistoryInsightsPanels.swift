@@ -8,7 +8,7 @@ struct ReviewHistoryGrowthStagesPanel: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @Binding var historyDrilldown: ReviewHistoryDrilldownPayload?
-    let entries: [JournalEntry]
+    let entries: [Journal]
     let calendar: Calendar
     let referenceDate: Date
     let pastStatisticsInterval: PastStatisticsIntervalSelection
@@ -111,15 +111,15 @@ private struct ReviewHistoryGrowthSkyline: View {
     private func count(for level: JournalCompletionLevel, mix: ReviewWeekCompletionMix) -> Int {
         switch level {
         case .soil:
-            mix.emptyDays
+            mix.soilDayCount
         case .sprout:
-            mix.startedDays
+            mix.sproutDayCount
         case .twig:
-            mix.growingDays
+            mix.twigDayCount
         case .leaf:
-            mix.balancedDays
+            mix.leafDayCount
         case .bloom:
-            mix.fullDays
+            mix.bloomDayCount
         }
     }
 
@@ -258,7 +258,7 @@ struct ReviewHistorySectionDistributionPanel: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @Binding var historyDrilldown: ReviewHistoryDrilldownPayload?
-    let entries: [JournalEntry]
+    let entries: [Journal]
     let calendar: Calendar
     let referenceDate: Date
     let pastStatisticsInterval: PastStatisticsIntervalSelection

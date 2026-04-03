@@ -76,7 +76,7 @@ final class JournalViewModelMutationTests: XCTestCase {
         let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now })
 
         viewModel.loadEntry(for: now, using: context)
-        viewModel.gratitudes = [JournalItem(fullText: "Old")]
+        viewModel.gratitudes = [Entry(fullText: "Old")]
 
         let longText = "A very long gratitude that exceeds twenty characters"
         let result = viewModel.updateGratitudeImmediate(at: 0, fullText: longText)
@@ -92,7 +92,7 @@ final class JournalViewModelMutationTests: XCTestCase {
         let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now })
 
         viewModel.loadEntry(for: now, using: context)
-        viewModel.people = [JournalItem(fullText: "Old person")]
+        viewModel.people = [Entry(fullText: "Old person")]
 
         let input = "为 Amy 祷告平安"
         let result = viewModel.updatePersonImmediate(at: 0, fullText: input)

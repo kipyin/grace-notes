@@ -7,7 +7,7 @@ struct JournalSearchMatch: Identifiable, Equatable {
     let source: ReviewThemeSourceCategory
     let content: String
 
-    init(entryDate: Date, journalEntryId: UUID, item: JournalItem, source: ReviewThemeSourceCategory, content: String) {
+    init(entryDate: Date, journalEntryId: UUID, item: Entry, source: ReviewThemeSourceCategory, content: String) {
         self.id = "\(journalEntryId.uuidString)|\(source.rawValue)|\(item.id.uuidString)"
         self.entryDate = entryDate
         self.source = source

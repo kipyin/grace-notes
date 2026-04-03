@@ -21,7 +21,7 @@ struct SettingsScreen: View {
     @AppStorage(JournalOnboardingStorageKeys.hasSeenAppTour) private var hasSeenAppTour = false
     @AppStorage(JournalOnboardingStorageKeys.completedGuidedJournal) private var hasCompletedGuidedJournal = false
     /// Same storage as first Full/Harvest celebration; unlocks Bloom in Advanced settings.
-    @AppStorage(JournalTutorialStorageKeys.celebratedFirstHarvest) private var hasCelebratedFirstHarvest = false
+    @AppStorage(JournalTutorialStorageKeys.celebratedFirstBloom) private var hasCelebratedFirstBloom = false
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -357,9 +357,9 @@ private extension SettingsScreen {
     }
 
     func backfillBloomUnlockIfNeeded() {
-        guard !hasCelebratedFirstHarvest else { return }
+        guard !hasCelebratedFirstBloom else { return }
         let repository = JournalRepository()
-        guard (try? repository.hasUserReachedFullHarvest(context: modelContext)) == true else { return }
-        hasCelebratedFirstHarvest = true
+        guard (try? repository.hasUserEverReachedBloom(context: modelContext)) == true else { return }
+        hasCelebratedFirstBloom = true
     }
 }

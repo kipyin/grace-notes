@@ -2,9 +2,9 @@ import Foundation
 
 struct JournalExportSnapshotSource {
     let entryDate: Date
-    let gratitudes: [JournalItem]
-    let needs: [JournalItem]
-    let people: [JournalItem]
+    let gratitudes: [Entry]
+    let needs: [Entry]
+    let people: [Entry]
     let readingNotes: String
     let reflections: String
 }

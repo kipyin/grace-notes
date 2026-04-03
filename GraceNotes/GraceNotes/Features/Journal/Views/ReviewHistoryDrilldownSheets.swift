@@ -16,7 +16,7 @@ enum ReviewHistoryDrilldownPayload: Identifiable, Equatable {
 
 struct ReviewHistoryDrilldownSheetContainer: View {
     let payload: ReviewHistoryDrilldownPayload
-    let entries: [JournalEntry]
+    let entries: [Journal]
     let calendar: Calendar
     let referenceDate: Date
     let pastStatisticsInterval: PastStatisticsIntervalSelection
@@ -57,7 +57,7 @@ private struct GrowthStageDrilldownSheet: View {
 
     init(
         level: JournalCompletionLevel,
-        entries: [JournalEntry],
+        entries: [Journal],
         calendar: Calendar,
         referenceDate: Date,
         pastStatisticsInterval: PastStatisticsIntervalSelection
@@ -197,7 +197,7 @@ private struct SectionEntriesDrilldownSheet: View {
     @State private var journalNavigationDay: ReviewHistoryDrilldownJournalNavigationDay?
 
     let section: ReviewStatsSectionKind
-    private let contributingEntries: [JournalEntry]
+    private let contributingEntries: [Journal]
     private let sectionMatchingDayStarts: Set<Date>
     private let historyDayRange: Range<Date>
     private let displayRange: Range<Date>
@@ -205,7 +205,7 @@ private struct SectionEntriesDrilldownSheet: View {
 
     init(
         section: ReviewStatsSectionKind,
-        entries: [JournalEntry],
+        entries: [Journal],
         calendar: Calendar,
         referenceDate: Date,
         pastStatisticsInterval: PastStatisticsIntervalSelection

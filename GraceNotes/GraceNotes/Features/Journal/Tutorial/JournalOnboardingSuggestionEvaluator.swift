@@ -4,7 +4,7 @@ import Foundation
 struct JournalOnboardingSuggestionContext: Equatable {
     var entryDate: Date?
     var hasCelebratedFirstTripleOne: Bool
-    var hasCelebratedFirstFull: Bool
+    var hasCelebratedFirstBloom: Bool
     var dismissedRemindersSuggestion: Bool
     var openedRemindersSuggestion: Bool
     var hasConfiguredReminderTime: Bool

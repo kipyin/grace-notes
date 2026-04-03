@@ -47,12 +47,12 @@ final class WeeklyReviewHistoryRollupsTests: XCTestCase {
         XCTAssertEqual(aggregates.stats.historySectionTotals.needMentions, 5)
         XCTAssertEqual(aggregates.stats.historySectionTotals.peopleMentions, 5)
 
-        XCTAssertEqual(aggregates.stats.completionMix.fullDays, 0)
-        XCTAssertEqual(aggregates.stats.completionMix.startedDays, 1)
+        XCTAssertEqual(aggregates.stats.completionMix.bloomDayCount, 0)
+        XCTAssertEqual(aggregates.stats.completionMix.sproutDayCount, 1)
 
-        XCTAssertEqual(aggregates.stats.historyCompletionMix.fullDays, 1)
-        XCTAssertEqual(aggregates.stats.historyCompletionMix.startedDays, 1)
-        XCTAssertEqual(aggregates.stats.historyCompletionMix.emptyDays, 0)
+        XCTAssertEqual(aggregates.stats.historyCompletionMix.bloomDayCount, 1)
+        XCTAssertEqual(aggregates.stats.historyCompletionMix.sproutDayCount, 1)
+        XCTAssertEqual(aggregates.stats.historyCompletionMix.soilDayCount, 0)
 
         XCTAssertEqual(
             aggregates.stats.historyCompletionMix.totalDaysRepresented,
@@ -146,9 +146,9 @@ final class WeeklyReviewHistoryRollupsTests: XCTestCase {
 
         XCTAssertEqual(distinctEntryDays(allEntries), 1)
         XCTAssertEqual(aggregates.stats.historyCompletionMix.totalDaysRepresented, 1)
-        XCTAssertEqual(aggregates.stats.historyCompletionMix.fullDays, 1)
-        XCTAssertEqual(aggregates.stats.historyCompletionMix.emptyDays, 0)
-        XCTAssertEqual(aggregates.stats.historyCompletionMix.startedDays, 0)
+        XCTAssertEqual(aggregates.stats.historyCompletionMix.bloomDayCount, 1)
+        XCTAssertEqual(aggregates.stats.historyCompletionMix.soilDayCount, 0)
+        XCTAssertEqual(aggregates.stats.historyCompletionMix.sproutDayCount, 0)
     }
 
     /// Skyline column order is weakest → strongest and matches monotonic ``tutorialCompletionRank`` (see
@@ -252,35 +252,35 @@ private extension WeeklyReviewHistoryRollupsTests {
     static func completionMix(
         fromStrongestByDay strongestByDay: [Date: JournalCompletionLevel]
     ) -> ReviewWeekCompletionMix {
-        var emptyDays = 0
-        var startedDays = 0
-        var growingDays = 0
-        var balancedDays = 0
-        var fullDays = 0
+        var soilDayCount = 0
+        var sproutDayCount = 0
+        var twigDayCount = 0
+        var leafDayCount = 0
+        var bloomDayCount = 0
         for level in strongestByDay.values {
             switch level {
             case .soil:
-                emptyDays += 1
+                soilDayCount += 1
             case .sprout:
-                startedDays += 1
+                sproutDayCount += 1
             case .twig:
-                growingDays += 1
+                twigDayCount += 1
             case .leaf:
-                balancedDays += 1
+                leafDayCount += 1
             case .bloom:
-                fullDays += 1
+                bloomDayCount += 1
             }
         }
         return ReviewWeekCompletionMix(
-            emptyDays: emptyDays,
-            startedDays: startedDays,
-            growingDays: growingDays,
-            balancedDays: balancedDays,
-            fullDays: fullDays
+            soilDayCount: soilDayCount,
+            sproutDayCount: sproutDayCount,
+            twigDayCount: twigDayCount,
+            leafDayCount: leafDayCount,
+            bloomDayCount: bloomDayCount
         )
     }
 
-    func distinctEntryDays(_ entries: [JournalEntry]) -> Int {
+    func distinctEntryDays(_ entries: [Journal]) -> Int {
         Set(entries.map { calendar.startOfDay(for: $0.entryDate) }).count
     }
 
@@ -291,12 +291,12 @@ private extension WeeklyReviewHistoryRollupsTests {
         people: [String] = [],
         readingNotes: String = "",
         reflections: String = ""
-    ) -> JournalEntry {
-        JournalEntry(
+    ) -> Journal {
+        Journal(
             entryDate: date,
-            gratitudes: gratitudes.map { JournalItem(fullText: $0) },
-            needs: needs.map { JournalItem(fullText: $0) },
-            people: people.map { JournalItem(fullText: $0) },
+            gratitudes: gratitudes.map { Entry(fullText: $0) },
+            needs: needs.map { Entry(fullText: $0) },
+            people: people.map { Entry(fullText: $0) },
             readingNotes: readingNotes,
             reflections: reflections
         )

@@ -19,7 +19,7 @@ enum JournalTodayOrientationPolicy {
         var isRunningUITests: Bool
         var hasSeenAppTour: Bool
         var hasCompletedGuidedJournal: Bool
-        var hasAtLeastOneInEachChipSection: Bool
+        var hasAtLeastOneEntryInEachSection: Bool
     }
 
     /// - Returns: Outcome when the full-screen App Tour should be presented; `nil` otherwise.
@@ -29,22 +29,22 @@ enum JournalTodayOrientationPolicy {
         return AppTourTrigger.evaluate(
             hasSeenAppTour: inputs.hasSeenAppTour,
             hasCompletedGuidedJournal: inputs.hasCompletedGuidedJournal,
-            hasAtLeastOneInEachChipSection: inputs.hasAtLeastOneInEachChipSection
+            hasAtLeastOneEntryInEachSection: inputs.hasAtLeastOneEntryInEachSection
         )
     }
 
     /// Suppress the generic **Started** unlock toast when the App Tour is about to present at **1/1/1** (avoids
     /// stacking with the full-screen flow). The first line alone still shows the toast.
-    static func shouldSuppressSeedUnlockToast(
+    static func shouldSuppressSproutUnlockToast(
         isTodayEntry: Bool,
         newLevel: JournalCompletionLevel,
         hasSeenAppTour: Bool,
         milestoneHighlight: JournalUnlockMilestoneHighlight,
-        hasAtLeastOneInEachChipSection: Bool
+        hasAtLeastOneEntryInEachSection: Bool
     ) -> Bool {
         guard milestoneHighlight == .none else { return false }
         guard isTodayEntry, newLevel == .sprout, !hasSeenAppTour else { return false }
-        guard hasAtLeastOneInEachChipSection else { return false }
+        guard hasAtLeastOneEntryInEachSection else { return false }
         return true
     }
 }

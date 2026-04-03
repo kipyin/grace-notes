@@ -3,9 +3,9 @@ import SwiftData
 
 enum HistoryEntryGrouping {
     static func groupedByMonth(
-        entries: [JournalEntry],
+        entries: [Journal],
         calendar: Calendar
-    ) -> [(key: Date, entries: [JournalEntry])] {
+    ) -> [(key: Date, entries: [Journal])] {
         let grouped = Dictionary(grouping: entries) { entry -> Date in
             let components = calendar.dateComponents([.year, .month], from: entry.entryDate)
             return calendar.date(from: components) ?? entry.entryDate

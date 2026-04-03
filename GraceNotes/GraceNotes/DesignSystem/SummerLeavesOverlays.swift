@@ -3,7 +3,7 @@ import UIKit
 import AVFoundation
 
 /// Shared seam: looping **bundled** video leaves (`SummerLeavesLoop.mp4`) above the paper field, below content.
-/// There is no Canvas/native fallback—without the asset, Summer mode shows no leaf layer by design.
+/// There is no Canvas/native fallback—without the asset, Bloom mode shows no leaf layer by design.
 struct SummerLeavesOverlaySeam: View {
     let reduceMotion: Bool
 

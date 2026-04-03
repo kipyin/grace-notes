@@ -1,21 +1,21 @@
 import SwiftUI
 
-/// Orchestrates strip add / tap flows and keyboard focus restoration for Today’s sequential sections.
+/// Orchestrates sequential entry add / tap flows and keyboard focus restoration for Today’s sections.
 @MainActor
-enum JournalStripInteractionCoordinator {
+enum JournalEntryInteractionCoordinator {
     struct SectionContext {
         let input: Binding<String>
         let editingIndex: Binding<Int?>
         let isTransitioning: Binding<Bool>
         let inputFocus: FocusState<Bool>.Binding
-        let operations: StripSectionOperations
+        let operations: EntrySectionOperations
     }
 
     static func addNewTapped(
         context: SectionContext,
         restoreInputFocus: (FocusState<Bool>.Binding) -> Void
     ) {
-        let handled = JournalScreenStripHandling.handleAddStripTap(
+        let handled = JournalScreenEntryHandling.handleAddEntryTap(
             input: context.input,
             editingIndex: context.editingIndex,
             operations: context.operations,
@@ -26,12 +26,12 @@ enum JournalStripInteractionCoordinator {
         }
     }
 
-    static func stripTapped(
+    static func entryTapped(
         context: SectionContext,
         tapIndex: Int,
         restoreInputFocus: (FocusState<Bool>.Binding) -> Void
     ) {
-        let handled = JournalScreenStripHandling.performStripTap(
+        let handled = JournalScreenEntryHandling.performEntryTap(
             tapIndex: tapIndex,
             input: context.input,
             editingIndex: context.editingIndex,

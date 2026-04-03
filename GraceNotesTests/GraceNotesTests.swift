@@ -3,15 +3,15 @@ import XCTest
 @testable import GraceNotes
 
 @MainActor
-final class JournalScreenStripHandlingTests: XCTestCase {
-    func test_performStripTap_whenEditingUnchangedText_switchesWithoutCommitting() {
+final class JournalScreenEntryHandlingTests: XCTestCase {
+    func test_performEntryTap_whenEditingUnchangedText_switchesWithoutCommitting() {
         var input = "Current full text"
         var editingIndex: Int? = 0
         var isTransitioning = false
         var didUpdate = false
         var didAdd = false
 
-        let operations = StripSectionOperations(
+        let operations = EntrySectionOperations(
             updateImmediate: { _, _ in
                 didUpdate = true
                 return 0
@@ -27,7 +27,7 @@ final class JournalScreenStripHandlingTests: XCTestCase {
             count: 2
         )
 
-        let handled = JournalScreenStripHandling.performStripTap(
+        let handled = JournalScreenEntryHandling.performEntryTap(
             tapIndex: 1,
             input: Binding(get: { input }, set: { input = $0 }),
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
@@ -42,12 +42,12 @@ final class JournalScreenStripHandlingTests: XCTestCase {
         XCTAssertEqual(input, "Tapped full text")
     }
 
-    func test_performStripTap_whenEditingChangedText_commitsAndSwitchesStrip() {
+    func test_performEntryTap_whenEditingChangedText_commitsAndSwitchesStrip() {
         var input = "Edited text"
         var editingIndex: Int? = 0
         var isTransitioning = false
 
-        let operations = StripSectionOperations(
+        let operations = EntrySectionOperations(
             updateImmediate: { _, _ in 0 },
             addImmediate: { _ in nil },
             remove: { _ in false },
@@ -57,7 +57,7 @@ final class JournalScreenStripHandlingTests: XCTestCase {
             count: 2
         )
 
-        let handled = JournalScreenStripHandling.performStripTap(
+        let handled = JournalScreenEntryHandling.performEntryTap(
             tapIndex: 1,
             input: Binding(get: { input }, set: { input = $0 }),
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
@@ -70,12 +70,12 @@ final class JournalScreenStripHandlingTests: XCTestCase {
         XCTAssertEqual(input, "Target full text")
     }
 
-    func test_performStripTap_whenTransitionInFlight_ignoresTap() {
+    func test_performEntryTap_whenTransitionInFlight_ignoresTap() {
         var input = "Draft text"
         var editingIndex: Int? = 0
         var isTransitioning = true
 
-        let operations = StripSectionOperations(
+        let operations = EntrySectionOperations(
             updateImmediate: { _, _ in 0 },
             addImmediate: { _ in 1 },
             remove: { _ in false },
@@ -83,7 +83,7 @@ final class JournalScreenStripHandlingTests: XCTestCase {
             count: 1
         )
 
-        let handled = JournalScreenStripHandling.performStripTap(
+        let handled = JournalScreenEntryHandling.performEntryTap(
             tapIndex: 0,
             input: Binding(get: { input }, set: { input = $0 }),
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
@@ -100,7 +100,7 @@ final class JournalScreenStripHandlingTests: XCTestCase {
         var input = "In progress"
         var editingIndex: Int? = 3
 
-        JournalScreenStripHandling.performDelete(
+        JournalScreenEntryHandling.performDelete(
             index: 1,
             remove: { _ in true },
             input: Binding(get: { input }, set: { input = $0 }),
@@ -111,11 +111,11 @@ final class JournalScreenStripHandlingTests: XCTestCase {
         XCTAssertEqual(input, "In progress")
     }
 
-    func test_submitStripSection_whenAddSucceeds_clearsInput() {
+    func test_submitEntrySection_whenAddSucceeds_clearsInput() {
         var input = "New text"
         var editingIndex: Int?
         var isTransitioning = false
-        let operations = StripSectionOperations(
+        let operations = EntrySectionOperations(
             updateImmediate: { _, _ in nil },
             addImmediate: { _ in 2 },
             remove: { _ in false },
@@ -123,7 +123,7 @@ final class JournalScreenStripHandlingTests: XCTestCase {
             count: 2
         )
 
-        let didSubmit = JournalScreenStripHandling.submitStripSection(
+        let didSubmit = JournalScreenEntryHandling.submitEntrySection(
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
             input: Binding(get: { input }, set: { input = $0 }),
             operations: operations,
@@ -135,12 +135,12 @@ final class JournalScreenStripHandlingTests: XCTestCase {
         XCTAssertEqual(input, "")
     }
 
-    func test_submitStripSection_whenTransitionInFlight_ignoresDuplicateSubmit() {
+    func test_submitEntrySection_whenTransitionInFlight_ignoresDuplicateSubmit() {
         var input = "New text"
         var editingIndex: Int?
         var isTransitioning = true
         var didAdd = false
-        let operations = StripSectionOperations(
+        let operations = EntrySectionOperations(
             updateImmediate: { _, _ in nil },
             addImmediate: { _ in
                 didAdd = true
@@ -151,7 +151,7 @@ final class JournalScreenStripHandlingTests: XCTestCase {
             count: 0
         )
 
-        let didSubmit = JournalScreenStripHandling.submitStripSection(
+        let didSubmit = JournalScreenEntryHandling.submitEntrySection(
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
             input: Binding(get: { input }, set: { input = $0 }),
             operations: operations,
@@ -163,11 +163,11 @@ final class JournalScreenStripHandlingTests: XCTestCase {
         XCTAssertEqual(input, "New text")
     }
 
-    func test_handleAddStripTap_withActiveDraft_commitsAndStartsFreshInput() {
+    func test_handleAddEntryTap_withActiveDraft_commitsAndStartsFreshInput() {
         var input = "Keep this draft"
         var editingIndex: Int? = 1
         var isTransitioning = false
-        let operations = StripSectionOperations(
+        let operations = EntrySectionOperations(
             updateImmediate: { _, _ in 1 },
             addImmediate: { _ in nil },
             remove: { _ in false },
@@ -175,7 +175,7 @@ final class JournalScreenStripHandlingTests: XCTestCase {
             count: 2
         )
 
-        let handled = JournalScreenStripHandling.handleAddStripTap(
+        let handled = JournalScreenEntryHandling.handleAddEntryTap(
             input: Binding(get: { input }, set: { input = $0 }),
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
             operations: operations,
@@ -187,12 +187,12 @@ final class JournalScreenStripHandlingTests: XCTestCase {
         XCTAssertNil(editingIndex)
     }
 
-    func test_handleAddStripTap_withEmptyDraft_exitsEditingMode() {
+    func test_handleAddEntryTap_withEmptyDraft_exitsEditingMode() {
         var input = "   "
         var editingIndex: Int? = 2
         var isTransitioning = false
         var didRemove = false
-        let operations = StripSectionOperations(
+        let operations = EntrySectionOperations(
             updateImmediate: { _, _ in nil },
             addImmediate: { _ in nil },
             remove: { index in
@@ -203,7 +203,7 @@ final class JournalScreenStripHandlingTests: XCTestCase {
             count: 2
         )
 
-        let handled = JournalScreenStripHandling.handleAddStripTap(
+        let handled = JournalScreenEntryHandling.handleAddEntryTap(
             input: Binding(get: { input }, set: { input = $0 }),
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
             operations: operations,
@@ -216,13 +216,13 @@ final class JournalScreenStripHandlingTests: XCTestCase {
         XCTAssertNil(editingIndex)
     }
 
-    func test_performStripTap_withEmptyInlineEdit_opensTappedStripAfterDelete() {
+    func test_performEntryTap_withEmptyInlineEdit_opensTappedStripAfterDelete() {
         var input = "  \n"
         var editingIndex: Int? = 0
         var isTransitioning = false
         var removedIndex: Int?
         var chipTexts = ["First", "Second"]
-        let operations = StripSectionOperations(
+        let operations = EntrySectionOperations(
             updateImmediate: { _, _ in nil },
             addImmediate: { _ in nil },
             remove: { index in
@@ -238,7 +238,7 @@ final class JournalScreenStripHandlingTests: XCTestCase {
             count: 2
         )
 
-        let handled = JournalScreenStripHandling.performStripTap(
+        let handled = JournalScreenEntryHandling.performEntryTap(
             tapIndex: 1,
             input: Binding(get: { input }, set: { input = $0 }),
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
@@ -252,12 +252,12 @@ final class JournalScreenStripHandlingTests: XCTestCase {
         XCTAssertEqual(input, "Second")
     }
 
-    func test_performStripTap_withEmptyInlineEdit_tappingSameStrip_clearsEditing() {
+    func test_performEntryTap_withEmptyInlineEdit_tappingSameStrip_clearsEditing() {
         var input = ""
         var editingIndex: Int? = 1
         var isTransitioning = false
         var removedIndex: Int?
-        let operations = StripSectionOperations(
+        let operations = EntrySectionOperations(
             updateImmediate: { _, _ in nil },
             addImmediate: { _ in nil },
             remove: { index in
@@ -270,7 +270,7 @@ final class JournalScreenStripHandlingTests: XCTestCase {
             count: 2
         )
 
-        let handled = JournalScreenStripHandling.performStripTap(
+        let handled = JournalScreenEntryHandling.performEntryTap(
             tapIndex: 1,
             input: Binding(get: { input }, set: { input = $0 }),
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
@@ -284,11 +284,11 @@ final class JournalScreenStripHandlingTests: XCTestCase {
         XCTAssertEqual(input, "")
     }
 
-    func test_handleAddStripTap_whenNotEditingWithDraft_addsDraftAndStartsFreshInput() {
+    func test_handleAddEntryTap_whenNotEditingWithDraft_addsDraftAndStartsFreshInput() {
         var input = "New draft"
         var editingIndex: Int?
         var isTransitioning = false
-        let operations = StripSectionOperations(
+        let operations = EntrySectionOperations(
             updateImmediate: { _, _ in nil },
             addImmediate: { _ in 2 },
             remove: { _ in false },
@@ -296,7 +296,7 @@ final class JournalScreenStripHandlingTests: XCTestCase {
             count: 2
         )
 
-        let handled = JournalScreenStripHandling.handleAddStripTap(
+        let handled = JournalScreenEntryHandling.handleAddEntryTap(
             input: Binding(get: { input }, set: { input = $0 }),
             editingIndex: Binding(get: { editingIndex }, set: { editingIndex = $0 }),
             operations: operations,
@@ -311,7 +311,7 @@ final class JournalScreenStripHandlingTests: XCTestCase {
     func test_performMove_whenEditingMovedItem_updatesEditingIndexToDestination() {
         var editingIndex: Int? = 0
 
-        JournalScreenStripHandling.performMove(
+        JournalScreenEntryHandling.performMove(
             from: 0,
             to: 3,
             move: { _, _ in true },
@@ -324,7 +324,7 @@ final class JournalScreenStripHandlingTests: XCTestCase {
     func test_performMove_whenEditingItemBetweenRange_shiftsEditingIndex() {
         var editingIndex: Int? = 2
 
-        JournalScreenStripHandling.performMove(
+        JournalScreenEntryHandling.performMove(
             from: 0,
             to: 3,
             move: { _, _ in true },
@@ -336,22 +336,22 @@ final class JournalScreenStripHandlingTests: XCTestCase {
 }
 
 @MainActor
-final class StripReorderDropDelegateTests: XCTestCase {
+final class EntryReorderDropDelegateTests: XCTestCase {
     func test_applyLiveReorder_movesWhenDraggingOverDifferentChip() {
-        let first = JournalItem(fullText: "First")
-        let second = JournalItem(fullText: "Second")
+        let first = Entry(fullText: "First")
+        let second = Entry(fullText: "Second")
         let items = [first, second]
         var draggingItemID: UUID? = first.id
         var hoverTargetItemID: UUID?
         var moveCount = 0
 
-        let delegate = SequentialSectionStripRow.StripReorderDropDelegate(
+        let delegate = SequentialSectionEntryRow.EntryReorderDropDelegate(
             targetIndex: 1,
             items: items,
             draggingItemID: Binding(get: { draggingItemID }, set: { draggingItemID = $0 }),
             hoverTargetItemID: Binding(get: { hoverTargetItemID }, set: { hoverTargetItemID = $0 }),
             reduceMotion: true,
-            onMoveStrip: { _, _ in moveCount += 1 }
+            onMoveEntry: { _, _ in moveCount += 1 }
         )
 
         delegate.applyLiveReorderIfNeeded()
@@ -360,20 +360,20 @@ final class StripReorderDropDelegateTests: XCTestCase {
     }
 
     func test_applyLiveReorder_secondCall_sameTargetSkipsExtraMove() {
-        let first = JournalItem(fullText: "First")
-        let second = JournalItem(fullText: "Second")
+        let first = Entry(fullText: "First")
+        let second = Entry(fullText: "Second")
         let items = [first, second]
         var draggingItemID: UUID? = first.id
         var hoverTargetItemID: UUID?
         var moveCount = 0
 
-        let delegate = SequentialSectionStripRow.StripReorderDropDelegate(
+        let delegate = SequentialSectionEntryRow.EntryReorderDropDelegate(
             targetIndex: 1,
             items: items,
             draggingItemID: Binding(get: { draggingItemID }, set: { draggingItemID = $0 }),
             hoverTargetItemID: Binding(get: { hoverTargetItemID }, set: { hoverTargetItemID = $0 }),
             reduceMotion: true,
-            onMoveStrip: { _, _ in moveCount += 1 }
+            onMoveEntry: { _, _ in moveCount += 1 }
         )
 
         delegate.applyLiveReorderIfNeeded()
@@ -382,20 +382,20 @@ final class StripReorderDropDelegateTests: XCTestCase {
     }
 
     func test_performDrop_withoutPriorLiveReorder_appliesMoveWhenNeeded() {
-        let first = JournalItem(fullText: "First")
-        let second = JournalItem(fullText: "Second")
+        let first = Entry(fullText: "First")
+        let second = Entry(fullText: "Second")
         let items = [first, second]
         var draggingItemID: UUID? = first.id
         var hoverTargetItemID: UUID?
         var moveCount = 0
 
-        let delegate = SequentialSectionStripRow.StripReorderDropDelegate(
+        let delegate = SequentialSectionEntryRow.EntryReorderDropDelegate(
             targetIndex: 1,
             items: items,
             draggingItemID: Binding(get: { draggingItemID }, set: { draggingItemID = $0 }),
             hoverTargetItemID: Binding(get: { hoverTargetItemID }, set: { hoverTargetItemID = $0 }),
             reduceMotion: true,
-            onMoveStrip: { _, _ in moveCount += 1 }
+            onMoveEntry: { _, _ in moveCount += 1 }
         )
 
         XCTAssertTrue(delegate.performDrop())
@@ -404,20 +404,20 @@ final class StripReorderDropDelegateTests: XCTestCase {
     }
 
     func test_performDrop_afterLiveReflowWhenAlreadyPlaced_skipsMoveButClearsState() {
-        let first = JournalItem(fullText: "First")
-        let second = JournalItem(fullText: "Second")
+        let first = Entry(fullText: "First")
+        let second = Entry(fullText: "Second")
         let items = [second, first]
         var draggingItemID: UUID? = first.id
         var hoverTargetItemID: UUID? = second.id
         var moveCount = 0
 
-        let delegate = SequentialSectionStripRow.StripReorderDropDelegate(
+        let delegate = SequentialSectionEntryRow.EntryReorderDropDelegate(
             targetIndex: 0,
             items: items,
             draggingItemID: Binding(get: { draggingItemID }, set: { draggingItemID = $0 }),
             hoverTargetItemID: Binding(get: { hoverTargetItemID }, set: { hoverTargetItemID = $0 }),
             reduceMotion: true,
-            onMoveStrip: { _, _ in moveCount += 1 }
+            onMoveEntry: { _, _ in moveCount += 1 }
         )
 
         XCTAssertTrue(delegate.performDrop())
@@ -427,17 +427,17 @@ final class StripReorderDropDelegateTests: XCTestCase {
     }
 
     func test_performDrop_withoutInternalDrag_returnsFalse() {
-        let item = JournalItem(fullText: "Only")
+        let item = Entry(fullText: "Only")
         var draggingItemID: UUID?
         var hoverTargetItemID: UUID?
         var didMove = false
-        let delegate = SequentialSectionStripRow.StripReorderDropDelegate(
+        let delegate = SequentialSectionEntryRow.EntryReorderDropDelegate(
             targetIndex: 0,
             items: [item],
             draggingItemID: Binding(get: { draggingItemID }, set: { draggingItemID = $0 }),
             hoverTargetItemID: Binding(get: { hoverTargetItemID }, set: { hoverTargetItemID = $0 }),
             reduceMotion: true,
-            onMoveStrip: { _, _ in didMove = true }
+            onMoveEntry: { _, _ in didMove = true }
         )
 
         let didHandleDrop = delegate.performDrop()
@@ -446,12 +446,12 @@ final class StripReorderDropDelegateTests: XCTestCase {
         XCTAssertFalse(didMove)
     }
 
-    func test_stripReorderMoveParameters_nilWhenHoveringDraggedChip() {
-        let first = JournalItem(fullText: "First")
-        let second = JournalItem(fullText: "Second")
+    func test_entryReorderMoveParameters_nilWhenHoveringDraggedChip() {
+        let first = Entry(fullText: "First")
+        let second = Entry(fullText: "Second")
         let items = [first, second]
         XCTAssertNil(
-            SequentialSectionStripRow.StripReorderDropDelegate.stripReorderMoveParameters(
+            SequentialSectionEntryRow.EntryReorderDropDelegate.entryReorderMoveParameters(
                 activeDragID: first.id,
                 items: items,
                 targetIndex: 0
@@ -459,12 +459,12 @@ final class StripReorderDropDelegateTests: XCTestCase {
         )
     }
 
-    func test_stripReorderMoveParameters_movesEarlierItemTowardLaterChip() {
-        let first = JournalItem(fullText: "First")
-        let second = JournalItem(fullText: "Second")
-        let third = JournalItem(fullText: "Third")
+    func test_entryReorderMoveParameters_movesEarlierItemTowardLaterChip() {
+        let first = Entry(fullText: "First")
+        let second = Entry(fullText: "Second")
+        let third = Entry(fullText: "Third")
         let items = [first, second, third]
-        let params = SequentialSectionStripRow.StripReorderDropDelegate.stripReorderMoveParameters(
+        let params = SequentialSectionEntryRow.EntryReorderDropDelegate.entryReorderMoveParameters(
             activeDragID: first.id,
             items: items,
             targetIndex: 2

@@ -1,11 +1,11 @@
 import SwiftUI
 
-private enum SequentialSectionStripScrollerLayout {
+private enum SequentialSectionEntryScrollerLayout {
     static let edgeFeatherWidth: CGFloat = 28
 }
 
 /// Horizontal chip row with scroll metrics, masks, and optional add control.
-struct SequentialSectionStripScroller<ChipRow: View>: View {
+struct SequentialSectionEntryScroller<ChipRow: View>: View {
     @Environment(\.todayJournalPalette) private var palette
     let reduceMotion: Bool
     let title: String
@@ -19,7 +19,7 @@ struct SequentialSectionStripScroller<ChipRow: View>: View {
     let canScrollChipsRight: Bool
     let onAddNew: (() -> Void)?
 
-    @Binding var chipScrollSnapshot: SequentialSectionStripRow.StripRowScrollSnapshot
+    @Binding var entryScrollSnapshot: SequentialSectionEntryRow.EntryRowScrollSnapshot
 
     @ViewBuilder var chipRow: () -> ChipRow
 
@@ -28,7 +28,7 @@ struct SequentialSectionStripScroller<ChipRow: View>: View {
             HStack(spacing: AppTheme.spacingTight) {
                 chipRow()
                 if showAddChip, let addNew = onAddNew {
-                    SequentialSectionStripRow.AddStripRowView(
+                    SequentialSectionEntryRow.AddEntryRowView(
                         buttonTitle: addButtonTitle,
                         accessibilityHint: addButtonAccessibilityHint,
                         accessibilityIdentifier: addChipAccessibilityIdentifier,
@@ -39,21 +39,21 @@ struct SequentialSectionStripScroller<ChipRow: View>: View {
             }
             .padding(.trailing, AppTheme.spacingRegular)
             .scaleEffect(
-                x: 1 + chipScrollSnapshot.elasticDeltaX,
-                y: 1 + chipScrollSnapshot.elasticDeltaY,
+                x: 1 + entryScrollSnapshot.elasticDeltaX,
+                y: 1 + entryScrollSnapshot.elasticDeltaY,
                 anchor: .center
             )
             .animation(
                 nil,
-                value: SequentialSectionStripRow.StripRowElasticAnimationKey(
-                    deltaX: chipScrollSnapshot.elasticDeltaX,
-                    deltaY: chipScrollSnapshot.elasticDeltaY
+                value: SequentialSectionEntryRow.EntryRowElasticAnimationKey(
+                    deltaX: entryScrollSnapshot.elasticDeltaX,
+                    deltaY: entryScrollSnapshot.elasticDeltaY
                 )
             )
             .background {
-                SequentialSectionStripRow.HorizontalScrollMetricsReader(reduceMotion: reduceMotion) { snapshot in
-                    if chipScrollSnapshot != snapshot {
-                        chipScrollSnapshot = snapshot
+                SequentialSectionEntryRow.HorizontalScrollMetricsReader(reduceMotion: reduceMotion) { snapshot in
+                    if entryScrollSnapshot != snapshot {
+                        entryScrollSnapshot = snapshot
                     }
                 }
             }
@@ -88,7 +88,7 @@ struct SequentialSectionStripScroller<ChipRow: View>: View {
             startPoint: .leading,
             endPoint: .trailing
         )
-        .frame(width: SequentialSectionStripScrollerLayout.edgeFeatherWidth)
+        .frame(width: SequentialSectionEntryScrollerLayout.edgeFeatherWidth)
     }
 
     private func edgeMask(_ edge: HorizontalEdge) -> some View {
@@ -98,14 +98,14 @@ struct SequentialSectionStripScroller<ChipRow: View>: View {
                 startPoint: .leading,
                 endPoint: .trailing
             )
-            .frame(width: SequentialSectionStripScrollerLayout.edgeFeatherWidth)
+            .frame(width: SequentialSectionEntryScrollerLayout.edgeFeatherWidth)
         } else {
             LinearGradient(
                 colors: canScrollChipsRight ? [.black, .clear] : [.black, .black],
                 startPoint: .leading,
                 endPoint: .trailing
             )
-            .frame(width: SequentialSectionStripScrollerLayout.edgeFeatherWidth)
+            .frame(width: SequentialSectionEntryScrollerLayout.edgeFeatherWidth)
         }
     }
 }

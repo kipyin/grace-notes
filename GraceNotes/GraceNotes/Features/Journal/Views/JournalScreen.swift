@@ -153,7 +153,7 @@ private extension View {
 struct JournalScreen: View {
     @EnvironmentObject private var appNavigation: AppNavigationModel
     @Environment(\.modelContext) private var modelContext
-    @Environment(\.journalSummerAtmosphereHosted) private var journalSummerAtmosphereHosted
+    @Environment(\.journalBloomAtmosphereHosted) private var journalBloomAtmosphereHosted
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.verticalSizeClass) private var verticalSizeClass
@@ -194,8 +194,8 @@ struct JournalScreen: View {
     @AppStorage(JournalOnboardingStorageKeys.openedICloudSuggestion)
     private var openedICloudSuggestion = false
     @AppStorage(PersistenceController.iCloudSyncEnabledKey) private var isICloudSyncEnabled = false
-    @AppStorage(JournalTutorialStorageKeys.dismissedSeedGuidance) private var dismissedSeedGuidance = false
-    @AppStorage(JournalTutorialStorageKeys.dismissedHarvestGuidance) private var dismissedHarvestGuidance = false
+    @AppStorage(JournalTutorialStorageKeys.dismissedSproutGuidance) private var dismissedSproutGuidance = false
+    @AppStorage(JournalTutorialStorageKeys.dismissedBloomGuidance) private var dismissedBloomGuidance = false
     @AppStorage(JournalAppearanceStorageKeys.todayMode)
     private var journalTodayAppearanceRaw = JournalAppearanceMode.standard.rawValue
 
@@ -224,10 +224,10 @@ struct JournalScreen: View {
     var body: some View {
         let palette = TodayJournalPalette.resolve(mode: effectiveTodayAppearance)
         ZStack {
-            if effectiveTodayAppearance == .summer, !journalSummerAtmosphereHosted {
+            if effectiveTodayAppearance == .bloom, !journalBloomAtmosphereHosted {
                 SummerPaperBackgroundView()
             }
-            if effectiveTodayAppearance == .summer, !journalSummerAtmosphereHosted {
+            if effectiveTodayAppearance == .bloom, !journalBloomAtmosphereHosted {
                 SummerLeavesOverlaySeam(reduceMotion: reduceMotion)
             }
             journalScrollContent
@@ -248,7 +248,7 @@ struct JournalScreen: View {
             }
         }
         .toolbarBackground(
-            effectiveTodayAppearance == .summer ? .hidden : .automatic,
+            effectiveTodayAppearance == .bloom ? .hidden : .automatic,
             for: .navigationBar
         )
         .sheet(item: $shareableImage) { item in
@@ -481,7 +481,7 @@ private extension JournalScreen {
 
     var effectiveTodayAppearance: JournalAppearanceMode {
         if entryDate != nil { return .standard }
-        return JournalAppearanceMode(rawValue: journalTodayAppearanceRaw) ?? .standard
+        return JournalAppearanceMode.resolveStored(rawValue: journalTodayAppearanceRaw)
     }
 
     var todayPalette: TodayJournalPalette {
@@ -621,16 +621,16 @@ private extension JournalScreen {
            let hintKind = JournalTutorialHintPresentation.hintKind(
             entryDate: entryDate,
             completionLevel: viewModel.completionLevel,
-            chipsFilledCount: viewModel.chipsFilledCount,
-            dismissedSeedGuidance: dismissedSeedGuidance,
-            dismissedHarvestGuidance: dismissedHarvestGuidance
+            filledEntryCount: viewModel.filledEntryCount,
+            dismissedSproutGuidance: dismissedSproutGuidance,
+            dismissedBloomGuidance: dismissedBloomGuidance
         ) {
             JournalTutorialHintView(kind: hintKind) {
                 switch hintKind {
-                case .seed:
-                    dismissedSeedGuidance = true
-                case .harvest:
-                    dismissedHarvestGuidance = true
+                case .sprout:
+                    dismissedSproutGuidance = true
+                case .bloom:
+                    dismissedBloomGuidance = true
                 }
             }
         }
@@ -732,8 +732,8 @@ private extension JournalScreen {
             placeholder: String(localized: "What's one thing you're grateful for?"),
             slotCount: JournalViewModel.slotCount,
             inputAccessibilityIdentifier: "Gratitude 1",
-            stripAccessibilityIdentifierPrefix: ProcessInfo.graceNotesIsRunningUITests
-                ? "JournalGratitudeStrip"
+            entryAccessibilityIdentifierPrefix: ProcessInfo.graceNotesIsRunningUITests
+                ? "JournalGratitudeEntry"
                 : nil,
             addItemAccessibilityIdentifier: ProcessInfo.graceNotesIsRunningUITests
                 ? "JournalSectionAdd.gratitude"
@@ -769,8 +769,8 @@ private extension JournalScreen {
             placeholder: String(localized: "What do you need today?"),
             slotCount: JournalViewModel.slotCount,
             inputAccessibilityIdentifier: "Need 1",
-            stripAccessibilityIdentifierPrefix: ProcessInfo.graceNotesIsRunningUITests
-                ? "JournalNeedStrip"
+            entryAccessibilityIdentifierPrefix: ProcessInfo.graceNotesIsRunningUITests
+                ? "JournalNeedEntry"
                 : nil,
             addItemAccessibilityIdentifier: ProcessInfo.graceNotesIsRunningUITests
                 ? "JournalSectionAdd.need"
@@ -807,8 +807,8 @@ private extension JournalScreen {
             placeholder: String(localized: "Who are you thinking of today?"),
             slotCount: JournalViewModel.slotCount,
             inputAccessibilityIdentifier: "Person 1",
-            stripAccessibilityIdentifierPrefix: ProcessInfo.graceNotesIsRunningUITests
-                ? "JournalPersonStrip"
+            entryAccessibilityIdentifierPrefix: ProcessInfo.graceNotesIsRunningUITests
+                ? "JournalPersonEntry"
                 : nil,
             addItemAccessibilityIdentifier: ProcessInfo.graceNotesIsRunningUITests
                 ? "JournalSectionAdd.person"
@@ -1020,8 +1020,8 @@ private extension JournalScreen {
                 newNeeds: newNeedsCount,
                 newPeople: newPeopleCount,
                 hasCelebratedFirstTripleOne: tutorialProgress.hasCelebratedFirstTripleOne,
-                hasCelebratedFirstBalanced: tutorialProgress.hasCelebratedFirstBalanced,
-                hasCelebratedFirstFull: tutorialProgress.hasCelebratedFirstFull
+                hasCelebratedFirstLeaf: tutorialProgress.hasCelebratedFirstLeaf,
+                hasCelebratedFirstBloom: tutorialProgress.hasCelebratedFirstBloom
             )
         )
 
@@ -1081,12 +1081,12 @@ private extension JournalScreen {
     ) {
         tutorialProgress.applyRecording(from: milestoneOutcome)
         triggerStatusCelebration(for: newLevel)
-        let suppress = JournalTodayOrientationPolicy.shouldSuppressSeedUnlockToast(
+        let suppress = JournalTodayOrientationPolicy.shouldSuppressSproutUnlockToast(
             isTodayEntry: entryDate == nil,
             newLevel: newLevel,
             hasSeenAppTour: hasSeenAppTour,
             milestoneHighlight: milestoneOutcome.milestoneHighlight,
-            hasAtLeastOneInEachChipSection: viewModel.hasAtLeastOneInEachChipSection
+            hasAtLeastOneEntryInEachSection: viewModel.hasAtLeastOneEntryInEachSection
         )
         if !suppress {
             presentUnlockToast(for: newLevel, milestoneHighlight: milestoneOutcome.milestoneHighlight)
@@ -1095,12 +1095,12 @@ private extension JournalScreen {
 
     private func applyGenericRankUpUnlockToast(newLevel: JournalCompletionLevel) {
         triggerStatusCelebration(for: newLevel)
-        let suppress = JournalTodayOrientationPolicy.shouldSuppressSeedUnlockToast(
+        let suppress = JournalTodayOrientationPolicy.shouldSuppressSproutUnlockToast(
             isTodayEntry: entryDate == nil,
             newLevel: newLevel,
             hasSeenAppTour: hasSeenAppTour,
             milestoneHighlight: .none,
-            hasAtLeastOneInEachChipSection: viewModel.hasAtLeastOneInEachChipSection
+            hasAtLeastOneEntryInEachSection: viewModel.hasAtLeastOneEntryInEachSection
         )
         if !suppress {
             presentUnlockToast(for: newLevel, milestoneHighlight: .none)
@@ -1169,7 +1169,7 @@ private extension JournalScreen {
         JournalOnboardingSuggestionContext(
             entryDate: entryDate,
             hasCelebratedFirstTripleOne: tutorialProgress.hasCelebratedFirstTripleOne,
-            hasCelebratedFirstFull: tutorialProgress.hasCelebratedFirstFull,
+            hasCelebratedFirstBloom: tutorialProgress.hasCelebratedFirstBloom,
             dismissedRemindersSuggestion: dismissedRemindersSuggestion,
             openedRemindersSuggestion: openedRemindersSuggestion,
             hasConfiguredReminderTime: hasConfiguredReminderTime,
@@ -1229,7 +1229,7 @@ private extension JournalScreen {
             isRunningUITests: ProcessInfo.graceNotesIsRunningUITests,
             hasSeenAppTour: hasSeenAppTour,
             hasCompletedGuidedJournal: hasCompletedGuidedJournal,
-            hasAtLeastOneInEachChipSection: viewModel.hasAtLeastOneInEachChipSection
+            hasAtLeastOneEntryInEachSection: viewModel.hasAtLeastOneEntryInEachSection
         )
     }
 
@@ -1377,10 +1377,10 @@ private extension JournalScreen {
         let inputFocus: FocusState<Bool>.Binding
         let move: (Int, Int) -> Bool
         let remove: (Int) -> Bool
-        let operations: StripSectionOperations
+        let operations: EntrySectionOperations
 
-        var stripInteractionContext: JournalStripInteractionCoordinator.SectionContext {
-            JournalStripInteractionCoordinator.SectionContext(
+        var entryInteractionContext: JournalEntryInteractionCoordinator.SectionContext {
+            JournalEntryInteractionCoordinator.SectionContext(
                 input: input,
                 editingIndex: editingIndex,
                 isTransitioning: isTransitioning,
@@ -1407,7 +1407,7 @@ private extension JournalScreen {
             inputFocus: $isGratitudeInputFocused,
             move: { from, toOffset in viewModel.moveGratitude(from: from, to: toOffset) },
             remove: { index in viewModel.removeGratitude(at: index) },
-            operations: StripSectionOperations(
+            operations: EntrySectionOperations(
                 updateImmediate: { index, text in
                     viewModel.updateGratitudeImmediate(at: index, fullText: text)
                 },
@@ -1426,7 +1426,7 @@ private extension JournalScreen {
             inputFocus: $isNeedInputFocused,
             move: { from, toOffset in viewModel.moveNeed(from: from, to: toOffset) },
             remove: { index in viewModel.removeNeed(at: index) },
-            operations: StripSectionOperations(
+            operations: EntrySectionOperations(
                 updateImmediate: { index, text in
                     viewModel.updateNeedImmediate(at: index, fullText: text)
                 },
@@ -1445,7 +1445,7 @@ private extension JournalScreen {
             inputFocus: $isPersonInputFocused,
             move: { from, toOffset in viewModel.movePerson(from: from, to: toOffset) },
             remove: { index in viewModel.removePerson(at: index) },
-            operations: StripSectionOperations(
+            operations: EntrySectionOperations(
                 updateImmediate: { index, text in
                     viewModel.updatePersonImmediate(at: index, fullText: text)
                 },
@@ -1458,15 +1458,15 @@ private extension JournalScreen {
     }
     func addNewTapped(section: StripSection) {
         let adapter = stripSectionAdapter(for: section)
-        JournalStripInteractionCoordinator.addNewTapped(
-            context: adapter.stripInteractionContext,
+        JournalEntryInteractionCoordinator.addNewTapped(
+            context: adapter.entryInteractionContext,
             restoreInputFocus: restoreInputFocus
         )
     }
 
     func deleteChip(section: StripSection, index: Int) {
         let adapter = stripSectionAdapter(for: section)
-        JournalScreenStripHandling.performDelete(
+        JournalScreenEntryHandling.performDelete(
             index: index,
             remove: adapter.remove,
             input: adapter.input,
@@ -1476,7 +1476,7 @@ private extension JournalScreen {
 
     func moveChip(section: StripSection, from sourceIndex: Int, toOffset destinationOffset: Int) {
         let adapter = stripSectionAdapter(for: section)
-        JournalScreenStripHandling.performMove(
+        JournalScreenEntryHandling.performMove(
             from: sourceIndex,
             to: destinationOffset,
             move: adapter.move,
@@ -1486,8 +1486,8 @@ private extension JournalScreen {
 
     func chipTapped(section: StripSection, index: Int) {
         let adapter = stripSectionAdapter(for: section)
-        JournalStripInteractionCoordinator.stripTapped(
-            context: adapter.stripInteractionContext,
+        JournalEntryInteractionCoordinator.entryTapped(
+            context: adapter.entryInteractionContext,
             tapIndex: index,
             restoreInputFocus: restoreInputFocus
         )
@@ -1498,7 +1498,7 @@ private extension JournalScreen {
         let wasEditingExistingItem = adapter.editingIndex.wrappedValue != nil
         let shouldClearAddMorphAfterSubmit =
             adapter.editingIndex.wrappedValue == nil && isAddMorphComposerVisible(for: section)
-        let didSubmit = JournalScreenStripHandling.submitStripSection(
+        let didSubmit = JournalScreenEntryHandling.submitEntrySection(
             editingIndex: adapter.editingIndex,
             input: adapter.input,
             operations: adapter.operations,
@@ -1544,7 +1544,7 @@ private extension JournalScreen {
                 return
             }
         }
-        let didSubmit = JournalScreenStripHandling.submitStripSection(
+        let didSubmit = JournalScreenEntryHandling.submitEntrySection(
             editingIndex: adapter.editingIndex,
             input: adapter.input,
             operations: adapter.operations,

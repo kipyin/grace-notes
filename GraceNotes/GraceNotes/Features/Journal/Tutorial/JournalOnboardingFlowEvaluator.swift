@@ -90,15 +90,15 @@ struct JournalOnboardingContext: Equatable {
     let hasCompletedGuidedJournal: Bool
 
     var hasRipening: Bool {
-        JournalEntry.minChipSectionCount(
+        Journal.minimumEntryCountAcrossSections(
             gratitudesCount: gratitudesCount,
             needsCount: needsCount,
             peopleCount: peopleCount
         ) >= 3
     }
 
-    var hasHarvest: Bool {
-        JournalEntry.hasAllFifteenChips(
+    var hasBloom: Bool {
+        Journal.entriesIndicateBloom(
             gratitudesCount: gratitudesCount,
             needsCount: needsCount,
             peopleCount: peopleCount
@@ -128,8 +128,8 @@ enum JournalOnboardingFlowEvaluator {
             return ripeningPresentation()
         }
 
-        if !context.hasHarvest {
-            return harvestPresentation()
+        if !context.hasBloom {
+            return bloomPresentation()
         }
 
         return .inactive
@@ -233,7 +233,7 @@ private extension JournalOnboardingFlowEvaluator {
         )
     }
 
-    static func harvestPresentation() -> JournalOnboardingPresentation {
+    static func bloomPresentation() -> JournalOnboardingPresentation {
         presentation(
             step: .harvest,
             title: String(localized: "Balanced"),

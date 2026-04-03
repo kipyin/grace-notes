@@ -7,7 +7,7 @@ struct JournalDataExportService {
         now: Date = .now,
         fileManager: FileManager = .default
     ) throws -> URL {
-        let descriptor = FetchDescriptor<JournalEntry>(
+        let descriptor = FetchDescriptor<Journal>(
             sortBy: [SortDescriptor(\.entryDate, order: .forward)]
         )
         let entries = try context.fetch(descriptor)
@@ -19,7 +19,7 @@ struct JournalDataExportService {
         return fileURL
     }
 
-    func makeArchiveData(from entries: [JournalEntry], exportedAt: Date) throws -> Data {
+    func makeArchiveData(from entries: [Journal], exportedAt: Date) throws -> Data {
         let archive = makeArchive(from: entries, exportedAt: exportedAt)
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
@@ -27,7 +27,7 @@ struct JournalDataExportService {
         return try encoder.encode(archive)
     }
 
-    func makeArchive(from entries: [JournalEntry], exportedAt: Date) -> JournalDataExportArchive {
+    func makeArchive(from entries: [Journal], exportedAt: Date) -> JournalDataExportArchive {
         let sortedEntries = entries.sorted { $0.entryDate < $1.entryDate }
         return JournalDataExportArchive(
             schemaVersion: JournalDataExportArchive.currentSchemaVersion,
@@ -36,7 +36,7 @@ struct JournalDataExportService {
         )
     }
 
-    private func makeExportEntry(from entry: JournalEntry) -> JournalDataExportEntry {
+    private func makeExportEntry(from entry: Journal) -> JournalDataExportEntry {
         JournalDataExportEntry(
             id: entry.id,
             entryDate: entry.entryDate,
@@ -51,7 +51,7 @@ struct JournalDataExportService {
         )
     }
 
-    private func makeExportItem(from item: JournalItem) -> JournalDataExportItem {
+    private func makeExportItem(from item: Entry) -> JournalDataExportItem {
         JournalDataExportItem(
             id: item.id,
             fullText: item.fullText
@@ -69,7 +69,7 @@ struct JournalDataExportService {
 }
 
 struct JournalDataExportArchive: Codable, Equatable {
-    /// v2: strip-only items. v1: same import path; items may include legacy `chipLabel` / `isTruncated`.
+    /// v2: strip-only items. v1: same import path; items may include legacy `chipLabel` / `entryLabel` / `isTruncated`.
     static let currentSchemaVersion = 2
     static let supportedImportSchemaVersions: Set<Int> = [1, 2]
 
@@ -94,29 +94,33 @@ struct JournalDataExportEntry: Codable, Equatable {
 struct JournalDataExportItem: Equatable {
     let id: UUID
     let fullText: String
-    /// Legacy pre–strip-only exports; ignored when mapping to `JournalItem`.
-    let chipLabel: String?
-    /// Legacy pre–strip-only exports; ignored when mapping to `JournalItem`.
+    /// Legacy pre–strip-only exports; ignored when mapping to `Entry`.
+    let entryLabel: String?
+    /// Legacy pre–strip-only exports; ignored when mapping to `Entry`.
     let isTruncated: Bool?
 
-    init(id: UUID, fullText: String, chipLabel: String? = nil, isTruncated: Bool? = nil) {
+    init(id: UUID, fullText: String, entryLabel: String? = nil, isTruncated: Bool? = nil) {
         self.id = id
         self.fullText = fullText
-        self.chipLabel = chipLabel
+        self.entryLabel = entryLabel
         self.isTruncated = isTruncated
     }
 }
 
 extension JournalDataExportItem: Codable {
     private enum CodingKeys: String, CodingKey {
-        case id, fullText, chipLabel, isTruncated
+        case id, fullText, entryLabel, chipLabel, isTruncated
     }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
         fullText = try container.decode(String.self, forKey: .fullText)
-        chipLabel = try container.decodeIfPresent(String.self, forKey: .chipLabel)
+        if let label = try container.decodeIfPresent(String.self, forKey: .entryLabel) {
+            entryLabel = label
+        } else {
+            entryLabel = try container.decodeIfPresent(String.self, forKey: .chipLabel)
+        }
         isTruncated = try container.decodeIfPresent(Bool.self, forKey: .isTruncated)
     }
 
@@ -124,7 +128,7 @@ extension JournalDataExportItem: Codable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
         try container.encode(fullText, forKey: .fullText)
-        try container.encodeIfPresent(chipLabel, forKey: .chipLabel)
+        try container.encodeIfPresent(entryLabel, forKey: .entryLabel)
         try container.encodeIfPresent(isTruncated, forKey: .isTruncated)
     }
 }

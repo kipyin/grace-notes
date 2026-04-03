@@ -112,7 +112,7 @@ final class JournalDataImportServiceTests: XCTestCase {
 
         let lengths = importService.sanitizedSectionLengths(for: export)
 
-        XCTAssertEqual(lengths.gratitudes, JournalEntry.slotCount)
+        XCTAssertEqual(lengths.gratitudes, Journal.slotCount)
         XCTAssertEqual(lengths.needs, 0)
         XCTAssertEqual(lengths.people, 0)
     }
@@ -134,7 +134,7 @@ final class JournalDataImportServiceTests: XCTestCase {
         XCTAssertEqual(lengths.gratitudes, 1)
     }
 
-    func test_sanitize_legacyChipFieldsIgnored_usesFullTextOnly() throws {
+    func test_sanitize_legacyEntryLabelFieldsIgnored_usesFullTextOnly() throws {
         let day = calendar.startOfDay(for: Date(timeIntervalSince1970: 1_742_147_200))
         let export = makeExportEntry(
             id: UUID(),
@@ -143,7 +143,7 @@ final class JournalDataImportServiceTests: XCTestCase {
                 JournalDataExportItem(
                     id: UUID(),
                     fullText: "Kept",
-                    chipLabel: "Legacy label",
+                    entryLabel: "Legacy label",
                     isTruncated: true
                 )
             ]
@@ -157,7 +157,35 @@ final class JournalDataImportServiceTests: XCTestCase {
         )
         let roundTrip = try importService.decodeArchive(data)
         XCTAssertEqual(roundTrip.entries.first?.gratitudes.first?.fullText, "Kept")
-        XCTAssertEqual(roundTrip.entries.first?.gratitudes.first?.chipLabel, "Legacy label")
+        XCTAssertEqual(roundTrip.entries.first?.gratitudes.first?.entryLabel, "Legacy label")
+    }
+
+    func test_decode_readsChipLabelKeyIntoEntryLabel() throws {
+        let json = """
+        {
+          "schemaVersion": 2,
+          "exportedAt": "1970-01-01T00:00:00Z",
+          "entries": [{
+            "id": "00000000-0000-0000-0000-000000000001",
+            "entryDate": "1970-01-01T00:00:00Z",
+            "gratitudes": [{
+              "id": "00000000-0000-0000-0000-000000000002",
+              "fullText": "Hi",
+              "chipLabel": "From chip key"
+            }],
+            "needs": [],
+            "people": [],
+            "readingNotes": "",
+            "reflections": "",
+            "createdAt": "1970-01-01T00:00:00Z",
+            "updatedAt": "1970-01-01T00:00:00Z",
+            "completedAt": null
+          }]
+        }
+        """
+        let data = try XCTUnwrap(json.data(using: .utf8))
+        let archive = try importService.decodeArchive(data)
+        XCTAssertEqual(archive.entries.first?.gratitudes.first?.entryLabel, "From chip key")
     }
 
     // MARK: - SwiftData integration
@@ -199,10 +227,10 @@ final class JournalDataImportServiceTests: XCTestCase {
         let day = calendar.startOfDay(for: Date(timeIntervalSince1970: 1_742_147_200))
         let existingId = UUID()
         context.insert(
-            JournalEntry(
+            Journal(
                 id: existingId,
                 entryDate: day,
-                gratitudes: [JournalItem(fullText: "Old")],
+                gratitudes: [Entry(fullText: "Old")],
                 needs: [],
                 people: [],
                 readingNotes: "",
@@ -256,7 +284,7 @@ final class JournalDataImportServiceTests: XCTestCase {
 
         let repo = JournalRepository(calendar: calendar)
         let entry = try XCTUnwrap(try repo.fetchEntry(for: day, context: context))
-        XCTAssertEqual((entry.gratitudes ?? []).count, JournalEntry.slotCount)
+        XCTAssertEqual((entry.gratitudes ?? []).count, Journal.slotCount)
         XCTAssertEqual((entry.gratitudes ?? []).first?.fullText, "G1")
         XCTAssertEqual((entry.gratitudes ?? []).last?.fullText, "G5")
     }

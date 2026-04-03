@@ -26,12 +26,12 @@ private enum LegacyJournalOnboardingStorageKeys {
 final class JournalOnboardingProgress {
     private let defaults: UserDefaults
 
-    private static let legacyTutorialKeys = [
-        JournalTutorialStorageKeys.dismissedSeedGuidance,
-        JournalTutorialStorageKeys.dismissedHarvestGuidance,
-        JournalTutorialStorageKeys.celebratedFirstSeed,
-        JournalTutorialStorageKeys.celebratedFirstBalanced,
-        JournalTutorialStorageKeys.celebratedFirstHarvest
+    private static let tutorialPresenceKeys = [
+        JournalTutorialStorageKeys.dismissedSproutGuidance,
+        JournalTutorialStorageKeys.dismissedBloomGuidance,
+        JournalTutorialStorageKeys.celebratedFirstSprout,
+        JournalTutorialStorageKeys.celebratedFirstLeaf,
+        JournalTutorialStorageKeys.celebratedFirstBloom
     ]
 
     init(defaults: UserDefaults = .standard) {
@@ -157,7 +157,7 @@ final class JournalOnboardingProgress {
             return true
         }
 
-        return legacyTutorialKeys.contains { defaults.object(forKey: $0) != nil }
+        return tutorialPresenceKeys.contains { defaults.object(forKey: $0) != nil }
     }
 
     private func dismissedKey(for suggestion: JournalOnboardingSuggestion) -> String {
