@@ -33,6 +33,33 @@ enum ReviewHistoryDrilldownCalendarRow: Identifiable, Equatable {
     }
 }
 
+/// VoiceOver and styling disposition for each day cell in the drill-down grid (issue #186).
+enum ReviewHistoryDrilldownDayDisposition: Equatable {
+    case matched
+    case journalDayNotMatched
+    case emptyHistoryDay
+    case outsideHistoryWindow
+
+    static func resolve(
+        dayStart: Date,
+        historyDayRange: Range<Date>,
+        journalDaysInHistoryWindow: Set<Date>,
+        matchingDayStarts: Set<Date>
+    ) -> Self {
+        let inHistory = dayStart >= historyDayRange.lowerBound && dayStart < historyDayRange.upperBound
+        guard inHistory else {
+            return .outsideHistoryWindow
+        }
+        if matchingDayStarts.contains(dayStart) {
+            return .matched
+        }
+        if journalDaysInHistoryWindow.contains(dayStart) {
+            return .journalDayNotMatched
+        }
+        return .emptyHistoryDay
+    }
+}
+
 enum ReviewHistoryDrilldownCalendarLayout {
     /// Lower: first day of the month containing the earliest entry; upper: statistics window end (exclusive).
     static func drilldownGridDisplayRange(
@@ -63,6 +90,25 @@ enum ReviewHistoryDrilldownCalendarLayout {
         let tail = Array(symbols[firstIndex...])
         let head = Array(symbols[..<firstIndex])
         return tail + head
+    }
+
+    /// Week row id containing ``dayStart``, if ``dayStart`` appears in a week cell within ``rows``.
+    static func weekRowIdContaining(
+        dayStart: Date,
+        rows: [ReviewHistoryDrilldownCalendarRow],
+        calendar: Calendar
+    ) -> String? {
+        let normalized = calendar.startOfDay(for: dayStart)
+        for row in rows {
+            guard case .week(let id, let cells) = row else { continue }
+            for cell in cells {
+                guard let dayDate = cell else { continue }
+                if calendar.startOfDay(for: dayDate) == normalized {
+                    return id
+                }
+            }
+        }
+        return nil
     }
 
     /// Week-aligned rows from ``displayRange`` (half-open); interleaves month banners at month boundaries.
@@ -141,122 +187,5 @@ enum ReviewHistoryDrilldownCalendarLayout {
             rows.append(.week(id: weekId, cells: week))
         }
         return rows
-    }
-}
-
-/// Continuous week grid for Growth / Section drill-downs (week header, month banners, one week per row).
-struct ReviewHistoryDrilldownCalendarGrid: View {
-    let matchingDayStarts: Set<Date>
-    let historyDayRange: Range<Date>
-    let displayRange: Range<Date>
-    let calendar: Calendar
-    let onMatchingDaySelected: (Date) -> Void
-
-    private var rows: [ReviewHistoryDrilldownCalendarRow] {
-        ReviewHistoryDrilldownCalendarLayout.continuousRows(displayRange: displayRange, calendar: calendar)
-    }
-
-    private var orderedWeekdaySymbols: [String] {
-        ReviewHistoryDrilldownCalendarLayout.weekdaySymbolsOrdered(calendar: calendar)
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 6) {
-                ForEach(Array(orderedWeekdaySymbols.enumerated()), id: \.offset) { _, symbol in
-                    Text(symbol)
-                        .font(AppTheme.warmPaperCaption)
-                        .foregroundStyle(AppTheme.reviewTextMuted)
-                        .frame(maxWidth: .infinity)
-                }
-            }
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(
-                String(
-                    format: String(localized: "PastDrilldown.calendarWeekdaysRow.a11y"),
-                    orderedWeekdaySymbols.joined(separator: ", ")
-                )
-            )
-
-            LazyVStack(alignment: .leading, spacing: 10) {
-                ForEach(rows) { row in
-                    switch row {
-                    case .monthBanner(_, let title):
-                        Text(title)
-                            .font(AppTheme.warmPaperMetaEmphasis.weight(.semibold))
-                            .foregroundStyle(AppTheme.reviewTextPrimary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .accessibilityAddTraits(.isHeader)
-                    case .week(_, let cells):
-                        calendarWeekRow(cells: cells)
-                    }
-                }
-            }
-        }
-    }
-
-    private func calendarWeekRow(cells: [Date?]) -> some View {
-        HStack(spacing: 6) {
-            ForEach(Array(cells.enumerated()), id: \.offset) { _, cellDay in
-                dayCell(cellDay)
-                    .frame(maxWidth: .infinity)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func dayCell(_ cellDay: Date?) -> some View {
-        if let dayStart = cellDay {
-            let inWindow = dayStart >= historyDayRange.lowerBound && dayStart < historyDayRange.upperBound
-            let isMatch = matchingDayStarts.contains(dayStart)
-            let dayNumber = calendar.component(.day, from: dayStart)
-
-            if isMatch {
-                Button {
-                    onMatchingDaySelected(dayStart)
-                } label: {
-                    dayNumberLabel(dayNumber: dayNumber, emphasized: true, outsideWindow: !inWindow)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(dayStart.formatted(date: .complete, time: .omitted))
-                .accessibilityHint(String(localized: "ThemeDrilldown.openEntry.a11yHint"))
-            } else {
-                dayNumberLabel(dayNumber: dayNumber, emphasized: false, outsideWindow: !inWindow)
-                    .accessibilityLabel(dayStart.formatted(date: .complete, time: .omitted))
-                    .accessibilityHint(String(localized: "PastDrilldown.calendarDay.noMatch.a11yHint"))
-            }
-        } else {
-            Color.clear
-                .frame(minWidth: 0, maxWidth: .infinity, minHeight: 36)
-                .accessibilityHidden(true)
-        }
-    }
-
-    private func dayNumberLabel(dayNumber: Int, emphasized: Bool, outsideWindow: Bool) -> some View {
-        Text("\(dayNumber)")
-            .monospacedDigit()
-            .font(emphasized ? AppTheme.warmPaperBody.weight(.semibold) : AppTheme.warmPaperBody)
-            .foregroundStyle(labelColor(emphasized: emphasized, outsideWindow: outsideWindow))
-            .frame(minWidth: 0, maxWidth: .infinity, minHeight: 36)
-            .background {
-                if emphasized {
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(AppTheme.reviewPaper.opacity(outsideWindow ? 0.45 : 0.88))
-                }
-            }
-            .overlay {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .strokeBorder(
-                        AppTheme.reviewStandardBorder.opacity(emphasized ? (outsideWindow ? 0.22 : 0.42) : 0),
-                        lineWidth: 1
-                    )
-            }
-    }
-
-    private func labelColor(emphasized: Bool, outsideWindow: Bool) -> Color {
-        if emphasized {
-            return outsideWindow ? AppTheme.reviewTextMuted : AppTheme.reviewTextPrimary
-        }
-        return outsideWindow ? AppTheme.reviewTextMuted.opacity(0.48) : AppTheme.reviewTextMuted
     }
 }

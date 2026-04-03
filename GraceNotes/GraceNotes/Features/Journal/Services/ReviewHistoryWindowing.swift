@@ -81,4 +81,41 @@ enum ReviewHistoryWindowing {
     private static func completionRank(_ level: JournalCompletionLevel) -> Int {
         level.tutorialCompletionRank
     }
+
+    /// Calendar days (start-of-day) that have at least one journal in the already-filtered history slice.
+    static func journalEntryDayStarts(
+        fromHistoryEntries entries: [Journal],
+        calendar: Calendar
+    ) -> Set<Date> {
+        Set(entries.map { calendar.startOfDay(for: $0.entryDate) })
+    }
+
+    /// Per-day chip count for the given section (capped at ``Journal.slotCount``), one dot strip per matched day.
+    /// When multiple contributing entries share a day, uses the newest (``entriesContributingToSection`` order).
+    static func sectionChipCountByMatchedDays(
+        section: ReviewStatsSectionKind,
+        matchingDayStarts: Set<Date>,
+        contributingEntriesNewestFirst: [Journal],
+        calendar: Calendar
+    ) -> [Date: Int] {
+        var result: [Date: Int] = [:]
+        for day in matchingDayStarts {
+            guard let journal = contributingEntriesNewestFirst.first(where: {
+                calendar.startOfDay(for: $0.entryDate) == day
+            }) else {
+                continue
+            }
+            let raw: Int
+            switch section {
+            case .gratitudes:
+                raw = (journal.gratitudes ?? []).count
+            case .needs:
+                raw = (journal.needs ?? []).count
+            case .people:
+                raw = (journal.people ?? []).count
+            }
+            result[day] = min(Journal.slotCount, max(0, raw))
+        }
+        return result
+    }
 }

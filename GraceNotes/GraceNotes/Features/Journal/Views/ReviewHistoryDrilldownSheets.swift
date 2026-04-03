@@ -47,10 +47,12 @@ struct ReviewHistoryDrilldownSheetContainer: View {
 
 private struct GrowthStageDrilldownSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var journalNavigationDay: ReviewHistoryDrilldownJournalNavigationDay?
 
     let level: JournalCompletionLevel
     private let matchingDayStarts: Set<Date>
+    private let historyJournalDays: Set<Date>
     private let historyDayRange: Range<Date>
     private let displayRange: Range<Date>
     private let drilldownCalendar: Calendar
@@ -89,6 +91,10 @@ private struct GrowthStageDrilldownSheet: View {
             strongestByDay: strongestByDay
         )
         matchingDayStarts = Set(matchedDays.map { calendar.startOfDay(for: $0) })
+        historyJournalDays = ReviewHistoryWindowing.journalEntryDayStarts(
+            fromHistoryEntries: historyEntries,
+            calendar: calendar
+        )
     }
 
     var body: some View {
@@ -124,9 +130,12 @@ private struct GrowthStageDrilldownSheet: View {
                     } else {
                         ReviewHistoryDrilldownCalendarGrid(
                             matchingDayStarts: matchingDayStarts,
+                            journalDaysInHistoryWindow: historyJournalDays,
                             historyDayRange: historyDayRange,
                             displayRange: displayRange,
                             calendar: drilldownCalendar,
+                            growthStageForMatchedDays: level,
+                            sectionStripChipCountsByDay: nil,
                             onMatchingDaySelected: { day in
                                 journalNavigationDay = ReviewHistoryDrilldownJournalNavigationDay(
                                     dayStart: day,
@@ -145,8 +154,17 @@ private struct GrowthStageDrilldownSheet: View {
             }
             .scrollContentBackground(.hidden)
             .background(AppTheme.reviewBackground)
-            .navigationTitle(growthStageDisplayTitle(for: level))
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    HStack(spacing: 10) {
+                        Text(growthStageDisplayTitle(for: level))
+                            .font(AppTheme.warmPaperBody.weight(.semibold))
+                            .foregroundStyle(AppTheme.reviewTextPrimary)
+                        ReviewGrowthStageSkylineGlyph(level: level, dynamicTypeSize: dynamicTypeSize)
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(String(localized: "Done")) {
                         dismiss()
@@ -199,6 +217,8 @@ private struct SectionEntriesDrilldownSheet: View {
     let section: ReviewStatsSectionKind
     private let contributingEntries: [Journal]
     private let sectionMatchingDayStarts: Set<Date>
+    private let historyJournalDays: Set<Date>
+    private let sectionStripChipCountsByDay: [Date: Int]
     private let historyDayRange: Range<Date>
     private let displayRange: Range<Date>
     private let drilldownCalendar: Calendar
@@ -235,6 +255,16 @@ private struct SectionEntriesDrilldownSheet: View {
         sectionMatchingDayStarts = Set(
             contributingEntries.map { calendar.startOfDay(for: $0.entryDate) }
         )
+        historyJournalDays = ReviewHistoryWindowing.journalEntryDayStarts(
+            fromHistoryEntries: historyEntries,
+            calendar: calendar
+        )
+        sectionStripChipCountsByDay = ReviewHistoryWindowing.sectionChipCountByMatchedDays(
+            section: section,
+            matchingDayStarts: sectionMatchingDayStarts,
+            contributingEntriesNewestFirst: contributingEntries,
+            calendar: calendar
+        )
     }
 
     var body: some View {
@@ -259,26 +289,22 @@ private struct SectionEntriesDrilldownSheet: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     List {
-                        Section {
-                            ReviewHistoryDrilldownCalendarGrid(
-                                matchingDayStarts: sectionMatchingDayStarts,
-                                historyDayRange: historyDayRange,
-                                displayRange: displayRange,
-                                calendar: drilldownCalendar,
-                                onMatchingDaySelected: { day in
-                                    journalNavigationDay = ReviewHistoryDrilldownJournalNavigationDay(
-                                        dayStart: day,
-                                        calendar: drilldownCalendar
-                                    )
-                                }
-                            )
-                            .padding(.vertical, 4)
-                        } header: {
-                            Text(String(localized: "Review history section drilldown calendar section"))
-                                .font(AppTheme.warmPaperMeta)
-                                .foregroundStyle(AppTheme.reviewTextMuted)
-                                .textCase(nil)
-                        }
+                        ReviewHistoryDrilldownCalendarGrid(
+                            matchingDayStarts: sectionMatchingDayStarts,
+                            journalDaysInHistoryWindow: historyJournalDays,
+                            historyDayRange: historyDayRange,
+                            displayRange: displayRange,
+                            calendar: drilldownCalendar,
+                            growthStageForMatchedDays: nil,
+                            sectionStripChipCountsByDay: sectionStripChipCountsByDay,
+                            onMatchingDaySelected: { day in
+                                journalNavigationDay = ReviewHistoryDrilldownJournalNavigationDay(
+                                    dayStart: day,
+                                    calendar: drilldownCalendar
+                                )
+                            }
+                        )
+                        .padding(.vertical, 4)
                     }
                     .scrollContentBackground(.hidden)
                     .navigationDestination(item: $journalNavigationDay) { item in
