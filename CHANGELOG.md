@@ -4,6 +4,18 @@
 
 Marketing version **0.5.0** ships as successive **builds** (TestFlight / App Store); git tags **`v0.5.0+{build}`**. GitHub milestones **0.5.2**, **0.5.3**, etc. name **scope lanes**, not separate marketing versions — see **README.md** (Roadmap) and GitHub milestones. Older docs or issues may still mention interim labels (**0.5.1**, **0.5.2**); **ship truth** is **0.5.0 + build** below.
 
+### Build 9 — 2026-04-03
+
+Marketing **0.5.0** / bundle **9** (git tag **`v0.5.0+9`** at release).
+
+### Fixed
+
+- Journal (**#191**): **Today** picks up the current local calendar day after you return from the background, lock and unlock, or switch to another tab and back—without requiring an app restart. Unsaved edits on the previous day are flushed before loading the new day. Staying on **Today** with the app continuously active (no background, lock, or tab change) can still show the prior day until you leave active use, as intended.
+
+### Developer
+
+- Tests: `JournalViewModel.refreshTodayIfStale` coverage for calendar-day rollover, immediate persist before advancing, same-day no-op, and clock moving backward.
+
 ### Build 8 — 2026-03-28
 
 Work tracked toward milestone **0.5.2** (Settings cohesion and insight follow-through); shipped as marketing **0.5.0** / bundle **8** (git tag **`v0.5.0+8`**).

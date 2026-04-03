@@ -203,6 +203,89 @@ final class JournalViewModelTests: XCTestCase {
         XCTAssertEqual(entries[0].reflections, "Be patient today")
     }
 
+    func test_refreshTodayIfStale_advancesToCurrentCalendarDay() throws {
+        let context = try makeInMemoryContext()
+        let day1 = Date(timeIntervalSince1970: 1_742_147_200)
+        let startD1 = calendar.startOfDay(for: day1)
+        let startD2 = calendar.date(byAdding: .day, value: 1, to: startD1)!
+        var simulatedNow = day1
+        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { simulatedNow })
+
+        viewModel.loadTodayIfNeeded(using: context)
+        XCTAssertEqual(viewModel.entryDate, startD1)
+
+        simulatedNow = calendar.date(byAdding: .hour, value: 10, to: startD2)!
+        viewModel.refreshTodayIfStale(using: context)
+
+        XCTAssertEqual(viewModel.entryDate, startD2)
+        let descriptor = FetchDescriptor<Journal>(
+            sortBy: [SortDescriptor(\.entryDate, order: .forward)]
+        )
+        let entries = try context.fetch(descriptor)
+        XCTAssertEqual(entries.count, 2)
+        XCTAssertEqual(entries.map(\.entryDate), [startD1, startD2])
+    }
+
+    func test_refreshTodayIfStale_persistsStaleDayBeforeAdvancing() throws {
+        let context = try makeInMemoryContext()
+        let day1 = Date(timeIntervalSince1970: 1_742_147_200)
+        let startD1 = calendar.startOfDay(for: day1)
+        let startD2 = calendar.date(byAdding: .day, value: 1, to: startD1)!
+        var simulatedNow = day1
+        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { simulatedNow })
+
+        viewModel.loadTodayIfNeeded(using: context)
+        viewModel.updateReadingNotes("Saved across midnight")
+
+        simulatedNow = calendar.date(byAdding: .hour, value: 10, to: startD2)!
+        viewModel.refreshTodayIfStale(using: context)
+
+        let day1Descriptor = FetchDescriptor<Journal>(
+            predicate: #Predicate { entry in
+                entry.entryDate >= startD1 && entry.entryDate < startD2
+            }
+        )
+        let day1Rows = try context.fetch(day1Descriptor)
+        XCTAssertEqual(day1Rows.count, 1)
+        XCTAssertEqual(day1Rows[0].readingNotes, "Saved across midnight")
+        XCTAssertEqual(viewModel.entryDate, startD2)
+    }
+
+    func test_refreshTodayIfStale_sameCalendarDay_isNoOp() throws {
+        let context = try makeInMemoryContext()
+        let now = Date(timeIntervalSince1970: 1_742_147_200)
+        let startOfDay = calendar.startOfDay(for: now)
+        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { now })
+
+        viewModel.loadTodayIfNeeded(using: context)
+        viewModel.refreshTodayIfStale(using: context)
+
+        XCTAssertEqual(viewModel.entryDate, startOfDay)
+        let descriptor = FetchDescriptor<Journal>()
+        let entries = try context.fetch(descriptor)
+        XCTAssertEqual(entries.count, 1)
+    }
+
+    func test_refreshTodayIfStale_whenClockMovesBackward_doesNotReplaceEntry() throws {
+        let context = try makeInMemoryContext()
+        let day1 = Date(timeIntervalSince1970: 1_742_147_200)
+        let startD1 = calendar.startOfDay(for: day1)
+        let startD2 = calendar.date(byAdding: .day, value: 1, to: startD1)!
+        var simulatedNow = calendar.date(byAdding: .hour, value: 10, to: startD2)!
+        let viewModel = JournalViewModel(calendar: calendar, nowProvider: { simulatedNow })
+
+        viewModel.loadTodayIfNeeded(using: context)
+        XCTAssertEqual(viewModel.entryDate, startD2)
+
+        simulatedNow = day1
+        viewModel.refreshTodayIfStale(using: context)
+
+        XCTAssertEqual(viewModel.entryDate, startD2)
+        let descriptor = FetchDescriptor<Journal>()
+        let entries = try context.fetch(descriptor)
+        XCTAssertEqual(entries.count, 1)
+    }
+
     private func makeInMemoryContext() throws -> ModelContext {
         try SwiftDataTestIsolation.makeModelContext()
     }

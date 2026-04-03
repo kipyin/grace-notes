@@ -120,6 +120,15 @@ final class JournalViewModel {
     }
 
     private func persistChanges() {
+        saveCurrentJournalStateIfPossible()
+    }
+
+    /// Writes in-memory fields to the loaded journal immediately (e.g. before switching calendar day).
+    func persistImmediately() {
+        saveCurrentJournalStateIfPossible()
+    }
+
+    private func saveCurrentJournalStateIfPossible() {
         guard !isHydrating, let context = modelContext, let entry = journalEntry else { return }
         let saveTrace = PerformanceTrace.begin("JournalViewModel.persistChanges")
 
@@ -146,6 +155,16 @@ final class JournalViewModel {
             saveErrorMessage = String(localized: "Unable to save your entry.")
             PerformanceTrace.end("JournalViewModel.persistChanges.failed", startedAt: saveTrace)
         }
+    }
+
+    /// Today mode only: if the calendar day is past the loaded journal, persist then load the current day.
+    func refreshTodayIfStale(using context: ModelContext) {
+        let now = nowProvider()
+        let shownStart = calendar.startOfDay(for: entryDate)
+        let todayStart = calendar.startOfDay(for: now)
+        guard todayStart > shownStart else { return }
+        persistImmediately()
+        loadEntry(for: now, using: context)
     }
 
     private func refreshStreakSummary() {

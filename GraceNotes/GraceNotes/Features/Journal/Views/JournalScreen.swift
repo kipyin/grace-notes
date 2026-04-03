@@ -153,6 +153,7 @@ private extension View {
 struct JournalScreen: View {
     @EnvironmentObject private var appNavigation: AppNavigationModel
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(\.journalBloomAtmosphereHosted) private var journalBloomAtmosphereHosted
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -163,6 +164,8 @@ struct JournalScreen: View {
     @State private var showSavedToPhotosToast = false
     @State private var savedToPhotosDismissTask: Task<Void, Never>?
     @State private var hasTrackedInitialLoad = false
+    /// Blocks session-resume refresh until the first `.task` load finishes (avoids racing the empty ViewModel).
+    @State private var hasCompletedInitialJournalLoadTask = false
     @State private var statusCelebrationDismissTask: Task<Void, Never>?
     @State private var celebratingLevel: JournalCompletionLevel?
     @State private var hasInitializedCompletionTracking = false
@@ -287,6 +290,15 @@ struct JournalScreen: View {
         }
         .onChange(of: journalProgressFingerprint) { _, _ in
             handleJournalProgressChange()
+        }
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            guard oldPhase != .active, newPhase == .active else { return }
+            guard appNavigation.selectedTab == .today else { return }
+            refreshTodayAfterSessionResumeIfNeeded()
+        }
+        .onChange(of: appNavigation.selectedTab) { oldTab, newTab in
+            guard newTab == .today, oldTab != .today else { return }
+            refreshTodayAfterSessionResumeIfNeeded()
         }
         .task(id: entryDate) {
             await runJournalScreenLoadTask()
@@ -1130,6 +1142,19 @@ private extension JournalScreen {
                 )
             }
         }
+        applyJournalScreenLoadFollowUps()
+        hasCompletedInitialJournalLoadTask = true
+        PerformanceTrace.end("JournalScreen.loadTask", startedAt: loadTrace)
+    }
+
+    private func refreshTodayAfterSessionResumeIfNeeded() {
+        guard entryDate == nil else { return }
+        guard hasCompletedInitialJournalLoadTask else { return }
+        viewModel.refreshTodayIfStale(using: modelContext)
+        applyJournalScreenLoadFollowUps()
+    }
+
+    private func applyJournalScreenLoadFollowUps() {
         previousCompletionLevel = viewModel.completionLevel
         previousGratitudesCount = viewModel.gratitudes.count
         previousNeedsCount = viewModel.needs.count
@@ -1138,7 +1163,6 @@ private extension JournalScreen {
         syncGuidedJournalCompletionIfNeeded()
         focusOnboardingStepIfNeeded(onboardingPresentation.step)
         evaluateAppTourIfNeeded()
-        PerformanceTrace.end("JournalScreen.loadTask", startedAt: loadTrace)
     }
 
     var onboardingPresentation: JournalOnboardingPresentation {
