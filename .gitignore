@@ -37,8 +37,8 @@ __pycache__/
 .cursor/
 .xcodebuildmcp/
 
-# Agent-local implementation plans (superpowers writing-plans output)
-docs/superpowers/
+# Agent-local plans/specs (superpowers, design docs committed elsewhere if needed)
+.superpowers/
 
 # Git worktrees (local parallel checkouts)
 .worktrees/
