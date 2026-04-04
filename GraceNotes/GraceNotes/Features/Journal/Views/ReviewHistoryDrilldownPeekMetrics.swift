@@ -3,7 +3,8 @@ import CoreGraphics
 /// Vertical space for the feathered calendar peek (issue #197). Sheets compute `remainingHeight` from layout;
 /// only this region scrolls.
 enum ReviewHistoryDrilldownPeekMetrics {
-    /// Matches existing grid default from issue #186 (≈1.5 months visible).
+    /// Reference height from issue #186 (~1.5 months on compact widths). Not an upper cap: tall devices use
+    /// extra space so the calendar is not artificially short.
     static var preferredViewportHeight: CGFloat {
         ReviewHistoryDrilldownCalendarGrid.Metrics.scrollViewportHeight
     }
@@ -12,6 +13,6 @@ enum ReviewHistoryDrilldownPeekMetrics {
     static let minimumViewportHeight: CGFloat = 200
 
     static func clampedViewportHeight(remainingHeight: CGFloat) -> CGFloat {
-        min(preferredViewportHeight, max(minimumViewportHeight, remainingHeight))
+        max(minimumViewportHeight, remainingHeight)
     }
 }

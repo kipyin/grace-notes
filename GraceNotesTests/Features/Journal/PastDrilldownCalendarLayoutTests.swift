@@ -246,10 +246,11 @@ final class PastDrilldownCalendarLayoutTests: XCTestCase {
         XCTAssertEqual(countsOlderFirst[dayStart], 1)
     }
 
-    func test_peekMetrics_clampedViewport_favorsPreferredWhenSpaceAllows() {
+    func test_peekMetrics_clampedViewport_growsWithRemainingAbovePreferred() {
         let preferred = ReviewHistoryDrilldownCalendarGrid.Metrics.scrollViewportHeight
-        let clamped = ReviewHistoryDrilldownPeekMetrics.clampedViewportHeight(remainingHeight: preferred + 80)
-        XCTAssertEqual(clamped, preferred, accuracy: 0.001)
+        let extra: CGFloat = 80
+        let clamped = ReviewHistoryDrilldownPeekMetrics.clampedViewportHeight(remainingHeight: preferred + extra)
+        XCTAssertEqual(clamped, preferred + extra, accuracy: 0.001)
     }
 
     func test_peekMetrics_clampedViewport_respectsMinimumOnTinyRemaining() {
