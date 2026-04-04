@@ -21,7 +21,8 @@ final class PastDrilldownCalendarLayoutTests: XCTestCase {
 
     func test_drilldownCalendarGrid_topScrollInset_scalesWithViewportHeight() {
         let shortViewport: CGFloat = 220
-        let expectedInset = (shortViewport * ReviewHistoryDrilldownCalendarGrid.Metrics.featherOpaqueStartsAt).rounded(.up)
+        let featherStart = ReviewHistoryDrilldownCalendarGrid.Metrics.featherOpaqueStartsAt
+        let expectedInset = (shortViewport * featherStart).rounded(.up)
         XCTAssertEqual(
             ReviewHistoryDrilldownCalendarGrid.scrollContentTopInset(forViewportHeight: shortViewport),
             expectedInset,
@@ -247,21 +248,21 @@ final class PastDrilldownCalendarLayoutTests: XCTestCase {
 
     func test_peekMetrics_clampedViewport_favorsPreferredWhenSpaceAllows() {
         let preferred = ReviewHistoryDrilldownCalendarGrid.Metrics.scrollViewportHeight
-        let h = ReviewHistoryDrilldownPeekMetrics.clampedViewportHeight(remainingHeight: preferred + 80)
-        XCTAssertEqual(h, preferred, accuracy: 0.001)
+        let clamped = ReviewHistoryDrilldownPeekMetrics.clampedViewportHeight(remainingHeight: preferred + 80)
+        XCTAssertEqual(clamped, preferred, accuracy: 0.001)
     }
 
     func test_peekMetrics_clampedViewport_respectsMinimumOnTinyRemaining() {
-        let minH = ReviewHistoryDrilldownPeekMetrics.minimumViewportHeight
-        let h = ReviewHistoryDrilldownPeekMetrics.clampedViewportHeight(remainingHeight: minH - 10)
-        XCTAssertEqual(h, minH, accuracy: 0.001)
+        let minimum = ReviewHistoryDrilldownPeekMetrics.minimumViewportHeight
+        let clamped = ReviewHistoryDrilldownPeekMetrics.clampedViewportHeight(remainingHeight: minimum - 10)
+        XCTAssertEqual(clamped, minimum, accuracy: 0.001)
     }
 
     func test_peekMetrics_clampedViewport_usesRemainingWhenBetweenMinAndPreferred() {
-        let minH = ReviewHistoryDrilldownPeekMetrics.minimumViewportHeight
+        let minimum = ReviewHistoryDrilldownPeekMetrics.minimumViewportHeight
         let preferred = ReviewHistoryDrilldownCalendarGrid.Metrics.scrollViewportHeight
-        let target: CGFloat = minH + (preferred - minH) * 0.5
-        let h = ReviewHistoryDrilldownPeekMetrics.clampedViewportHeight(remainingHeight: target)
-        XCTAssertEqual(h, target, accuracy: 0.001)
+        let target: CGFloat = minimum + (preferred - minimum) * 0.5
+        let clamped = ReviewHistoryDrilldownPeekMetrics.clampedViewportHeight(remainingHeight: target)
+        XCTAssertEqual(clamped, target, accuracy: 0.001)
     }
 }
