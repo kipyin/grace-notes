@@ -368,29 +368,17 @@ struct ImportExportSettingsScreen: View {
     }
 
     private func exportHistoryDetailText(for entry: BackupExportHistoryEntry) -> Text {
-        let kind: String
-        switch entry.kind {
-        case .manualShare:
-            kind = String(localized: "DataPrivacy.importExport.history.kind.manual")
-        case .scheduledFolder:
-            kind = String(localized: "DataPrivacy.importExport.history.kind.scheduled")
-        }
-        let status: String
-        if entry.success {
-            status = String(localized: "DataPrivacy.importExport.history.status.success")
-        } else {
-            status = String(localized: "DataPrivacy.importExport.history.status.failed")
-        }
+        let parts = ImportExportTechnicalDetailFormatting.exportHistoryLineParts(for: entry)
         let sep = Text(" · ")
             .font(AppTheme.warmPaperMeta)
             .foregroundStyle(AppTheme.settingsTextMuted)
-        let kindText = Text(kind)
+        let kindText = Text(parts.kindLabel)
             .font(AppTheme.warmPaperMeta)
             .foregroundStyle(AppTheme.settingsTextMuted)
-        let statusText = Text(status)
+        let statusText = Text(parts.statusLabel)
             .font(AppTheme.warmPaperMeta)
             .foregroundStyle(AppTheme.settingsTextMuted)
-        if let detail = entry.detail, !detail.isEmpty {
+        if let detail = parts.detail {
             let detailFont: Font = ImportExportTechnicalDetailFormatting.detailLooksLikeFileName(detail)
                 ? AppTheme.settingsTechnicalMeta
                 : AppTheme.warmPaperMeta
@@ -403,23 +391,7 @@ struct ImportExportSettingsScreen: View {
     }
 
     private func historyDetailLabel(for entry: BackupExportHistoryEntry) -> String {
-        let kind: String
-        switch entry.kind {
-        case .manualShare:
-            kind = String(localized: "DataPrivacy.importExport.history.kind.manual")
-        case .scheduledFolder:
-            kind = String(localized: "DataPrivacy.importExport.history.kind.scheduled")
-        }
-        let status: String
-        if entry.success {
-            status = String(localized: "DataPrivacy.importExport.history.status.success")
-        } else {
-            status = String(localized: "DataPrivacy.importExport.history.status.failed")
-        }
-        if let detail = entry.detail, !detail.isEmpty {
-            return "\(kind) · \(status) · \(detail)"
-        }
-        return "\(kind) · \(status)"
+        ImportExportTechnicalDetailFormatting.exportHistoryPlainLabel(for: entry)
     }
 }
 

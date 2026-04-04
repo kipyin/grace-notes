@@ -23,4 +23,31 @@ final class ImportExportDetailFormattingTests: XCTestCase {
         XCTAssertFalse(ImportExportTechnicalDetailFormatting.detailLooksLikeFileName(""))
         XCTAssertFalse(ImportExportTechnicalDetailFormatting.detailLooksLikeFileName("   "))
     }
+
+    func test_exportHistoryPlainLabel_includesDetailWhenPresent() {
+        let entry = BackupExportHistoryEntry(
+            id: UUID(),
+            finishedAt: Date(),
+            success: true,
+            kind: .manualShare,
+            detail: "grace-notes-export-test.json"
+        )
+        let plain = ImportExportTechnicalDetailFormatting.exportHistoryPlainLabel(for: entry)
+        XCTAssertTrue(plain.contains("grace-notes-export-test.json"))
+    }
+
+    func test_exportHistoryLineParts_plainLabel_usesSameKindAndStatus() {
+        let entry = BackupExportHistoryEntry(
+            id: UUID(),
+            finishedAt: Date(),
+            success: false,
+            kind: .scheduledFolder,
+            detail: nil
+        )
+        let parts = ImportExportTechnicalDetailFormatting.exportHistoryLineParts(for: entry)
+        XCTAssertNil(parts.detail)
+        let plain = ImportExportTechnicalDetailFormatting.exportHistoryPlainLabel(for: entry)
+        XCTAssertTrue(plain.hasPrefix(parts.kindLabel))
+        XCTAssertTrue(plain.contains(parts.statusLabel))
+    }
 }
