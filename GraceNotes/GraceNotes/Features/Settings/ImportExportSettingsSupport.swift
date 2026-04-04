@@ -77,7 +77,7 @@ struct BackupFolderImportFileListView: View {
                         onSelect(url)
                     } label: {
                         Text(url.lastPathComponent)
-                            .font(AppTheme.warmPaperBody)
+                            .font(AppTheme.settingsTechnicalBody)
                             .foregroundStyle(AppTheme.settingsTextPrimary)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }

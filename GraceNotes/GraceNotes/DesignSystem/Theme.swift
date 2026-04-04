@@ -149,6 +149,12 @@ enum AppTheme {
     /// Supporting copy under meta titles (e.g. path criteria); scales with Dynamic Type caption.
     static let warmPaperCaption = Font.custom("SourceSerif4Roman-Regular", size: 13, relativeTo: .caption)
 
+    /// Machine-oriented strings in Settings (file names, path segments). Scales with Dynamic Type like body.
+    static let settingsTechnicalBody = Font.system(.body, design: .monospaced)
+
+    /// Secondary technical lines (e.g. export history detail); aligns with footnote scale alongside ``warmPaperMeta``.
+    static let settingsTechnicalMeta = Font.system(.footnote, design: .monospaced)
+
     // MARK: - Interface sans (Outfit)
 
     /// Default SwiftUI sans; inherited by controls unless a view sets `.font` (journal uses `warmPaper*` instead).
