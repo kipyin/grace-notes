@@ -5697,13 +5697,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Turn on Summarize and Insights to generate Past insights from your entries."
+            "value": "Summarize and Insights can generate Past insights from your entries."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "开启摘要与洞察后，感恩记会根据你的记录，在「过去」生成洞察。"
+            "value": "感恩记会根据你的记录，在「过去」生成洞察。"
           }
         }
       }
@@ -9051,13 +9051,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sample only. When Summarize and Insights is on, the insights card on Past may include more sections than this preview."
+            "value": "Sample only. The insights card on Past may include more sections than this preview."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅为示例。开启「摘要与洞察」后，你在「过去」看到的洞察卡片可能还有更多栏目。"
+            "value": "仅为示例。你在「过去」看到的洞察卡片可能会比这个预览多一些栏目。"
           }
         }
       }
