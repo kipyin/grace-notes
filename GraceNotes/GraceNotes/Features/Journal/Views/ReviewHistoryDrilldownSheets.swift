@@ -28,34 +28,50 @@ extension View {
 
 /// Layout values shared by ``ReviewHistoryDrilldownPeekContainer``'s height math and its ``VStack`` (keep in sync).
 private enum ReviewHistoryDrilldownPeekContainerLayout {
-    /// Must match ``VStack`` `spacing` between `above` and `grid`.
+    /// Must match ``VStack`` `spacing` between `above` and `grid` when there is real header content.
     static let aboveToGridSpacing: CGFloat = 12
-    /// Sum of vertical padding applied to the ``VStack`` (top + bottom).
-    static let verticalPaddingTotal: CGFloat = 8 + 8
+    /// Single value passed to ``View/padding(_:_:)`` for vertical padding on the ``VStack``.
+    static let verticalPadding: CGFloat = 8
+    /// Top + bottom padding total (derived from ``verticalPadding``).
+    static var verticalPaddingTotal: CGFloat { verticalPadding * 2 }
 }
 
 /// Single scroll owner for drill-down: only ``ReviewHistoryDrilldownCalendarGrid``'s `ScrollView` moves.
 private struct ReviewHistoryDrilldownPeekContainer<Above: View, GridContent: View>: View {
     let above: Above
     @Binding var abovePeekHeight: CGFloat
+    /// Spacing between measured `above` and the calendar; use `0` when `above` is a zero-height placeholder.
+    let aboveAndGridSpacing: CGFloat
     /// Builds the feathered calendar; receives clamped peek height from ``GeometryReader``.
     let grid: (CGFloat) -> GridContent
+
+    init(
+        above: Above,
+        abovePeekHeight: Binding<CGFloat>,
+        aboveAndGridSpacing: CGFloat = ReviewHistoryDrilldownPeekContainerLayout.aboveToGridSpacing,
+        grid: @escaping (CGFloat) -> GridContent
+    ) {
+        self.above = above
+        _abovePeekHeight = abovePeekHeight
+        self.aboveAndGridSpacing = aboveAndGridSpacing
+        self.grid = grid
+    }
 
     var body: some View {
         GeometryReader { proxy in
             let remaining = proxy.size.height
                 - abovePeekHeight
                 - ReviewHistoryDrilldownPeekContainerLayout.verticalPaddingTotal
-                - ReviewHistoryDrilldownPeekContainerLayout.aboveToGridSpacing
+                - aboveAndGridSpacing
             let peek = ReviewHistoryDrilldownPeekMetrics.clampedViewportHeight(remainingHeight: remaining)
 
-            VStack(alignment: .leading, spacing: ReviewHistoryDrilldownPeekContainerLayout.aboveToGridSpacing) {
+            VStack(alignment: .leading, spacing: aboveAndGridSpacing) {
                 above
                     .reviewHistoryDrilldownMeasureAbovePeekHeight()
                 grid(peek)
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 8)
+            .padding(.vertical, ReviewHistoryDrilldownPeekContainerLayout.verticalPadding)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .onPreferenceChange(ReviewHistoryDrilldownAbovePeekHeightKey.self) { abovePeekHeight = $0 }
         }
@@ -287,7 +303,6 @@ private struct GrowthStageDrilldownSheet: View {
 private struct SectionEntriesDrilldownSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var journalNavigationDay: ReviewHistoryDrilldownJournalNavigationDay?
-    @State private var abovePeekHeight: CGFloat = 0
 
     let section: ReviewStatsSectionKind
     private let contributingEntries: [Journal]
@@ -365,7 +380,8 @@ private struct SectionEntriesDrilldownSheet: View {
                 } else {
                     ReviewHistoryDrilldownPeekContainer(
                         above: Color.clear.frame(height: 0),
-                        abovePeekHeight: $abovePeekHeight,
+                        abovePeekHeight: .constant(0),
+                        aboveAndGridSpacing: 0,
                         grid: { peek in
                             ReviewHistoryDrilldownCalendarGrid(
                                 matchingDayStarts: sectionMatchingDayStarts,

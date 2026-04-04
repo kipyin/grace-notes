@@ -1,20 +1,19 @@
 import CoreGraphics
 
-/// Vertical space for the feathered calendar peek (issue #197). Sheets compute `remainingHeight` from layout;
-/// only this region scrolls.
+/// Peek height helper for the feathered calendar (issue #197). Callers compute `remainingHeight` from layout;
+/// this type does not re-apply min/preferred caps so the grid never exceeds geometry.
 enum ReviewHistoryDrilldownPeekMetrics {
-    /// Reference height from issue #186 (~1.5 months on compact widths). Not an upper cap: tall devices use
-    /// extra space so the calendar is not artificially short.
+    /// Reference height from issue #186 (~1.5 months on compact widths). Used in tests and docs; not applied
+    /// inside ``clampedViewportHeight(remainingHeight:)``.
     static var preferredViewportHeight: CGFloat {
         ReviewHistoryDrilldownCalendarGrid.Metrics.scrollViewportHeight
     }
 
-    /// Reference target when measuring layout; not a hard floor in ``clampedViewportHeight(remainingHeight:)`` —
-    /// if geometry reports less space, the peek must not exceed that space (avoids overflow/clipping).
+    /// Notional comfortable minimum height (tests / product reference only). Tight layouts use a smaller
+    /// ``clampedViewportHeight`` rather than inflating past ``remainingHeight``.
     static let minimumViewportHeight: CGFloat = 200
 
-    /// Peek height matches laid-out remaining height (non-negative). When space is tight, returns the actual
-    /// available height instead of inflating to ``minimumViewportHeight``, which would exceed the container.
+    /// Uses at most the non-negative space remaining; never inflates above `remainingHeight`.
     static func clampedViewportHeight(remainingHeight: CGFloat) -> CGFloat {
         max(0, remainingHeight)
     }
