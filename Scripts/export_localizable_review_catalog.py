@@ -33,10 +33,13 @@ def _emit_catalog(
     rel: str,
     batch: int | None,
     batch_size: int,
+    include_stale: bool,
 ) -> None:
     path = repo / rel
     strings = _load_strings(path)
     keys = [k for k in _sorted_keys(strings) if k != ""]
+    if not include_stale:
+        keys = [k for k in keys if strings[k].get("extractionState") != "stale"]
 
     offset = 0
     if batch is not None:
@@ -84,6 +87,16 @@ def main() -> int:
         help="Which catalog to export (not used with --validate).",
     )
     parser.add_argument("--batch", type=int, default=None, help="Zero-based batch index (localizable only).")
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Export full localizable catalog in one run (omit --batch).",
+    )
+    parser.add_argument(
+        "--include-stale",
+        action="store_true",
+        help="Include keys with extractionState=stale (default: omit).",
+    )
     parser.add_argument("--batch-size", type=int, default=40)
     parser.add_argument("--validate", action="store_true", help="Verify non-empty en has non-empty zh-Hans.")
     args = parser.parse_args()
@@ -98,26 +111,37 @@ def main() -> int:
         return 2
 
     if args.only == "localizable":
-        if args.batch is None:
-            print("error: --only localizable requires --batch N", file=sys.stderr)
-            return 2
+        if args.all:
+            if args.batch is not None:
+                print("error: use either --all or --batch, not both", file=sys.stderr)
+                return 2
+            batch = None
+        else:
+            if args.batch is None:
+                print("error: --only localizable requires --batch N or --all", file=sys.stderr)
+                return 2
+            batch = args.batch
         _emit_catalog(
             repo=repo,
             label="Localizable",
             rel="GraceNotes/GraceNotes/Localizable.xcstrings",
-            batch=args.batch,
+            batch=batch,
             batch_size=args.batch_size,
+            include_stale=args.include_stale,
         )
 
     if args.only == "infoplist":
         if args.batch is not None:
             print("warning: --batch is ignored for infoplist", file=sys.stderr)
+        if args.all:
+            print("warning: --all is ignored for infoplist", file=sys.stderr)
         _emit_catalog(
             repo=repo,
             label="InfoPlist",
             rel="GraceNotes/InfoPlist.xcstrings",
             batch=None,
             batch_size=args.batch_size,
+            include_stale=True,
         )
 
     return 0

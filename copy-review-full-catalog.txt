@@ -1,0 +1,1002 @@
+1. [InfoPlist] CFBundleDisplayName
+   Grace Notes（感恩记）
+
+2. [InfoPlist] NSPhotoLibraryAddUsageDescription
+   Save your Grace Notes share image to your photo library.（将感恩记的分享图保存到相册。）
+
+1. [Localizable] %1$@ item %2$d of %3$d
+   %1$@ item %2$d of %3$d（%1$@，第 %2$d 项，共 %3$d 项）
+
+2. [Localizable] %1$@ progress. %2$d complete, %3$d in progress, %4$d open.
+   %1$@ progress. %2$d complete, %3$d in progress, %4$d open.（%1$@：已完成 %2$d 项，进行中 %3$d 项，未开始 %4$d 项。）
+
+3. [Localizable] %1$@, %2$@, %3$lld
+   %1$@, %2$@, %3$lld（%1$@，%2$@，%3$lld）
+
+4. [Localizable] %1$@, %2$@, %3$lld, %4$lld
+   %1$@, %2$@, %3$lld, %4$lld（%1$@，%2$@，%3$lld，%4$lld）
+
+5. [Localizable] %1$@, %2$d
+   %1$@, %2$d（%1$@，%2$d）
+
+6. [Localizable] %1$@. Gratitudes %2$d, Needs %3$d, People in Mind %4$d.
+   %1$@. Gratitudes: %2$d. Needs: %3$d. People in Mind: %4$d.（%1$@。感恩的事 %2$d 条。需要的事 %3$d 条。牵挂的人 %4$d 条。）
+
+7. [Localizable] %1$lld → %2$lld
+   %1$lld → %2$lld（%1$lld → %2$lld）
+
+8. [Localizable] %@ editor
+   %@, multiline text field（%@，多行文本输入框）
+
+9. [Localizable] %@ input
+   %@ input（%@ 输入）
+
+10. [Localizable] %@ section is updating.
+   %@ section is updating.（正在更新 %@。）
+
+11. [Localizable] %@ text
+   %@ text（%@ 文本）
+
+12. [Localizable] %d of %d
+   %d of %d（%2$d 条中的第 %1$d 条）
+
+13. [Localizable] %lld
+   （）
+
+14. [Localizable] %lld. %@
+   %1$lld. %2$@（%1$lld、%2$@）
+
+15. [Localizable] A next step
+   A next step（下一步）
+
+16. [Localizable] Add another gratitude
+   Add another gratitude（再记一件感恩的事）
+
+17. [Localizable] Add another need
+   Add another need（再记一件需要的事）
+
+18. [Localizable] Add another person
+   Add another person（再记一位牵挂的人）
+
+19. [Localizable] Add gratitude
+   Add gratitude（记一件感恩的事）
+
+20. [Localizable] Add need
+   Add need（记一件需要的事）
+
+21. [Localizable] Add one line in each section to move into Sprout.
+   Add one line in each section to move into Sprout.（现在还什么都没有。随便开始写一些，就会进入「初露新芽」。）
+
+22. [Localizable] Add one more line in any section. Small steps are easier to keep. Tap the status above anytime if you want a reminder.
+   Add one more line in any section. Small steps are easier to keep. Tap the status above anytime if you want a reminder.（在任一部分多写几条，小步最容易坚持。需要提示时，也可以随时点按上方状态。）
+
+23. [Localizable] Add person
+   Add person（记一位牵挂的人）
+
+24. [Localizable] All sections are at three lines. Reach five lines in each section to enter Bloom.
+   All sections are at three lines. Reach five lines in each section to enter Bloom.（三个部分都已经写了三条了。继续把每个部分写到五条，就会进入「花开有成」。）
+
+25. [Localizable] All sections reached five lines. Today's entry is complete.
+   All sections reached five lines. Today's entry is complete.（三个部分都写到五条了。今天这篇记录已经完整了。）
+
+26. [Localizable] Allow notifications in Settings to confirm a reminder time.
+   Allow notifications in Settings to confirm a reminder time.（请在设置中允许通知，以确认提醒时间。）
+
+27. [Localizable] Allow notifications in Settings to enable daily reminders.
+   Allow notifications in Settings to enable daily reminders.（请在设置中允许通知，以启用每日提醒。）
+
+28. [Localizable] Almost ready. Bringing your Grace Notes space online...
+   Almost ready. Finishing setup…（快好了，正在准备你的感恩记……）
+
+29. [Localizable] AppTour.congrats.body
+   You've started today's entry in Grace Notes.（你已经开始写今天这篇感恩记了。）
+
+30. [Localizable] AppTour.congrats.headline
+   Sprout（初露新芽）
+
+31. [Localizable] AppTour.footer.settingsNote
+   You can change this anytime in Settings.（你可以随时在「设置」里更改。）
+
+32. [Localizable] AppTour.icloud.intro
+   After you sign in to iCloud, Grace Notes can sync across your devices.（登录 iCloud 后，感恩记可在你的设备间同步。）
+
+33. [Localizable] AppTour.insights.intro
+   Open the Past tab for this week’s digest: days you wrote, patterns across your lines in each section, one observation grounded in what you wrote, and a practical next step. The more specific you write each day, the closer these insights stay to you. It may take a little time.（打开「过去」可以查看本周摘要：你写过的日子、各个部分里反复出现的主题、一条贴着你原文的观察，以及一个可执行的下一步。每天写得越具体，这些洞察就越贴近你，不过这可能需要一点时间。）
+
+34. [Localizable] AppTour.pageIndicator
+   Page %1$lld of %2$lld（第 %1$lld 页，共 %2$lld 页）
+
+35. [Localizable] AppTour.path.criterion.balanced
+   Each section has at least three, but not all fifteen spots are filled yet.（每个分栏都至少三条，但十五个条目位还没有全部写满。）
+
+36. [Localizable] AppTour.path.criterion.empty
+   No lines yet in Gratitudes, Needs, or People in Mind.（感恩的事、需要的事和牵挂的人这三个部分里都还没有写下条。）
+
+37. [Localizable] AppTour.path.criterion.full
+   All five spots are filled in Gratitudes, Needs, and People in Mind.（感恩的事、需要的事和牵挂的人都已写满五条。）
+
+38. [Localizable] AppTour.path.criterion.growing
+   At least one section has reached three, and at least one section is still under three.（至少有一个分栏已经达到三条，也至少有一个分栏还不到三条。）
+
+39. [Localizable] AppTour.path.criterion.started
+   At least one strip is filled, and all three sections are still under three.（你已经写下至少一条，而且三个分栏都还不到三条。）
+
+40. [Localizable] AppTour.path.intro
+   Soil, Sprout, Twig, Leaf, and Bloom show how many lines you have in Gratitudes, Needs, and People in Mind. They help you pace without pressure. Reading notes and reflections do not change status.（「静待播种、初露新芽、枝条初成、叶茂成形、花开有成」只看感恩的事、需要的事和牵挂的人里写了多少条，帮你掌握节奏、少点压力。阅读笔记和反思不会改变状态。）
+
+41. [Localizable] AppTour.reminders.intro
+   It’s easy to forget gratitude. Turn on a daily reminder to keep your Grace Notes habit.（我们经常会忘记表达感恩。可以打开每日提醒来记录当天的感恩记。）
+
+42. [Localizable] AppTour.sampleInsights.a11yLabel
+   Review sample preview（「回顾」示例预览）
+
+43. [Localizable] AppTour.sampleInsights.filler
+   Sample only. Your real Review card may include more sections when online summarization is on. Gray lines in the live card are follow-up prompts. Answer in Reflections on Today, or in your next entry.（仅为示例。开启联网摘要时，真实的「回顾」卡片可能还有更多栏目。实卡里的灰色小字是跟进提示，想写时可以在「今天」的反思里接几句，或在下一篇记录里回应。）
+
+44. [Localizable] AppTour.sampleInsights.row1.action
+   What is one tiny way to turn rest into a gratitude this week?（这周有没有一件很小的事，能把「休息」也写进「感恩的事」里？）
+
+45. [Localizable] AppTour.sampleInsights.row1.observation
+   You often noted rest under Needs, but it has not appeared in Gratitudes yet.（你常常把「休息」写在「需要的事」里，但是「感恩的事」里还没有出现过它。）
+
+46. [Localizable] At least one section has three lines. Reach three in all sections to enter Leaf.
+   At least one section has three lines. Reach three in all sections to enter Leaf.（至少有一个部分已经写到三条了。等三个部分都写上三条以后，就会进入「叶茂成形」。）
+
+47. [Localizable] Balanced
+   Leaf（叶茂成形）
+
+48. [Localizable] Begin today's entry
+   Begin today's entry（开始写今天的感恩记）
+
+49. [Localizable] Bloom
+   （）
+
+50. [Localizable] Both %1$@ and %2$@ showed up more than once in your week.
+   Both %1$@ and %2$@ showed up more than once in your week.（%1$@ 和 %2$@ 在这周都出现了不止一次。）
+
+51. [Localizable] Browse all recurring themes
+   Show more（更多）
+
+52. [Localizable] Browse all trending themes
+   Show more（更多）
+
+53. [Localizable] Cancel
+   Cancel（取消）
+
+54. [Localizable] Check if notification permissions have changed.
+   Check if notification permissions have changed.（检查通知权限是否已更改。）
+
+55. [Localizable] Choose a reminder time.
+   Choose a reminder time.（选择提醒时间。）
+
+56. [Localizable] Count
+   Count（次数）
+
+57. [Localizable] Current week %1$lld, previous week %2$lld.
+   Current week %1$lld, previous week %2$lld.（本周 %1$lld 次，上周 %2$lld 次。）
+
+58. [Localizable] Daily reminder
+   Daily reminder（每日提醒）
+
+59. [Localizable] Daily reminders
+   Daily reminders（每日提醒）
+
+60. [Localizable] Data & Privacy
+   Data & Privacy（数据与隐私）
+
+61. [Localizable] DataPrivacy.a11y.backup
+   Import and export backups（导入与导出备份）
+
+62. [Localizable] DataPrivacy.a11y.nextSteps
+   What to do next（接下来可做的事）
+
+63. [Localizable] DataPrivacy.a11y.storage
+   Grace Notes data storage（感恩记数据存储）
+
+64. [Localizable] DataPrivacy.a11y.storage.cloudActive
+   Storage: Grace Notes uses iCloud sync from this device.（存储：感恩记正通过本设备使用 iCloud 同步。）
+
+65. [Localizable] DataPrivacy.attention.noAccount.summary
+   This device isn’t signed in to iCloud, so sync can’t start yet. Sign in from Settings, or open Settings below.（此设备尚未登录 iCloud，暂时还不能开启同步。请到「设置」登录，或轻点下方的「打开设置」。）
+
+66. [Localizable] DataPrivacy.attention.preferenceMismatchRelaunch.summary
+   Your sync setting doesn’t match how data is stored on this device right now.（同步开关和当前在本机的存储方式不一致。）
+
+67. [Localizable] DataPrivacy.attention.restricted.summary
+   iCloud is restricted on this device.（此设备上的 iCloud 目前受到限制。）
+
+68. [Localizable] DataPrivacy.attention.retryICloudAfterRelaunch.summary
+   Quit Grace Notes once and open it again to try connecting to iCloud.（先关掉感恩记再打开，试试能否连上 iCloud。）
+
+69. [Localizable] DataPrivacy.attention.tempUnavailable
+   iCloud isn't available right now. Your entries still save on this device.（暂时用不了 iCloud，记录照常保存在本设备。）
+
+70. [Localizable] DataPrivacy.attention.tempUnavailableMismatch.summary
+   iCloud is temporarily unavailable. Your entries still save on this device.（暂时连不上 iCloud，记录仍保存在本设备。）
+
+71. [Localizable] DataPrivacy.attention.toggleChangedRelaunch.summary
+   Restart Grace Notes to apply your iCloud sync change.（改了 iCloud 同步后，需要重新打开感恩记才会生效。）
+
+72. [Localizable] DataPrivacy.attention.unknown
+   Couldn't verify iCloud status. Your entries still save on this device.（暂时看不清 iCloud 状态，记录仍保存在本设备。）
+
+73. [Localizable] DataPrivacy.attention.unknownMismatch.summary
+   Couldn’t verify iCloud status. Your entries still save on this device.（暂时看不清 iCloud 状态，记录仍保存在本设备。）
+
+74. [Localizable] DataPrivacy.iCloudSync.lastActivity.format
+   Last iCloud activity: %@（上次 iCloud 活动：%@）
+
+75. [Localizable] DataPrivacy.iCloudSync.lastActivity.pending
+   Last iCloud activity: not observed yet on this device（上次 iCloud 活动：本机尚未观察到同步活动）
+
+76. [Localizable] DataPrivacy.import.action
+   Import（导入）
+
+77. [Localizable] DataPrivacy.import.confirm.message
+   Each calendar day in the file replaces your entry for that day if one exists; otherwise a new entry is added. Large imports may take a while to sync with iCloud.（文件中每个日历日会覆盖本地该日的感恩记（若已有），否则新增。数据量大时与 iCloud 同步可能需要一些时间。）
+
+78. [Localizable] DataPrivacy.import.confirm.title
+   Import this backup?（导入此备份？）
+
+79. [Localizable] DataPrivacy.import.error.fileTooLarge
+   This file is too large to import. Try a smaller Grace Notes backup.（这份文件太大，无法导入。请换一个小一些的感恩记备份。）
+
+80. [Localizable] DataPrivacy.import.error.generic
+   Unable to import your data right now. Please try again.（暂时无法导入数据，请稍后再试。）
+
+81. [Localizable] DataPrivacy.import.error.invalid
+   This file doesn’t look like a Grace Notes export.（该文件看起来不是感恩记的导出格式。）
+
+82. [Localizable] DataPrivacy.import.error.readFailed
+   Couldn’t read the file you selected.（无法读取所选文件。）
+
+83. [Localizable] DataPrivacy.import.error.schema
+   This export uses format version %lld, which this version of Grace Notes doesn’t support yet.（该文件是第 %lld 版导出格式，当前版本尚不支持。）
+
+84. [Localizable] DataPrivacy.import.error.title
+   Import failed（导入失败）
+
+85. [Localizable] DataPrivacy.import.error.tooManyEntries
+   This backup has too many days of entries to import in one go.（这份备份里的日历日太多，无法一次性导入。）
+
+86. [Localizable] DataPrivacy.import.mergeConflict.keepDevice
+   Keep device for conflicts（冲突保留本机）
+
+87. [Localizable] DataPrivacy.import.mergeConflict.message.one
+   %lld journal day differs between this device and the file. Choose how to resolve it.（设备与文件中有 1 天的内容不一致。请选择如何处理。）
+
+88. [Localizable] DataPrivacy.import.mergeConflict.message.other
+   %lld journal days differ between this device and the file. Choose how to resolve them.（设备与文件中有 %lld 天的内容不一致。请选择如何处理。）
+
+89. [Localizable] DataPrivacy.import.mergeConflict.title
+   Import conflicts（导入冲突）
+
+90. [Localizable] DataPrivacy.import.mergeConflict.useBackup
+   Use backup for conflicts（冲突以备份为准）
+
+91. [Localizable] DataPrivacy.import.mode.merge
+   Merge（合并）
+
+92. [Localizable] DataPrivacy.import.mode.merge.detail
+   Keeps journal days that only exist on this device. If a day exists both on-device and in the file with different content, you will choose which version to keep.（会保留只存在于本机的日期。若某天在本机和备份文件里内容不同，需要你选择保留哪一边。）
+
+93. [Localizable] DataPrivacy.import.mode.replace
+   Replace（替换）
+
+94. [Localizable] DataPrivacy.import.mode.replace.detail
+   Deletes any on-device journal days that are not in the file, then applies every day from the file.（会删掉文件里没有的本机日期，再按文件写入每一天。）
+
+95. [Localizable] DataPrivacy.import.mode.title
+   Import mode（导入方式）
+
+96. [Localizable] DataPrivacy.import.review.title
+   Review import（确认导入）
+
+97. [Localizable] DataPrivacy.import.success.detail
+   Added %lld new day(s) and replaced %lld existing day(s).（新增 %lld 个日历日，替换 %lld 个已有日历日。）
+
+98. [Localizable] DataPrivacy.import.success.title
+   Import complete（导入完成）
+
+99. [Localizable] DataPrivacy.importExport.backupFolder.disabledHint
+   Choose a backup folder in Scheduled backup first.（请先在「自动备份」里选好备份文件夹。）
+
+100. [Localizable] DataPrivacy.importExport.backupFolder.empty
+   No JSON backups found in this folder.（这个文件夹里还没有 JSON 备份。）
+
+101. [Localizable] DataPrivacy.importExport.backupFolder.title
+   Backup JSON files（JSON 备份文件）
+
+102. [Localizable] DataPrivacy.importExport.backupFolder.unreachable
+   Choose a backup folder first, or pick the folder again in Scheduled backup.（请先选好备份文件夹，或在「自动备份」里重新选择。）
+
+103. [Localizable] DataPrivacy.importExport.export.json
+   Export JSON Backup（导出备份（JSON））
+
+104. [Localizable] DataPrivacy.importExport.history.kind.manual
+   Manual export（手动导出）
+
+105. [Localizable] DataPrivacy.importExport.history.kind.scheduled
+   Scheduled backup（自动备份）
+
+106. [Localizable] DataPrivacy.importExport.history.status.failed
+   Failed（失败）
+
+107. [Localizable] DataPrivacy.importExport.history.status.success
+   Succeeded（成功）
+
+108. [Localizable] DataPrivacy.importExport.history.viewAll
+   View export history（查看全部导出记录）
+
+109. [Localizable] DataPrivacy.importExport.import.fromBackupFolder
+   Import from backup folder（从备份文件夹导入）
+
+110. [Localizable] DataPrivacy.importExport.import.json
+   Import JSON Backup（导入备份（JSON））
+
+111. [Localizable] DataPrivacy.importExport.latestExport.title
+   Latest export（最近一次导出）
+
+112. [Localizable] DataPrivacy.importExport.rowTitle
+   Import & Export（导入与导出）
+
+113. [Localizable] DataPrivacy.importExport.section.export
+   Export（导出）
+
+114. [Localizable] DataPrivacy.importExport.section.history
+   Export history（导出历史）
+
+115. [Localizable] DataPrivacy.importExport.section.import
+   Import（导入）
+
+116. [Localizable] DataPrivacy.importExport.title
+   Import & Export（导入与导出）
+
+117. [Localizable] DataPrivacy.scheduledBackup.chooseFolder
+   Choose backup folder（选择备份文件夹）
+
+118. [Localizable] DataPrivacy.scheduledBackup.failureDetail
+   Could not write scheduled backup（无法写入自动备份）
+
+119. [Localizable] DataPrivacy.scheduledBackup.folderAccessibilityFormat
+   Backup folder, %@（备份文件夹：%@）
+
+120. [Localizable] DataPrivacy.scheduledBackup.folderError
+   Unable to use the folder you picked. Try choosing it again in Files.（无法使用所选文件夹。请在“文件”中重新选择。）
+
+121. [Localizable] DataPrivacy.scheduledBackup.folderError.title
+   Backup folder（备份文件夹）
+
+122. [Localizable] DataPrivacy.scheduledBackup.folderLabel
+   Folder（文件夹）
+
+123. [Localizable] DataPrivacy.scheduledBackup.footer
+   Exports run when you open the app after the interval passes. Pick a folder in Files or iCloud Drive. Import from this folder uses the same location.（间隔到了以后，会在你下次打开 App 时自动导出。在「文件」或 iCloud 里选一个文件夹即可；从备份文件夹导入也用这里。）
+
+124. [Localizable] DataPrivacy.scheduledBackup.interval.biweekly
+   Every two weeks（每两周）
+
+125. [Localizable] DataPrivacy.scheduledBackup.interval.daily
+   Daily（每天）
+
+126. [Localizable] DataPrivacy.scheduledBackup.interval.monthly
+   Monthly（每月）
+
+127. [Localizable] DataPrivacy.scheduledBackup.interval.off
+   Off（关闭）
+
+128. [Localizable] DataPrivacy.scheduledBackup.interval.title
+   Repeat（重复）
+
+129. [Localizable] DataPrivacy.scheduledBackup.interval.weekly
+   Weekly（每周）
+
+130. [Localizable] DataPrivacy.scheduledBackup.section
+   Scheduled backup（自动备份）
+
+131. [Localizable] DataPrivacy.storage.fallbackLocal
+   Saved on this device only right now.（目前仅保存在本设备。）
+
+132. [Localizable] DataPrivacy.storage.heading
+   Storage（存储）
+
+133. [Localizable] DataPrivacy.storage.localOnly
+   Your entries stay on this device. They are not synced to iCloud.（你的记录保存在本设备，不会同步到 iCloud。）
+
+134. [Localizable] day
+   day（天）
+
+135. [Localizable] days
+   days（天）
+
+136. [Localizable] Delete
+   Delete（删除）
+
+137. [Localizable] Depth and insights
+   Depth and insights（深度与洞察）
+
+138. [Localizable] Dismiss
+   Dismiss（关闭）
+
+139. [Localizable] Dismisses this tip.
+   Dismisses this tip.（关闭这条提示。）
+
+140. [Localizable] Done
+   Done（完成）
+
+141. [Localizable] Double-tap to edit this sentence.
+   Double-tap to edit this sentence.（连点两下即可编辑这句话。）
+
+142. [Localizable] Double-tap to edit this sentence. Use Show more to preview the full text.
+   Double-tap to edit this sentence. Use Show more to preview the full text.（连点两下即可编辑这句话。如需查看全文，可轻点“展开”。）
+
+143. [Localizable] Down
+   Down（下降）
+
+144. [Localizable] Each row counts a day with a saved entry, not every calendar day in the week.
+   Each row counts a day with a saved entry, not every calendar day in the week.（每一行表示本周有一天保存了日记条目，并非本周的每一个日历日。）
+
+145. [Localizable] Editing this sentence. Press Done to save, or tap outside the text field.
+   Editing this field. Tap Done to save, or tap outside the text field.（正在编辑。轻点「完成」保存，或轻点文本框外结束编辑。）
+
+146. [Localizable] Empty
+   Soil（静待播种）
+
+147. [Localizable] Expands or collapses the sentence preview
+   Expands or collapses the sentence preview（展开或收起这句话的预览）
+
+148. [Localizable] Exporting…
+   Exporting…（导出中…）
+
+149. [Localizable] First time with one line in each section. Nice work.
+   First time with one line in each section. Nice work.（第一次在每个部分都写下了一条。真好。）
+
+150. [Localizable] Full
+   Bloom（花开有成）
+
+151. [Localizable] Got it
+   Got it（知道了）
+
+152. [Localizable] Grace Notes
+   Grace Notes（感恩记）
+
+153. [Localizable] Gratitudes
+   Gratitudes（感恩的事）
+
+154. [Localizable] Growing
+   Twig（枝条初成）
+
+155. [Localizable] Growth stages
+   Growth stages（完成度分布）
+
+156. [Localizable] iCloud sync
+   iCloud sync（iCloud 同步）
+
+157. [Localizable] If you'd like, you can turn on a daily reminder in Settings.
+   If you'd like, you can turn on a daily reminder in Settings.（愿意的话，可以在「设置」里打开每日提醒。）
+
+158. [Localizable] Importing…
+   Importing…（导入中…）
+
+159. [Localizable] Keep entries with you
+   Keep entries with you（让记录随你走）
+
+160. [Localizable] Keep going
+   Keep going（继续写下去）
+
+161. [Localizable] Keep going in each section toward Leaf.
+   Keep going in each section toward Leaf.（在任一部分多写几条，小步最容易坚持。）
+
+162. [Localizable] Keep Grace Notes with you
+   Keep Grace Notes with you（让感恩记跟着你走）
+
+163. [Localizable] Keep the rhythm close
+   Keep the rhythm close（把节奏留在手边）
+
+164. [Localizable] Keep writing to see trends for this calendar week.
+   Keep writing to see trends for this calendar week.（继续记录，才能看到这一周的趋势。）
+
+165. [Localizable] Label
+   Label（标签）
+
+166. [Localizable] Loading weekly insights.
+   Loading weekly insights.（正在加载本周洞察。）
+
+167. [Localizable] Matching writing surfaces
+   Matching writing surfaces（对应的撰写栏目）
+
+168. [Localizable] Monday
+   Monday（周一）
+
+169. [Localizable] Most recurring
+   Most recurring（最常出现）
+
+170. [Localizable] Needs
+   Needs（需要的事）
+
+171. [Localizable] Needs will open after your first gratitude.
+   Needs will open after your first gratitude.（写下第一件感恩的事之后，「需要的事」就会打开。）
+
+172. [Localizable] New
+   New（新增）
+
+173. [Localizable] Next
+   Next（下一步）
+
+174. [Localizable] No entries yet
+   No entries yet（暂无记录）
+
+175. [Localizable] No journaling days to show here yet. After you write, they will appear in this strip.
+   No journaling days to show here yet. After you write, they will appear in this strip.（暂时没有可显示的日记日。开始书写后，对应的日期会出现在这里。）
+
+176. [Localizable] No saved journal entry for this day.
+   No saved reflection for this day.（这一天还没有已保存的记录。）
+
+177. [Localizable] No writing on %@
+   No writing on %@（%@ 没有写下内容。）
+
+178. [Localizable] Not now
+   Not now（暂时不要）
+
+179. [Localizable] Now add one need for today.
+   Now add one need for today.（现在为今天加一条需要的事吧。）
+
+180. [Localizable] Observation
+   Observation（观察）
+
+181. [Localizable] Off
+   Off（关闭）
+
+182. [Localizable] Off (Denied)
+   Off (Denied)（关闭（已拒绝））
+
+183. [Localizable] OK
+   OK（确定）
+
+184. [Localizable] One more step
+   One more step（还差一小步）
+
+185. [Localizable] Open iOS Settings for notification permissions.
+   Open iOS Settings for notification permissions.（打开 iOS「设置」调整通知权限。）
+
+186. [Localizable] Open Settings
+   Open Settings（打开设置）
+
+187. [Localizable] Opens a text field so you can add another item.
+   Opens a text field so you can add another item.（打开输入框，继续添加内容。）
+
+188. [Localizable] Opens iOS Settings where you can sign in to iCloud or review restrictions.
+   Opens iOS Settings where you can sign in to iCloud or review restrictions.（打开 iOS「设置」，可登录 iCloud 或查看相关限制。）
+
+189. [Localizable] Opens the journal entry for that day.
+   Opens that day's reflection.（打开这一天的记录。）
+
+190. [Localizable] Opens this day to start or continue writing.
+   Opens this day to start or continue writing.（打开这一天以开始或继续记录。）
+
+191. [Localizable] Opens Today and starts the guided first entry.
+   Opens Today and starts the guided first entry.（打开「今天」，开始引导式第一条记录。）
+
+192. [Localizable] Past
+   Past（过去）
+
+193. [Localizable] PastDrilldown.calendarDay.a11y.emptyFormat
+   %@, no journal in this statistics range（%@，在统计时间范围内没有手记）
+
+194. [Localizable] PastDrilldown.calendarDay.a11y.journalNotMatchedFormat
+   %@, has a journal, does not match this filter（%@，有手记记录，但不符合当前筛选条件）
+
+195. [Localizable] PastDrilldown.calendarDay.a11y.matchedFormat
+   %@, matches this filter（%@，符合当前筛选条件）
+
+196. [Localizable] PastDrilldown.calendarDay.a11y.outsideRangeFormat
+   %@, outside statistics range（%@，不在统计时间范围内）
+
+197. [Localizable] PastDrilldown.calendarDay.a11yHint.emptyHistoryDay
+   No journal saved on this day in the statistics range.（在统计范围内，这一天没有保存手记。）
+
+198. [Localizable] PastDrilldown.calendarDay.a11yHint.journalNotMatched
+   This day is not part of the highlighted set for this drill-down.（这一天不在当前下钻视图的高亮集合中。）
+
+199. [Localizable] PastDrilldown.calendarDay.a11yHint.outsideStatisticsRange
+   Shown for calendar context; not counted in the selected statistics window.（仅用于日历上下文显示，不计入所选统计时间窗口。）
+
+200. [Localizable] PastDrilldown.calendarDay.noMatch.a11yHint
+   No matching journal entry for this history view.（在当前历史视图中，这一天没有匹配的手记。）
+
+201. [Localizable] PastDrilldown.calendarWeekdaysRow.a11y
+   Weekday columns, left to right: %@（星期列（从左到右）：%@）
+
+202. [Localizable] PastSearch.awaitingInput.subtitle
+   Type a word or phrase to search your journal.（在感恩记里输入词语或短语即可搜索。）
+
+203. [Localizable] PastSearch.dateLabel.yesterday
+   Yesterday（昨天）
+
+204. [Localizable] PastSearch.dismissControl.a11yHint
+   Clears the search field when it is not empty, then closes the keyboard.（若已输入内容，会先清空再收起键盘。）
+
+205. [Localizable] PastSearch.dismissControl.a11yLabel
+   Clear search and dismiss keyboard（清除搜索内容并收起键盘）
+
+206. [Localizable] PastSearch.noMatches.description
+   Try a different word or check your spelling.（换个词试试，或检查一下拼写。）
+
+207. [Localizable] PastStatisticsInterval.phrase.allJournal
+   all entries to date（全部手记至今）
+
+208. [Localizable] PastStatisticsInterval.phrase.lastNMonths
+   the last %lld months（最近 %lld 个月）
+
+209. [Localizable] PastStatisticsInterval.phrase.lastNWeeks
+   the last %lld weeks（最近 %lld 周）
+
+210. [Localizable] PastStatisticsInterval.phrase.lastNYears
+   the last %lld years（最近 %lld 年）
+
+211. [Localizable] PastStatisticsInterval.phrase.lastOneMonth
+   the last month（最近一个月）
+
+212. [Localizable] PastStatisticsInterval.phrase.lastOneWeek
+   the last week（最近一周）
+
+213. [Localizable] PastStatisticsInterval.phrase.lastOneYear
+   the last year（最近一年）
+
+214. [Localizable] People in Mind
+   People in Mind（牵挂的人）
+
+215. [Localizable] People in Mind will open after your first gratitude.
+   People in Mind will open after your first gratitude.（写下第一件感恩的事之后，「牵挂的人」就会打开。）
+
+216. [Localizable] People in Mind will open after your first need.
+   People in Mind will open after your first need.（写下第一件需要的事之后，「牵挂的人」就会打开。）
+
+217. [Localizable] Please try again.
+   Please try again.（请重试。）
+
+218. [Localizable] Preparing a calm place for your first reflection...
+   Preparing your first entry…（正在为你的第一条记录做准备……）
+
+219. [Localizable] Reading notes
+   （）
+
+220. [Localizable] Reading Notes
+   Reading Notes（阅读笔记）
+
+221. [Localizable] Reading Notes open after Gratitudes, Needs, and People are full.
+   Reading Notes open after Gratitudes, Needs, and People are full.（感恩的事、需要的事和牵挂的人都写满后，即可写阅读笔记。）
+
+222. [Localizable] Reflection rhythm
+   Days you wrote（你写过的）
+
+223. [Localizable] Reflections
+   Reflections（反思）
+
+224. [Localizable] Reflections open after Gratitudes, Needs, and People are full.
+   Reflections open after Gratitudes, Needs, and People are full.（感恩的事、需要的事和牵挂的人都写满后，即可写反思。）
+
+225. [Localizable] Refresh
+   Refresh（刷新）
+
+226. [Localizable] Reminder couldn't be scheduled. Check notification permissions and try again.
+   Reminder couldn't be scheduled. Check notification permissions and try again.（无法安排提醒。请检查通知权限后重试。）
+
+227. [Localizable] Reminder time
+   Reminder time（提醒时间）
+
+228. [Localizable] Reminder time couldn't be saved. Try again in a moment.
+   Reminder time couldn't be saved. Try again in a moment.（无法保存提醒时间。请稍后再试。）
+
+229. [Localizable] Reminders
+   Reminders（提醒）
+
+230. [Localizable] Rename label
+   Rename label（重命名标签）
+
+231. [Localizable] Retry
+   Retry（重试）
+
+232. [Localizable] Retry scheduling your daily reminder.
+   Retry scheduling your daily reminder.（重新尝试安排每日提醒。）
+
+233. [Localizable] Review growth stage accessibility Balanced
+   Balanced（均衡）
+
+234. [Localizable] Review growth stage accessibility Empty
+   Empty（空）
+
+235. [Localizable] Review growth stage accessibility Full
+   Full（已满）
+
+236. [Localizable] Review growth stage accessibility Growing
+   Growing（成长中）
+
+237. [Localizable] Review growth stage accessibility Started
+   Started（已开始）
+
+238. [Localizable] Review history growth column empty hint
+   No days in this stage.（该阶段没有记录日期。）
+
+239. [Localizable] Review history growth column hint
+   Shows a list of days in this stage.（查看该阶段的具体日期。）
+
+240. [Localizable] Review history growth drilldown calendar empty description
+   No journal days in the current range match this growth level.（当前时间范围内没有符合该成长阶段的日记日期。）
+
+241. [Localizable] Review history growth drilldown calendar empty title
+   No matching days（没有符合的日期）
+
+242. [Localizable] Review history growth drilldown dates section
+   Matching days（符合的日期）
+
+243. [Localizable] Review history section strip segment empty hint
+   Opens details; there are no matching entries for this section in the current range.（打开详情；当前时间范围内该板块没有匹配的日记条目。）
+
+244. [Localizable] Review history section strip segment hint
+   Shows journal entries for this section.（查看该板块的日记条目。）
+
+245. [Localizable] Review section drilldown empty format
+   No entries with %@ in this range.（此时间范围内没有包含%@的日记条目。）
+
+246. [Localizable] Review section drilldown empty title
+   No entries（暂无条目）
+
+247. [Localizable] Review.mostRecurring.drilldown.subtitle
+   Mentioned %1$lld times across %2$@.（共出现 %1$lld 次（%2$@）。）
+
+248. [Localizable] Save
+   Save（保存）
+
+249. [Localizable] Save to Photos
+   Save to Photos（保存到相册）
+
+250. [Localizable] Saved to Photos
+   Saved to Photos（已保存到相册）
+
+251. [Localizable] Search journal
+   Search（搜索）
+
+252. [Localizable] Section Distribution
+   Section mix（记录分布）
+
+253. [Localizable] Settings
+   Settings（设置）
+
+254. [Localizable] Settings.advanced.firstWeekday.label
+   First day of the week（每周第一天）
+
+255. [Localizable] Settings.advanced.navTitle
+   Advanced settings（高级设置）
+
+256. [Localizable] Settings.advanced.pastStatsInterval.all
+   All（全部）
+
+257. [Localizable] Settings.advanced.pastStatsInterval.custom
+   Custom（自定义）
+
+258. [Localizable] Settings.advanced.pastStatsInterval.footnote
+   This affects Growth stages, section mix, and Most recurring on the Past tab.（将影响「过去」中的完成度分布、记录分布与「最常出现」。）
+
+259. [Localizable] Settings.advanced.pastStatsInterval.label
+   Time range for Past（「过去」显示的时间范围）
+
+260. [Localizable] Settings.advanced.pastStatsInterval.quantity.a11y
+   Number of periods（跨度个数）
+
+261. [Localizable] Settings.advanced.pastStatsInterval.unit.a11y
+   Weeks, months, or years（周、月或年）
+
+262. [Localizable] Settings.advanced.pastStatsInterval.unit.month
+   months（个月）
+
+263. [Localizable] Settings.advanced.pastStatsInterval.unit.week
+   weeks（周）
+
+264. [Localizable] Settings.advanced.pastStatsInterval.unit.year
+   years（年）
+
+265. [Localizable] Settings.advanced.title
+   Advanced settings（高级设置）
+
+266. [Localizable] Settings.help.sectionTitle
+   Help（帮助）
+
+267. [Localizable] Settings.showAppTour
+   Show app tour（查看应用导览）
+
+268. [Localizable] Settings.showAppTour.a11yHint
+   Opens pages about your path, review insights, reminders, cloud features, and iCloud.（查看关于记录路径、回顾、提醒、云端功能与 iCloud 的说明页面。）
+
+269. [Localizable] Settings.todayJournalAppearance.bloomToggleA11yHint
+   Turns on the warm Bloom look for Today, including animated leaves.（打开后，为今日日记启用温暖的 Bloom 花期风格，包含树叶动画。）
+
+270. [Localizable] Share
+   Share（分享）
+
+271. [Localizable] Show less
+   Show less（收起）
+
+272. [Localizable] Show more
+   Show more（展开）
+
+273. [Localizable] Shows what this status means for today.
+   Shows what this status means today.（查看今天这个状态代表什么。）
+
+274. [Localizable] Skip
+   Skip（跳过）
+
+275. [Localizable] Stable
+   Stable（稳定）
+
+276. [Localizable] Start with one gratitude, and the rest will follow.
+   Start with one gratitude; you can add more over time.（从一件感恩的事写起，其他的慢慢来。）
+
+277. [Localizable] Start with one gratitude.
+   Write one gratitude first.（先写下一件感恩的事。）
+
+278. [Localizable] Start with one reflection today to build your weekly review.
+   Start with one reflection today to build your weekly review.（今天先写下一条反思，慢慢积累成你的每周回顾。）
+
+279. [Localizable] Start with today.
+   Start with today.（从今天开始。）
+
+280. [Localizable] Start writing this week to unlock review insights.
+   Start writing this week to unlock review insights.（开始本周的记录后，你就能看到回顾洞察。）
+
+281. [Localizable] Started
+   Sprout（初露新芽）
+
+282. [Localizable] Still getting things ready...
+   Still getting things ready...（还在继续准备中……）
+
+283. [Localizable] Summary
+   Summary（概要）
+
+284. [Localizable] Sunday
+   Sunday（周日）
+
+285. [Localizable] Take a moment to complete today's entry.
+   Take a moment to complete today's entry.（花一点时间完成今天的记录。）
+
+286. [Localizable] Thanks for your patience. We are almost there.
+   Thanks for your patience. We are almost there.（感谢你的耐心，我们马上就好。）
+
+287. [Localizable] That thread around %@ showed up across more than one day this week.
+   That thread around %@ showed up across more than one day this week.（与 %@ 相关的那条线，这周不止出现在一天里。）
+
+288. [Localizable] Theme details
+   Theme details（主题详情）
+
+289. [Localizable] ThemeDrilldown.openEntry.a11yHint
+   Opens the journal entry for that day.（打开该日期的手记。）
+
+290. [Localizable] This only changes the short label.
+   This only changes the short label.（这只会改短标签。）
+
+291. [Localizable] Today
+   Today（今天）
+
+292. [Localizable] Trending
+   Trending（趋势）
+
+293. [Localizable] Try again
+   Try again（再试一次）
+
+294. [Localizable] Unable to export data
+   Unable to export data（无法导出数据）
+
+295. [Localizable] Unable to export your Grace Notes data right now.
+   Unable to export your Grace Notes data right now.（暂时无法导出你的感恩记数据。）
+
+296. [Localizable] Unable to load today's entry.
+   Unable to load today's entry.（无法加载今天的记录。）
+
+297. [Localizable] Unable to save your entry.
+   Unable to save your entry.（无法保存记录。）
+
+298. [Localizable] Unable to share
+   Unable to share（无法分享）
+
+299. [Localizable] Unable to update reminder
+   Unable to update reminder（无法更新提醒）
+
+300. [Localizable] Unavailable. Check notification permissions and try again.
+   Unavailable. Check notification permissions and try again.（当前不可用。请检查通知权限后重试。）
+
+301. [Localizable] Up
+   Rising（上升）
+
+302. [Localizable] Updated insights appear when ready.
+   Updated insights appear when ready.（更新完成后会显示最新洞察。）
+
+303. [Localizable] Updating…
+   Updating…（正在更新…）
+
+304. [Localizable] We are setting up your private Grace Notes space...
+   We are setting up your private Grace Notes space...（我们正在为你准备专属感恩记空间……）
+
+305. [Localizable] We couldn't create a share image right now. Please try again.
+   We couldn't create a share image right now. Please try again.（我们暂时无法生成分享图片。请稍后重试。）
+
+306. [Localizable] We couldn't finish setting up your Grace Notes space. Please try again.
+   We couldn't finish setting up your Grace Notes space. Please try again.（我们未能完成你的感恩记空间设置。请重试。）
+
+307. [Localizable] Welcome to Grace Notes
+   Welcome to Grace Notes（欢迎使用感恩记）
+
+308. [Localizable] What do you need today?
+   What do you need today?（今天有哪些需要？）
+
+309. [Localizable] What feels most important to carry into next week?
+   What feels most important to carry into next week?（你觉得最值得带到下周的是什么？）
+
+310. [Localizable] What helped you stay this steady so you can carry it into next week?
+   What helped you stay this steady so you can carry it into next week?（你是怎么把这份稳定保持下来的？下周也许还能用得上。）
+
+311. [Localizable] What would make tomorrow's check-in easy to start?
+   What would make tomorrow's check-in easy to start?（怎样能让你明天更容易开始一次简短记录？）
+
+312. [Localizable] What's one thing you're glad happened, even if small?
+   What's one thing you're glad happened, even if small?（本周有没有一件小事，让你心里觉得还好它发生了？）
+
+313. [Localizable] What's one thing you're grateful for?
+   What's one thing you're grateful for?（今天有哪些可以感恩的事？）
+
+314. [Localizable] When you're finished, press Return or Enter on your keyboard.
+   When you're done, tap Return on your keyboard to save.（写完后，在键盘上轻按换行保存。）
+
+315. [Localizable] When you're ready, a few lines can still hold a lot.
+   When you're ready, a few lines can still hold a lot.（当你准备好时，寥寥数语也能承载很多。）
+
+316. [Localizable] Who are you thinking of today?
+   Who are you thinking of today?（今天可以向谁表达关心？）
+
+317. [Localizable] Who is on your mind today?
+   Who is on your mind today?（今天你在惦记谁？）
+
+318. [Localizable] Write one gratitude line to plant your first seed. Tap the status above anytime if you want a reminder.
+   Write one gratitude line to plant your first seed. Tap the status above anytime if you want a reminder.（先写一件感恩的事，把第一颗种子种下去。需要提示时，也可以随时点按上方状态。）
+
+319. [Localizable] Write your %@ here.
+   Write your %@ here.（在这里写下你的 %@。）
+
+320. [Localizable] You can turn on iCloud sync in Settings whenever you're ready.
+   You can turn on iCloud sync in Settings whenever you're ready.（准备好了，随时可以在「设置」里打开 iCloud 同步。）
+
+321. [Localizable] You have started. Reach three lines in each section to enter Twig.
+   You have started. Reach three lines in each section to enter Twig.（今天的记录里至少写了一条。把每个部分写到三条，就会进入「枝条初成」。）
+
+322. [Localizable] You kept a steady daily rhythm and completed all 15 each day this week.
+   You kept a steady daily rhythm and completed all 15 each day this week.（这周你保持了稳定的每日节奏，每天都完成了 15 项记录。）
+
+323. [Localizable] You reached %1$@ on %2$@.
+   You reached %1$@ on %2$@.（你在 %2$@ 达到了「%1$@」。）
+
+324. [Localizable] You reached Bloom today. All five lines are filled in each section.
+   You reached Bloom today. All five lines are filled in each section.（今天已经达到「花开有成」。三个部分都写满五条。）
+
+325. [Localizable] You reached Leaf today.
+   You reached Leaf today.（今天已经达到「叶茂成形」。）
+
+326. [Localizable] You reached Sprout today.
+   You reached Sprout today.（今天已经达到「初露新芽」。）
+
+327. [Localizable] You wrote on %@
+   You wrote on %@（%@ 有记录）
+
+328. [Localizable] You're ready to keep filling the rows. Reach five in each section when it feels right.
+   Nice work. Two more lines in each section gets you to Bloom.（很棒！每个部分再写两条，就可以到「花开有成」。）
+
+329. [Localizable] You've begun. Keep going until each section has three.
+   You've begun. Keep going until each section has three.（你已经开始了。继续写，直到每个栏目都有三条。）
+
+330. [Localizable] Your first Bloom day. Each section has five lines. Add reading notes or reflections when you want.
+   Your first Bloom day. Each section has five lines. Add reading notes or reflections when you want.（第一次进入「花开有成」。每个部分都写满五条。想写时再加上阅读笔记或反思就好。）
+
+331. [Localizable] Your first Leaf day. Each section has at least three lines. Keep going toward Bloom.
+   Your first Leaf day. Each section has at least three lines. Keep going toward Bloom.（第一次进入「叶茂成形」。每个部分都至少有三条了，继续写向「花开有成」。）
+
+332. [Localizable] Your path
+   Your path（你的节奏）
+
