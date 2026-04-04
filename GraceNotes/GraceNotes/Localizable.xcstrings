@@ -852,13 +852,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Online connection status"
+            "value": "Summarize and Insights status"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "联网连接状态"
+            "value": "摘要与洞察状态"
           }
         }
       }
@@ -869,13 +869,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Optional online summarization can help with short labels and Review insights when you want a little more support."
+            "value": "On-device summarization can help with short labels and Past insights when you want a little more support."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "需要多一点帮忙时，联网摘要可以帮你起短标签、丰富「回顾」里的洞察。"
+            "value": "需要多一点帮忙时，本机摘要可以帮你整理短标签、丰富「过去」里的洞察。"
           }
         }
       }
@@ -886,13 +886,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Online summary help"
+            "value": "Summarization help"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "联网摘要辅助"
+            "value": "摘要辅助"
           }
         }
       }
@@ -5697,13 +5697,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Turn on Summarize and Insights to check connection status."
+            "value": "Turn on Summarize and Insights to generate Past insights from your entries."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请先开启摘要与洞察，以检查连接状态。"
+            "value": "开启摘要与洞察后，感恩记会根据你的记录，在「过去」生成洞察。"
           }
         }
       }
@@ -5714,13 +5714,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Online summary"
+            "value": "Summarize and Insights"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "联网摘要"
+            "value": "摘要与洞察"
           }
         }
       }
@@ -5779,13 +5779,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Opens pages about your path, review insights, reminders, cloud features, and iCloud."
+            "value": "Opens pages about your writing path, Past insights, daily reminders, and iCloud sync."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看关于记录路径、回顾、提醒、云端功能与 iCloud 的说明页面。"
+            "value": "打开关于记录路径、「过去」洞察、每日提醒与 iCloud 同步的说明页面。"
           }
         }
       }
@@ -6932,7 +6932,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This week had enough to summarize, but not enough repetition for a clear online insight. Grace Notes kept this review on your device."
+            "value": "This week had enough to summarize, but not enough repetition for a clear weekly theme. Grace Notes kept this review on your device."
           }
         },
         "zh-Hans": {
@@ -7613,23 +7613,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "请在 iCloud 可用后完全关闭 App 并重新打开，以重试存储或应用已保存的偏好。"
-          }
-        }
-      }
-    },
-    "When you want a little help with short labels or Review, you can explore AI options in Settings.": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "When you want a little help with short labels or Review, you can explore summarization options in Settings."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "若想为短标签或「回顾」多要一点帮助，可以到「设置」里看看联网摘要相关选项。"
           }
         }
       }
@@ -9068,13 +9051,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sample only. Your real Review card may include more sections when online summarization is on. Gray lines in the live card are follow-up prompts. Answer in Reflections on Today, or in your next entry."
+            "value": "Sample only. When Summarize and Insights is on, the insights card on Past may include more sections than this preview."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅为示例。开启联网摘要时，真实的「回顾」卡片可能还有更多栏目。实卡里的灰色小字是跟进提示，想写时可以在「今天」的反思里接几句，或在下一篇记录里回应。"
+            "value": "仅为示例。开启「摘要与洞察」后，你在「过去」看到的洞察卡片可能还有更多栏目。"
           }
         }
       }
