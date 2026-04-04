@@ -74,9 +74,7 @@ struct ImportExportSettingsScreen: View {
                         Text(latest.finishedAt.formatted(date: .abbreviated, time: .shortened))
                             .font(AppTheme.warmPaperBody)
                             .foregroundStyle(AppTheme.settingsTextPrimary)
-                        Text(historyDetailLabel(for: latest))
-                            .font(AppTheme.warmPaperMeta)
-                            .foregroundStyle(AppTheme.settingsTextMuted)
+                        exportHistoryDetailText(for: latest)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityElement(children: .combine)
@@ -113,7 +111,7 @@ struct ImportExportSettingsScreen: View {
                             .font(AppTheme.warmPaperMeta)
                             .foregroundStyle(AppTheme.settingsTextMuted)
                         Text(folderTitle)
-                            .font(AppTheme.warmPaperBody)
+                            .font(AppTheme.settingsTechnicalBody)
                             .foregroundStyle(AppTheme.settingsTextPrimary)
                             .multilineTextAlignment(.trailing)
                             .frame(maxWidth: .infinity, alignment: .trailing)
@@ -297,9 +295,7 @@ struct ImportExportSettingsScreen: View {
                         Text(entry.finishedAt.formatted(date: .abbreviated, time: .shortened))
                             .font(AppTheme.warmPaperBody)
                             .foregroundStyle(AppTheme.settingsTextPrimary)
-                        Text(historyDetailLabel(for: entry))
-                            .font(AppTheme.warmPaperMeta)
-                            .foregroundStyle(AppTheme.settingsTextMuted)
+                        exportHistoryDetailText(for: entry)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityElement(children: .combine)
@@ -369,6 +365,41 @@ struct ImportExportSettingsScreen: View {
     private func latestExportAccessibilityLabel(for entry: BackupExportHistoryEntry) -> String {
         let when = entry.finishedAt.formatted(date: .abbreviated, time: .shortened)
         return "\(when). \(historyDetailLabel(for: entry))"
+    }
+
+    private func exportHistoryDetailText(for entry: BackupExportHistoryEntry) -> Text {
+        let kind: String
+        switch entry.kind {
+        case .manualShare:
+            kind = String(localized: "DataPrivacy.importExport.history.kind.manual")
+        case .scheduledFolder:
+            kind = String(localized: "DataPrivacy.importExport.history.kind.scheduled")
+        }
+        let status: String
+        if entry.success {
+            status = String(localized: "DataPrivacy.importExport.history.status.success")
+        } else {
+            status = String(localized: "DataPrivacy.importExport.history.status.failed")
+        }
+        let sep = Text(" · ")
+            .font(AppTheme.warmPaperMeta)
+            .foregroundStyle(AppTheme.settingsTextMuted)
+        let kindText = Text(kind)
+            .font(AppTheme.warmPaperMeta)
+            .foregroundStyle(AppTheme.settingsTextMuted)
+        let statusText = Text(status)
+            .font(AppTheme.warmPaperMeta)
+            .foregroundStyle(AppTheme.settingsTextMuted)
+        if let detail = entry.detail, !detail.isEmpty {
+            let detailFont: Font = ImportExportTechnicalDetailFormatting.detailLooksLikeFileName(detail)
+                ? AppTheme.settingsTechnicalMeta
+                : AppTheme.warmPaperMeta
+            let detailText = Text(detail)
+                .font(detailFont)
+                .foregroundStyle(AppTheme.settingsTextMuted)
+            return kindText + sep + statusText + sep + detailText
+        }
+        return kindText + sep + statusText
     }
 
     private func historyDetailLabel(for entry: BackupExportHistoryEntry) -> String {
