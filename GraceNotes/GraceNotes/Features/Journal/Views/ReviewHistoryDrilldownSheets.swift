@@ -155,27 +155,20 @@ private struct GrowthStageDrilldownSheet: View {
         NavigationStack {
             Group {
                 if matchingDayStarts.isEmpty {
-                    VStack(alignment: .leading, spacing: 20) {
-                        growthSummarySections
-                        ContentUnavailableView {
-                            Label(
-                                String(localized: "Review history growth drilldown calendar empty title"),
-                                systemImage: "calendar"
-                            )
-                        } description: {
-                            Text(String(localized: "Review history growth drilldown calendar empty description"))
-                                .font(AppTheme.warmPaperBody)
-                                .foregroundStyle(AppTheme.reviewTextMuted)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.vertical, 8)
+                    ContentUnavailableView {
+                        Label(
+                            String(localized: "Review history growth drilldown calendar empty title"),
+                            systemImage: "calendar"
+                        )
+                    } description: {
+                        Text(String(localized: "Review history growth drilldown calendar empty description"))
+                            .font(AppTheme.warmPaperBody)
+                            .foregroundStyle(AppTheme.reviewTextMuted)
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     ReviewHistoryDrilldownPeekContainer(
-                        above: growthSummarySections,
+                        above: Color.clear.frame(height: 0),
                         abovePeekHeight: $abovePeekHeight,
                         grid: { peek in
                             ReviewHistoryDrilldownCalendarGrid(
@@ -204,12 +197,22 @@ private struct GrowthStageDrilldownSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    HStack(spacing: 10) {
-                        ReviewGrowthStageSkylineGlyph(level: level, dynamicTypeSize: dynamicTypeSize)
-                        Text(growthStageDisplayTitle(for: level))
-                            .font(AppTheme.warmPaperBody.weight(.semibold))
-                            .foregroundStyle(AppTheme.reviewTextPrimary)
+                    VStack(spacing: 4) {
+                        HStack(spacing: 10) {
+                            ReviewGrowthStageSkylineGlyph(level: level, dynamicTypeSize: dynamicTypeSize)
+                            Text(growthStageDisplayTitle(for: level))
+                                .font(AppTheme.warmPaperBody.weight(.semibold))
+                                .foregroundStyle(AppTheme.reviewTextPrimary)
+                        }
+                        Text(growthStageCriterion(for: level))
+                            .font(AppTheme.warmPaperMeta)
+                            .foregroundStyle(AppTheme.reviewTextMuted)
+                            .multilineTextAlignment(.center)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.85)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
+                    .accessibilityElement(children: .combine)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(String(localized: "Done")) {
@@ -219,27 +222,6 @@ private struct GrowthStageDrilldownSheet: View {
             }
             .navigationDestination(item: $journalNavigationDay) { item in
                 JournalScreen(entryDate: item.date)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var growthSummarySections: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text(String(localized: "Summary"))
-                    .font(AppTheme.warmPaperMeta)
-                    .foregroundStyle(AppTheme.reviewTextMuted)
-                Text(growthStageCriterion(for: level))
-                    .font(AppTheme.warmPaperBody)
-                    .foregroundStyle(AppTheme.reviewTextPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.vertical, 2)
-            }
-            VStack(alignment: .leading, spacing: 6) {
-                Text(String(localized: "Review history growth drilldown dates section"))
-                    .font(AppTheme.warmPaperMeta)
-                    .foregroundStyle(AppTheme.reviewTextMuted)
             }
         }
     }
