@@ -5,6 +5,7 @@ import SwiftData
 // Split further cautiously to avoid navigation breakages.
 // swiftlint:disable type_body_length
 struct ImportExportSettingsScreen: View {
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.modelContext) private var modelContext
 
     @State private var exportErrorMessage: String?
@@ -31,6 +32,10 @@ struct ImportExportSettingsScreen: View {
 
     private let dataExportService = JournalDataExportService()
     private let dataImportService = JournalDataImportService()
+
+    private var settingsSheetListRowBackground: Color {
+        reduceTransparency ? AppTheme.settingsPaper.opacity(0.92) : .clear
+    }
 
     @ViewBuilder
     private var scheduledBackupIntervalPicker: some View {
@@ -301,9 +306,8 @@ struct ImportExportSettingsScreen: View {
                     .accessibilityElement(children: .combine)
                 }
             }
-            .listRowBackground(AppTheme.settingsPaper.opacity(0.9))
+            .listRowBackground(settingsSheetListRowBackground)
             .scrollContentBackground(.hidden)
-            .background(AppTheme.settingsBackground)
             .navigationTitle(String(localized: "DataPrivacy.importExport.section.history"))
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
@@ -313,6 +317,7 @@ struct ImportExportSettingsScreen: View {
                 }
             }
         }
+        .appTranslucentSheetChrome(fallbackSolid: AppTheme.settingsBackground)
     }
 
     @ViewBuilder
@@ -344,6 +349,8 @@ struct ImportExportSettingsScreen: View {
                     .disabled(pendingImportURL == nil || isImportingData)
                 }
             }
+            .scrollContentBackground(.hidden)
+            .listRowBackground(settingsSheetListRowBackground)
             .navigationTitle(String(localized: "DataPrivacy.import.review.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -355,6 +362,7 @@ struct ImportExportSettingsScreen: View {
                 }
             }
         }
+        .appTranslucentSheetChrome(fallbackSolid: AppTheme.settingsBackground)
         .presentationDetents([.medium, .large])
     }
 

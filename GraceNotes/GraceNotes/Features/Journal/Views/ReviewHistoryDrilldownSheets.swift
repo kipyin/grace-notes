@@ -100,24 +100,27 @@ struct ReviewHistoryDrilldownSheetContainer: View {
     let pastStatisticsInterval: PastStatisticsIntervalSelection
 
     var body: some View {
-        switch payload {
-        case .growthStage(let level):
-            GrowthStageDrilldownSheet(
-                level: level,
-                entries: entries,
-                calendar: calendar,
-                referenceDate: referenceDate,
-                pastStatisticsInterval: pastStatisticsInterval
-            )
-        case .section(let kind):
-            SectionEntriesDrilldownSheet(
-                section: kind,
-                entries: entries,
-                calendar: calendar,
-                referenceDate: referenceDate,
-                pastStatisticsInterval: pastStatisticsInterval
-            )
+        Group {
+            switch payload {
+            case .growthStage(let level):
+                GrowthStageDrilldownSheet(
+                    level: level,
+                    entries: entries,
+                    calendar: calendar,
+                    referenceDate: referenceDate,
+                    pastStatisticsInterval: pastStatisticsInterval
+                )
+            case .section(let kind):
+                SectionEntriesDrilldownSheet(
+                    section: kind,
+                    entries: entries,
+                    calendar: calendar,
+                    referenceDate: referenceDate,
+                    pastStatisticsInterval: pastStatisticsInterval
+                )
+            }
         }
+        .appTranslucentSheetChrome(fallbackSolid: AppTheme.reviewBackground)
     }
 }
 
@@ -226,7 +229,6 @@ private struct GrowthStageDrilldownSheet: View {
                     )
                 }
             }
-            .background(AppTheme.reviewBackground)
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -404,7 +406,6 @@ private struct SectionEntriesDrilldownSheet: View {
                     )
                 }
             }
-            .background(AppTheme.reviewBackground)
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

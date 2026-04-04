@@ -10,6 +10,7 @@ Marketing **0.5.0** / bundle **9** (git tag **`v0.5.0+9`** at release).
 
 ### Changed
 
+- Past / Settings (**#199**): SwiftUI modal **sheets** use a **translucent** system material (with **`AppTheme`** fallbacks when **Reduce Transparency** is on). **Nested** SwiftUI sheets use a clear `presentationBackground` so stacked presentations share a **single** frosted backdrop instead of compounding blur. **Share** still uses the system activity sheet (UIKit).
 - Settings (**#200**): Data / import-export surfaces show **file names**, **scheduled backup folder** titles, and **file-like** JSON names in export history (system monospaced text via `AppTheme` tokens); localized labels and prose stay Warm Paper. Localized error sentences in history stay serif.
 
 ### Fixed

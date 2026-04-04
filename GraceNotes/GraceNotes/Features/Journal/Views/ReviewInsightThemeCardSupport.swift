@@ -217,6 +217,7 @@ struct MostRecurringThemesBrowseView: View {
     let themes: [ReviewMostRecurringTheme]
     let referenceDate: Date
     let calendar: Calendar
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @AppStorage(PastStatisticsIntervalPreference.appStorageKey)
     private var pastStatisticsIntervalEncoded = ""
 
@@ -245,8 +246,12 @@ struct MostRecurringThemesBrowseView: View {
             }
         }
         .scrollContentBackground(.hidden)
-        .background(AppTheme.reviewBackground)
+        .listRowBackground(mostRecurringListRowBackground)
         .navigationTitle(String(localized: "Most recurring"))
+    }
+
+    private var mostRecurringListRowBackground: Color {
+        reduceTransparency ? AppTheme.reviewPaper.opacity(0.92) : .clear
     }
 
     private func recurringSection(
@@ -373,6 +378,7 @@ struct MostRecurringBrowseRowModel: Identifiable {
 
 struct TrendingThemesBrowseView: View {
     let buckets: ReviewTrendingBuckets
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -388,7 +394,7 @@ struct TrendingThemesBrowseView: View {
             }
         }
         .scrollContentBackground(.hidden)
-        .background(AppTheme.reviewBackground)
+        .listRowBackground(trendingListRowBackground)
         .navigationTitle(String(localized: "Trending"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -399,6 +405,10 @@ struct TrendingThemesBrowseView: View {
                 .accessibilityIdentifier("TrendingBrowseSheetDone")
             }
         }
+    }
+
+    private var trendingListRowBackground: Color {
+        reduceTransparency ? AppTheme.reviewPaper.opacity(0.92) : .clear
     }
 
     private func trendingSection(title: String, themes: [ReviewMovementTheme]) -> some View {
@@ -471,12 +481,14 @@ struct ThemeDrilldownSheet: View {
 
     var body: some View {
         ThemeDrilldownView(payload: payload, includeDoneButton: true)
+            .appTranslucentSheetChrome(fallbackSolid: AppTheme.reviewBackground)
     }
 }
 
 struct ThemeDrilldownView: View {
     let payload: ReviewThemeDrilldownPayload
     let includeDoneButton: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.dismiss) private var dismiss
     @AppStorage(ReviewWeekBoundaryPreference.userDefaultsKey)
     private var reviewWeekBoundaryRawValue = ReviewWeekBoundaryPreference.defaultValue.rawValue
@@ -566,7 +578,7 @@ struct ThemeDrilldownView: View {
                 }
             }
             .scrollContentBackground(.hidden)
-            .background(AppTheme.reviewBackground)
+            .listRowBackground(themeListRowBackground)
             .navigationTitle(String(localized: "Theme details"))
             .toolbar {
                 if includeDoneButton {
@@ -578,6 +590,10 @@ struct ThemeDrilldownView: View {
                 }
             }
         }
+    }
+
+    private var themeListRowBackground: Color {
+        reduceTransparency ? AppTheme.reviewPaper.opacity(0.92) : .clear
     }
 
     private func themeDrilldownRowAccessibilityLabel(

@@ -202,6 +202,7 @@ extension ReviewScreen {
                 }
             }
             .id(sheet.id)
+            .appTranslucentSheetChrome(fallbackSolid: AppTheme.reviewBackground)
         })
         .sheet(item: $historyDrilldown) { payload in
             ReviewHistoryDrilldownSheetContainer(
@@ -447,6 +448,7 @@ private struct ReviewJournalDaySheetHost: View {
                     }
                 }
         }
+        .appTranslucentSheetChrome(fallbackSolid: AppTheme.reviewBackground)
     }
 }
 
