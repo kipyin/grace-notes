@@ -38,14 +38,14 @@ struct ReviewHistoryDrilldownCalendarGrid: View {
         static let featherOpaqueStartsAt: CGFloat = 0.07
         /// Fraction where bottom feather begins (matches gradient stop).
         static let featherOpaqueEndsAt: CGFloat = 0.93
-        /// Keeps the first month banner out of the top feather when content is short.
-        static var scrollContentTopInset: CGFloat {
-            (scrollViewportHeight * featherOpaqueStartsAt).rounded(.up)
-        }
         /// Keeps the last week row clear of the bottom feather when scrolled to the end.
         static let scrollContentBottomInset: CGFloat = 36
         /// Avoid y: 1 — it pins the week row into the bottom feather on first layout; lower-mid band stays clear.
         static let scrollLatestMatchAnchor = UnitPoint(x: 0.5, y: 0.56)
+    }
+
+    static func scrollContentTopInset(forViewportHeight viewportHeight: CGFloat) -> CGFloat {
+        (viewportHeight * Metrics.featherOpaqueStartsAt).rounded(.up)
     }
 
     let matchingDayStarts: Set<Date>
@@ -55,6 +55,7 @@ struct ReviewHistoryDrilldownCalendarGrid: View {
     let calendar: Calendar
     let growthStageForMatchedDays: JournalCompletionLevel?
     let sectionStripChipCountsByDay: [Date: Int]?
+    var scrollViewportHeight: CGFloat = Metrics.scrollViewportHeight
     let onMatchingDaySelected: (Date) -> Void
 
     @State private var scrollPositionRowID: String?
@@ -131,11 +132,11 @@ struct ReviewHistoryDrilldownCalendarGrid: View {
                     }
                 }
                 .scrollTargetLayout()
-                .padding(.top, Metrics.scrollContentTopInset)
+                .padding(.top, Self.scrollContentTopInset(forViewportHeight: scrollViewportHeight))
                 .padding(.bottom, Metrics.scrollContentBottomInset)
             }
             .scrollPosition(id: $scrollPositionRowID, anchor: Metrics.scrollLatestMatchAnchor)
-            .frame(maxHeight: Metrics.scrollViewportHeight)
+            .frame(maxHeight: scrollViewportHeight)
             .mask(calendarDayFeatherMask)
             .task(id: latestMatchWeekRowID) {
                 scrollPositionRowID = latestMatchWeekRowID
