@@ -9,10 +9,13 @@ enum ReviewHistoryDrilldownPeekMetrics {
         ReviewHistoryDrilldownCalendarGrid.Metrics.scrollViewportHeight
     }
 
-    /// Enough for ~2 week rows + banners at default Dynamic Type on narrow phones.
+    /// Reference target when measuring layout; not a hard floor in ``clampedViewportHeight(remainingHeight:)`` —
+    /// if geometry reports less space, the peek must not exceed that space (avoids overflow/clipping).
     static let minimumViewportHeight: CGFloat = 200
 
+    /// Peek height matches laid-out remaining height (non-negative). When space is tight, returns the actual
+    /// available height instead of inflating to ``minimumViewportHeight``, which would exceed the container.
     static func clampedViewportHeight(remainingHeight: CGFloat) -> CGFloat {
-        max(minimumViewportHeight, remainingHeight)
+        max(0, remainingHeight)
     }
 }

@@ -26,6 +26,14 @@ extension View {
     }
 }
 
+/// Layout values shared by ``ReviewHistoryDrilldownPeekContainer``'s height math and its ``VStack`` (keep in sync).
+private enum ReviewHistoryDrilldownPeekContainerLayout {
+    /// Must match ``VStack`` `spacing` between `above` and `grid`.
+    static let aboveToGridSpacing: CGFloat = 12
+    /// Sum of vertical padding applied to the ``VStack`` (top + bottom).
+    static let verticalPaddingTotal: CGFloat = 8 + 8
+}
+
 /// Single scroll owner for drill-down: only ``ReviewHistoryDrilldownCalendarGrid``'s `ScrollView` moves.
 private struct ReviewHistoryDrilldownPeekContainer<Above: View, GridContent: View>: View {
     let above: Above
@@ -35,12 +43,13 @@ private struct ReviewHistoryDrilldownPeekContainer<Above: View, GridContent: Vie
 
     var body: some View {
         GeometryReader { proxy in
-            let vStackVerticalMargin: CGFloat = 8 + 8
-            let aboveToGridSpacing: CGFloat = 12
-            let remaining = proxy.size.height - abovePeekHeight - vStackVerticalMargin - aboveToGridSpacing
+            let remaining = proxy.size.height
+                - abovePeekHeight
+                - ReviewHistoryDrilldownPeekContainerLayout.verticalPaddingTotal
+                - ReviewHistoryDrilldownPeekContainerLayout.aboveToGridSpacing
             let peek = ReviewHistoryDrilldownPeekMetrics.clampedViewportHeight(remainingHeight: remaining)
 
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: ReviewHistoryDrilldownPeekContainerLayout.aboveToGridSpacing) {
                 above
                     .reviewHistoryDrilldownMeasureAbovePeekHeight()
                 grid(peek)
@@ -155,23 +164,26 @@ private struct GrowthStageDrilldownSheet: View {
         NavigationStack {
             Group {
                 if matchingDayStarts.isEmpty {
-                    VStack(spacing: 12) {
-                        growthStageCriterionCaption
-                        ContentUnavailableView {
-                            Label(
-                                String(localized: "Review history growth drilldown calendar empty title"),
-                                systemImage: "calendar"
-                            )
-                        } description: {
-                            Text(String(localized: "Review history growth drilldown calendar empty description"))
-                                .font(AppTheme.warmPaperBody)
-                                .foregroundStyle(AppTheme.reviewTextMuted)
+                    ScrollView {
+                        VStack(spacing: 12) {
+                            growthStageCriterionCaption
+                            ContentUnavailableView {
+                                Label(
+                                    String(localized: "Review history growth drilldown calendar empty title"),
+                                    systemImage: "calendar"
+                                )
+                            } description: {
+                                Text(String(localized: "Review history growth drilldown calendar empty description"))
+                                    .font(AppTheme.warmPaperBody)
+                                    .foregroundStyle(AppTheme.reviewTextMuted)
+                            }
+                            .frame(maxWidth: .infinity)
                         }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .frame(maxWidth: .infinity)
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     ReviewHistoryDrilldownPeekContainer(
                         above: growthStageCriterionCaption,
