@@ -791,7 +791,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在任一部分多写几条，小步最容易坚持。需要提示时，也可以随时点按上方状态。"
+            "value": "在任一部分多写几条，小步最容易坚持。"
           }
         }
       }
@@ -1561,13 +1561,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Storage: Grace Notes uses iCloud sync from this device."
+            "value": "Storage: Grace Notes syncs to iCloud from this device."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "存储：感恩记正通过本设备使用 iCloud 同步。"
+            "value": "存储：感恩记正通过此设备同步到 iCloud。"
           }
         }
       }
@@ -1599,7 +1599,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "同步开关和当前在本机的存储方式不一致。"
+            "value": "当前同步设置和本机正在使用的存储方式不一致。"
           }
         }
       }
@@ -1695,7 +1695,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂时看不清 iCloud 状态，记录仍保存在本设备。"
+            "value": "iCloud 状态暂时未知，记录仍保存在本设备。"
           }
         }
       }
@@ -1711,7 +1711,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂时看不清 iCloud 状态，记录仍保存在本设备。"
+            "value": "iCloud 状态暂时未知，记录仍保存在本设备。"
           }
         }
       }
@@ -1811,7 +1811,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "文件中每个日历日会覆盖本地该日的感恩记（若已有），否则新增。数据量大时与 iCloud 同步可能需要一些时间。"
+            "value": "文件中每天的记录若本地已有，就会覆盖；若没有，就会新增。数据量大时与 iCloud 同步可能需要一些时间。"
           }
         }
       }
@@ -2371,7 +2371,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "间隔到了以后，会在你下次打开 App 时自动导出。在「文件」或 iCloud 里选一个文件夹即可；从备份文件夹导入也用这里。"
+            "value": "到达设定间隔后，系统会在你下次打开 App 时自动导出。请在「文件」或 iCloud Drive 中选一个文件夹；从备份文件夹导入也会使用同一位置。"
           }
         }
       }
@@ -2595,7 +2595,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "导入冲突"
+            "value": "导入内容冲突"
           }
         }
       }
@@ -2643,7 +2643,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "冲突以备份为准"
+            "value": "发生内容冲突，以备份为准"
           }
         }
       }
@@ -2659,7 +2659,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "冲突保留本机"
+            "value": "发生内容冲突，保留本机内容"
           }
         }
       }
@@ -2691,7 +2691,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "上次 iCloud 活动：本机尚未观察到同步活动"
+            "value": "上次 iCloud 活动：这台设备上还没有观察到同步活动"
           }
         }
       }
@@ -2983,7 +2983,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "每一行表示本周有一天保存了日记条目，并非本周的每一个日历日。"
+            "value": "每一行表示本周某一天保存了记录，并非本周的每一个日历日。"
           }
         }
       }
@@ -3182,7 +3182,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "第一次在每个部分都写下了一条。真好。"
+            "value": "恭喜你第一次记录了一件感恩的事、一件需要的事和一位牵挂的人。"
           }
         }
       }
@@ -4550,7 +4550,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "全部手记至今"
+            "value": "至今所有记录"
           }
         }
       }
@@ -4859,7 +4859,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂时没有可显示的日记日。开始书写后，对应的日期会出现在这里。"
+            "value": "这里暂时还没有可显示的记录日期。开始写后，对应的日期会出现在这里。"
           }
         }
       }
@@ -5214,7 +5214,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "打开详情；当前时间范围内该板块没有匹配的日记条目。"
+            "value": "打开详情；当前时间范围内该板块没有匹配的记录。"
           }
         }
       }
@@ -5230,7 +5230,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看该板块的日记条目。"
+            "value": "查看该板块的记录。"
           }
         }
       }
@@ -5246,7 +5246,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此时间范围内没有包含%@的日记条目。"
+            "value": "此时间范围内没有包含 %@ 的记录。"
           }
         }
       }
@@ -5574,7 +5574,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "将影响「过去」中的完成度分布、记录分布与「最常出现」。"
+            "value": "会影响「过去」里的完成度分布、记录分布和「最常出现」。"
           }
         }
       }
@@ -5779,13 +5779,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Opens pages about your path, review insights, reminders, cloud features, and iCloud."
+            "value": "Opens the tour pages for your path, Review, reminders, and iCloud."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看关于记录路径、回顾、提醒、云端功能与 iCloud 的说明页面。"
+            "value": "打开关于你的节奏、回顾、提醒和 iCloud 的导览页面。"
           }
         }
       }
@@ -5801,7 +5801,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "打开后，为今日日记启用温暖的 Bloom 花期风格，包含树叶动画。"
+            "value": "打开后，「今天」会使用 Bloom 风格，包括树叶动画。"
           }
         }
       }
@@ -6383,7 +6383,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在感恩记里输入词语或短语即可搜索。"
+            "value": "输入词语或短语，搜索你的记录。"
           }
         }
       }
@@ -6415,7 +6415,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "清除搜索内容并收起键盘"
+            "value": "清空搜索并收起键盘"
           }
         }
       }
@@ -6447,7 +6447,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在当前历史视图中，这一天没有匹配的手记。"
+            "value": "在当前历史视图中，这一天没有匹配的记录。"
           }
         }
       }
@@ -6495,7 +6495,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@，有手记记录，但不符合当前筛选条件"
+            "value": "%@，有记录，但不符合当前筛选条件"
           }
         }
       }
@@ -6511,7 +6511,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@，在统计时间范围内没有手记"
+            "value": "%@，在统计时间范围内没有记录"
           }
         }
       }
@@ -6559,7 +6559,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在统计范围内，这一天没有保存手记。"
+            "value": "在统计范围内，这一天没有保存记录。"
           }
         }
       }
@@ -6871,7 +6871,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "打开该日期的手记。"
+            "value": "打开该日期的记录。"
           }
         }
       }
@@ -8914,7 +8914,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "打开「过去」可以查看本周摘要：你写过的日子、各个部分里反复出现的主题、一条贴着你原文的观察，以及一个可执行的下一步。每天写得越具体，这些洞察就越贴近你，不过这可能需要一点时间。"
+            "value": "打开「过去」可以查看本周摘要。每天写得越具体，这些洞察就越贴近你，不过这可能需要一点时间。"
           }
         }
       }
@@ -8946,7 +8946,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "每个分栏都至少三条，但十五个条目位还没有全部写满。"
+            "value": "每个部分都至少写了三条，但还没有全部写满。"
           }
         }
       }
@@ -8994,7 +8994,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "至少有一个分栏已经达到三条，也至少有一个分栏还不到三条。"
+            "value": "至少有一个部分已经达到三条，也至少有一个部分还不到三条。"
           }
         }
       }
@@ -9010,7 +9010,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你已经写下至少一条，而且三个分栏都还不到三条。"
+            "value": "你已经写下至少一条，而且三个部分都还不到三条。"
           }
         }
       }
@@ -9020,13 +9020,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Soil, Sprout, Twig, Leaf, and Bloom show how many lines you have in Gratitudes, Needs, and People in Mind. They help you pace without pressure. Reading notes and reflections do not change status."
+            "value": "A small seed can grow with what you write today. Try adding a little more whenever you're ready."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "「静待播种、初露新芽、枝条初成、叶茂成形、花开有成」只看感恩的事、需要的事和牵挂的人里写了多少条，帮你掌握节奏、少点压力。阅读笔记和反思不会改变状态。"
+            "value": "一颗小小的种子会随着你今天写下的内容慢慢长大。准备好了，就多写一点。"
           }
         }
       }
@@ -9138,7 +9138,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前时间范围内没有符合该成长阶段的日记日期。"
+            "value": "当前时间范围内没有符合这个成长阶段的记录日期。"
           }
         }
       }
