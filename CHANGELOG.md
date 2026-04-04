@@ -8,6 +8,10 @@ Marketing version **0.5.0** ships as successive **builds** (TestFlight / App Sto
 
 Marketing **0.5.0** / bundle **9** (git tag **`v0.5.0+9`** at release).
 
+### Changed
+
+- Settings (**#200**): Data / import-export surfaces show **file names**, **scheduled backup folder** titles, and **file-like** JSON names in export history (system monospaced text via `AppTheme` tokens); localized labels and prose stay Warm Paper. Localized error sentences in history stay serif.
+
 ### Fixed
 
 - Journal (**#191**): **Today** picks up the current local calendar day after you return from the background, lock and unlock, or switch to another tab and back—without requiring an app restart. Unsaved edits on the previous day are flushed before loading the new day. Staying on **Today** with the app continuously active (no background, lock, or tab change) can still show the prior day until you leave active use, as intended.
