@@ -515,26 +515,32 @@ private extension ImportExportSettingsScreen {
                     let backgroundContext = ModelContext(container)
                     return try exportService.exportArchiveFile(context: backgroundContext)
                 }.value
-                await MainActor.run {
-                    do {
-                        try ScheduledBackupPreferences.withFolderSecurityScopedAccess { folderURL in
-                            let written = try BackupFolderJSONExport.copyTempFile(
+
+                do {
+                    let written = try await Task.detached(priority: .userInitiated) {
+                        defer {
+                            try? FileManager.default.removeItem(at: fileURL)
+                        }
+                        return try ScheduledBackupPreferences.withFolderSecurityScopedAccess { folderURL in
+                            try BackupFolderJSONExport.copyTempFile(
                                 fileURL,
                                 into: folderURL,
                                 destinationFileName: fileURL.lastPathComponent,
                                 fileManager: .default
                             )
-                            BackupExportHistoryStore.record(
-                                success: true,
-                                kind: .manualFolder,
-                                detail: written
-                            )
-                            refreshHistory()
                         }
-                        try? FileManager.default.removeItem(at: fileURL)
+                    }.value
+                    await MainActor.run {
+                        BackupExportHistoryStore.record(
+                            success: true,
+                            kind: .manualFolder,
+                            detail: written
+                        )
+                        refreshHistory()
                         isExportingData = false
-                    } catch {
-                        try? FileManager.default.removeItem(at: fileURL)
+                    }
+                } catch {
+                    await MainActor.run {
                         BackupExportHistoryStore.record(
                             success: false,
                             kind: .manualFolder,

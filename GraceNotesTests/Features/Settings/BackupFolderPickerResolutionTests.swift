@@ -4,11 +4,11 @@ import XCTest
 final class BackupFolderPickerResolutionTests: XCTestCase {
     private var tempRoot: URL!
 
-    override func setUp() {
-        super.setUp()
+    override func setUpWithError() throws {
+        try super.setUpWithError()
         tempRoot = FileManager.default.temporaryDirectory
             .appendingPathComponent("BackupFolderPickerTests-\(UUID().uuidString)", isDirectory: true)
-        try! FileManager.default.createDirectory(at: tempRoot, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: tempRoot, withIntermediateDirectories: true)
     }
 
     override func tearDown() {
