@@ -4,17 +4,34 @@ import XCTest
 
 @MainActor
 final class ICloudSyncActivityModelTests: XCTestCase {
-    /// Must stay in sync with `ICloudSyncActivityModel`'s private persistence key.
-    private let timestampKey = "ICloudSync.lastRemoteChangeTimestamp"
-
     override func setUp() {
         super.setUp()
-        UserDefaults.standard.removeObject(forKey: timestampKey)
+        UserDefaults.standard.removeObject(forKey: ICloudSyncActivityModel.persistedTimestampKey)
     }
 
     override func tearDown() {
-        UserDefaults.standard.removeObject(forKey: timestampKey)
+        UserDefaults.standard.removeObject(forKey: ICloudSyncActivityModel.persistedTimestampKey)
         super.tearDown()
+    }
+
+    private func waitForLastRemoteChange(
+        on model: ICloudSyncActivityModel,
+        timeout: TimeInterval = 1,
+        pollIntervalNanoseconds: UInt64 = 10_000_000,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) async {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline, model.lastRemoteChangeAt == nil {
+            try? await Task.sleep(nanoseconds: pollIntervalNanoseconds)
+        }
+
+        XCTAssertNotNil(
+            model.lastRemoteChangeAt,
+            "Timed out waiting for lastRemoteChangeAt after remote-change notification",
+            file: file,
+            line: line
+        )
     }
 
     func test_persistentStoreRemoteChangeNotification_updatesLastRemoteChangeAt() async {
@@ -24,14 +41,6 @@ final class ICloudSyncActivityModelTests: XCTestCase {
         model.startMonitoring()
         NotificationCenter.default.post(name: .NSPersistentStoreRemoteChange, object: nil)
 
-        let deadline = Date().addingTimeInterval(1)
-        while Date() < deadline {
-            if model.lastRemoteChangeAt != nil {
-                return
-            }
-            try? await Task.sleep(nanoseconds: 10_000_000)
-        }
-
-        XCTFail("Timed out waiting for lastRemoteChangeAt after remote-change notification")
+        await waitForLastRemoteChange(on: model)
     }
 }

@@ -5,7 +5,7 @@ import Foundation
 /// remote-change notifications.
 @MainActor
 final class ICloudSyncActivityModel: ObservableObject {
-    private static let persistedTimestampKey = "ICloudSync.lastRemoteChangeTimestamp"
+    nonisolated static let persistedTimestampKey = "ICloudSync.lastRemoteChangeTimestamp"
 
     @Published private(set) var lastRemoteChangeAt: Date?
 
