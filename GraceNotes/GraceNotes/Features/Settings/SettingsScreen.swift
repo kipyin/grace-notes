@@ -177,7 +177,10 @@ private extension SettingsScreen {
             return nil
         }
         if let date = iCloudSyncActivity.lastRemoteChangeAt {
-            let formatted = date.formatted(date: .abbreviated, time: .shortened)
+            let formatted = ICloudSyncLastActivityFormatting.formattedActivityTime(
+                lastActivity: date,
+                referenceNow: Date()
+            )
             return String(format: String(localized: "DataPrivacy.iCloudSync.lastActivity.format"), formatted)
         }
         return String(localized: "DataPrivacy.iCloudSync.lastActivity.pending")
