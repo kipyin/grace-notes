@@ -55,10 +55,10 @@ struct JournalRepository {
             let descriptor = FetchDescriptor<Journal>(
                 predicate: #Predicate { entry in
                     entry.entryDate >= dayStart && entry.entryDate < nextDay
-                },
-                sortBy: [SortDescriptor(\.entryDate, order: .reverse)]
+                }
             )
-            let entry = try context.fetch(descriptor).first
+            let candidates = try context.fetch(descriptor)
+            let entry = candidates.max(by: Self.isStrictlyWorseCanonicalDayEntry)
             PerformanceTrace.end("JournalRepository.fetchEntry", startedAt: trace)
             return entry
         } catch {
@@ -179,5 +179,28 @@ struct JournalRepository {
             options: [.caseInsensitive, .diacriticInsensitive],
             locale: .current
         ) != nil
+    }
+
+    private static func totalChipCount(_ entry: Journal) -> Int {
+        (entry.gratitudes ?? []).count + (entry.needs ?? []).count + (entry.people ?? []).count
+    }
+
+    /// `true` when `lhs` should sort strictly before `rhs` in increasing “journal quality” order
+    /// (so `candidates.max(by:)` returns the row Past treats as strongest for that calendar day).
+    private static func isStrictlyWorseCanonicalDayEntry(_ lhs: Journal, _ rhs: Journal) -> Bool {
+        let leftRank = lhs.completionLevel.tutorialCompletionRank
+        let rightRank = rhs.completionLevel.tutorialCompletionRank
+        if leftRank != rightRank {
+            return leftRank < rightRank
+        }
+        let leftChips = totalChipCount(lhs)
+        let rightChips = totalChipCount(rhs)
+        if leftChips != rightChips {
+            return leftChips < rightChips
+        }
+        if lhs.updatedAt != rhs.updatedAt {
+            return lhs.updatedAt < rhs.updatedAt
+        }
+        return lhs.id.uuidString < rhs.id.uuidString
     }
 }

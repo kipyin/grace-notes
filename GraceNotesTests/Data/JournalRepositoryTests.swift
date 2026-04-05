@@ -71,6 +71,44 @@ final class JournalRepositoryTests: XCTestCase {
         XCTAssertNil(result)
     }
 
+    func test_fetchEntry_whenTwoRowsSameDay_picksStrongestCompletionRow() throws {
+        let context = try makeInMemoryContext()
+        let repo = JournalRepository(calendar: calendar)
+        let day = calendar.startOfDay(for: Date(timeIntervalSince1970: 1_742_147_200))
+        let later = day.addingTimeInterval(3600)
+
+        let emptyStub = Journal(
+            entryDate: day,
+            gratitudes: [],
+            needs: [],
+            people: [],
+            readingNotes: "",
+            reflections: "",
+            createdAt: day,
+            updatedAt: later
+        )
+        let fullFromOtherDevice = Journal(
+            entryDate: day,
+            gratitudes: Self.fiveStubItems(prefix: "g"),
+            needs: Self.fiveStubItems(prefix: "n"),
+            people: Self.fiveStubItems(prefix: "p"),
+            readingNotes: "",
+            reflections: "",
+            createdAt: day,
+            updatedAt: day
+        )
+        context.insert(emptyStub)
+        context.insert(fullFromOtherDevice)
+        try context.save()
+
+        let result = try repo.fetchEntry(for: day.addingTimeInterval(12 * 3600), context: context)
+
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result?.id, fullFromOtherDevice.id)
+        XCTAssertEqual((result?.gratitudes ?? []).count, 5)
+        XCTAssertTrue(result?.hasReachedBloom ?? false)
+    }
+
     func test_hasUserEverReachedBloom_trueWhenCompletedAtSet() throws {
         let context = try makeInMemoryContext()
         let repo = JournalRepository(calendar: calendar)
