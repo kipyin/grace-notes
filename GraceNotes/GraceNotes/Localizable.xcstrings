@@ -2776,6 +2776,166 @@
         }
       }
     },
+    "DataPrivacy.iCloudSync.lastActivity.relative.hours.one": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 hour ago"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 小时前"
+          }
+        }
+      }
+    },
+    "DataPrivacy.iCloudSync.lastActivity.relative.hours.other": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld hours ago"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 小时前"
+          }
+        }
+      }
+    },
+    "DataPrivacy.iCloudSync.lastActivity.relative.hoursMinutes.pluralPlural": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld hours and %2$lld minutes ago"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld 小时 %2$lld 分钟前"
+          }
+        }
+      }
+    },
+    "DataPrivacy.iCloudSync.lastActivity.relative.hoursMinutes.pluralSingular": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld hours and 1 minute ago"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 小时 1 分钟前"
+          }
+        }
+      }
+    },
+    "DataPrivacy.iCloudSync.lastActivity.relative.hoursMinutes.singularPlural": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 hour and %lld minutes ago"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 小时 %lld 分钟前"
+          }
+        }
+      }
+    },
+    "DataPrivacy.iCloudSync.lastActivity.relative.hoursMinutes.singularSingular": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 hour and 1 minute ago"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 小时 1 分钟前"
+          }
+        }
+      }
+    },
+    "DataPrivacy.iCloudSync.lastActivity.relative.minutes.one": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 minute ago"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 分钟前"
+          }
+        }
+      }
+    },
+    "DataPrivacy.iCloudSync.lastActivity.relative.minutes.other": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld minutes ago"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 分钟前"
+          }
+        }
+      }
+    },
+    "DataPrivacy.iCloudSync.lastActivity.relative.seconds.one": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 second ago"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 秒前"
+          }
+        }
+      }
+    },
+    "DataPrivacy.iCloudSync.lastActivity.relative.seconds.other": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld seconds ago"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 秒前"
+          }
+        }
+      }
+    },
     "DataPrivacy.iCloudSync.lastActivity.pending": {
       "localizations": {
         "en": {
