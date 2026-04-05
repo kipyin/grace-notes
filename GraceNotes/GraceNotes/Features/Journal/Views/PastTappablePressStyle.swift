@@ -26,6 +26,12 @@ enum PastToolbarDoneAppearance {
     case journal
 }
 
+/// Visual symbol for toolbar dismiss controls; accessibility keeps the localized “Done” label.
+enum PastToolbarDoneSymbol: String {
+    case checkmark
+    case xmark
+}
+
 /// ``Done`` in navigation bars for Past-related sheets: Warm Paper + semantic tint; light press fade and haptic.
 struct PastToolbarDoneButtonStyle: ButtonStyle {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -44,15 +50,17 @@ struct PastToolbarDoneButtonStyle: ButtonStyle {
 struct PastToolbarDoneButton: View {
     let action: () -> Void
     var appearance: PastToolbarDoneAppearance = .review
+    var symbol: PastToolbarDoneSymbol = .checkmark
     var accessibilityIdentifier: String?
 
     var body: some View {
         Button(action: action) {
-            Text(String(localized: "Done"))
+            Image(systemName: symbol.rawValue)
                 .font(AppTheme.warmPaperBody.weight(.semibold))
                 .foregroundStyle(foreground)
         }
         .buttonStyle(PastToolbarDoneButtonStyle())
+        .accessibilityLabel(String(localized: "Done"))
         .optionalToolbarDoneAccessibilityIdentifier(accessibilityIdentifier)
     }
 
