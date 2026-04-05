@@ -187,7 +187,7 @@ private struct ReviewHistoryGrowthSkyline: View {
                 }
                 .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(PastTappablePressStyle())
             .disabled(count == 0)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(columnAccessibilityLabel)
@@ -367,7 +367,7 @@ private struct ReviewHistorySectionStrip: View {
                             }
                             .frame(width: segmentWidths[index], height: stripHeight)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(PastTappablePressStyle())
                         .accessibilityLabel(
                             String(
                                 format: String(localized: "%1$@, %2$d"),
@@ -411,7 +411,7 @@ private struct ReviewHistorySectionStrip: View {
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(PastTappablePressStyle())
                     .accessibilityLabel(
                         String(
                             format: String(localized: "%1$@, %2$d"),

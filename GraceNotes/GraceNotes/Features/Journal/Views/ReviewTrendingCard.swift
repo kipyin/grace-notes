@@ -72,7 +72,7 @@ struct ReviewTrendingCard: View {
                 } label: {
                     browseAllLabel(title: String(localized: "Browse all trending themes"))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(PastTappablePressStyle())
                 .accessibilityIdentifier("BrowseAllTrendingThemesLink")
             }
         }
@@ -100,7 +100,7 @@ struct ReviewTrendingCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PastTappablePressStyle())
         .accessibilityIdentifier("TrendingThemeRow.\(reviewInsightSanitizedThemeId(theme.id))")
         .accessibilityLabel(
             reviewTrendingThemeRowAccessibilityLabel(

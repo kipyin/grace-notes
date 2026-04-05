@@ -94,7 +94,7 @@ struct ReviewMostRecurringCard: View {
                     } label: {
                         browseAllLabel(title: String(localized: "Browse all recurring themes"))
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(PastTappablePressStyle())
                     .accessibilityIdentifier("BrowseAllRecurringThemesLink")
                 }
             }
@@ -117,7 +117,7 @@ struct ReviewMostRecurringCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PastTappablePressStyle())
         .accessibilityIdentifier("MostRecurringThemeRow.\(reviewInsightSanitizedThemeId(theme.id))")
         .accessibilityLabel(
             String(

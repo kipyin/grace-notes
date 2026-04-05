@@ -193,10 +193,10 @@ struct MostRecurringBrowseSheetContainer: View {
             MostRecurringThemesBrowseView(themes: themes, referenceDate: referenceDate, calendar: calendar)
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button(String(localized: "Done")) {
-                            dismiss()
-                        }
-                        .accessibilityIdentifier("MostRecurringBrowseSheetDone")
+                        PastToolbarDoneButton(
+                            action: { dismiss() },
+                            accessibilityIdentifier: "MostRecurringBrowseSheetDone"
+                        )
                     }
                 }
         }
@@ -274,6 +274,7 @@ struct MostRecurringThemesBrowseView: View {
                         )
                     }
                 }
+                .buttonStyle(PastTappablePressStyle())
                 .accessibilityIdentifier("MostRecurringThemeBrowseRow.\(row.accessibilityId)")
             }
         } header: {
@@ -393,10 +394,10 @@ struct TrendingThemesBrowseView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button(String(localized: "Done")) {
-                    dismiss()
-                }
-                .accessibilityIdentifier("TrendingBrowseSheetDone")
+                PastToolbarDoneButton(
+                    action: { dismiss() },
+                    accessibilityIdentifier: "TrendingBrowseSheetDone"
+                )
             }
         }
     }
@@ -422,6 +423,7 @@ struct TrendingThemesBrowseView: View {
                         )
                     }
                 }
+                .buttonStyle(PastTappablePressStyle())
                 .accessibilityLabel(
                     reviewTrendingThemeRowAccessibilityLabel(
                         label: theme.label,
@@ -543,7 +545,7 @@ struct ThemeDrilldownView: View {
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                         .padding(.vertical, 2)
                                     }
-                                    .buttonStyle(.plain)
+                                    .buttonStyle(PastTappablePressStyle())
                                     .accessibilityElement(children: .combine)
                                     .accessibilityLabel(
                                         themeDrilldownRowAccessibilityLabel(day: group.day, evidence: evidence)
@@ -571,9 +573,7 @@ struct ThemeDrilldownView: View {
             .toolbar {
                 if includeDoneButton {
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button(String(localized: "Done")) {
-                            dismiss()
-                        }
+                        PastToolbarDoneButton(action: { dismiss() })
                     }
                 }
             }

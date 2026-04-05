@@ -81,6 +81,7 @@ private struct ReviewHistoryDrilldownPeekContainer<Above: View, GridContent: Vie
 enum ReviewHistoryDrilldownPayload: Identifiable, Equatable {
     case growthStage(JournalCompletionLevel)
     case section(ReviewStatsSectionKind)
+    case journalingDays
 
     var id: String {
         switch self {
@@ -88,6 +89,8 @@ enum ReviewHistoryDrilldownPayload: Identifiable, Equatable {
             "growth-\(level.rawValue)"
         case .section(let kind):
             "section-\(kind.rawValue)"
+        case .journalingDays:
+            "journaling-days"
         }
     }
 }
@@ -117,7 +120,140 @@ struct ReviewHistoryDrilldownSheetContainer: View {
                 referenceDate: referenceDate,
                 pastStatisticsInterval: pastStatisticsInterval
             )
+        case .journalingDays:
+            JournalingDaysDrilldownSheet(
+                entries: entries,
+                calendar: calendar,
+                referenceDate: referenceDate,
+                pastStatisticsInterval: pastStatisticsInterval
+            )
         }
+    }
+}
+
+// MARK: - Journaling days (rhythm chrome)
+
+private struct JournalingDaysDrilldownSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var journalNavigationDay: ReviewHistoryDrilldownJournalNavigationDay?
+    @State private var abovePeekHeight: CGFloat = 0
+
+    private let historyJournalDays: Set<Date>
+    private let historyDayRange: Range<Date>
+    private let displayRange: Range<Date>
+    private let drilldownCalendar: Calendar
+
+    init(
+        entries: [Journal],
+        calendar: Calendar,
+        referenceDate: Date,
+        pastStatisticsInterval: PastStatisticsIntervalSelection
+    ) {
+        drilldownCalendar = calendar
+        historyDayRange = pastStatisticsInterval.validated.resolvedHistoryRange(
+            referenceDate: referenceDate,
+            calendar: calendar,
+            allEntries: entries
+        )
+        displayRange = ReviewHistoryDrilldownCalendarLayout.drilldownGridDisplayRange(
+            entries: entries,
+            historyDayRange: historyDayRange,
+            calendar: calendar
+        )
+        let historyEntries = ReviewHistoryWindowing.entriesInValidatedHistoryWindow(
+            allEntries: entries,
+            referenceDate: referenceDate,
+            calendar: calendar,
+            pastStatisticsInterval: pastStatisticsInterval
+        )
+        historyJournalDays = ReviewHistoryWindowing.journalEntryDayStarts(
+            fromHistoryEntries: historyEntries,
+            calendar: calendar
+        )
+    }
+
+    var body: some View {
+        NavigationStack {
+            Group {
+                if historyJournalDays.isEmpty {
+                    ScrollView {
+                        VStack(spacing: 12) {
+                            ContentUnavailableView {
+                                Label(
+                                    String(localized: "Review history journaling days drilldown empty title"),
+                                    systemImage: "calendar"
+                                )
+                            } description: {
+                                Text(String(localized: "Review history journaling days drilldown empty description"))
+                                    .font(AppTheme.warmPaperBody)
+                                    .foregroundStyle(AppTheme.reviewTextMuted)
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .frame(maxWidth: .infinity)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    ReviewHistoryDrilldownPeekContainer(
+                        above: journalingDaysCaption,
+                        abovePeekHeight: $abovePeekHeight,
+                        grid: { peek in
+                            ReviewHistoryDrilldownCalendarGrid(
+                                matchingDayStarts: historyJournalDays,
+                                journalDaysInHistoryWindow: historyJournalDays,
+                                historyDayRange: historyDayRange,
+                                displayRange: displayRange,
+                                calendar: drilldownCalendar,
+                                growthStageForMatchedDays: nil,
+                                sectionStripChipCountsByDay: nil,
+                                scrollViewportHeight: peek,
+                                onMatchingDaySelected: { day in
+                                    journalNavigationDay = ReviewHistoryDrilldownJournalNavigationDay(
+                                        dayStart: day,
+                                        calendar: drilldownCalendar
+                                    )
+                                }
+                            )
+                            .padding(.vertical, 4)
+                        }
+                    )
+                }
+            }
+            .background(AppTheme.reviewBackground)
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text(String(localized: "Reflection rhythm"))
+                        .font(AppTheme.warmPaperBody.weight(.semibold))
+                        .foregroundStyle(AppTheme.reviewTextPrimary)
+                        .accessibilityIdentifier("ReviewHistoryJournalingDaysDrilldownTitle")
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    PastToolbarDoneButton(
+                        action: { dismiss() },
+                        accessibilityIdentifier: "ReviewHistoryJournalingDaysDrilldownDone"
+                    )
+                }
+            }
+            .navigationDestination(item: $journalNavigationDay) { item in
+                JournalScreen(entryDate: item.date)
+            }
+        }
+    }
+
+    private var journalingDaysCaption: some View {
+        Text(String(localized: "Review history journaling days drilldown caption"))
+            .font(AppTheme.warmPaperMeta)
+            .foregroundStyle(AppTheme.reviewTextMuted)
+            .multilineTextAlignment(.center)
+            .lineLimit(3)
+            .minimumScaleFactor(0.85)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity)
+            .accessibilityHidden(true)
     }
 }
 
@@ -243,9 +379,7 @@ private struct GrowthStageDrilldownSheet: View {
                     )
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button(String(localized: "Done")) {
-                        dismiss()
-                    }
+                    PastToolbarDoneButton(action: { dismiss() })
                 }
             }
             .navigationDestination(item: $journalNavigationDay) { item in
@@ -414,9 +548,7 @@ private struct SectionEntriesDrilldownSheet: View {
                         .foregroundStyle(AppTheme.reviewTextPrimary)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button(String(localized: "Done")) {
-                        dismiss()
-                    }
+                    PastToolbarDoneButton(action: { dismiss() })
                 }
             }
             .navigationDestination(item: $journalNavigationDay) { item in

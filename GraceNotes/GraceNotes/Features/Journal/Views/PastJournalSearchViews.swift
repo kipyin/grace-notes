@@ -214,7 +214,7 @@ struct PastJournalSearchFieldRow: View {
                     .font(.title2.weight(.medium))
                     .foregroundStyle(AppTheme.reviewTextMuted)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(PastTappablePressStyle())
             .frame(width: Metrics.dismissSlotWidth, height: Metrics.dismissSlotWidth)
             .contentShape(Rectangle())
             .accessibilityLabel(String(localized: "PastSearch.dismissControl.a11yLabel"))
@@ -328,7 +328,7 @@ private struct PastJournalSearchDayCard: View {
             .clipShape(RoundedRectangle(cornerRadius: 14, style: .circular))
             .contentShape(RoundedRectangle(cornerRadius: 14, style: .circular))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PastTappablePressStyle())
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(dayCaption)
         .accessibilityHint(String(localized: "ThemeDrilldown.openEntry.a11yHint"))

@@ -9125,6 +9125,70 @@
           }
         }
       }
+    },
+    "Review history journaling days drilldown empty title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No journaling days in this range"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该时间范围内没有记录天数"
+          }
+        }
+      }
+    },
+    "Review history journaling days drilldown empty description": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When you journal inside the selected history range, those days will appear here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当你在选定的时间范围内写下记录时，这些日期会显示在这里。"
+          }
+        }
+      }
+    },
+    "Review history journaling days drilldown caption": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each highlighted day opens your journal."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点按已标记的日期可打开当天的记录。"
+          }
+        }
+      }
+    },
+    "Review history rhythm chrome title a11y hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shows a calendar of days you wrote in your selected history range."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示在所选历史时间范围内写过记录的日历。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -303,7 +303,10 @@ extension ReviewScreen {
                 ReviewDaysYouWrotePanel(
                     insights: reviewInsights,
                     isLoading: isLoadingInsights,
-                    onRhythmDaySelected: presentJournalDaySheet
+                    onRhythmDaySelected: presentJournalDaySheet,
+                    onRhythmChromeTap: {
+                        historyDrilldown = .journalingDays
+                    }
                 )
                 .listRowInsets(PastTabListLayout.cardRowInsets)
                 .listRowBackground(AppTheme.reviewBackground)
@@ -441,9 +444,10 @@ private struct ReviewJournalDaySheetHost: View {
             JournalScreen(entryDate: entryDate)
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button(String(localized: "Done")) {
-                            dismiss()
-                        }
+                        PastToolbarDoneButton(
+                            action: { dismiss() },
+                            appearance: .journal
+                        )
                     }
                 }
         }

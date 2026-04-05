@@ -182,7 +182,7 @@ struct ReviewHistoryDrilldownCalendarGrid: View {
                         disposition: disposition
                     )
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(PastTappablePressStyle())
                 .accessibilityLabel(dayCellAccessibilityLabel(dateSpeech: dateSpeech, disposition: disposition))
                 .accessibilityHint(String(localized: "ThemeDrilldown.openEntry.a11yHint"))
             }

@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 private struct ReviewInsightPanelBodies {
     let observation: String
@@ -19,15 +18,19 @@ struct ReviewDaysYouWrotePanel: View {
     /// When set, rhythm columns open via this callback (Past tab sheet).
     /// When `nil`, uses push `NavigationLink` to `JournalScreen`.
     var onRhythmDaySelected: ((Date) -> Void)?
+    /// Past tab: title row, strip padding, label row, and gutter open the history calendar drilldown (issue #198).
+    var onRhythmChromeTap: (() -> Void)?
 
     init(
         insights: ReviewInsights?,
         isLoading: Bool,
-        onRhythmDaySelected: ((Date) -> Void)? = nil
+        onRhythmDaySelected: ((Date) -> Void)? = nil,
+        onRhythmChromeTap: (() -> Void)? = nil
     ) {
         self.insights = insights
         self.isLoading = isLoading
         self.onRhythmDaySelected = onRhythmDaySelected
+        self.onRhythmChromeTap = onRhythmChromeTap
     }
 
     var body: some View {
@@ -57,7 +60,11 @@ struct ReviewDaysYouWrotePanel: View {
     private func weekRhythmPanel(for insights: ReviewInsights) -> some View {
         ReviewInsightInsetPanel(
             title: String(localized: "Reflection rhythm"),
-            panelChrome: .standard
+            panelChrome: .standard,
+            onTitleTap: onRhythmChromeTap,
+            titleAccessibilityHint: onRhythmChromeTap == nil
+                ? nil
+                : String(localized: "Review history rhythm chrome title a11y hint")
         ) {
             rhythmHistoryCurve(for: insights)
         }
@@ -139,16 +146,29 @@ struct ReviewDaysYouWrotePanel: View {
         }
     }
 
+    @ViewBuilder
     private func rhythmStripEmptyState() -> some View {
         let message = String(
             localized: "No journaling days to show here yet. After you write, they will appear in this strip."
         )
-        return Text(message)
-            .font(AppTheme.warmPaperBody)
-            .foregroundStyle(AppTheme.reviewTextMuted)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, 8)
+        if let tap = onRhythmChromeTap {
+            Button(action: tap) {
+                Text(message)
+                    .font(AppTheme.warmPaperBody)
+                    .foregroundStyle(AppTheme.reviewTextMuted)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 8)
+            }
+            .buttonStyle(PastTappablePressStyle())
             .accessibilityLabel(message)
+        } else {
+            Text(message)
+                .font(AppTheme.warmPaperBody)
+                .foregroundStyle(AppTheme.reviewTextMuted)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.vertical, 8)
+                .accessibilityLabel(message)
+        }
     }
 
     @ViewBuilder
@@ -162,8 +182,21 @@ struct ReviewDaysYouWrotePanel: View {
         pinIdentity: ReviewRhythmScrollPinIdentity
     ) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 0) {
                 rhythmChartStrip(days: days, metrics: metrics)
+                if let tap = onRhythmChromeTap {
+                    Button(action: tap) {
+                        Color.clear
+                            .frame(height: 6)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(PastTappablePressStyle())
+                    .accessibilityHidden(true)
+                } else {
+                    Color.clear
+                        .frame(height: 6)
+                        .accessibilityHidden(true)
+                }
                 rhythmLabelRow(
                     days: days,
                     displayInterval: displayInterval,
@@ -213,9 +246,7 @@ struct ReviewDaysYouWrotePanel: View {
     @ViewBuilder
     private func rhythmChartStrip(days: [ReviewDayActivity], metrics: RhythmCurveScaledMetrics) -> some View {
         HStack(alignment: .center, spacing: metrics.columnGap) {
-            Color.clear
-                .frame(width: metrics.chartHorizontalPadding)
-                .accessibilityHidden(true)
+            rhythmHorizontalChromeSpacer(metrics: metrics)
             ForEach(Array(days.enumerated()), id: \.element.date) { index, day in
                 rhythmColumnCell(
                     day: day,
@@ -224,11 +255,24 @@ struct ReviewDaysYouWrotePanel: View {
                     metrics: metrics
                 )
             }
+            rhythmHorizontalChromeSpacer(metrics: metrics)
+        }
+        .frame(minHeight: metrics.chartRowMinHeight)
+    }
+
+    @ViewBuilder
+    private func rhythmHorizontalChromeSpacer(metrics: RhythmCurveScaledMetrics) -> some View {
+        if let tap = onRhythmChromeTap {
+            Button(action: tap) {
+                Color.clear.frame(width: metrics.chartHorizontalPadding)
+            }
+            .buttonStyle(PastTappablePressStyle())
+            .accessibilityHidden(true)
+        } else {
             Color.clear
                 .frame(width: metrics.chartHorizontalPadding)
                 .accessibilityHidden(true)
         }
-        .frame(minHeight: metrics.chartRowMinHeight)
     }
 
     @ViewBuilder
@@ -261,14 +305,14 @@ struct ReviewDaysYouWrotePanel: View {
                 } label: {
                     column
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(PastTappablePressStyle())
             } else {
                 NavigationLink {
                     JournalScreen(entryDate: day.date)
                 } label: {
                     column
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(PastTappablePressStyle())
             }
         }
         .accessibilityElement(children: .ignore)
@@ -296,21 +340,18 @@ struct ReviewDaysYouWrotePanel: View {
         metrics: RhythmCurveScaledMetrics
     ) -> some View {
         HStack(alignment: .top, spacing: metrics.columnGap) {
-            Color.clear
-                .frame(width: metrics.chartHorizontalPadding)
-                .accessibilityHidden(true)
+            rhythmHorizontalChromeSpacer(metrics: metrics)
             ForEach(days, id: \.date) { day in
                 rhythmColumnLabel(
                     date: day.date,
                     displayInterval: displayInterval,
                     referenceNow: referenceNow,
-                    rhythmCalendar: rhythmCalendar
+                    rhythmCalendar: rhythmCalendar,
+                    onLabelChromeTap: onRhythmChromeTap
                 )
                 .frame(width: metrics.columnWidth)
             }
-            Color.clear
-                .frame(width: metrics.chartHorizontalPadding)
-                .accessibilityHidden(true)
+            rhythmHorizontalChromeSpacer(metrics: metrics)
         }
     }
 
@@ -377,7 +418,36 @@ struct ReviewDaysYouWrotePanel: View {
             .accessibilityHidden(true)
     }
 
+    @ViewBuilder
     private func rhythmColumnLabel(
+        date: Date,
+        displayInterval: Range<Date>,
+        referenceNow: Date,
+        rhythmCalendar: Calendar,
+        onLabelChromeTap: (() -> Void)?
+    ) -> some View {
+        if let tap = onLabelChromeTap {
+            Button(action: tap) {
+                rhythmColumnLabelText(
+                    date: date,
+                    displayInterval: displayInterval,
+                    referenceNow: referenceNow,
+                    rhythmCalendar: rhythmCalendar
+                )
+            }
+            .buttonStyle(PastTappablePressStyle())
+            .accessibilityHidden(true)
+        } else {
+            rhythmColumnLabelText(
+                date: date,
+                displayInterval: displayInterval,
+                referenceNow: referenceNow,
+                rhythmCalendar: rhythmCalendar
+            )
+        }
+    }
+
+    private func rhythmColumnLabelText(
         date: Date,
         displayInterval: Range<Date>,
         referenceNow: Date,
