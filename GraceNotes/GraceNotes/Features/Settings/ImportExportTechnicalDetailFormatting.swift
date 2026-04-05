@@ -23,6 +23,8 @@ enum ImportExportTechnicalDetailFormatting {
         switch entry.kind {
         case .manualShare:
             kindLabel = String(localized: "DataPrivacy.importExport.history.kind.manual")
+        case .manualFolder:
+            kindLabel = String(localized: "DataPrivacy.importExport.history.kind.manualFolder")
         case .scheduledFolder:
             kindLabel = String(localized: "DataPrivacy.importExport.history.kind.scheduled")
         }

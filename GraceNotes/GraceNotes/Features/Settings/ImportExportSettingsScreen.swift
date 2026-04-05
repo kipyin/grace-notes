@@ -1,7 +1,7 @@
 import SwiftUI
 import SwiftData
 
-// Large settings surface: export/import flows, sheets, and history.
+// Large settings surface: backup/import flows, sheets, and history.
 // Split further cautiously to avoid navigation breakages.
 // swiftlint:disable type_body_length
 struct ImportExportSettingsScreen: View {
@@ -11,6 +11,7 @@ struct ImportExportSettingsScreen: View {
     @State private var showExportError = false
     @State private var exportFile: ShareableFile?
     @State private var isExportingData = false
+    @State private var showManualBackupDestinationDialog = false
     @State private var showImportPicker = false
     @State private var showImportReview = false
     @State private var pendingImportURL: URL?
@@ -28,6 +29,8 @@ struct ImportExportSettingsScreen: View {
     @State private var scheduledFolderError: String?
     @State private var showScheduledFolderError = false
     @State private var showExportHistorySheet = false
+    /// Pushes the backup-file list using the same chevron as other settings rows (not `NavigationLink` disclosure).
+    @State private var showBackupFolderFileList = false
 
     private let dataExportService = JournalDataExportService()
     private let dataImportService = JournalDataImportService()
@@ -58,73 +61,19 @@ struct ImportExportSettingsScreen: View {
         ZStack {
             List {
             Section {
-                Button {
-                    exportJournalData()
-                } label: {
-                    settingsRow(label: String(localized: "DataPrivacy.importExport.export.json"))
-                }
-                .buttonStyle(.plain)
-                .disabled(isExportingData || isImportingData)
-
-                if let latest = exportHistory.first {
-                    VStack(alignment: .leading, spacing: AppTheme.spacingTight / 2) {
-                        Text(String(localized: "DataPrivacy.importExport.latestExport.title"))
-                            .font(AppTheme.warmPaperMeta)
-                            .foregroundStyle(AppTheme.settingsTextMuted)
-                        Text(latest.finishedAt.formatted(date: .abbreviated, time: .shortened))
-                            .font(AppTheme.warmPaperBody)
-                            .foregroundStyle(AppTheme.settingsTextPrimary)
-                        exportHistoryDetailText(for: latest)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel(latestExportAccessibilityLabel(for: latest))
-
-                    Button {
-                        showExportHistorySheet = true
-                    } label: {
-                        settingsRow(label: String(localized: "DataPrivacy.importExport.history.viewAll"))
-                    }
-                    .buttonStyle(.plain)
-                }
-            } header: {
-                Text(String(localized: "DataPrivacy.importExport.section.export"))
-                    .font(AppTheme.warmPaperMeta)
-                    .foregroundStyle(AppTheme.settingsTextMuted)
-                    .textCase(nil)
-            }
-
-            Section {
                 scheduledBackupIntervalPicker
 
                 Button {
                     showScheduledFolderPicker = true
                 } label: {
-                    settingsRow(label: String(localized: "DataPrivacy.scheduledBackup.chooseFolder"))
-                }
-                .buttonStyle(.plain)
-
-                if ScheduledBackupPreferences.folderBookmarkData != nil,
-                   let folderTitle = ScheduledBackupPreferences.folderDisplayName {
-                    HStack(alignment: .firstTextBaseline, spacing: AppTheme.spacingRegular) {
-                        Text(String(localized: "DataPrivacy.scheduledBackup.folderLabel"))
-                            .font(AppTheme.warmPaperMeta)
-                            .foregroundStyle(AppTheme.settingsTextMuted)
-                        Text(folderTitle)
-                            .font(AppTheme.settingsTechnicalBody)
-                            .foregroundStyle(AppTheme.settingsTextPrimary)
-                            .multilineTextAlignment(.trailing)
-                            .frame(maxWidth: .infinity, alignment: .trailing)
-                    }
-                    .frame(minHeight: 44)
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel(
-                        String(
-                            format: String(localized: "DataPrivacy.scheduledBackup.folderAccessibilityFormat"),
-                            folderTitle
-                        )
+                    settingsRow(
+                        title: String(localized: "DataPrivacy.scheduledBackup.chooseFolder"),
+                        subtitle: scheduledBackupFolderSubtitle,
+                        showTrailingChevron: true
                     )
                 }
+                .buttonStyle(.plain)
+                .accessibilityLabel(chooseBackupFolderAccessibilityLabel())
             } header: {
                 Text(String(localized: "DataPrivacy.scheduledBackup.section"))
                     .font(AppTheme.warmPaperMeta)
@@ -139,6 +88,53 @@ struct ImportExportSettingsScreen: View {
 
             Section {
                 Button {
+                    if ScheduledBackupPreferences.folderBookmarkData != nil {
+                        showManualBackupDestinationDialog = true
+                    } else {
+                        exportJournalDataShareOnly()
+                    }
+                } label: {
+                    settingsRow(label: String(localized: "DataPrivacy.importExport.export.json"))
+                }
+                .buttonStyle(.plain)
+                .disabled(isExportingData || isImportingData)
+
+                if let latest = exportHistory.first {
+                    Button {
+                        showExportHistorySheet = true
+                    } label: {
+                        HStack(alignment: .top, spacing: AppTheme.spacingRegular) {
+                            VStack(alignment: .leading, spacing: AppTheme.spacingTight / 2) {
+                                Text(String(localized: "DataPrivacy.importExport.latestExport.title"))
+                                    .font(AppTheme.warmPaperMeta)
+                                    .foregroundStyle(AppTheme.settingsTextMuted)
+                                Text(latest.finishedAt.formatted(date: .abbreviated, time: .shortened))
+                                    .font(AppTheme.warmPaperBody)
+                                    .foregroundStyle(AppTheme.settingsTextPrimary)
+                                exportHistoryDetailText(for: latest)
+                            }
+                            Spacer(minLength: AppTheme.spacingRegular)
+                            Image(systemName: "chevron.right")
+                                .font(AppTheme.outfitSemiboldCaption)
+                                .foregroundStyle(AppTheme.settingsTextMuted)
+                                .padding(.top, 2)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(latestExportAccessibilityLabel(for: latest))
+                    .accessibilityHint(String(localized: "DataPrivacy.importExport.latestBackup.accessibilityHint"))
+                }
+            } header: {
+                Text(String(localized: "DataPrivacy.importExport.section.export"))
+                    .font(AppTheme.warmPaperMeta)
+                    .foregroundStyle(AppTheme.settingsTextMuted)
+                    .textCase(nil)
+            }
+
+            Section {
+                Button {
                     showImportPicker = true
                 } label: {
                     settingsRow(label: String(localized: "DataPrivacy.importExport.import.json"))
@@ -147,17 +143,15 @@ struct ImportExportSettingsScreen: View {
                 .disabled(isExportingData || isImportingData)
 
                 Group {
-                    NavigationLink {
-                        BackupFolderImportFileListView { url in
-                            pendingImportURL = url
-                            showImportReview = true
-                        }
+                    Button {
+                        showBackupFolderFileList = true
                     } label: {
                         settingsRow(
                             label: String(localized: "DataPrivacy.importExport.import.fromBackupFolder"),
-                            showTrailingChevron: false
+                            showTrailingChevron: true
                         )
                     }
+                    .buttonStyle(.plain)
                 }
                 .disabled(scheduledFolderMissing)
                 .modifier(BackupFolderLinkHint(showDisabledHint: scheduledFolderMissing))
@@ -172,6 +166,14 @@ struct ImportExportSettingsScreen: View {
             .listRowBackground(AppTheme.settingsPaper.opacity(0.9))
             .scrollContentBackground(.hidden)
             .background(AppTheme.settingsBackground)
+            .navigationDestination(isPresented: $showBackupFolderFileList) {
+                BackupFolderImportFileListView { url in
+                    pendingImportURL = url
+                    importMode = .merge
+                    showBackupFolderFileList = false
+                    showImportReview = true
+                }
+            }
 
             JSONImportFileImporterAnchor(isPresented: $showImportPicker) { result in
                 switch result {
@@ -197,7 +199,8 @@ struct ImportExportSettingsScreen: View {
                         }
                     }
                     do {
-                        try ScheduledBackupPreferences.storeFolderBookmark(for: url)
+                        let folderForBookmark = try BackupFolderPickerResolution.resolvedFolderURL(userPicked: url)
+                        try ScheduledBackupPreferences.storeFolderBookmark(for: folderForBookmark)
                     } catch {
                         scheduledFolderError = String(localized: "DataPrivacy.scheduledBackup.folderError")
                         showScheduledFolderError = true
@@ -280,6 +283,38 @@ struct ImportExportSettingsScreen: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             }
         }
+        .confirmationDialog(
+            String(localized: "DataPrivacy.importExport.manualBackupDestination.title"),
+            isPresented: $showManualBackupDestinationDialog,
+            titleVisibility: .visible
+        ) {
+            Button(String(localized: "DataPrivacy.importExport.manualBackupDestination.saveToFolder")) {
+                exportJournalDataToBackupFolder()
+            }
+            Button(String(localized: "DataPrivacy.importExport.manualBackupDestination.share")) {
+                exportJournalDataShareOnly()
+            }
+            Button(String(localized: "Cancel"), role: .cancel) {}
+        }
+    }
+
+    private var scheduledBackupFolderSubtitle: String? {
+        guard ScheduledBackupPreferences.folderBookmarkData != nil,
+              let name = ScheduledBackupPreferences.folderDisplayName?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !name.isEmpty else {
+            return nil
+        }
+        return name
+    }
+
+    private func chooseBackupFolderAccessibilityLabel() -> String {
+        if let name = scheduledBackupFolderSubtitle {
+            return String(
+                format: String(localized: "DataPrivacy.scheduledBackup.chooseFolderAccessibilityFormat"),
+                name
+            )
+        }
+        return String(localized: "DataPrivacy.scheduledBackup.chooseFolder")
     }
 
     private var scheduledFolderMissing: Bool {
@@ -399,11 +434,27 @@ struct ImportExportSettingsScreen: View {
 
 private extension ImportExportSettingsScreen {
     func settingsRow(label: String, showTrailingChevron: Bool = true) -> some View {
-        HStack(spacing: AppTheme.spacingRegular) {
-            Text(label)
-                .font(AppTheme.warmPaperBody)
-                .foregroundStyle(AppTheme.settingsTextPrimary)
-            Spacer(minLength: AppTheme.spacingRegular)
+        settingsRow(title: label, subtitle: nil, showTrailingChevron: showTrailingChevron)
+    }
+
+    func settingsRow(
+        title: String,
+        subtitle: String?,
+        showTrailingChevron: Bool = true
+    ) -> some View {
+        HStack(alignment: .center, spacing: AppTheme.spacingRegular) {
+            VStack(alignment: .leading, spacing: AppTheme.spacingTight / 2) {
+                Text(title)
+                    .font(AppTheme.warmPaperBody)
+                    .foregroundStyle(AppTheme.settingsTextPrimary)
+                if let subtitle, !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(AppTheme.settingsTechnicalMeta)
+                        .foregroundStyle(AppTheme.settingsTextMuted)
+                        .lineLimit(2)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
             if showTrailingChevron {
                 Image(systemName: "chevron.right")
                     .font(AppTheme.outfitSemiboldCaption)
@@ -414,7 +465,7 @@ private extension ImportExportSettingsScreen {
         .contentShape(Rectangle())
     }
 
-    func exportJournalData() {
+    func exportJournalDataShareOnly() {
         guard !isExportingData else { return }
         isExportingData = true
         let container = modelContext.container
@@ -441,6 +492,71 @@ private extension ImportExportSettingsScreen {
                     BackupExportHistoryStore.record(
                         success: false,
                         kind: .manualShare,
+                        detail: nil
+                    )
+                    refreshHistory()
+                    exportErrorMessage = String(localized: "Unable to export your Grace Notes data right now.")
+                    showExportError = true
+                    isExportingData = false
+                }
+            }
+        }
+    }
+
+    func exportJournalDataToBackupFolder() {
+        guard !isExportingData else { return }
+        isExportingData = true
+        let container = modelContext.container
+        let exportService = dataExportService
+
+        Task {
+            do {
+                let fileURL = try await Task.detached(priority: .userInitiated) {
+                    let backgroundContext = ModelContext(container)
+                    return try exportService.exportArchiveFile(context: backgroundContext)
+                }.value
+
+                do {
+                    let written = try await Task.detached(priority: .userInitiated) {
+                        defer {
+                            try? FileManager.default.removeItem(at: fileURL)
+                        }
+                        return try ScheduledBackupPreferences.withFolderSecurityScopedAccess { folderURL in
+                            try BackupFolderJSONExport.copyTempFile(
+                                fileURL,
+                                into: folderURL,
+                                destinationFileName: fileURL.lastPathComponent,
+                                fileManager: .default
+                            )
+                        }
+                    }.value
+                    await MainActor.run {
+                        BackupExportHistoryStore.record(
+                            success: true,
+                            kind: .manualFolder,
+                            detail: written
+                        )
+                        refreshHistory()
+                        isExportingData = false
+                    }
+                } catch {
+                    await MainActor.run {
+                        BackupExportHistoryStore.record(
+                            success: false,
+                            kind: .manualFolder,
+                            detail: nil
+                        )
+                        refreshHistory()
+                        exportErrorMessage = String(localized: "Unable to export your Grace Notes data right now.")
+                        showExportError = true
+                        isExportingData = false
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    BackupExportHistoryStore.record(
+                        success: false,
+                        kind: .manualFolder,
                         detail: nil
                     )
                     refreshHistory()

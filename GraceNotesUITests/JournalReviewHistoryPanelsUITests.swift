@@ -18,7 +18,7 @@ final class JournalReviewHistoryPanelsUITests: XCTestCase {
         )
         app.tabBars.buttons["Past"].tap()
         XCTAssertTrue(
-            app.staticTexts["Days you wrote"].waitForExistence(timeout: 25),
+            app.graceNotesReflectionRhythmTitleReady.waitForExistence(timeout: 25),
             "Expected Past tab insights with wide rhythm seed."
         )
 

@@ -171,7 +171,7 @@ final class JournalUITests: XCTestCase {
 
         // Catalog key is "Reflection rhythm"; en value is "Days you wrote" (UI tests force English).
         XCTAssertTrue(
-            app.staticTexts["Days you wrote"].waitForExistence(timeout: 20),
+            app.graceNotesReflectionRhythmTitleReady.waitForExistence(timeout: 20),
             "Expected Past tab insights to finish loading (rhythm section title)."
         )
 
@@ -196,7 +196,7 @@ final class JournalUITests: XCTestCase {
         )
         doneButton.tap()
         XCTAssertTrue(
-            app.staticTexts["Days you wrote"].waitForExistence(timeout: 8),
+            app.graceNotesReflectionRhythmTitleReady.waitForExistence(timeout: 8),
             "Expected Past tab after dismissing the journal sheet."
         )
     }

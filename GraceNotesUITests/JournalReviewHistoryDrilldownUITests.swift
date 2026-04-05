@@ -20,7 +20,7 @@ final class JournalReviewHistoryDrilldownUITests: XCTestCase {
         app.tabBars.buttons["Past"].tap()
 
         XCTAssertTrue(
-            app.staticTexts["Days you wrote"].waitForExistence(timeout: 25),
+            app.graceNotesReflectionRhythmTitleReady.waitForExistence(timeout: 25),
             "Expected Past tab rhythm panel with English seed."
         )
         XCTAssertTrue(
@@ -28,12 +28,7 @@ final class JournalReviewHistoryDrilldownUITests: XCTestCase {
             "Expected rhythm data loaded (not loading skeleton) before chrome tap."
         )
 
-        let titleButton = app.buttons["Days you wrote"].firstMatch
-        if titleButton.waitForExistence(timeout: 3) {
-            titleButton.tap()
-        } else {
-            app.staticTexts["Days you wrote"].firstMatch.tap()
-        }
+        app.graceNotesReflectionRhythmTitleReady.tap()
 
         let done = app.buttons["ReviewHistoryJournalingDaysDrilldownDone"].firstMatch
         XCTAssertTrue(
@@ -43,7 +38,7 @@ final class JournalReviewHistoryDrilldownUITests: XCTestCase {
         done.tap()
 
         XCTAssertTrue(
-            app.staticTexts["Days you wrote"].waitForExistence(timeout: 5),
+            app.graceNotesReflectionRhythmTitleReady.waitForExistence(timeout: 5),
             "Expected Past list after dismissing drilldown."
         )
     }

@@ -45,7 +45,7 @@ final class JournalReviewRhythmScrollUITests: XCTestCase {
 
         // Catalog key is "Reflection rhythm"; en value is "Days you wrote" (UI tests force English).
         XCTAssertTrue(
-            app.staticTexts["Days you wrote"].waitForExistence(timeout: 25),
+            app.graceNotesReflectionRhythmTitleReady.waitForExistence(timeout: 25),
             "Expected Past tab insights with wide rhythm seed."
         )
 
