@@ -69,7 +69,7 @@ struct PastToolbarDoneButton: View {
         case .review:
             AppTheme.reviewAccent
         case .journal:
-            AppTheme.journalTextPrimary
+            AppTheme.accent
         }
     }
 }
