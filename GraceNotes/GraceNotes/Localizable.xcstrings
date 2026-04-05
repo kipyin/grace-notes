@@ -1939,7 +1939,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这份备份里记录的天数太多，无法一次性导入。"
+            "value": "这份备份包含的记录天数太多，无法一次导入。"
           }
         }
       }
@@ -1955,7 +1955,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "新写入 %lld 天，覆盖 %lld 天已有内容。"
+            "value": "新增 %lld 天，覆盖 %lld 天原有内容。"
           }
         }
       }
@@ -1987,7 +1987,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "保存备份副本"
+            "value": "保存一份备份"
           }
         }
       }
@@ -2099,7 +2099,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "最近备份"
+            "value": "最近一次备份"
           }
         }
       }
@@ -2131,7 +2131,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "保存备份副本"
+            "value": "保存一份备份"
           }
         }
       }
@@ -2147,7 +2147,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "存到备份文件夹"
+            "value": "保存到备份文件夹"
           }
         }
       }
@@ -2211,7 +2211,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "通过共享发送"
+            "value": "共享导出"
           }
         }
       }
@@ -2227,7 +2227,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已存到备份文件夹"
+            "value": "保存到备份文件夹"
           }
         }
       }
@@ -2659,7 +2659,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本机有、备份里没有的日子会保留。若同一天在本机和备份里内容不一致，需要你选保留哪一边。"
+            "value": "本机独有的记录会保留。要是同一天在本机和备份里内容不同，你可以选保留哪一边。"
           }
         }
       }
@@ -2675,7 +2675,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "会删掉备份里未包含的本机记录，再按备份写入每一天。"
+            "value": "会删掉本机里不在备份中的记录，再按备份内容写入。"
           }
         }
       }
@@ -2707,7 +2707,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "设备与文件中有 1 天的内容不一致。请选择如何处理。"
+            "value": "设备和备份中有 1 天的内容不一致。请选择怎么处理。"
           }
         }
       }
@@ -2723,7 +2723,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "设备与文件中有 %lld 天的内容不一致。请选择如何处理。"
+            "value": "设备和备份中有 %lld 天的内容不一致。请选择怎么处理。"
           }
         }
       }
@@ -2739,7 +2739,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "发生内容冲突，以备份为准"
+            "value": "冲突时以备份为准"
           }
         }
       }
@@ -2755,7 +2755,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "发生内容冲突，保留本机内容"
+            "value": "冲突时保留本机内容"
           }
         }
       }
