@@ -63,13 +63,12 @@ enum ScheduledBackupRunner {
         formatter.timeZone = TimeZone(secondsFromGMT: 0)
         formatter.dateFormat = "yyyyMMdd-HHmmss"
         let name = "grace-notes-scheduled-\(formatter.string(from: .now)).json"
-        let destination = folderURL.appendingPathComponent(name, isDirectory: false)
-
-        if FileManager.default.fileExists(atPath: destination.path) {
-            try FileManager.default.removeItem(at: destination)
-        }
-        try FileManager.default.copyItem(at: tempFile, to: destination)
-        return name
+        return try BackupFolderJSONExport.copyTempFile(
+            tempFile,
+            into: folderURL,
+            destinationFileName: name,
+            fileManager: .default
+        )
     }
 
     private enum ExportToTempResult {

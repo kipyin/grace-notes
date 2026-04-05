@@ -3,6 +3,7 @@ import Foundation
 struct BackupExportHistoryEntry: Codable, Identifiable, Equatable {
     enum Kind: String, Codable {
         case manualShare
+        case manualFolder
         case scheduledFolder
     }
 

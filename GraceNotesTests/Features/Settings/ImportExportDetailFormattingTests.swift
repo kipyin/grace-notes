@@ -50,4 +50,18 @@ final class ImportExportDetailFormattingTests: XCTestCase {
         XCTAssertTrue(plain.hasPrefix(parts.kindLabel))
         XCTAssertTrue(plain.contains(parts.statusLabel))
     }
+
+    func test_exportHistoryLineParts_manualFolder_kindMatchesLocalizationKeyPath() {
+        let entry = BackupExportHistoryEntry(
+            id: UUID(),
+            finishedAt: Date(),
+            success: true,
+            kind: .manualFolder,
+            detail: "grace-notes-export-test.json"
+        )
+        let parts = ImportExportTechnicalDetailFormatting.exportHistoryLineParts(for: entry)
+        let plain = ImportExportTechnicalDetailFormatting.exportHistoryPlainLabel(for: entry)
+        XCTAssertEqual(parts.kindLabel, String(localized: "DataPrivacy.importExport.history.kind.manualFolder"))
+        XCTAssertTrue(plain.contains("grace-notes-export-test.json"))
+    }
 }
