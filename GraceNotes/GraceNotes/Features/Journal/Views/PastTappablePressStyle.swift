@@ -26,7 +26,14 @@ enum PastToolbarDoneAppearance {
     case journal
 }
 
-/// ``Done`` in navigation bars for Past-related sheets: Warm Paper + semantic tint; light press fade and haptic.
+/// Visual symbol for toolbar dismiss controls; accessibility keeps the localized “Done” label.
+enum PastToolbarDoneSymbol: String {
+    case checkmark
+    case xmark
+}
+
+/// Symbol-based toolbar control styling for Past-related sheets: semantic tint, light press fade and haptic.
+/// VoiceOver uses the localized “Done” label.
 struct PastToolbarDoneButtonStyle: ButtonStyle {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -44,16 +51,32 @@ struct PastToolbarDoneButtonStyle: ButtonStyle {
 struct PastToolbarDoneButton: View {
     let action: () -> Void
     var appearance: PastToolbarDoneAppearance = .review
+    /// When `nil`, icon follows ``appearance``: ``PastToolbarDoneAppearance/review`` is `.xmark`,
+    /// ``PastToolbarDoneAppearance/journal`` is `.checkmark`.
+    var symbol: PastToolbarDoneSymbol?
     var accessibilityIdentifier: String?
 
     var body: some View {
         Button(action: action) {
-            Text(String(localized: "Done"))
+            Image(systemName: resolvedSymbol.rawValue)
                 .font(AppTheme.warmPaperBody.weight(.semibold))
                 .foregroundStyle(foreground)
         }
         .buttonStyle(PastToolbarDoneButtonStyle())
+        .accessibilityLabel(String(localized: "Done"))
         .optionalToolbarDoneAccessibilityIdentifier(accessibilityIdentifier)
+    }
+
+    private var resolvedSymbol: PastToolbarDoneSymbol {
+        if let symbol {
+            return symbol
+        }
+        switch appearance {
+        case .review:
+            return .xmark
+        case .journal:
+            return .checkmark
+        }
     }
 
     private var foreground: Color {
@@ -61,7 +84,7 @@ struct PastToolbarDoneButton: View {
         case .review:
             AppTheme.reviewAccent
         case .journal:
-            AppTheme.journalTextPrimary
+            AppTheme.accent
         }
     }
 }
