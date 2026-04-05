@@ -42,6 +42,7 @@ __pycache__/
 
 # Git worktrees (local parallel checkouts)
 .worktrees/
+.worktree/
 
 # Local secrets (do not commit real keys)
 GraceNotes/Secrets.plist
