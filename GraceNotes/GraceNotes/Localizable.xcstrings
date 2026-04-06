@@ -194,7 +194,8 @@
         }
       }
     },
-    "review.insights.countWithTheme": {
+    "sharing.numberedLine": {
+      "comment": "Generic numbered line for share cards and similar lists. %1$lld is the line number; %2$@ is the line text.",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -210,7 +211,7 @@
         }
       }
     },
-    "journal.prompts.nextStep": {
+    "review.prompts.nextStep": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4692,7 +4693,7 @@
         }
       }
     },
-    "review.prompts.gratefulFor": {
+    "journal.prompts.gratefulFor": {
       "localizations": {
         "en": {
           "stringUnit": {

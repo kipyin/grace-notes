@@ -65,7 +65,11 @@ struct JournalShareCardView: View {
     }
 
     private func numberedLineText(index: Int, item: String) -> String {
-        let format = String(localized: "review.insights.countWithTheme")
+        let format = String(
+            localized: "sharing.numberedLine",
+            defaultValue: "%1$lld. %2$@",
+            comment: "Generic numbered line format used for share-card list items."
+        )
         return String(format: format, locale: Locale.current, Int64(index + 1), item)
     }
 }

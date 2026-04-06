@@ -702,7 +702,7 @@ struct ReviewNarrativeSummaryCard: View {
     }
 
     private func actionPanel(body: String) -> some View {
-        ReviewInsightInsetPanel(title: String(localized: "journal.prompts.nextStep"), panelChrome: .standard) {
+        ReviewInsightInsetPanel(title: String(localized: "review.prompts.nextStep"), panelChrome: .standard) {
             panelParagraph(body, lineSpacing: 4)
         }
     }
@@ -863,7 +863,7 @@ private struct NarrativeInsightsLoadingSkeleton: View {
                     lineSpecs: [(1.0, 12), (1.0, 12), (0.72, 12)]
                 )
                 skeletonInsetPanel(
-                    title: String(localized: "journal.prompts.nextStep"),
+                    title: String(localized: "review.prompts.nextStep"),
                     panelChrome: .standard,
                     lineSpecs: [(1.0, 11), (0.78, 11)]
                 )

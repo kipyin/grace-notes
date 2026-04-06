@@ -741,7 +741,7 @@ private extension JournalScreen {
             guidanceMessageSecondary: onboardingPresentation.sectionGuidance(for: .gratitude)?
                 .messageSecondary,
             items: viewModel.gratitudes,
-            placeholder: String(localized: "review.prompts.gratefulFor"),
+            placeholder: String(localized: "journal.prompts.gratefulFor"),
             slotCount: JournalViewModel.slotCount,
             inputAccessibilityIdentifier: "Gratitude 1",
             entryAccessibilityIdentifierPrefix: ProcessInfo.graceNotesIsRunningUITests
