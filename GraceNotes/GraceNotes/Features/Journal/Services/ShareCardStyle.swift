@@ -1,9 +1,15 @@
 import SwiftUI
 
-/// Named presets for the exported share card bitmap (maps to `AppTheme` tokens).
-///
-/// Three typographic personas: Grace Notes default (warm serif journal), editorial magazine
-/// (Outfit headlines + IBM Plex Serif body), and embellished (Spectral on the sunrise gradient).
+private extension Color {
+    init(hex: UInt) {
+        let red = Double((hex >> 16) & 0xFF) / 255
+        let green = Double((hex >> 8) & 0xFF) / 255
+        let blue = Double(hex & 0xFF) / 255
+        self.init(red: red, green: green, blue: blue)
+    }
+}
+
+/// Named presets for the exported share card bitmap (Figma Make: grace-notes / editorial / embellished).
 enum ShareCardStyle: String, CaseIterable, Identifiable, Sendable {
     case paperWarm
     case editorialMist
@@ -28,12 +34,16 @@ enum ShareCardStyle: String, CaseIterable, Identifiable, Sendable {
     func cardBackgroundLayer() -> some View {
         switch self {
         case .paperWarm:
-            AppTheme.paper
+            Color(hex: 0xF5EDE4)
         case .editorialMist:
-            AppTheme.background
+            Color(hex: 0xFAFAF9)
         case .sunriseGradient:
             LinearGradient(
-                colors: [AppTheme.fullFifteenBackgroundStart, AppTheme.fullFifteenBackgroundEnd],
+                colors: [
+                    Color(hex: 0xF8F4F0),
+                    Color(hex: 0xFBF7F3),
+                    Color(hex: 0xF5EEE8)
+                ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
@@ -43,134 +53,154 @@ enum ShareCardStyle: String, CaseIterable, Identifiable, Sendable {
     /// Primary ink for body copy (list items and prose).
     var bodyInk: Color {
         switch self {
-        case .paperWarm, .editorialMist:
-            AppTheme.textPrimary
+        case .paperWarm:
+            Color(hex: 0x2B2520)
+        case .editorialMist:
+            Color(hex: 0x1A1A1A)
         case .sunriseGradient:
-            // Slightly darker than `fullFifteenText` for contrast on warm gradient stops (WCAG AA).
-            Color(red: 0.39, green: 0.25, blue: 0.15)
+            Color(hex: 0x1F1B18)
         }
     }
 
     /// Section titles (below the date row).
     var sectionTitleInk: Color {
-        switch self {
-        case .paperWarm:
-            AppTheme.textPrimary
-        case .editorialMist:
-            AppTheme.textMuted
-        case .sunriseGradient:
-            Color(red: 0.39, green: 0.25, blue: 0.15)
-        }
-    }
-
-    /// Date row.
-    var dateFont: Font {
-        switch self {
-        case .paperWarm:
-            AppTheme.warmPaperHeader
-        case .editorialMist:
-            Font.custom("Outfit-SemiBold", size: 20, relativeTo: .title3)
-        case .sunriseGradient:
-            Font.custom("Spectral-SemiBold", size: 22, relativeTo: .title3)
-        }
-    }
-
-    /// Gratitudes / needs / people / reading / reflections headers.
-    var sectionTitleFont: Font {
-        switch self {
-        case .paperWarm:
-            Font.custom("PlayfairDisplay-Regular", size: 17, relativeTo: .headline).weight(.semibold)
-        case .editorialMist:
-            AppTheme.outfitSemiboldSubheadline
-        case .sunriseGradient:
-            Font.custom("Spectral-SemiBold", size: 18, relativeTo: .headline)
-        }
-    }
-
-    /// Body lines (list items and prose).
-    var bodyFont: Font {
-        switch self {
-        case .paperWarm:
-            AppTheme.warmPaperBody
-        case .editorialMist:
-            Font.custom("IBMPlexSerif-Regular", size: 17, relativeTo: .body)
-        case .sunriseGradient:
-            Font.custom("Spectral-Regular", size: 17, relativeTo: .body)
-        }
-    }
-
-    /// Footer watermark, stub hints, and secondary metadata (composer may override footer font).
-    var metaFont: Font {
-        switch self {
-        case .paperWarm:
-            AppTheme.warmPaperMeta
-        case .editorialMist:
-            Font.custom("IBMPlexSerif-Regular", size: 15, relativeTo: .footnote)
-        case .sunriseGradient:
-            Font.custom("Spectral-Regular", size: 15, relativeTo: .footnote)
-        }
+        bodyInk
     }
 
     var footerInk: Color {
         switch self {
         case .paperWarm:
-            AppTheme.textPrimary.opacity(0.55)
+            Color(hex: 0x7A6F68)
         case .editorialMist:
-            AppTheme.textMuted.opacity(0.72)
+            Color(hex: 0x737373)
         case .sunriseGradient:
-            AppTheme.fullFifteenMetaText.opacity(0.92)
+            Color(hex: 0x9B8A7E)
         }
     }
 
     var stubInk: Color {
+        footerInk
+    }
+
+    /// Muted ink for section include/exclude control (× / +).
+    var sectionControlInk: Color {
+        footerInk
+    }
+
+    var completionChipLabelFont: Font {
+        Font.system(size: 11, weight: .medium, design: .default)
+    }
+
+    var completionChipTextColor: Color {
         switch self {
-        case .paperWarm, .editorialMist:
-            AppTheme.textMuted
+        case .paperWarm:
+            Color(hex: 0x7A6F68)
+        case .editorialMist:
+            Color(hex: 0x737373)
         case .sunriseGradient:
-            AppTheme.fullFifteenMetaText.opacity(0.95)
+            Color(hex: 0x9B8A7E)
         }
     }
 
-    /// Muted ink for section include/exclude control (xmark / plus).
-    var sectionControlInk: Color {
+    @ViewBuilder
+    func completionChipBackgroundView() -> some View {
         switch self {
-        case .paperWarm, .editorialMist:
-            AppTheme.textMuted
+        case .paperWarm:
+            Color(hex: 0xE8DED2)
+        case .editorialMist:
+            Color(hex: 0xE5E5E5)
         case .sunriseGradient:
-            AppTheme.fullFifteenMetaText.opacity(0.82)
+            LinearGradient(
+                colors: [Color(hex: 0xE8DDD4), Color(hex: 0xEDE3DA)],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
         }
+    }
+
+    var sectionDividerColor: Color {
+        Color(hex: 0xE5E5E5)
+    }
+
+    var redactionBarColor: Color {
+        Color(hex: 0xD4CEC7)
     }
 
     // MARK: - Chrome
 
     var showsTopAccentRule: Bool {
-        self == .paperWarm
+        true
     }
 
     var showsAccentRuleUnderDate: Bool {
-        self == .sunriseGradient
+        false
     }
 
     var showsSectionDividers: Bool {
         self == .editorialMist
     }
 
-    var showsPaperShadow: Bool {
-        self == .paperWarm
+    func topAccentHeight() -> CGFloat {
+        3
     }
 
-    func topAccentOpacity() -> Double {
+    func topAccentGradient() -> LinearGradient {
         switch self {
-        case .paperWarm: 0.85
-        case .sunriseGradient: 0.9
-        case .editorialMist: 0.85
+        case .paperWarm:
+            LinearGradient(
+                colors: [Color(hex: 0xD97757), Color(hex: 0xE88B6F)],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        case .editorialMist:
+            LinearGradient(
+                colors: [Color(hex: 0xB8968E), Color(hex: 0xC4A59E)],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        case .sunriseGradient:
+            LinearGradient(
+                colors: [
+                    Color(hex: 0xC17B5B),
+                    Color(hex: 0xD4916F),
+                    Color(hex: 0xC17B5B)
+                ],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
         }
     }
 
-    func topAccentHeight() -> CGFloat {
+    var cardShadowColor: Color {
         switch self {
-        case .sunriseGradient: 6
-        default: 4
+        case .paperWarm:
+            Color.black.opacity(0.12)
+        case .editorialMist:
+            Color.black.opacity(0.08)
+        case .sunriseGradient:
+            Color.black.opacity(0.14)
+        }
+    }
+
+    var cardShadowRadius: CGFloat {
+        switch self {
+        case .paperWarm:
+            10
+        case .editorialMist:
+            6
+        case .sunriseGradient:
+            14
+        }
+    }
+
+    var cardShadowOffsetY: CGFloat {
+        switch self {
+        case .paperWarm:
+            4
+        case .editorialMist:
+            2
+        case .sunriseGradient:
+            6
         }
     }
 }

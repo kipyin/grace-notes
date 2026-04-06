@@ -7,8 +7,10 @@ struct JournalShareCardView: View {
     var onSectionToggle: ((ShareSectionKind) -> Void)?
     private let usesFixedExportWidth: Bool
 
-    private static let cardWidth: CGFloat = 400
+    private static let cardWidth: CGFloat = 448
     private static let padding: CGFloat = 24
+
+    private var script: ShareTypographyScript { payload.typographyScript }
 
     init(
         payload: ShareRenderPayload,
@@ -23,7 +25,8 @@ struct JournalShareCardView: View {
     }
 
     var body: some View {
-        Group {
+        let style = payload.style
+        return Group {
             if usesFixedExportWidth {
                 cardColumn
                     .frame(width: Self.cardWidth)
@@ -34,38 +37,42 @@ struct JournalShareCardView: View {
         }
         .padding(JournalShareCardView.padding)
         .background {
-            payload.style.cardBackgroundLayer()
+            style.cardBackgroundLayer()
         }
-        .shadow(
-            color: payload.style.showsPaperShadow ? AppTheme.border.opacity(0.42) : .clear,
-            radius: payload.style.showsPaperShadow ? 10 : 0,
-            y: payload.style.showsPaperShadow ? 4 : 0
-        )
+        .shadow(color: style.cardShadowColor, radius: style.cardShadowRadius, x: 0, y: style.cardShadowOffsetY)
         .preferredColorScheme(.light)
         .environment(\.todayJournalPalette, .standard)
     }
 
     private var cardColumn: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: 0) {
             if payload.style.showsTopAccentRule {
-                accentRule(height: payload.style.topAccentHeight())
+                topAccentBar
+                    .padding(.bottom, 24)
             }
 
             dateBlock
+                .padding(.bottom, 32)
 
-            ForEach(Array(payload.sections.enumerated()), id: \.offset) { index, section in
-                if payload.style.showsSectionDividers, index > 0 {
-                    Rectangle()
-                        .fill(AppTheme.border.opacity(0.55))
-                        .frame(height: 1)
+            VStack(alignment: .leading, spacing: 24) {
+                ForEach(Array(payload.sections.enumerated()), id: \.offset) { index, section in
+                    if payload.style.showsSectionDividers, index > 0 {
+                        Rectangle()
+                            .fill(payload.style.sectionDividerColor)
+                            .frame(height: 1)
+                            .frame(maxWidth: .infinity)
+                    }
+                    sectionBlock(section)
                 }
-                sectionBlock(section)
             }
 
             if payload.showWatermark {
                 Text(String(localized: "sharing.card.footer"))
-                    .font(AppTheme.warmPaperMeta)
+                    .font(payload.style.metaFont(for: script))
                     .foregroundStyle(payload.style.footerInk)
+                    .frame(maxWidth: .infinity)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 40)
             }
         }
     }
@@ -73,33 +80,24 @@ struct JournalShareCardView: View {
     @ViewBuilder
     private var dateBlock: some View {
         let style = payload.style
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline, spacing: 12) {
-                Text(payload.dateFormatted)
-                    .font(style.dateFont)
-                    .foregroundStyle(style.bodyInk)
-                    .fixedSize(horizontal: false, vertical: true)
-                if payload.showCompletionBadge {
-                    Spacer(minLength: 8)
-                    completionBadge
-                }
-            }
-            if style.showsAccentRuleUnderDate {
-                accentRule(height: style.topAccentHeight())
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
+            Text(payload.dateFormatted)
+                .font(style.dateFont(for: script))
+                .tracking(style.dateTracking(for: script) ?? 0)
+                .foregroundStyle(style.bodyInk)
+                .fixedSize(horizontal: false, vertical: true)
+            if payload.showCompletionBadge {
+                Spacer(minLength: 8)
+                ShareCompletionChip(completionLevel: payload.completionLevel, style: style)
             }
         }
     }
 
-    private var completionBadge: some View {
-        JournalCompletionPill(completionLevel: payload.completionLevel, celebratingLevel: nil)
-            .scaleEffect(0.92)
-            .accessibilityLabel(String(localized: "sharing.a11y.completionBadge"))
-    }
-
-    private func accentRule(height: CGFloat) -> some View {
-        RoundedRectangle(cornerRadius: 2, style: .continuous)
-            .fill(AppTheme.accent.opacity(payload.style.topAccentOpacity()))
-            .frame(height: height)
+    private var topAccentBar: some View {
+        Capsule(style: .continuous)
+            .fill(payload.style.topAccentGradient())
+            .frame(height: payload.style.topAccentHeight())
+            .frame(maxWidth: .infinity)
     }
 
     @ViewBuilder
@@ -115,18 +113,20 @@ struct JournalShareCardView: View {
     @ViewBuilder
     private func sectionHeader(_ section: ShareSectionRenderModel) -> some View {
         let style = payload.style
+        let titleCase = style.sectionTitleTextCase(for: script)
         if let onSectionToggle {
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 Text(section.title)
-                    .font(style.sectionTitleFont)
+                    .font(style.sectionTitleFont(for: script))
                     .foregroundStyle(style.sectionTitleInk)
+                    .textCase(titleCase)
                     .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 8)
                 Button {
                     onSectionToggle(section.kind)
                 } label: {
-                    Image(systemName: section.isPreviewStub ? "plus" : "xmark")
-                        .font(.caption.weight(.regular))
+                    Text(section.isPreviewStub ? "+" : "×")
+                        .font(.system(size: 13, weight: .regular))
                         .foregroundStyle(style.sectionControlInk)
                         .frame(minWidth: 44, minHeight: 44)
                         .contentShape(Rectangle())
@@ -140,8 +140,9 @@ struct JournalShareCardView: View {
             }
         } else {
             Text(section.title)
-                .font(style.sectionTitleFont)
+                .font(style.sectionTitleFont(for: script))
                 .foregroundStyle(style.sectionTitleInk)
+                .textCase(titleCase)
         }
     }
 
@@ -155,7 +156,8 @@ struct JournalShareCardView: View {
                     onLineTap(identity)
                 } label: {
                     Text(display)
-                        .font(payload.style.bodyFont)
+                        .font(payload.style.bodyFont(for: script))
+                        .lineSpacing(3)
                         .foregroundStyle(ink)
                         .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -165,7 +167,8 @@ struct JournalShareCardView: View {
                 .accessibilityHint(String(localized: "sharing.a11y.lineTapToHide"))
             } else {
                 Text(display)
-                    .font(payload.style.bodyFont)
+                    .font(payload.style.bodyFont(for: script))
+                    .lineSpacing(3)
                     .foregroundStyle(ink)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -184,7 +187,7 @@ struct JournalShareCardView: View {
             }
         case .previewStub(let message):
             Text(message)
-                .font(payload.style.metaFont)
+                .font(payload.style.metaFont(for: script))
                 .italic()
                 .foregroundStyle(payload.style.stubInk)
                 .fixedSize(horizontal: false, vertical: true)
@@ -194,7 +197,7 @@ struct JournalShareCardView: View {
 
     private var redactionBar: some View {
         RoundedRectangle(cornerRadius: 4, style: .continuous)
-            .fill(AppTheme.textMuted.opacity(0.35))
+            .fill(payload.style.redactionBarColor)
             .frame(height: 18)
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityHidden(onLineTap == nil)

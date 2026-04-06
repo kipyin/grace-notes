@@ -12,12 +12,18 @@
 	</array>
 	<key>UIAppFonts</key>
 	<array>
-		<string>Fonts/PlayfairDisplay-Variable.ttf</string>
-		<string>Fonts/SourceSerif4-Variable.ttf</string>
-		<string>Fonts/Outfit-Regular.ttf</string>
-		<string>Fonts/Outfit-SemiBold.ttf</string>
+		<string>Fonts/BebasNeue-Regular.ttf</string>
+		<string>Fonts/BodoniModa-Variable.ttf</string>
+		<string>Fonts/CormorantGaramond-Variable.ttf</string>
+		<string>Fonts/CrimsonText-Regular.ttf</string>
+		<string>Fonts/CrimsonText-SemiBold.ttf</string>
 		<string>Fonts/IBMPlexSerif-Regular.ttf</string>
 		<string>Fonts/IBMPlexSerif-SemiBold.ttf</string>
+		<string>Fonts/Inter-Variable.ttf</string>
+		<string>Fonts/Outfit-Regular.ttf</string>
+		<string>Fonts/Outfit-SemiBold.ttf</string>
+		<string>Fonts/PlayfairDisplay-Variable.ttf</string>
+		<string>Fonts/SourceSerif4-Variable.ttf</string>
 		<string>Fonts/Spectral-Regular.ttf</string>
 		<string>Fonts/Spectral-SemiBold.ttf</string>
 	</array>

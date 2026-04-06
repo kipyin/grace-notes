@@ -142,6 +142,7 @@ struct ShareSectionRenderModel: Equatable, Sendable {
 
 struct ShareRenderPayload: Equatable, Sendable {
     let style: ShareCardStyle
+    let typographyScript: ShareTypographyScript
     let dateFormatted: String
     let completionLevel: JournalCompletionLevel
     let showWatermark: Bool
@@ -176,6 +177,7 @@ enum ShareRenderPayloadBuilder {
         )
         return ShareRenderPayload(
             style: draft.style,
+            typographyScript: ShareTypographyScript.current(),
             dateFormatted: payload.dateFormatted,
             completionLevel: payload.completionLevel,
             showWatermark: draft.showWatermark,
