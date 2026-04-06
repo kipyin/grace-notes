@@ -5996,6 +5996,7 @@
       }
     },
     "Settings.advanced.accent.ocean": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -6012,6 +6013,7 @@
       }
     },
     "Settings.advanced.accent.plum": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {

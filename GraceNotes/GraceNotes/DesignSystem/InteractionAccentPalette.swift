@@ -21,37 +21,22 @@ struct InteractionAccentPalette: Equatable {
         activeEditingAccentStrong: Color(hex: 0x7B4835)
     )
 
+    /// Deep green accent; harmonizes with completion tones without replacing tier semantics.
+    static let forest = InteractionAccentPalette(
+        accent: Color(hex: 0x4F6B52),
+        accentText: Color(hex: 0x344936),
+        onAccent: Color(hex: 0x121A14),
+        reviewAccent: Color.adaptive(lightHex: 0x4F6B52, darkHex: 0x8BA88E),
+        activeEditingAccent: Color(hex: 0x435A46),
+        activeEditingAccentStrong: Color(hex: 0x2C3D2E)
+    )
+
     static func resolve(_ preference: AccentPreference) -> InteractionAccentPalette {
         switch preference {
         case .terracotta:
             return .terracotta
-        case .ocean:
-            return InteractionAccentPalette(
-                accent: Color(hex: 0x2F8F8A),
-                accentText: Color(hex: 0x1D5C58),
-                onAccent: Color(hex: 0x101A1A),
-                reviewAccent: Color.adaptive(lightHex: 0x2F8F8A, darkHex: 0x5EC4BE),
-                activeEditingAccent: Color(hex: 0x287A76),
-                activeEditingAccentStrong: Color(hex: 0x1A524F)
-            )
-        case .plum:
-            return InteractionAccentPalette(
-                accent: Color(hex: 0x8E5B8F),
-                accentText: Color(hex: 0x5C3A5D),
-                onAccent: Color(hex: 0x1A1418),
-                reviewAccent: Color.adaptive(lightHex: 0x8E5B8F, darkHex: 0xC49BC5),
-                activeEditingAccent: Color(hex: 0x7A4A7B),
-                activeEditingAccentStrong: Color(hex: 0x4F324F)
-            )
         case .forest:
-            return InteractionAccentPalette(
-                accent: Color(hex: 0x4F6B52),
-                accentText: Color(hex: 0x344936),
-                onAccent: Color(hex: 0x121A14),
-                reviewAccent: Color.adaptive(lightHex: 0x4F6B52, darkHex: 0x8BA88E),
-                activeEditingAccent: Color(hex: 0x435A46),
-                activeEditingAccentStrong: Color(hex: 0x2C3D2E)
-            )
+            return .forest
         }
     }
 }

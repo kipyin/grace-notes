@@ -6,7 +6,7 @@ Marketing version **0.5.0** ships as successive **builds** (TestFlight / App Sto
 
 ### Added
 
-- Settings (**#215**): **Advanced** includes a **Highlight color** control with presets (Terracotta, Ocean, Plum, Forest) for tab bar tint, toggles, onboarding chips, and Past/review chrome; the choice persists across launches. Journal paper backgrounds and completion tier semantics are unchanged.
+- Settings (**#215**): **Advanced** includes a **Highlight color** control with **Terracotta** and **Forest** presets for tab bar tint, toggles, onboarding chips, and Past/review chrome; the choice persists across launches (legacy Ocean/Plum values migrate to Terracotta). Journal paper backgrounds and completion tier semantics are unchanged.
 - Accent presets now drive **primary and secondary CTAs** consistently (onboarding **Begin**, Settings reminder actions, **Open Settings**, App Tour **Next**/**Done**, journal **Share** toolbar tint) via `InteractionAccentPalette` roles.
 
 ### Build 9 — 2026-04-04
