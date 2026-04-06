@@ -80,7 +80,7 @@ struct JournalShareComposerView: View {
                 next.toggleSectionVisibility(kind)
                 draft = next
             },
-            usesFixedExportWidth: false
+            usesFixedExportWidth: true
         )
         .accessibilityElement(children: .contain)
         .accessibilityLabel(String(localized: "sharing.composer.previewA11y"))

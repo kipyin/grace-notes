@@ -161,7 +161,7 @@ struct JournalShareCardView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(String(localized: "sharing.a11y.lineVisible"))
+                .accessibilityLabel(display)
                 .accessibilityHint(String(localized: "sharing.a11y.lineTapToHide"))
             } else {
                 Text(display)

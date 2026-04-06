@@ -4643,8 +4643,8 @@
     },
     "sharing.stub.excluded": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Not included. Tap the section header to add it back." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未包含。点按栏目标题可重新加入。" } }
+        "en": { "stringUnit": { "state": "translated", "value": "Not included — use the control next to the section title to restore." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未包含 — 点按栏目标题旁的按钮即可恢复。" } }
       }
     },
     "sharing.composer.previewA11y": {
@@ -4657,12 +4657,6 @@
       "localizations": {
         "en": { "stringUnit": { "state": "translated", "value": "Grace Notes" } },
         "zh-Hans": { "stringUnit": { "state": "translated", "value": "感恩记" } }
-      }
-    },
-    "sharing.a11y.lineVisible": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Visible line" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "可见行" } }
       }
     },
     "sharing.a11y.lineTapToHide": {

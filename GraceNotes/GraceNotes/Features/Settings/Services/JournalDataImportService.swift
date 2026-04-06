@@ -97,6 +97,30 @@ struct JournalDataImportService {
             }
         }
 
+        let counts = try applyImportEntries(
+            entries,
+            skipDays: skipDays,
+            repository: repository,
+            context: context,
+            calendar: calendar
+        )
+
+        try context.save()
+        let processed = entries.filter { !skipDays.contains(calendar.startOfDay(for: $0.entryDate)) }.count
+        return JournalDataImportSummary(
+            processedDayCount: processed,
+            insertedCount: counts.inserted,
+            updatedCount: counts.updated
+        )
+    }
+
+    private func applyImportEntries(
+        _ entries: [JournalDataExportEntry],
+        skipDays: Set<Date>,
+        repository: JournalRepository,
+        context: ModelContext,
+        calendar: Calendar
+    ) throws -> (inserted: Int, updated: Int) {
         var inserted = 0
         var updated = 0
         for export in entries {
@@ -135,14 +159,7 @@ struct JournalDataImportService {
                 inserted += 1
             }
         }
-
-        try context.save()
-        let processed = entries.filter { !skipDays.contains(calendar.startOfDay(for: $0.entryDate)) }.count
-        return JournalDataImportSummary(
-            processedDayCount: processed,
-            insertedCount: inserted,
-            updatedCount: updated
-        )
+        return (inserted, updated)
     }
 
     /// Day starts (start-of-day) where merge mode would need a conflict decision.

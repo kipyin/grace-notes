@@ -260,7 +260,10 @@ struct JournalScreen: View {
                 onDismiss: { showShareComposer = false },
                 onShare: { image in
                     showShareComposer = false
-                    shareableImage = ShareableImage(image: image)
+                    Task { @MainActor in
+                        await Task.yield()
+                        shareableImage = ShareableImage(image: image)
+                    }
                 }
             )
         }
@@ -292,6 +295,9 @@ struct JournalScreen: View {
             focusOnboardingStepIfNeeded(newStep)
         }
         .onChange(of: journalProgressFingerprint) { _, _ in
+            if showShareComposer {
+                showShareComposer = false
+            }
             handleJournalProgressChange()
         }
         .onChange(of: scenePhase) { oldPhase, newPhase in
@@ -1153,6 +1159,9 @@ private extension JournalScreen {
     private func refreshTodayAfterSessionResumeIfNeeded() {
         guard entryDate == nil else { return }
         guard hasCompletedInitialJournalLoadTask else { return }
+        if showShareComposer {
+            showShareComposer = false
+        }
         viewModel.refreshTodayIfStale(using: modelContext)
         applyJournalScreenLoadFollowUps()
     }

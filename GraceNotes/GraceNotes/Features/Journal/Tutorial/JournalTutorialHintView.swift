@@ -59,7 +59,6 @@ struct JournalTutorialHintView: View {
         .accessibilityElement(children: .combine)
     }
 
-    // swiftlint:disable line_length
     private var message: String {
         switch kind {
         case .sprout:
@@ -72,5 +71,4 @@ struct JournalTutorialHintView: View {
             )
         }
     }
-    // swiftlint:enable line_length
 }

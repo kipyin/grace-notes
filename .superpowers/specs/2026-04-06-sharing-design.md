@@ -21,7 +21,7 @@ Exactly three presets — `paperWarm`, `editorialMist`, `sunriseGradient` — cl
 ## Composer IA
 
 - Top: Cancel + **Share** (primary).
-- Scrollable **live card preview**: interactive lines (redaction), **section headers** (title + eye / eye.slash), **stub rows** for excluded sections (preview only).
+- Scrollable **live card preview**: interactive lines (redaction), **section headers** (title + plus / xmark include-exclude control), **stub rows** for excluded sections (preview only).
 - Style chips + watermark toggle + completion badge toggle + short hints for tap-to-redact and sections.
 
 ## Sections
@@ -30,7 +30,7 @@ Exactly three presets — `paperWarm`, `editorialMist`, `sunriseGradient` — cl
 
 ## Layout
 
-- **Preview vs export width:** `usesFixedExportWidth` — flexible in composer; fixed width in `JournalShareRenderer` for stable bitmap dimensions.
+- **Preview vs export width:** Composer preview and `JournalShareRenderer` both use the same fixed card width (`usesFixedExportWidth: true`) so line wrapping matches the exported PNG (WYSIWYG).
 
 ## Redaction bar (v1)
 

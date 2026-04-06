@@ -3,7 +3,7 @@ import SwiftData
 
 // Large settings surface: backup/import flows, sheets, and history.
 // Split further cautiously to avoid navigation breakages.
-// swiftlint:disable type_body_length
+// swiftlint:disable type_body_length file_length
 struct ImportExportSettingsScreen: View {
     @Environment(\.modelContext) private var modelContext
 
@@ -124,7 +124,9 @@ struct ImportExportSettingsScreen: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(latestExportAccessibilityLabel(for: latest))
-                    .accessibilityHint(String(localized: "settings.dataPrivacy.importExport.latestBackup.accessibilityHint"))
+                    .accessibilityHint(
+                        String(localized: "settings.dataPrivacy.importExport.latestBackup.accessibilityHint")
+                    )
                 }
             } header: {
                 Text(String(localized: "settings.dataPrivacy.importExport.section.export"))
@@ -229,7 +231,10 @@ struct ImportExportSettingsScreen: View {
         } message: {
             Text(exportErrorMessage ?? String(localized: "common.tryAgainGeneric"))
         }
-        .alert(String(localized: "settings.dataPrivacy.import.mergeConflict.title"), isPresented: $showMergeConflictResolution) {
+        .alert(
+            String(localized: "settings.dataPrivacy.import.mergeConflict.title"),
+            isPresented: $showMergeConflictResolution
+        ) {
             Button(String(localized: "settings.dataPrivacy.import.mergeConflict.useBackup")) {
                 runConflictResolution(.preferImported)
             }
@@ -360,9 +365,14 @@ struct ImportExportSettingsScreen: View {
         NavigationStack {
             List {
                 Section {
-                    Picker(String(localized: "settings.dataPrivacy.import.mode.title"), selection: $importMode) {
-                        Text(String(localized: "settings.dataPrivacy.import.mode.merge")).tag(JournalImportMode.merge)
-                        Text(String(localized: "settings.dataPrivacy.import.mode.replace")).tag(JournalImportMode.replace)
+                    Picker(
+                        String(localized: "settings.dataPrivacy.import.mode.title"),
+                        selection: $importMode
+                    ) {
+                        Text(String(localized: "settings.dataPrivacy.import.mode.merge"))
+                            .tag(JournalImportMode.merge)
+                        Text(String(localized: "settings.dataPrivacy.import.mode.replace"))
+                            .tag(JournalImportMode.replace)
                     }
                     .font(AppTheme.warmPaperBody)
 
@@ -513,49 +523,46 @@ private extension ImportExportSettingsScreen {
         isExportingData = true
         let container = modelContext.container
         let exportService = dataExportService
-
         Task {
-            do {
-                let fileURL = try await Task.detached(priority: .userInitiated) {
-                    let backgroundContext = ModelContext(container)
-                    return try exportService.exportArchiveFile(context: backgroundContext)
-                }.value
+            await runBackupFolderExport(container: container, exportService: exportService)
+        }
+    }
 
-                do {
-                    let written = try await Task.detached(priority: .userInitiated) {
-                        defer {
-                            try? FileManager.default.removeItem(at: fileURL)
-                        }
-                        return try ScheduledBackupPreferences.withFolderSecurityScopedAccess { folderURL in
-                            try BackupFolderJSONExport.copyTempFile(
-                                fileURL,
-                                into: folderURL,
-                                destinationFileName: fileURL.lastPathComponent,
-                                fileManager: .default
-                            )
-                        }
-                    }.value
-                    await MainActor.run {
-                        BackupExportHistoryStore.record(
-                            success: true,
-                            kind: .manualFolder,
-                            detail: written
-                        )
-                        refreshHistory()
-                        isExportingData = false
-                    }
-                } catch {
-                    await MainActor.run {
-                        BackupExportHistoryStore.record(
-                            success: false,
-                            kind: .manualFolder,
-                            detail: nil
-                        )
-                        refreshHistory()
-                        exportErrorMessage = String(localized: "data.export.errorDetail")
-                        showExportError = true
-                        isExportingData = false
-                    }
+    private func copyExportedArchiveToBackupFolder(fileURL: URL) async throws -> String {
+        try await Task.detached(priority: .userInitiated) {
+            defer {
+                try? FileManager.default.removeItem(at: fileURL)
+            }
+            return try ScheduledBackupPreferences.withFolderSecurityScopedAccess { folderURL in
+                try BackupFolderJSONExport.copyTempFile(
+                    fileURL,
+                    into: folderURL,
+                    destinationFileName: fileURL.lastPathComponent,
+                    fileManager: .default
+                )
+            }
+        }.value
+    }
+
+    private func runBackupFolderExport(
+        container: ModelContainer,
+        exportService: JournalDataExportService
+    ) async {
+        do {
+            let fileURL = try await Task.detached(priority: .userInitiated) {
+                let backgroundContext = ModelContext(container)
+                return try exportService.exportArchiveFile(context: backgroundContext)
+            }.value
+            do {
+                let written = try await copyExportedArchiveToBackupFolder(fileURL: fileURL)
+                await MainActor.run {
+                    BackupExportHistoryStore.record(
+                        success: true,
+                        kind: .manualFolder,
+                        detail: written
+                    )
+                    refreshHistory()
+                    isExportingData = false
                 }
             } catch {
                 await MainActor.run {
@@ -569,6 +576,18 @@ private extension ImportExportSettingsScreen {
                     showExportError = true
                     isExportingData = false
                 }
+            }
+        } catch {
+            await MainActor.run {
+                BackupExportHistoryStore.record(
+                    success: false,
+                    kind: .manualFolder,
+                    detail: nil
+                )
+                refreshHistory()
+                exportErrorMessage = String(localized: "data.export.errorDetail")
+                showExportError = true
+                isExportingData = false
             }
         }
     }
