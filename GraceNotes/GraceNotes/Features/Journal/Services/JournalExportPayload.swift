@@ -7,6 +7,7 @@ struct JournalExportSnapshotSource {
     let people: [Entry]
     let readingNotes: String
     let reflections: String
+    let completionLevel: JournalCompletionLevel
 }
 
 struct JournalExportPayload {
@@ -16,6 +17,7 @@ struct JournalExportPayload {
     let people: [String]
     let readingNotes: String
     let reflections: String
+    let completionLevel: JournalCompletionLevel
 
     static func make(from source: JournalExportSnapshotSource) -> JournalExportPayload {
         JournalExportPayload(
@@ -24,7 +26,8 @@ struct JournalExportPayload {
             needs: source.needs.map(\.fullText),
             people: source.people.map(\.fullText),
             readingNotes: source.readingNotes.trimmingCharacters(in: .whitespacesAndNewlines),
-            reflections: source.reflections.trimmingCharacters(in: .whitespacesAndNewlines)
+            reflections: source.reflections.trimmingCharacters(in: .whitespacesAndNewlines),
+            completionLevel: source.completionLevel
         )
     }
 }

@@ -4576,9 +4576,135 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "我们暂时无法生成分享图片。请稍后重试。"
+            "value": "暂时无法生成分享图片。请稍后再试。"
           }
         }
+      }
+    },
+    "sharing.style.paperWarm": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Warm paper" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "暖色纸面" } }
+      }
+    },
+    "sharing.style.editorialMist": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Editorial mist" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "雾面编辑" } }
+      }
+    },
+    "sharing.style.sunriseGradient": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Sunrise" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "日出渐变" } }
+      }
+    },
+    "sharing.composer.title": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Share entry" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "分享记录" } }
+      }
+    },
+    "sharing.composer.share": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Share…" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "分享…" } }
+      }
+    },
+    "sharing.composer.styleHeading": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Card style" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "卡片风格" } }
+      }
+    },
+    "sharing.composer.hintRedact": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Tap a line to hide or show it. Hidden lines appear as a neutral bar on the shared image." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "点按某一行可隐藏或显示；隐藏后在分享图中显示为中性色条。" } }
+      }
+    },
+    "sharing.composer.hintSections": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Use the eye control next to a section title to include or exclude it. Excluded sections show a short preview stub here only." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "点按栏目标题旁的“眼睛”图标可包含或排除该栏目；被排除的栏目仅在此预览中显示简短提示。" } }
+      }
+    },
+    "sharing.composer.watermark": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Grace Notes footer" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "页脚“感恩记”标识" } }
+      }
+    },
+    "sharing.composer.completionBadge": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Completion badge" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "完成度徽章" } }
+      }
+    },
+    "sharing.stub.excluded": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Not included — tap the section header to restore." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未包含 — 点按栏目标题可恢复。" } }
+      }
+    },
+    "sharing.composer.previewA11y": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Share card preview" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "分享卡片预览" } }
+      }
+    },
+    "sharing.card.footer": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Grace Notes" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "感恩记" } }
+      }
+    },
+    "sharing.a11y.lineVisible": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Visible line" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "可见行" } }
+      }
+    },
+    "sharing.a11y.lineTapToHide": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Double tap to hide this line from the shared image" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "轻点两下，在分享图中隐藏这一行" } }
+      }
+    },
+    "sharing.a11y.lineRedacted": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Hidden line" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "已隐藏行" } }
+      }
+    },
+    "sharing.a11y.lineTapToShow": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Double tap to show this line on the shared image" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "轻点两下，在分享图中显示这一行" } }
+      }
+    },
+    "sharing.a11y.completionBadge": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Today's completion badge" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "今日完成度徽章" } }
+      }
+    },
+    "sharing.a11y.sectionRestore": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Include this section on the shared image" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "在分享图中包含此栏目" } }
+      }
+    },
+    "sharing.a11y.sectionExclude": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Exclude this section from the shared image" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "从分享图中排除此栏目" } }
+      }
+    },
+    "sharing.a11y.sectionStub": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Section excluded from preview" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "栏目未包含在预览中" } }
       }
     },
     "startup.error.setupFailed": {

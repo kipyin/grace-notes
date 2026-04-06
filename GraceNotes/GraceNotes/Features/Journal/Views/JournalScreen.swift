@@ -160,7 +160,7 @@ struct JournalScreen: View {
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     @State private var viewModel = JournalViewModel()
     @State private var shareableImage: ShareableImage?
-    @State private var showShareError = false
+    @State private var showShareComposer = false
     @State private var showSavedToPhotosToast = false
     @State private var savedToPhotosDismissTask: Task<Void, Never>?
     @State private var hasTrackedInitialLoad = false
@@ -254,18 +254,21 @@ struct JournalScreen: View {
             effectiveTodayAppearance == .bloom ? .hidden : .automatic,
             for: .navigationBar
         )
+        .sheet(isPresented: $showShareComposer) {
+            JournalShareComposerView(
+                basePayload: viewModel.exportSnapshot(),
+                onDismiss: { showShareComposer = false },
+                onShare: { image in
+                    showShareComposer = false
+                    shareableImage = ShareableImage(image: image)
+                }
+            )
+        }
         .sheet(item: $shareableImage) { item in
             ShareSheet(
                 activityItems: [item.image],
                 applicationActivities: [SaveToPhotosActivity(image: item.image)]
             )
-        }
-        .alert(String(localized: "sharing.error.unable"), isPresented: $showShareError) {
-            Button(String(localized: "common.dismiss")) {
-                showShareError = false
-            }
-        } message: {
-            Text(String(localized: "sharing.error.createImage"))
         }
         .fullScreenCover(isPresented: $showAppTour) {
             AppTourView(
@@ -1222,12 +1225,7 @@ private extension JournalScreen {
         submit(section: .person)
     }
     func shareTapped() {
-        let payload = viewModel.exportSnapshot()
-        if let image = JournalShareRenderer.renderImage(from: payload) {
-            shareableImage = ShareableImage(image: image)
-        } else {
-            showShareError = true
-        }
+        showShareComposer = true
     }
 
     func syncGuidedJournalCompletionIfNeeded() {

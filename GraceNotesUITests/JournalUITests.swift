@@ -206,7 +206,13 @@ final class JournalUITests: XCTestCase {
         let app = launchApp()
 
         XCTAssertTrue(app.staticTexts["Gratitudes"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["Share"].waitForExistence(timeout: 5))
+        let shareButton = app.buttons["Share"]
+        XCTAssertTrue(shareButton.waitForExistence(timeout: 5))
+        shareButton.tap()
+        XCTAssertTrue(
+            app.buttons["ShareComposerConfirm"].waitForExistence(timeout: 5),
+            "Expected share composer after tapping Share."
+        )
     }
 
     @MainActor
