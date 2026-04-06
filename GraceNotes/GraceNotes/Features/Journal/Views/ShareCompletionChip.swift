@@ -3,17 +3,15 @@ import SwiftUI
 /// Minimal completion label for share export (Figma mockup pill), separate from ``JournalCompletionPill``.
 struct ShareCompletionChip: View {
     let completionLevel: JournalCompletionLevel
-    let style: ShareCardStyle
-    /// `true` when the share card uses the classic light palette; `false` for the dark card theme.
-    var useLightCardPalette: Bool = true
+    let surface: ShareCardSurface
 
     var body: some View {
         Text(localizedTitle)
-            .font(style.completionChipLabelFont)
-            .foregroundStyle(style.resolvedCompletionChipTextColor(useLightCardPalette: useLightCardPalette))
+            .font(surface.style.completionChipLabelFont)
+            .foregroundStyle(surface.completionChipTextColor)
             .padding(.horizontal, 12)
             .padding(.vertical, 4)
-            .background(style.resolvedCompletionChipBackground(useLightCardPalette: useLightCardPalette))
+            .background(surface.completionChipBackground())
             .clipShape(Capsule(style: .continuous))
             .accessibilityLabel(String(localized: "sharing.a11y.completionBadge"))
     }

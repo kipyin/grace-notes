@@ -25,7 +25,7 @@ struct JournalShareCardView: View {
     }
 
     var body: some View {
-        if useLightCardPalette {
+        if payload.cardSurface.useLightCardPalette {
             cardChrome
                 .preferredColorScheme(.light)
         } else {
@@ -33,13 +33,11 @@ struct JournalShareCardView: View {
                 .preferredColorScheme(.dark)
         }
     }
-
-    /// Classic light share card when `true`; dark theme when `false`.
-    /// See ``ShareRenderPayload/shareCardUsesDarkTheme``.
-    private var useLightCardPalette: Bool { !payload.shareCardUsesDarkTheme }
 }
 
 private extension JournalShareCardView {
+    var surface: ShareCardSurface { payload.cardSurface }
+
     var cardChrome: some View {
         let style = payload.style
         return Group {
@@ -53,10 +51,10 @@ private extension JournalShareCardView {
         }
         .padding(JournalShareCardView.padding)
         .background {
-            style.resolvedCardBackground(useLightCardPalette: useLightCardPalette)
+            surface.cardBackground()
         }
         .shadow(
-            color: style.resolvedCardShadowColor(useLightCardPalette: useLightCardPalette),
+            color: surface.cardShadowColor,
             radius: style.cardShadowRadius,
             x: 0,
             y: style.cardShadowOffsetY
@@ -78,9 +76,7 @@ private extension JournalShareCardView {
                 ForEach(Array(payload.sections.enumerated()), id: \.offset) { index, section in
                     if payload.style.showsSectionDividers, index > 0 {
                         Rectangle()
-                            .fill(
-                                payload.style.resolvedSectionDividerColor(useLightCardPalette: useLightCardPalette)
-                            )
+                            .fill(surface.sectionDividerColor)
                             .frame(height: 1)
                             .frame(maxWidth: .infinity)
                     }
@@ -91,9 +87,7 @@ private extension JournalShareCardView {
             if payload.showWatermark {
                 Text(String(localized: "sharing.card.footer"))
                     .font(payload.style.metaFont(for: script))
-                    .foregroundStyle(
-                        payload.style.resolvedFooterInk(useLightCardPalette: useLightCardPalette)
-                    )
+                    .foregroundStyle(surface.footerInk)
                     .frame(maxWidth: .infinity)
                     .multilineTextAlignment(.center)
                     .padding(.top, 40)
@@ -108,16 +102,13 @@ private extension JournalShareCardView {
             Text(payload.dateFormatted)
                 .font(style.dateFont(for: script))
                 .tracking(style.dateTracking(for: script) ?? 0)
-                .foregroundStyle(
-                    style.resolvedBodyInk(useLightCardPalette: useLightCardPalette)
-                )
+                .foregroundStyle(surface.bodyInk)
                 .fixedSize(horizontal: false, vertical: true)
             if payload.showCompletionBadge {
                 Spacer(minLength: 8)
                 ShareCompletionChip(
                     completionLevel: payload.completionLevel,
-                    style: style,
-                    useLightCardPalette: useLightCardPalette
+                    surface: surface
                 )
             }
         }
@@ -148,9 +139,7 @@ private extension JournalShareCardView {
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 Text(section.title)
                     .font(style.sectionTitleFont(for: script))
-                    .foregroundStyle(
-                        style.resolvedSectionTitleInk(useLightCardPalette: useLightCardPalette)
-                    )
+                    .foregroundStyle(surface.sectionTitleInk)
                     .textCase(titleCase)
                     .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 8)
@@ -159,9 +148,7 @@ private extension JournalShareCardView {
                 } label: {
                     Text(section.isPreviewStub ? "+" : "×")
                         .font(.system(size: 13, weight: .regular))
-                        .foregroundStyle(
-                            style.resolvedSectionControlInk(useLightCardPalette: useLightCardPalette)
-                        )
+                        .foregroundStyle(surface.sectionControlInk)
                         .frame(minWidth: 44, minHeight: 44)
                         .contentShape(Rectangle())
                 }
@@ -175,16 +162,14 @@ private extension JournalShareCardView {
         } else {
             Text(section.title)
                 .font(style.sectionTitleFont(for: script))
-                .foregroundStyle(
-                    style.resolvedSectionTitleInk(useLightCardPalette: useLightCardPalette)
-                )
+                .foregroundStyle(surface.sectionTitleInk)
                 .textCase(titleCase)
         }
     }
 
     @ViewBuilder
     func lineRow(_ item: ShareLineDisplayItem) -> some View {
-        let ink = payload.style.resolvedBodyInk(useLightCardPalette: useLightCardPalette)
+        let ink = surface.bodyInk
         switch item {
         case .visible(let display, let identity):
             visibleShareLine(display: display, identity: identity, ink: ink)
@@ -240,14 +225,14 @@ private extension JournalShareCardView {
         Text(message)
             .font(payload.style.metaFont(for: script))
             .italic()
-            .foregroundStyle(payload.style.resolvedStubInk(useLightCardPalette: useLightCardPalette))
+            .foregroundStyle(surface.stubInk)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityLabel(String(localized: "sharing.a11y.sectionStub"))
     }
 
     var redactionBar: some View {
         RoundedRectangle(cornerRadius: 4, style: .continuous)
-            .fill(payload.style.resolvedRedactionBarColor(useLightCardPalette: useLightCardPalette))
+            .fill(surface.redactionBarColor)
             .frame(height: 18)
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityHidden(onLineTap == nil)
