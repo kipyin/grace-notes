@@ -18,12 +18,11 @@ from rich.console import Console
 from typer.testing import CliRunner
 
 from gracenotes_dev import cli, config, simulator
-from gracenotes_dev.cli import app
+from gracenotes_dev.cli import app, l10n_cmd
 from gracenotes_dev.cli import config_cmd as cli_config_cmd
 from gracenotes_dev.cli import core as cli_core
 from gracenotes_dev.cli import doctor_lint as cli_doctor_lint
 from gracenotes_dev.cli import workflows as cli_workflows
-from gracenotes_dev.cli import l10n_cmd
 
 
 class CLISurfaceTest(unittest.TestCase):

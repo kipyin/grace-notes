@@ -429,9 +429,10 @@ def _render_audit_rich(report: StringsCatalogAuditReport, console: Console) -> N
         "Keys in Swift (+ dynamic allowlist)",
         f"{report.code_key_count} (+ {dyn_n} template keys)",
     )
+    unused_style = "status.other" if report.unused_keys else "status.ok"
     summary.add_row(
         "Unused in catalog",
-        Text(str(len(report.unused_keys)), style="status.other" if report.unused_keys else "status.ok"),
+        Text(str(len(report.unused_keys)), style=unused_style),
     )
     missing_style = "status.error" if report.missing_keys else "status.ok"
     summary.add_row(
@@ -477,7 +478,10 @@ def _render_audit_rich(report: StringsCatalogAuditReport, console: Console) -> N
             multi.add_row(k, "\n".join(display_paths))
     body.append(multi)
 
-    unused_tbl = Table(title=f"Unused catalog keys (first {_UNUSED_KEYS_SHOWN})", border_style="dim")
+    unused_tbl = Table(
+        title=f"Unused catalog keys (first {_UNUSED_KEYS_SHOWN})",
+        border_style="dim",
+    )
     unused_tbl.add_column("Key", style="muted", overflow="fold")
     if not report.unused_keys:
         unused_tbl.add_row("(none)")
@@ -492,7 +496,8 @@ def _render_audit_rich(report: StringsCatalogAuditReport, console: Console) -> N
 
     tip = Text(
         "Unused keys: delete only after manual review if nothing loads them dynamically "
-        "(e.g. String(localized: String.LocalizationValue(key))) or uses them outside the scanned paths.",
+        "(e.g. String(localized: String.LocalizationValue(key))) "
+        "or uses them outside the scanned paths.",
         style="dim",
     )
     body.append(Panel(tip, title="Tip", border_style="dim"))
