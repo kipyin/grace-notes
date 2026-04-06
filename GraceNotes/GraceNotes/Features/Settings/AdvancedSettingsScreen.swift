@@ -109,22 +109,30 @@ struct AdvancedSettingsScreen: View {
             }
 
             Section {
-                Picker(
-                    String(localized: "Settings.advanced.accent.label"),
-                    selection: accentPreferenceBinding
-                ) {
-                    ForEach(AccentPreference.allCases) { option in
-                        Text(option.localizedTitle).tag(option)
+                VStack(alignment: .leading, spacing: AppTheme.spacingRegular) {
+                    Picker(selection: accentPreferenceBinding) {
+                        ForEach(AccentPreference.allCases) { option in
+                            Text(option.localizedTitle).tag(option)
+                        }
+                    } label: {
+                        EmptyView()
                     }
-                }
-                .pickerStyle(.inline)
-                .font(AppTheme.warmPaperBody)
-                .foregroundStyle(AppTheme.settingsTextPrimary)
+                    .pickerStyle(.segmented)
+                    .font(AppTheme.outfitSemiboldSubheadline)
+                    .accessibilityLabel(String(localized: "Settings.advanced.accent.label"))
 
-                Text(String(localized: "Settings.advanced.accent.footnote"))
-                    .font(AppTheme.warmPaperMeta)
-                    .foregroundStyle(AppTheme.settingsTextMuted)
-                    .fixedSize(horizontal: false, vertical: true)
+                    Text(String(localized: "Settings.advanced.accent.footnote"))
+                        .font(AppTheme.warmPaperMeta)
+                        .foregroundStyle(AppTheme.settingsTextMuted)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.vertical, AppTheme.spacingTight / 2)
+            } header: {
+                Text(String(localized: "Settings.advanced.accent.label"))
+                    .font(AppTheme.warmPaperHeader)
+                    .foregroundStyle(AppTheme.settingsTextPrimary)
+                    .textCase(nil)
             }
         }
         .listRowBackground(AppTheme.settingsPaper.opacity(0.9))

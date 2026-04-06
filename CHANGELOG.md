@@ -15,6 +15,7 @@ Marketing **0.5.0** / bundle **9** (git tag **`v0.5.0+9`** at release).
 
 ### Changed
 
+- Settings → Advanced (**Highlight color**): section uses a list header (serif title) and a **segmented** control for the two presets instead of full-width inline radio rows; footnote sits in a tighter vertical stack for clearer hierarchy.
 - Settings (**#200**): Data / import-export surfaces show **file names**, **scheduled backup folder** titles, and **file-like** JSON names in export history (system monospaced text via `AppTheme` tokens); localized labels and prose stay Warm Paper. Localized error sentences in history stay serif.
 
 ### Fixed
