@@ -5,30 +5,30 @@ final class PastStatisticsIntervalPreferenceTests: XCTestCase {
     func test_statisticsIntervalSubtitlePhrase_customQuantityOne_usesSingularStrings() {
         XCTAssertEqual(
             subtitlePhrase(quantity: 1, unit: .week),
-            String(localized: "PastStatisticsInterval.phrase.lastOneWeek")
+            String(localized: "settings.pastStatisticsInterval.phrase.lastOneWeek")
         )
         XCTAssertEqual(
             subtitlePhrase(quantity: 1, unit: .month),
-            String(localized: "PastStatisticsInterval.phrase.lastOneMonth")
+            String(localized: "settings.pastStatisticsInterval.phrase.lastOneMonth")
         )
         XCTAssertEqual(
             subtitlePhrase(quantity: 1, unit: .year),
-            String(localized: "PastStatisticsInterval.phrase.lastOneYear")
+            String(localized: "settings.pastStatisticsInterval.phrase.lastOneYear")
         )
     }
 
     func test_statisticsIntervalSubtitlePhrase_customQuantityTwo_usesPluralFormatStrings() {
         XCTAssertEqual(
             subtitlePhrase(quantity: 2, unit: .week),
-            String(format: String(localized: "PastStatisticsInterval.phrase.lastNWeeks"), Int64(2))
+            String(format: String(localized: "settings.pastStatisticsInterval.phrase.lastNWeeks"), Int64(2))
         )
         XCTAssertEqual(
             subtitlePhrase(quantity: 2, unit: .month),
-            String(format: String(localized: "PastStatisticsInterval.phrase.lastNMonths"), Int64(2))
+            String(format: String(localized: "settings.pastStatisticsInterval.phrase.lastNMonths"), Int64(2))
         )
         XCTAssertEqual(
             subtitlePhrase(quantity: 2, unit: .year),
-            String(format: String(localized: "PastStatisticsInterval.phrase.lastNYears"), Int64(2))
+            String(format: String(localized: "settings.pastStatisticsInterval.phrase.lastNYears"), Int64(2))
         )
     }
 

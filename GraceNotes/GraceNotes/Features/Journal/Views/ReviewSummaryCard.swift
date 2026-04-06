@@ -50,7 +50,7 @@ struct ReviewDaysYouWrotePanel: View {
     private func rhythmContentWithLoadingAccessibility(for insights: ReviewInsights) -> some View {
         if isLoading {
             weekRhythmPanel(for: insights)
-                .accessibilityHint(String(localized: "Updated insights appear when ready."))
+                .accessibilityHint(String(localized: "review.insights.updatedWhenReady"))
                 .accessibilityAddTraits(.updatesFrequently)
         } else {
             weekRhythmPanel(for: insights)
@@ -59,12 +59,12 @@ struct ReviewDaysYouWrotePanel: View {
 
     private func weekRhythmPanel(for insights: ReviewInsights) -> some View {
         ReviewInsightInsetPanel(
-            title: String(localized: "Reflection rhythm"),
+            title: String(localized: "review.labels.reflectionRhythm"),
             panelChrome: .standard,
             onTitleTap: onRhythmChromeTap,
             titleAccessibilityHint: onRhythmChromeTap == nil
                 ? nil
-                : String(localized: "Review history rhythm chrome title a11y hint")
+                : String(localized: "accessibility.reviewHistory.rhythmChromeTitle")
         ) {
             rhythmHistoryCurve(for: insights)
         }
@@ -149,7 +149,7 @@ struct ReviewDaysYouWrotePanel: View {
     @ViewBuilder
     private func rhythmStripEmptyState() -> some View {
         let message = String(
-            localized: "No journaling days to show here yet. After you write, they will appear in this strip."
+            localized: "past.empty.journalingDaysStrip"
         )
         if let tap = onRhythmChromeTap {
             Button(action: tap) {
@@ -324,9 +324,9 @@ struct ReviewDaysYouWrotePanel: View {
 
     private func rhythmColumnAccessibilityHint(for day: ReviewDayActivity) -> String {
         if day.hasPersistedEntry {
-            String(localized: "Opens the journal entry for that day.")
+            String(localized: "past.accessibility.openEntryThatDay")
         } else {
-            String(localized: "Opens this day to start or continue writing.")
+            String(localized: "past.accessibility.openDayToWrite")
         }
     }
 
@@ -519,15 +519,15 @@ struct ReviewDaysYouWrotePanel: View {
     private func localizedCompletionStageName(for level: JournalCompletionLevel) -> String {
         switch level {
         case .soil:
-            String(localized: "Empty")
+            String(localized: "journal.growthStage.empty")
         case .sprout:
-            String(localized: "Started")
+            String(localized: "journal.growthStage.started")
         case .twig:
-            String(localized: "Growing")
+            String(localized: "journal.growthStage.growing")
         case .leaf:
-            String(localized: "Balanced")
+            String(localized: "journal.growthStage.balanced")
         case .bloom:
-            String(localized: "Full")
+            String(localized: "journal.growthStage.full")
         }
     }
 
@@ -536,30 +536,30 @@ struct ReviewDaysYouWrotePanel: View {
         if let level = day.strongestCompletionLevel {
             if level == .soil {
                 return String(
-                    format: String(localized: "You wrote on %@"),
+                    format: String(localized: "review.insights.wroteOnDate"),
                     dateText
                 )
             }
             return String(
-                format: String(localized: "You reached %1$@ on %2$@."),
+                format: String(localized: "review.insights.reachedStageOnDate"),
                 localizedCompletionStageName(for: level),
                 dateText
             )
         }
         if day.hasPersistedEntry {
             return String(
-                format: String(localized: "You wrote on %@"),
+                format: String(localized: "review.insights.wroteOnDate"),
                 dateText
             )
         }
         if day.hasReflectiveActivity {
             return String(
-                format: String(localized: "You wrote on %@"),
+                format: String(localized: "review.insights.wroteOnDate"),
                 dateText
             )
         }
         return String(
-            format: String(localized: "No writing on %@"),
+            format: String(localized: "review.insights.noWritingOnDate"),
             dateText
         )
     }
@@ -656,7 +656,7 @@ struct ReviewNarrativeSummaryCard: View {
                 NarrativeInsightsLoadingSkeleton(reduceMotion: reduceMotion)
             } else {
                 VStack(alignment: .leading, spacing: 14) {
-                    Text(String(localized: "Start writing this week to unlock review insights."))
+                    Text(String(localized: "review.insights.unlockPrompt"))
                         .font(AppTheme.warmPaperBody)
                         .foregroundStyle(AppTheme.reviewTextMuted)
                 }
@@ -671,7 +671,7 @@ struct ReviewNarrativeSummaryCard: View {
     private func narrativeContentWithLoadingAccessibility(for insights: ReviewInsights) -> some View {
         if isLoading {
             narrativeContent(for: insights)
-                .accessibilityHint(String(localized: "Updated insights appear when ready."))
+                .accessibilityHint(String(localized: "review.insights.updatedWhenReady"))
                 .accessibilityAddTraits(.updatesFrequently)
         } else {
             narrativeContent(for: insights)
@@ -694,7 +694,7 @@ struct ReviewNarrativeSummaryCard: View {
 
     private func observationPanel(body: String) -> some View {
         ReviewInsightInsetPanel(
-            title: String(localized: "Observation"),
+            title: String(localized: "review.labels.observation"),
             panelChrome: .lead
         ) {
             panelParagraph(body, lineSpacing: 4)
@@ -702,7 +702,7 @@ struct ReviewNarrativeSummaryCard: View {
     }
 
     private func actionPanel(body: String) -> some View {
-        ReviewInsightInsetPanel(title: String(localized: "A next step"), panelChrome: .standard) {
+        ReviewInsightInsetPanel(title: String(localized: "review.prompts.nextStep"), panelChrome: .standard) {
             panelParagraph(body, lineSpacing: 4)
         }
     }
@@ -773,7 +773,7 @@ struct ReviewNarrativeSummaryCard: View {
         let observation = observationText(for: insights)
         var thread = thinkingText(for: insights)
         if normalizedInsightText(thread) == normalizedInsightText(observation) {
-            thread = String(localized: "When you're ready, a few lines can still hold a lot.")
+            thread = String(localized: "journal.guidance.fewLinesHoldALot")
         }
 
         var action = actionBodyCandidate(for: insights)
@@ -782,7 +782,7 @@ struct ReviewNarrativeSummaryCard: View {
         // Action dedupes against visible panels only; Thinking is intentionally hidden in this layout.
         let actionDuplicatesPanel = actionKey == observationKey
         if action.isEmpty || actionDuplicatesPanel {
-            action = String(localized: "What's one thing you're glad happened, even if small?")
+            action = String(localized: "review.prompts.gladHappened")
         }
 
         return ReviewInsightPanelBodies(observation: observation, thread: thread, action: action)
@@ -826,14 +826,14 @@ private struct RhythmLoadingSkeleton: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             skeletonInsetPanel(
-                title: String(localized: "Reflection rhythm"),
+                title: String(localized: "review.labels.reflectionRhythm"),
                 panelChrome: .standard,
                 lineSpecs: [(1.0, 10), (0.64, 10)]
             )
         }
         .modifier(InsightsCalmLoadingBreath(active: !reduceMotion))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(String(localized: "Loading weekly insights."))
+        .accessibilityLabel(String(localized: "review.insights.loading"))
     }
 
     private func skeletonInsetPanel(
@@ -858,12 +858,12 @@ private struct NarrativeInsightsLoadingSkeleton: View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 10) {
                 skeletonInsetPanel(
-                    title: String(localized: "Observation"),
+                    title: String(localized: "review.labels.observation"),
                     panelChrome: .lead,
                     lineSpecs: [(1.0, 12), (1.0, 12), (0.72, 12)]
                 )
                 skeletonInsetPanel(
-                    title: String(localized: "A next step"),
+                    title: String(localized: "review.prompts.nextStep"),
                     panelChrome: .standard,
                     lineSpecs: [(1.0, 11), (0.78, 11)]
                 )
@@ -871,7 +871,7 @@ private struct NarrativeInsightsLoadingSkeleton: View {
         }
         .modifier(InsightsCalmLoadingBreath(active: !reduceMotion))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(String(localized: "Loading weekly insights."))
+        .accessibilityLabel(String(localized: "review.insights.loading"))
     }
 
     private func skeletonInsetPanel(

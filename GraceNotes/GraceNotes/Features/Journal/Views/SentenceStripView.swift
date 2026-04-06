@@ -5,7 +5,7 @@ private struct StripDeleteAccessibilityAction: ViewModifier {
 
     func body(content: Content) -> some View {
         if let onDelete {
-            content.accessibilityAction(named: Text(String(localized: "Delete")), onDelete)
+            content.accessibilityAction(named: Text(String(localized: "common.delete")), onDelete)
         } else {
             content
         }
@@ -66,7 +66,7 @@ struct SentenceStripView: View {
             if isExpandable, let onToggleExpanded {
                 Button(action: onToggleExpanded) {
                     HStack(spacing: 4) {
-                        Text(isExpanded ? String(localized: "Show less") : String(localized: "Show more"))
+                        Text(isExpanded ? String(localized: "common.showLess") : String(localized: "common.showMore"))
                         Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                             .font(AppTheme.outfitSemiboldCaption)
                     }
@@ -81,7 +81,7 @@ struct SentenceStripView: View {
                         identifier: expansionAccessibilityIdentifier
                     )
                 )
-                .accessibilityHint(String(localized: "Expands or collapses the sentence preview"))
+                .accessibilityHint(String(localized: "accessibility.expandCollapsePreview"))
             }
         }
     }
@@ -120,7 +120,7 @@ struct SentenceStripView: View {
                 Button(role: .destructive) {
                     onDelete?()
                 } label: {
-                    Label(String(localized: "Delete"), systemImage: "trash")
+                    Label(String(localized: "common.delete"), systemImage: "trash")
                 }
             }
         }
@@ -139,7 +139,7 @@ struct SentenceStripView: View {
 
     private var rowAccessibilityLabel: String {
         String(
-            format: String(localized: "%1$@ item %2$d of %3$d"),
+            format: String(localized: "accessibility.list.itemPosition"),
             locale: Locale.current,
             sectionTitle,
             itemPosition,
@@ -149,9 +149,9 @@ struct SentenceStripView: View {
 
     private var rowAccessibilityHint: String {
         if isExpandable {
-            return String(localized: "Double-tap to edit this sentence. Use Show more to preview the full text.")
+            return String(localized: "accessibility.doubleTapEditSentenceShowMore")
         }
-        return String(localized: "Double-tap to edit this sentence.")
+        return String(localized: "accessibility.doubleTapEditSentence")
     }
 
     static func requiresExpandedPreview(_ sentence: String) -> Bool {

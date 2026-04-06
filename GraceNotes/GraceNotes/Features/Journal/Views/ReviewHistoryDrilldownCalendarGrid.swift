@@ -108,7 +108,7 @@ struct ReviewHistoryDrilldownCalendarGrid: View {
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(
                 String(
-                    format: String(localized: "PastDrilldown.calendarWeekdaysRow.a11y"),
+                    format: String(localized: "past.drilldown.calendarWeekdaysRow.a11y"),
                     orderedWeekdaySymbols.joined(separator: ", ")
                 )
             )
@@ -184,7 +184,7 @@ struct ReviewHistoryDrilldownCalendarGrid: View {
                 }
                 .buttonStyle(PastTappablePressStyle())
                 .accessibilityLabel(dayCellAccessibilityLabel(dateSpeech: dateSpeech, disposition: disposition))
-                .accessibilityHint(String(localized: "ThemeDrilldown.openEntry.a11yHint"))
+                .accessibilityHint(String(localized: "review.themeDrilldown.openEntry.a11yHint"))
             }
         } else {
             Color.clear
@@ -317,7 +317,7 @@ struct ReviewHistoryDrilldownCalendarGrid: View {
     ) -> String {
         if disposition == .matched {
             return String(
-                format: String(localized: "PastDrilldown.calendarDay.a11y.matchedFormat"),
+                format: String(localized: "past.drilldown.calendarDay.a11y.matchedFormat"),
                 dateSpeech
             )
         }
@@ -331,17 +331,17 @@ struct ReviewHistoryDrilldownCalendarGrid: View {
         switch disposition {
         case .journalDayNotMatched:
             return String(
-                format: String(localized: "PastDrilldown.calendarDay.a11y.journalNotMatchedFormat"),
+                format: String(localized: "past.drilldown.calendarDay.a11y.journalNotMatchedFormat"),
                 dateSpeech
             )
         case .emptyHistoryDay:
             return String(
-                format: String(localized: "PastDrilldown.calendarDay.a11y.emptyFormat"),
+                format: String(localized: "past.drilldown.calendarDay.a11y.emptyFormat"),
                 dateSpeech
             )
         case .outsideHistoryWindow:
             return String(
-                format: String(localized: "PastDrilldown.calendarDay.a11y.outsideRangeFormat"),
+                format: String(localized: "past.drilldown.calendarDay.a11y.outsideRangeFormat"),
                 dateSpeech
             )
         case .matched:
@@ -352,11 +352,11 @@ struct ReviewHistoryDrilldownCalendarGrid: View {
     private func nonMatchedAccessibilityHint(disposition: ReviewHistoryDrilldownDayDisposition) -> String {
         switch disposition {
         case .journalDayNotMatched:
-            return String(localized: "PastDrilldown.calendarDay.a11yHint.journalNotMatched")
+            return String(localized: "past.drilldown.calendarDay.a11yHint.journalNotMatched")
         case .emptyHistoryDay:
-            return String(localized: "PastDrilldown.calendarDay.a11yHint.emptyHistoryDay")
+            return String(localized: "past.drilldown.calendarDay.a11yHint.emptyHistoryDay")
         case .outsideHistoryWindow:
-            return String(localized: "PastDrilldown.calendarDay.a11yHint.outsideStatisticsRange")
+            return String(localized: "past.drilldown.calendarDay.a11yHint.outsideStatisticsRange")
         case .matched:
             return ""
         }

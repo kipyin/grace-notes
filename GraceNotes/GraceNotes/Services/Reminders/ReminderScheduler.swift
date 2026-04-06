@@ -140,8 +140,8 @@ struct ReminderScheduler {
         removeReminder()
 
         let content = UNMutableNotificationContent()
-        content.title = String(localized: "Grace Notes")
-        content.body = String(localized: "Take a moment to complete today's entry.")
+        content.title = String(localized: "app.name")
+        content.body = String(localized: "notifications.reminder.bodyCompleteEntry")
         content.sound = .default
 
         let timeComponents = ReminderSettings.timeComponents(from: time, calendar: calendar)

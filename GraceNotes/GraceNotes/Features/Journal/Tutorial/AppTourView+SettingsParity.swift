@@ -30,7 +30,7 @@ extension AppTourView {
             } label: {
                 HStack(spacing: AppTheme.spacingRegular) {
                     VStack(alignment: .leading, spacing: AppTheme.spacingTight / 2) {
-                        Text(String(localized: "Daily reminder"))
+                        Text(String(localized: "notifications.reminder.dailyLabel"))
                             .font(AppTheme.warmPaperBody)
                             .foregroundStyle(AppTheme.settingsTextPrimary)
                         Text(reminderState.summaryText)
@@ -51,38 +51,38 @@ extension AppTourView {
             }
             .buttonStyle(.plain)
             .disabled(!reminderState.isReminderEnabled || reminderState.isWorking)
-            .accessibilityLabel(String(localized: "Reminder time"))
+            .accessibilityLabel(String(localized: "notifications.reminder.timeLabel"))
             .accessibilityValue(
                 reminderState.isReminderEnabled
                     ? reminderState.selectedTime.formatted(date: .omitted, time: .shortened)
-                    : String(localized: "Off")
+                    : String(localized: "common.off")
             )
 
             Toggle("", isOn: reminderToggleBinding)
                 .labelsHidden()
                 .tint(AppTheme.reviewAccent)
                 .disabled(reminderState.isPermissionDenied || reminderState.isWorking)
-                .accessibilityLabel(String(localized: "Daily reminder"))
+                .accessibilityLabel(String(localized: "notifications.reminder.dailyLabel"))
         }
         .frame(minHeight: 44)
     }
 
     var reminderPermissionDeniedGuidance: some View {
         VStack(alignment: .leading, spacing: AppTheme.spacingRegular) {
-            Text(String(localized: "Allow notifications in Settings to enable daily reminders."))
+            Text(String(localized: "notifications.reminder.enableInSettings"))
                 .font(AppTheme.warmPaperMeta)
                 .foregroundStyle(AppTheme.settingsTextMuted)
 
             SettingsOpenSystemSettingsButton(
                 action: openSystemSettings,
-                accessibilityHint: String(localized: "Open iOS Settings for notification permissions.")
+                accessibilityHint: String(localized: "notifications.reminder.openIOSSettingsHint")
             )
         }
     }
 
     var reminderUnavailableGuidance: some View {
         VStack(alignment: .leading, spacing: AppTheme.spacingRegular) {
-            Text(String(localized: "Unavailable. Check notification permissions and try again."))
+            Text(String(localized: "notifications.reminder.unavailablePermissions"))
                 .font(AppTheme.warmPaperMeta)
                 .foregroundStyle(AppTheme.settingsTextMuted)
 
@@ -92,7 +92,7 @@ extension AppTourView {
                         await reminderState.enableReminders()
                     }
                 } label: {
-                    Text(String(localized: "Try again"))
+                    Text(String(localized: "common.tryAgain"))
                         .frame(maxWidth: .infinity, minHeight: 44)
                 }
                 .buttonStyle(.borderedProminent)
@@ -100,14 +100,14 @@ extension AppTourView {
                 .foregroundStyle(AppTheme.reminderPrimaryActionForeground)
                 .font(AppTheme.warmPaperBody)
                 .disabled(reminderState.isWorking)
-                .accessibilityHint(String(localized: "Retry scheduling your daily reminder."))
+                .accessibilityHint(String(localized: "notifications.reminder.retrySchedulingHint"))
 
                 Button {
                     Task {
                         await reminderState.refreshStatus()
                     }
                 } label: {
-                    Text(String(localized: "Refresh"))
+                    Text(String(localized: "common.refresh"))
                         .frame(maxWidth: .infinity, minHeight: 44)
                 }
                 .buttonStyle(.bordered)
@@ -115,7 +115,7 @@ extension AppTourView {
                 .foregroundStyle(AppTheme.reminderSecondaryActionTint)
                 .font(AppTheme.warmPaperBody)
                 .disabled(reminderState.isWorking)
-                .accessibilityHint(String(localized: "Check if notification permissions have changed."))
+                .accessibilityHint(String(localized: "notifications.reminder.checkPermissionsHint"))
             }
         }
     }
@@ -133,8 +133,8 @@ extension AppTourView {
             .font(AppTheme.warmPaperBody)
             .foregroundStyle(AppTheme.settingsTextPrimary)
             .tint(AppTheme.reminderSecondaryActionTint)
-            .accessibilityLabel(String(localized: "Reminder time"))
-            .accessibilityHint(String(localized: "Choose a reminder time."))
+            .accessibilityLabel(String(localized: "notifications.reminder.timeLabel"))
+            .accessibilityHint(String(localized: "notifications.reminder.chooseTimeHint"))
         } else {
             DatePicker(
                 "",
@@ -145,8 +145,8 @@ extension AppTourView {
             .datePickerStyle(.wheel)
             .font(AppTheme.warmPaperBody)
             .foregroundStyle(AppTheme.settingsTextPrimary)
-            .accessibilityLabel(String(localized: "Reminder time"))
-            .accessibilityHint(String(localized: "Choose a reminder time."))
+            .accessibilityLabel(String(localized: "notifications.reminder.timeLabel"))
+            .accessibilityHint(String(localized: "notifications.reminder.chooseTimeHint"))
         }
     }
 

@@ -20,7 +20,7 @@ extension AppTourView {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(
             String(
-                format: String(localized: "AppTour.pageIndicator"),
+                format: String(localized: "tutorial.appTour.pageIndicator"),
                 locale: .current,
                 pageIndex - firstPageIndex + 1,
                 lastPageIndex - firstPageIndex + 1
@@ -32,7 +32,7 @@ extension AppTourView {
         Group {
             if pageIndex >= lastPageIndex {
                 Button(action: finishJourney) {
-                    Text(String(localized: "Done"))
+                    Text(String(localized: "common.done"))
                         .font(AppTheme.warmPaperBody.weight(.semibold))
                         .foregroundStyle(AppTheme.reminderPrimaryActionForeground)
                         .frame(maxWidth: .infinity)
@@ -43,7 +43,7 @@ extension AppTourView {
                 .buttonStyle(WarmPaperPressStyle())
             } else {
                 HStack(alignment: .center, spacing: AppTheme.spacingRegular) {
-                    Button(String(localized: "Skip")) {
+                    Button(String(localized: "common.skip")) {
                         finishJourney()
                     }
                     .font(AppTheme.warmPaperBody.weight(.medium))
@@ -54,7 +54,7 @@ extension AppTourView {
                     Button(
                         action: { pageIndex = min(pageIndex + 1, lastPageIndex) },
                         label: {
-                            Text(String(localized: "Next"))
+                            Text(String(localized: "common.next"))
                                 .font(AppTheme.warmPaperBody.weight(.semibold))
                                 .foregroundStyle(AppTheme.reminderPrimaryActionForeground)
                                 .padding(.horizontal, AppTheme.spacingWide)
@@ -78,7 +78,7 @@ extension AppTourView {
     var congratulationsPage: some View {
         journeyPage {
             HStack(alignment: .firstTextBaseline, spacing: AppTheme.spacingRegular) {
-                Text(String(localized: "AppTour.congrats.headline"))
+                Text(String(localized: "tutorial.appTour.congrats.headline"))
                     .font(AppTheme.warmPaperHeader)
                     .foregroundStyle(AppTheme.settingsTextPrimary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -91,7 +91,7 @@ extension AppTourView {
 
             Text(
                 String(
-                    localized: "AppTour.congrats.body"
+                    localized: "tutorial.appTour.congrats.body"
                 )
             )
             .font(AppTheme.warmPaperBody)
@@ -113,13 +113,13 @@ extension AppTourView {
 
     var pathPage: some View {
         journeyPage {
-            Text(String(localized: "Your path"))
+            Text(String(localized: "tutorial.path.sectionTitle"))
                 .font(AppTheme.warmPaperHeader)
                 .foregroundStyle(AppTheme.settingsTextPrimary)
 
             Text(
                 String(
-                    localized: "AppTour.path.intro"
+                    localized: "tutorial.appTour.path.intro"
                 )
             )
             .font(AppTheme.warmPaperBody)
@@ -133,13 +133,13 @@ extension AppTourView {
     var insightsPage: some View {
         journeyPage {
             VStack(alignment: .leading, spacing: AppTheme.spacingTight) {
-                Text(String(localized: "Depth and insights"))
+                Text(String(localized: "tutorial.insights.sectionTitle"))
                     .font(AppTheme.warmPaperHeader)
                     .foregroundStyle(AppTheme.settingsTextPrimary)
 
                 Text(
                     String(
-                        localized: "AppTour.insights.intro"
+                        localized: "tutorial.appTour.insights.intro"
                     )
                 )
                 .font(AppTheme.warmPaperBody)
@@ -150,7 +150,7 @@ extension AppTourView {
             AppTourInsightsPreview()
                 .padding(.top, AppTheme.spacingWide)
 
-            Text(String(localized: "AppTour.sampleInsights.filler"))
+            Text(String(localized: "tutorial.appTour.sampleInsights.filler"))
                 .font(AppTheme.warmPaperMeta)
                 .foregroundStyle(AppTheme.settingsTextMuted)
                 .fixedSize(horizontal: false, vertical: true)
@@ -160,11 +160,11 @@ extension AppTourView {
 
     var remindersPage: some View {
         journeyPage {
-            Text(String(localized: "Daily reminders"))
+            Text(String(localized: "tutorial.reminders.sectionTitle"))
                 .font(AppTheme.warmPaperHeader)
                 .foregroundStyle(AppTheme.settingsTextPrimary)
 
-            Text(String(localized: "AppTour.reminders.intro"))
+            Text(String(localized: "tutorial.appTour.reminders.intro"))
                 .font(AppTheme.warmPaperBody)
                 .foregroundStyle(AppTheme.settingsTextMuted)
                 .fixedSize(horizontal: false, vertical: true)
@@ -184,7 +184,7 @@ extension AppTourView {
                 }
             }
 
-            Text(String(localized: "AppTour.footer.settingsNote"))
+            Text(String(localized: "tutorial.appTour.footer.settingsNote"))
                 .font(AppTheme.warmPaperMeta)
                 .foregroundStyle(AppTheme.settingsTextMuted)
                 .fixedSize(horizontal: false, vertical: true)
@@ -193,11 +193,11 @@ extension AppTourView {
 
     var iCloudPage: some View {
         journeyPage {
-            Text(String(localized: "Keep entries with you"))
+            Text(String(localized: "tutorial.icloud.headline"))
                 .font(AppTheme.warmPaperHeader)
                 .foregroundStyle(AppTheme.settingsTextPrimary)
 
-            Text(String(localized: "AppTour.icloud.intro"))
+            Text(String(localized: "tutorial.appTour.icloud.intro"))
                 .font(AppTheme.warmPaperBody)
                 .foregroundStyle(AppTheme.settingsTextMuted)
                 .fixedSize(horizontal: false, vertical: true)
@@ -209,7 +209,7 @@ extension AppTourView {
                 openSystemSettings: openSystemSettings
             )
 
-            Text(String(localized: "AppTour.footer.settingsNote"))
+            Text(String(localized: "tutorial.appTour.footer.settingsNote"))
                 .font(AppTheme.warmPaperMeta)
                 .foregroundStyle(AppTheme.settingsTextMuted)
                 .fixedSize(horizontal: false, vertical: true)

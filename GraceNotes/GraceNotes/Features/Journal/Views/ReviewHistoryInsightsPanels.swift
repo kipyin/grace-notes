@@ -34,7 +34,7 @@ struct ReviewHistoryGrowthStagesPanel: View {
     private func loadedPanel(for insights: ReviewInsights) -> some View {
         if isLoading {
             growthSkylineContent(mix: insights.weekStats.historyCompletionMix)
-                .accessibilityHint(String(localized: "Updated insights appear when ready."))
+                .accessibilityHint(String(localized: "review.insights.updatedWhenReady"))
                 .accessibilityAddTraits(.updatesFrequently)
         } else {
             growthSkylineContent(mix: insights.weekStats.historyCompletionMix)
@@ -43,7 +43,7 @@ struct ReviewHistoryGrowthStagesPanel: View {
 
     private func growthSkylineContent(mix: ReviewWeekCompletionMix) -> some View {
         ReviewInsightInsetPanel(
-            title: String(localized: "Growth stages"),
+            title: String(localized: "review.labels.growthStages"),
             panelChrome: .standard
         ) {
             ReviewHistoryGrowthSkyline(
@@ -58,7 +58,7 @@ struct ReviewHistoryGrowthStagesPanel: View {
 
     private var growthStagesLoadingSkeleton: some View {
         ReviewInsightInsetPanel(
-            title: String(localized: "Growth stages"),
+            title: String(localized: "review.labels.growthStages"),
             panelChrome: .standard
         ) {
             VStack(alignment: .leading, spacing: 10) {
@@ -73,7 +73,7 @@ struct ReviewHistoryGrowthStagesPanel: View {
         }
         .modifier(InsightsCalmLoadingBreath(active: !reduceMotion))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(String(localized: "Loading weekly insights."))
+        .accessibilityLabel(String(localized: "review.insights.loading"))
     }
 }
 
@@ -153,7 +153,7 @@ private struct ReviewHistoryGrowthSkyline: View {
 
         private var columnAccessibilityLabel: String {
             String(
-                format: String(localized: "%1$@, %2$d"),
+                format: String(localized: "journal.share.twoColumnRow"),
                 ReviewCompletionLevelFormatting.accessibilityLocalizedStageName(for: level),
                 count
             )
@@ -193,8 +193,8 @@ private struct ReviewHistoryGrowthSkyline: View {
             .accessibilityLabel(columnAccessibilityLabel)
             .accessibilityHint(
                 count == 0
-                    ? String(localized: "Review history growth column empty hint")
-                    : String(localized: "Review history growth column hint")
+                    ? String(localized: "accessibility.reviewHistory.growthColumnEmpty")
+                    : String(localized: "accessibility.reviewHistory.growthColumn")
             )
             .accessibilityAddTraits(count == 0 ? [] : .isButton)
         }
@@ -266,7 +266,7 @@ struct ReviewHistorySectionDistributionPanel: View {
     private func loadedPanel(for insights: ReviewInsights) -> some View {
         if isLoading {
             sectionStripContent(totals: insights.weekStats.historySectionTotals)
-                .accessibilityHint(String(localized: "Updated insights appear when ready."))
+                .accessibilityHint(String(localized: "review.insights.updatedWhenReady"))
                 .accessibilityAddTraits(.updatesFrequently)
         } else {
             sectionStripContent(totals: insights.weekStats.historySectionTotals)
@@ -275,7 +275,7 @@ struct ReviewHistorySectionDistributionPanel: View {
 
     private func sectionStripContent(totals: ReviewWeekSectionTotals) -> some View {
         ReviewInsightInsetPanel(
-            title: String(localized: "Section Distribution"),
+            title: String(localized: "review.labels.sectionDistribution"),
             panelChrome: .standard
         ) {
             ReviewHistorySectionStrip(
@@ -290,7 +290,7 @@ struct ReviewHistorySectionDistributionPanel: View {
 
     private var sectionDistributionLoadingSkeleton: some View {
         ReviewInsightInsetPanel(
-            title: String(localized: "Section Distribution"),
+            title: String(localized: "review.labels.sectionDistribution"),
             panelChrome: .standard
         ) {
             VStack(alignment: .leading, spacing: 10) {
@@ -302,7 +302,7 @@ struct ReviewHistorySectionDistributionPanel: View {
         }
         .modifier(InsightsCalmLoadingBreath(active: !reduceMotion))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(String(localized: "Loading weekly insights."))
+        .accessibilityLabel(String(localized: "review.insights.loading"))
     }
 }
 
@@ -321,8 +321,8 @@ private struct ReviewHistorySectionStrip: View {
 
     private func segmentAccessibilityHint(forCount count: Int) -> String {
         count == 0
-            ? String(localized: "Review history section strip segment empty hint")
-            : String(localized: "Review history section strip segment hint")
+            ? String(localized: "accessibility.reviewHistory.sectionStripEmpty")
+            : String(localized: "accessibility.reviewHistory.sectionStrip")
     }
 
     var body: some View {
@@ -370,7 +370,7 @@ private struct ReviewHistorySectionStrip: View {
                         .buttonStyle(PastTappablePressStyle())
                         .accessibilityLabel(
                             String(
-                                format: String(localized: "%1$@, %2$d"),
+                                format: String(localized: "journal.share.twoColumnRow"),
                                 localizedSectionName(for: item.kind),
                                 item.count
                             )
@@ -414,7 +414,7 @@ private struct ReviewHistorySectionStrip: View {
                     .buttonStyle(PastTappablePressStyle())
                     .accessibilityLabel(
                         String(
-                            format: String(localized: "%1$@, %2$d"),
+                            format: String(localized: "journal.share.twoColumnRow"),
                             localizedSectionName(for: item.kind),
                             item.count
                         )
@@ -429,11 +429,11 @@ private struct ReviewHistorySectionStrip: View {
     private func localizedSectionName(for kind: ReviewStatsSectionKind) -> String {
         switch kind {
         case .gratitudes:
-            String(localized: "Gratitudes")
+            String(localized: "journal.section.gratitudesTitle")
         case .needs:
-            String(localized: "Needs")
+            String(localized: "journal.section.needsTitle")
         case .people:
-            String(localized: "People in Mind")
+            String(localized: "journal.section.peopleTitle")
         }
     }
 }
@@ -469,15 +469,15 @@ enum ReviewCompletionLevelFormatting {
     static func accessibilityLocalizedStageName(for level: JournalCompletionLevel) -> String {
         switch level {
         case .soil:
-            String(localized: "Review growth stage accessibility Empty")
+            String(localized: "accessibility.reviewGrowthStage.empty")
         case .sprout:
-            String(localized: "Review growth stage accessibility Started")
+            String(localized: "accessibility.reviewGrowthStage.started")
         case .twig:
-            String(localized: "Review growth stage accessibility Growing")
+            String(localized: "accessibility.reviewGrowthStage.growing")
         case .leaf:
-            String(localized: "Review growth stage accessibility Balanced")
+            String(localized: "accessibility.reviewGrowthStage.balanced")
         case .bloom:
-            String(localized: "Review growth stage accessibility Full")
+            String(localized: "accessibility.reviewGrowthStage.full")
         }
     }
 }

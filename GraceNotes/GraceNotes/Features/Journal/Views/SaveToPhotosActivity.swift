@@ -20,7 +20,7 @@ final class SaveToPhotosActivity: UIActivity {
     }
 
     override var activityTitle: String? {
-        String(localized: "Save to Photos")
+        String(localized: "sharing.saveToPhotos")
     }
 
     override var activityImage: UIImage? {

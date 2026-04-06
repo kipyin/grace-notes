@@ -74,7 +74,7 @@ struct JournalOnboardingPresentation: Equatable {
         guard section == bannerSection else { return nil }
         let secondary: String? = switch step {
         case .gratitude:
-            String(localized: "When you're finished, press Return or Enter on your keyboard.")
+            String(localized: "journal.onboarding.keyboardFinishHint")
         case .need, .person, .ripening, .harvest:
             nil
         }
@@ -166,23 +166,23 @@ private extension JournalOnboardingFlowEvaluator {
     }
 
     static func lockedNotesState() -> JournalOnboardingSectionState {
-        .locked(reason: String(localized: "Reading Notes open after Gratitudes, Needs, and People are full."))
+        .locked(reason: String(localized: "journal.onboarding.readingNotesLockedReason"))
     }
 
     static func lockedReflectionsState() -> JournalOnboardingSectionState {
-        .locked(reason: String(localized: "Reflections open after Gratitudes, Needs, and People are full."))
+        .locked(reason: String(localized: "journal.onboarding.reflectionsLockedReason"))
     }
 
     static func firstGratitudePresentation() -> JournalOnboardingPresentation {
         presentation(
             step: .gratitude,
             title: "",
-            message: String(localized: "Start with one gratitude."),
+            message: String(localized: "journal.onboarding.startWithGratitude"),
             states: [
                 .gratitude: .active,
-                .need: .locked(reason: String(localized: "Needs will open after your first gratitude.")),
+                .need: .locked(reason: String(localized: "journal.onboarding.needsLockedReason")),
                 .person: .locked(
-                    reason: String(localized: "People in Mind will open after your first gratitude.")
+                    reason: String(localized: "journal.onboarding.peopleLockedAfterGratitude")
                 ),
                 .readingNotes: lockedNotesState(),
                 .reflections: lockedReflectionsState()
@@ -193,12 +193,12 @@ private extension JournalOnboardingFlowEvaluator {
     static func firstNeedPresentation() -> JournalOnboardingPresentation {
         presentation(
             step: .need,
-            title: String(localized: "Keep going"),
-            message: String(localized: "Now add one need for today."),
+            title: String(localized: "journal.onboarding.keepGoingTitle"),
+            message: String(localized: "journal.onboarding.addOneNeedMessage"),
             states: [
                 .gratitude: .available,
                 .need: .active,
-                .person: .locked(reason: String(localized: "People in Mind will open after your first need.")),
+                .person: .locked(reason: String(localized: "journal.onboarding.peopleLockedAfterNeed")),
                 .readingNotes: lockedNotesState(),
                 .reflections: lockedReflectionsState()
             ]
@@ -208,8 +208,8 @@ private extension JournalOnboardingFlowEvaluator {
     static func firstPersonPresentation() -> JournalOnboardingPresentation {
         presentation(
             step: .person,
-            title: String(localized: "One more step"),
-            message: String(localized: "Who is on your mind today?"),
+            title: String(localized: "journal.onboarding.oneMoreStepTitle"),
+            message: String(localized: "journal.onboarding.whoOnMind"),
             states: [
                 .gratitude: .available,
                 .need: .available,
@@ -223,8 +223,8 @@ private extension JournalOnboardingFlowEvaluator {
     static func ripeningPresentation() -> JournalOnboardingPresentation {
         presentation(
             step: .ripening,
-            title: String(localized: "Started"),
-            message: String(localized: "You've begun. Keep going until each section has three."),
+            title: String(localized: "journal.growthStage.started"),
+            message: String(localized: "journal.onboarding.startedContinueMessage"),
             states: chipSectionPresentation(
                 chipState: .active,
                 notesState: .active,
@@ -236,9 +236,9 @@ private extension JournalOnboardingFlowEvaluator {
     static func bloomPresentation() -> JournalOnboardingPresentation {
         presentation(
             step: .harvest,
-            title: String(localized: "Balanced"),
+            title: String(localized: "journal.growthStage.balanced"),
             message: String(
-                localized: "You're ready to keep filling the rows. Reach five in each section when it feels right."
+                localized: "journal.onboarding.balancedContinueMessage"
             ),
             states: chipSectionPresentation(
                 chipState: .active,

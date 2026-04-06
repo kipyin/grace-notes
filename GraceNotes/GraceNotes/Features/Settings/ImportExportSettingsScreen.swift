@@ -37,17 +37,17 @@ struct ImportExportSettingsScreen: View {
 
     @ViewBuilder
     private var scheduledBackupIntervalPicker: some View {
-        let title = String(localized: "DataPrivacy.scheduledBackup.interval.title")
+        let title = String(localized: "settings.dataPrivacy.scheduledBackup.interval.title")
         Picker(title, selection: $scheduledInterval) {
-            Text(String(localized: "DataPrivacy.scheduledBackup.interval.off"))
+            Text(String(localized: "settings.dataPrivacy.scheduledBackup.interval.off"))
                 .tag(ScheduledBackupInterval.off)
-            Text(String(localized: "DataPrivacy.scheduledBackup.interval.daily"))
+            Text(String(localized: "settings.dataPrivacy.scheduledBackup.interval.daily"))
                 .tag(ScheduledBackupInterval.daily)
-            Text(String(localized: "DataPrivacy.scheduledBackup.interval.weekly"))
+            Text(String(localized: "settings.dataPrivacy.scheduledBackup.interval.weekly"))
                 .tag(ScheduledBackupInterval.weekly)
-            Text(String(localized: "DataPrivacy.scheduledBackup.interval.biweekly"))
+            Text(String(localized: "settings.dataPrivacy.scheduledBackup.interval.biweekly"))
                 .tag(ScheduledBackupInterval.biweekly)
-            Text(String(localized: "DataPrivacy.scheduledBackup.interval.monthly"))
+            Text(String(localized: "settings.dataPrivacy.scheduledBackup.interval.monthly"))
                 .tag(ScheduledBackupInterval.monthly)
         }
         .font(AppTheme.warmPaperBody)
@@ -67,7 +67,7 @@ struct ImportExportSettingsScreen: View {
                     showScheduledFolderPicker = true
                 } label: {
                     settingsRow(
-                        title: String(localized: "DataPrivacy.scheduledBackup.chooseFolder"),
+                        title: String(localized: "settings.dataPrivacy.scheduledBackup.chooseFolder"),
                         subtitle: scheduledBackupFolderSubtitle,
                         showTrailingChevron: true
                     )
@@ -75,12 +75,12 @@ struct ImportExportSettingsScreen: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel(chooseBackupFolderAccessibilityLabel())
             } header: {
-                Text(String(localized: "DataPrivacy.scheduledBackup.section"))
+                Text(String(localized: "settings.dataPrivacy.scheduledBackup.section"))
                     .font(AppTheme.warmPaperMeta)
                     .foregroundStyle(AppTheme.settingsTextMuted)
                     .textCase(nil)
             } footer: {
-                Text(String(localized: "DataPrivacy.scheduledBackup.footer"))
+                Text(String(localized: "settings.dataPrivacy.scheduledBackup.footer"))
                     .font(AppTheme.warmPaperMeta)
                     .foregroundStyle(AppTheme.settingsTextMuted)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -94,7 +94,7 @@ struct ImportExportSettingsScreen: View {
                         exportJournalDataShareOnly()
                     }
                 } label: {
-                    settingsRow(label: String(localized: "DataPrivacy.importExport.export.json"))
+                    settingsRow(label: String(localized: "settings.dataPrivacy.importExport.export.json"))
                 }
                 .buttonStyle(.plain)
                 .disabled(isExportingData || isImportingData)
@@ -105,7 +105,7 @@ struct ImportExportSettingsScreen: View {
                     } label: {
                         HStack(alignment: .top, spacing: AppTheme.spacingRegular) {
                             VStack(alignment: .leading, spacing: AppTheme.spacingTight / 2) {
-                                Text(String(localized: "DataPrivacy.importExport.latestExport.title"))
+                                Text(String(localized: "settings.dataPrivacy.importExport.latestExport.title"))
                                     .font(AppTheme.warmPaperMeta)
                                     .foregroundStyle(AppTheme.settingsTextMuted)
                                 Text(latest.finishedAt.formatted(date: .abbreviated, time: .shortened))
@@ -124,10 +124,10 @@ struct ImportExportSettingsScreen: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(latestExportAccessibilityLabel(for: latest))
-                    .accessibilityHint(String(localized: "DataPrivacy.importExport.latestBackup.accessibilityHint"))
+                    .accessibilityHint(String(localized: "settings.dataPrivacy.importExport.latestBackup.accessibilityHint"))
                 }
             } header: {
-                Text(String(localized: "DataPrivacy.importExport.section.export"))
+                Text(String(localized: "settings.dataPrivacy.importExport.section.export"))
                     .font(AppTheme.warmPaperMeta)
                     .foregroundStyle(AppTheme.settingsTextMuted)
                     .textCase(nil)
@@ -137,7 +137,7 @@ struct ImportExportSettingsScreen: View {
                 Button {
                     showImportPicker = true
                 } label: {
-                    settingsRow(label: String(localized: "DataPrivacy.importExport.import.json"))
+                    settingsRow(label: String(localized: "settings.dataPrivacy.importExport.import.json"))
                 }
                 .buttonStyle(.plain)
                 .disabled(isExportingData || isImportingData)
@@ -147,7 +147,7 @@ struct ImportExportSettingsScreen: View {
                         showBackupFolderFileList = true
                     } label: {
                         settingsRow(
-                            label: String(localized: "DataPrivacy.importExport.import.fromBackupFolder"),
+                            label: String(localized: "settings.dataPrivacy.importExport.import.fromBackupFolder"),
                             showTrailingChevron: true
                         )
                     }
@@ -156,13 +156,13 @@ struct ImportExportSettingsScreen: View {
                 .disabled(scheduledFolderMissing)
                 .modifier(BackupFolderLinkHint(showDisabledHint: scheduledFolderMissing))
             } header: {
-                Text(String(localized: "DataPrivacy.importExport.section.import"))
+                Text(String(localized: "settings.dataPrivacy.importExport.section.import"))
                     .font(AppTheme.warmPaperMeta)
                     .foregroundStyle(AppTheme.settingsTextMuted)
                     .textCase(nil)
             }
             }
-            .navigationTitle(String(localized: "DataPrivacy.importExport.title"))
+            .navigationTitle(String(localized: "settings.dataPrivacy.importExport.title"))
             .listRowBackground(AppTheme.settingsPaper.opacity(0.9))
             .scrollContentBackground(.hidden)
             .background(AppTheme.settingsBackground)
@@ -183,7 +183,7 @@ struct ImportExportSettingsScreen: View {
                     importMode = .merge
                     showImportReview = true
                 case .failure:
-                    importErrorMessage = String(localized: "DataPrivacy.import.error.readFailed")
+                    importErrorMessage = String(localized: "settings.dataPrivacy.import.error.readFailed")
                     showImportError = true
                 }
             }
@@ -202,11 +202,11 @@ struct ImportExportSettingsScreen: View {
                         let folderForBookmark = try BackupFolderPickerResolution.resolvedFolderURL(userPicked: url)
                         try ScheduledBackupPreferences.storeFolderBookmark(for: folderForBookmark)
                     } catch {
-                        scheduledFolderError = String(localized: "DataPrivacy.scheduledBackup.folderError")
+                        scheduledFolderError = String(localized: "settings.dataPrivacy.scheduledBackup.folderError")
                         showScheduledFolderError = true
                     }
                 case .failure:
-                    scheduledFolderError = String(localized: "DataPrivacy.scheduledBackup.folderError")
+                    scheduledFolderError = String(localized: "settings.dataPrivacy.scheduledBackup.folderError")
                     showScheduledFolderError = true
                 }
             }
@@ -224,59 +224,59 @@ struct ImportExportSettingsScreen: View {
         .sheet(item: $exportFile) { file in
             ShareSheet(activityItems: [file.url])
         }
-        .alert(String(localized: "Unable to export data"), isPresented: $showExportError) {
-            Button(String(localized: "OK"), role: .cancel) {}
+        .alert(String(localized: "data.export.errorTitle"), isPresented: $showExportError) {
+            Button(String(localized: "common.ok"), role: .cancel) {}
         } message: {
-            Text(exportErrorMessage ?? String(localized: "Please try again."))
+            Text(exportErrorMessage ?? String(localized: "common.tryAgainGeneric"))
         }
-        .alert(String(localized: "DataPrivacy.import.mergeConflict.title"), isPresented: $showMergeConflictResolution) {
-            Button(String(localized: "DataPrivacy.import.mergeConflict.useBackup")) {
+        .alert(String(localized: "settings.dataPrivacy.import.mergeConflict.title"), isPresented: $showMergeConflictResolution) {
+            Button(String(localized: "settings.dataPrivacy.import.mergeConflict.useBackup")) {
                 runConflictResolution(.preferImported)
             }
-            Button(String(localized: "DataPrivacy.import.mergeConflict.keepDevice")) {
+            Button(String(localized: "settings.dataPrivacy.import.mergeConflict.keepDevice")) {
                 runConflictResolution(.preferLocal)
             }
-            Button(String(localized: "Cancel"), role: .cancel) {}
+            Button(String(localized: "common.cancel"), role: .cancel) {}
         } message: {
             Text(mergeConflictAlertMessage(count: mergeConflictDays.count))
         }
-        .alert(String(localized: "DataPrivacy.import.success.title"), isPresented: $showImportSuccess) {
-            Button(String(localized: "OK"), role: .cancel) {
+        .alert(String(localized: "settings.dataPrivacy.import.success.title"), isPresented: $showImportSuccess) {
+            Button(String(localized: "common.ok"), role: .cancel) {
                 importSuccessSummary = nil
             }
         } message: {
             if let summary = importSuccessSummary {
                 Text(
                     String(
-                        format: String(localized: "DataPrivacy.import.success.detail"),
+                        format: String(localized: "settings.dataPrivacy.import.success.detail"),
                         summary.insertedCount,
                         summary.updatedCount
                     )
                 )
             }
         }
-        .alert(String(localized: "DataPrivacy.import.error.title"), isPresented: $showImportError) {
-            Button(String(localized: "OK"), role: .cancel) {}
+        .alert(String(localized: "settings.dataPrivacy.import.error.title"), isPresented: $showImportError) {
+            Button(String(localized: "common.ok"), role: .cancel) {}
         } message: {
-            Text(importErrorMessage ?? String(localized: "DataPrivacy.import.error.generic"))
+            Text(importErrorMessage ?? String(localized: "settings.dataPrivacy.import.error.generic"))
         }
         .alert(
-            String(localized: "DataPrivacy.scheduledBackup.folderError.title"),
+            String(localized: "settings.dataPrivacy.scheduledBackup.folderError.title"),
             isPresented: $showScheduledFolderError
         ) {
-            Button(String(localized: "OK"), role: .cancel) {}
+            Button(String(localized: "common.ok"), role: .cancel) {}
         } message: {
-            Text(scheduledFolderError ?? String(localized: "Please try again."))
+            Text(scheduledFolderError ?? String(localized: "common.tryAgainGeneric"))
         }
         .overlay {
             if isExportingData {
-                ProgressView(String(localized: "Exporting…"))
+                ProgressView(String(localized: "data.exporting.progress"))
                     .font(AppTheme.warmPaperBody)
                     .padding(16)
                     .background(AppTheme.paper)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             } else if isImportingData {
-                ProgressView(String(localized: "Importing…"))
+                ProgressView(String(localized: "data.importing.progress"))
                     .font(AppTheme.warmPaperBody)
                     .padding(16)
                     .background(AppTheme.paper)
@@ -284,17 +284,17 @@ struct ImportExportSettingsScreen: View {
             }
         }
         .confirmationDialog(
-            String(localized: "DataPrivacy.importExport.manualBackupDestination.title"),
+            String(localized: "settings.dataPrivacy.importExport.manualBackupDestination.title"),
             isPresented: $showManualBackupDestinationDialog,
             titleVisibility: .visible
         ) {
-            Button(String(localized: "DataPrivacy.importExport.manualBackupDestination.saveToFolder")) {
+            Button(String(localized: "settings.dataPrivacy.importExport.manualBackupDestination.saveToFolder")) {
                 exportJournalDataToBackupFolder()
             }
-            Button(String(localized: "DataPrivacy.importExport.manualBackupDestination.share")) {
+            Button(String(localized: "settings.dataPrivacy.importExport.manualBackupDestination.share")) {
                 exportJournalDataShareOnly()
             }
-            Button(String(localized: "Cancel"), role: .cancel) {}
+            Button(String(localized: "common.cancel"), role: .cancel) {}
         }
     }
 
@@ -310,11 +310,11 @@ struct ImportExportSettingsScreen: View {
     private func chooseBackupFolderAccessibilityLabel() -> String {
         if let name = scheduledBackupFolderSubtitle {
             return String(
-                format: String(localized: "DataPrivacy.scheduledBackup.chooseFolderAccessibilityFormat"),
+                format: String(localized: "settings.dataPrivacy.scheduledBackup.chooseFolderAccessibilityFormat"),
                 name
             )
         }
-        return String(localized: "DataPrivacy.scheduledBackup.chooseFolder")
+        return String(localized: "settings.dataPrivacy.scheduledBackup.chooseFolder")
     }
 
     private var scheduledFolderMissing: Bool {
@@ -339,7 +339,7 @@ struct ImportExportSettingsScreen: View {
             .listRowBackground(AppTheme.settingsPaper.opacity(0.9))
             .scrollContentBackground(.hidden)
             .background(AppTheme.settingsBackground)
-            .navigationTitle(String(localized: "DataPrivacy.importExport.section.history"))
+            .navigationTitle(String(localized: "settings.dataPrivacy.importExport.section.history"))
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button {
@@ -349,7 +349,7 @@ struct ImportExportSettingsScreen: View {
                             .font(AppTheme.warmPaperBody.weight(.semibold))
                             .foregroundStyle(AppTheme.settingsTextPrimary)
                     }
-                    .accessibilityLabel(String(localized: "Done"))
+                    .accessibilityLabel(String(localized: "common.done"))
                 }
             }
         }
@@ -360,16 +360,16 @@ struct ImportExportSettingsScreen: View {
         NavigationStack {
             List {
                 Section {
-                    Picker(String(localized: "DataPrivacy.import.mode.title"), selection: $importMode) {
-                        Text(String(localized: "DataPrivacy.import.mode.merge")).tag(JournalImportMode.merge)
-                        Text(String(localized: "DataPrivacy.import.mode.replace")).tag(JournalImportMode.replace)
+                    Picker(String(localized: "settings.dataPrivacy.import.mode.title"), selection: $importMode) {
+                        Text(String(localized: "settings.dataPrivacy.import.mode.merge")).tag(JournalImportMode.merge)
+                        Text(String(localized: "settings.dataPrivacy.import.mode.replace")).tag(JournalImportMode.replace)
                     }
                     .font(AppTheme.warmPaperBody)
 
                     Text(
                         importMode == .merge
-                            ? String(localized: "DataPrivacy.import.mode.merge.detail")
-                            : String(localized: "DataPrivacy.import.mode.replace.detail")
+                            ? String(localized: "settings.dataPrivacy.import.mode.merge.detail")
+                            : String(localized: "settings.dataPrivacy.import.mode.replace.detail")
                     )
                     .font(AppTheme.warmPaperMeta)
                     .foregroundStyle(AppTheme.settingsTextMuted)
@@ -377,18 +377,18 @@ struct ImportExportSettingsScreen: View {
                 }
 
                 Section {
-                    Button(String(localized: "DataPrivacy.import.action")) {
+                    Button(String(localized: "settings.dataPrivacy.import.action")) {
                         performManualImport(conflictResolution: nil)
                     }
                     .font(AppTheme.warmPaperBody)
                     .disabled(pendingImportURL == nil || isImportingData)
                 }
             }
-            .navigationTitle(String(localized: "DataPrivacy.import.review.title"))
+            .navigationTitle(String(localized: "settings.dataPrivacy.import.review.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(String(localized: "Cancel")) {
+                    Button(String(localized: "common.cancel")) {
                         showImportReview = false
                         pendingImportURL = nil
                     }
@@ -500,7 +500,7 @@ private extension ImportExportSettingsScreen {
                         detail: nil
                     )
                     refreshHistory()
-                    exportErrorMessage = String(localized: "Unable to export your Grace Notes data right now.")
+                    exportErrorMessage = String(localized: "data.export.errorDetail")
                     showExportError = true
                     isExportingData = false
                 }
@@ -552,7 +552,7 @@ private extension ImportExportSettingsScreen {
                             detail: nil
                         )
                         refreshHistory()
-                        exportErrorMessage = String(localized: "Unable to export your Grace Notes data right now.")
+                        exportErrorMessage = String(localized: "data.export.errorDetail")
                         showExportError = true
                         isExportingData = false
                     }
@@ -565,7 +565,7 @@ private extension ImportExportSettingsScreen {
                         detail: nil
                     )
                     refreshHistory()
-                    exportErrorMessage = String(localized: "Unable to export your Grace Notes data right now.")
+                    exportErrorMessage = String(localized: "data.export.errorDetail")
                     showExportError = true
                     isExportingData = false
                 }
@@ -638,21 +638,21 @@ private extension ImportExportSettingsScreen {
         if let importError = error as? JournalDataImportError {
             switch importError {
             case .invalidGraceNotesExport:
-                return String(localized: "DataPrivacy.import.error.invalid")
+                return String(localized: "settings.dataPrivacy.import.error.invalid")
             case .unsupportedSchemaVersion(let version):
                 return String(
-                    format: String(localized: "DataPrivacy.import.error.schema"),
+                    format: String(localized: "settings.dataPrivacy.import.error.schema"),
                     version
                 )
             case .fileTooLarge:
-                return String(localized: "DataPrivacy.import.error.fileTooLarge")
+                return String(localized: "settings.dataPrivacy.import.error.fileTooLarge")
             case .tooManyEntries:
-                return String(localized: "DataPrivacy.import.error.tooManyEntries")
+                return String(localized: "settings.dataPrivacy.import.error.tooManyEntries")
             case .mergeConflicts:
-                return String(localized: "DataPrivacy.import.error.generic")
+                return String(localized: "settings.dataPrivacy.import.error.generic")
             }
         }
-        return String(localized: "DataPrivacy.import.error.generic")
+        return String(localized: "settings.dataPrivacy.import.error.generic")
     }
 
     private func loadManualImportFileData(from url: URL) throws -> Data {
@@ -679,8 +679,8 @@ private extension ImportExportSettingsScreen {
 
     private func mergeConflictAlertMessage(count: Int) -> String {
         let template = count == 1
-            ? String(localized: "DataPrivacy.import.mergeConflict.message.one")
-            : String(localized: "DataPrivacy.import.mergeConflict.message.other")
+            ? String(localized: "settings.dataPrivacy.import.mergeConflict.message.one")
+            : String(localized: "settings.dataPrivacy.import.mergeConflict.message.other")
         return String(format: template, locale: .current, count)
     }
 }

@@ -14,12 +14,12 @@ enum PastSearchDayCaption {
         let todayStart = calendar.startOfDay(for: now)
 
         if dayStart == todayStart {
-            return String(localized: "Today")
+            return String(localized: "shell.tab.today")
         }
 
         if let yesterdayStart = calendar.date(byAdding: .day, value: -1, to: todayStart),
            dayStart == yesterdayStart {
-            return String(localized: "PastSearch.dateLabel.yesterday")
+            return String(localized: "past.search.dateLabel.yesterday")
         }
 
         let dayYear = calendar.component(.year, from: dayStart)

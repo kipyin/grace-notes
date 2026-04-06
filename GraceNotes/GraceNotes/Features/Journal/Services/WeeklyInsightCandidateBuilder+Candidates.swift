@@ -19,10 +19,10 @@ extension WeeklyInsightCandidateBuilder {
         let insight = ReviewWeeklyInsight(
             pattern: .fullCompletion,
             observation: String(
-                localized: "You kept a steady daily rhythm and completed all 15 each day this week."
+                localized: "review.insights.steadyRhythm15"
             ),
             action: String(
-                localized: "What helped you stay this steady so you can carry it into next week?"
+                localized: "review.prompts.steadyCarry"
             ),
             primaryTheme: nil,
             mentionCount: 7,
@@ -39,14 +39,14 @@ extension WeeklyInsightCandidateBuilder {
         let insight = ReviewWeeklyInsight(
             pattern: .recurringPeople,
             observation: renderLocalizedDayCountTemplate(
-                "You kept %1$@ in mind on %2$lld day(s) this week.",
+                "review.insights.recurringPeople.observation",
                 dayCount: topPerson.dayCount,
                 replacements: [
                     ("%1$@", topPerson.displayLabel)
                 ]
             ),
             action: renderLocalizedTemplate(
-                "Would a short check-in with %@ feel supportive this week?",
+                "review.insights.recurringPeople.action",
                 replacements: [
                     ("%@", topPerson.displayLabel),
                     ("%1$@", topPerson.displayLabel)
@@ -81,14 +81,14 @@ extension WeeklyInsightCandidateBuilder {
         let insight = ReviewWeeklyInsight(
             pattern: .recurringTheme,
             observation: renderLocalizedDayCountTemplate(
-                "A need kept resurfacing: %1$@ on %2$lld day(s) this week.",
+                "review.insights.recurringTheme.need.observation",
                 dayCount: theme.dayCount,
                 replacements: [
                     ("%1$@", theme.displayLabel)
                 ]
             ),
             action: renderLocalizedTemplate(
-                "What is one small step that could support %@ tomorrow?",
+                "review.insights.recurringTheme.need.action",
                 replacements: [
                     ("%@", theme.displayLabel),
                     ("%1$@", theme.displayLabel)
@@ -106,14 +106,14 @@ extension WeeklyInsightCandidateBuilder {
         let insight = ReviewWeeklyInsight(
             pattern: .recurringTheme,
             observation: renderLocalizedDayCountTemplate(
-                "You kept noticing %1$@ on %2$lld day(s) this week.",
+                "review.insights.recurringTheme.gratitude.observation",
                 dayCount: theme.dayCount,
                 replacements: [
                     ("%1$@", theme.displayLabel)
                 ]
             ),
             action: renderLocalizedTemplate(
-                "How could you make space for %@ again next week?",
+                "review.insights.recurringTheme.gratitude.action",
                 replacements: [
                     ("%@", theme.displayLabel),
                     ("%1$@", theme.displayLabel)
@@ -142,14 +142,14 @@ extension WeeklyInsightCandidateBuilder {
         let insight = ReviewWeeklyInsight(
             pattern: .needsGratitudeGap,
             observation: renderLocalizedTemplate(
-                "You often named %@ as a need, but it did not appear in your gratitudes yet.",
+                "review.insights.needsGratitudeGap.observation",
                 replacements: [
                     ("%@", topNeedWithoutMatch.displayLabel),
                     ("%1$@", topNeedWithoutMatch.displayLabel)
                 ]
             ),
             action: renderLocalizedTemplate(
-                "What is one tiny way to turn %@ into a gratitude this week?",
+                "review.insights.needsGratitudeGap.action",
                 replacements: [
                     ("%@", topNeedWithoutMatch.displayLabel),
                     ("%1$@", topNeedWithoutMatch.displayLabel)
@@ -175,14 +175,14 @@ extension WeeklyInsightCandidateBuilder {
         let insight = ReviewWeeklyInsight(
             pattern: .continuityShift,
             observation: renderLocalizedTemplate(
-                "Your focus shifted from %1$@ last week to %2$@ this week.",
+                "review.insights.continuityShift.observation",
                 replacements: [
                     ("%1$@", previousTop.displayLabel),
                     ("%2$@", currentTop.displayLabel)
                 ]
             ),
             action: renderLocalizedTemplate(
-                "Is this shift toward %@ something you want to keep building?",
+                "review.insights.continuityShift.action",
                 replacements: [
                     ("%@", currentTop.displayLabel),
                     ("%1$@", currentTop.displayLabel)
@@ -292,7 +292,7 @@ extension WeeklyInsightCandidateBuilder {
         _ key: String,
         replacements: [(token: String, value: String)]
     ) -> String {
-        var message = NSLocalizedString(key, comment: "")
+        var message = String(localized: String.LocalizationValue(key))
         for replacement in replacements {
             message = message.replacingOccurrences(of: replacement.token, with: replacement.value)
         }
@@ -311,8 +311,8 @@ extension WeeklyInsightCandidateBuilder {
 
         var message = renderLocalizedTemplate(key, replacements: updatedReplacements)
         let dayUnit = dayCount == 1
-            ? String(localized: "day")
-            : String(localized: "days")
+            ? String(localized: "common.timeUnit.day")
+            : String(localized: "common.timeUnit.days")
         message = message.replacingOccurrences(of: "day(s)", with: dayUnit)
         return message
     }

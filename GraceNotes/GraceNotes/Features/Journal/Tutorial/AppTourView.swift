@@ -78,14 +78,14 @@ struct AppTourView: View {
             reminderState.handleSelectedTimeChanged()
         }
         .alert(
-            String(localized: "Unable to update reminder"),
+            String(localized: "notifications.reminder.updateFailedTitle"),
             isPresented: reminderErrorIsPresented
         ) {
-            Button(String(localized: "OK"), role: .cancel) {
+            Button(String(localized: "common.ok"), role: .cancel) {
                 reminderState.clearTransientError()
             }
         } message: {
-            Text(reminderState.transientErrorMessage ?? String(localized: "Please try again."))
+            Text(reminderState.transientErrorMessage ?? String(localized: "common.tryAgainGeneric"))
         }
     }
 }
@@ -282,30 +282,30 @@ struct AppTourPathStrip: View {
     private func displayName(for level: JournalCompletionLevel) -> String {
         switch level {
         case .soil:
-            return String(localized: "Empty")
+            return String(localized: "journal.growthStage.empty")
         case .sprout:
-            return String(localized: "Started")
+            return String(localized: "journal.growthStage.started")
         case .twig:
-            return String(localized: "Growing")
+            return String(localized: "journal.growthStage.growing")
         case .leaf:
-            return String(localized: "Balanced")
+            return String(localized: "journal.growthStage.balanced")
         case .bloom:
-            return String(localized: "Full")
+            return String(localized: "journal.growthStage.full")
         }
     }
 
     private func criterion(for level: JournalCompletionLevel) -> String {
         switch level {
         case .soil:
-            return String(localized: "AppTour.path.criterion.empty")
+            return String(localized: "tutorial.appTour.path.criterion.empty")
         case .sprout:
-            return String(localized: "AppTour.path.criterion.started")
+            return String(localized: "tutorial.appTour.path.criterion.started")
         case .twig:
-            return String(localized: "AppTour.path.criterion.growing")
+            return String(localized: "tutorial.appTour.path.criterion.growing")
         case .leaf:
-            return String(localized: "AppTour.path.criterion.balanced")
+            return String(localized: "tutorial.appTour.path.criterion.balanced")
         case .bloom:
-            return String(localized: "AppTour.path.criterion.full")
+            return String(localized: "tutorial.appTour.path.criterion.full")
         }
     }
 
@@ -373,7 +373,7 @@ struct AppTourInsightsPreview: View {
             .allowsHitTesting(false)
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(String(localized: "AppTour.sampleInsights.a11yLabel"))
+        .accessibilityLabel(String(localized: "tutorial.appTour.sampleInsights.a11yLabel"))
     }
 }
 
@@ -395,7 +395,7 @@ struct AppTourICloudCard: View {
                 }
 
                 if shouldShowICloudSyncToggle {
-                    Toggle(String(localized: "iCloud sync"), isOn: $isICloudSyncEnabled)
+                    Toggle(String(localized: "settings.dataPrivacy.iCloudSyncToggle"), isOn: $isICloudSyncEnabled)
                         .font(AppTheme.warmPaperBody)
                         .foregroundStyle(AppTheme.settingsTextPrimary)
                         .tint(AppTheme.reviewAccent)
@@ -441,42 +441,42 @@ struct AppTourICloudCard: View {
 
     private var primaryStorageBody: String {
         if persistenceRuntimeSnapshot.startupUsedCloudKitFallback {
-            return String(localized: "DataPrivacy.storage.fallbackLocal")
+            return String(localized: "settings.dataPrivacy.storage.fallbackLocal")
         }
-        return String(localized: "DataPrivacy.storage.localOnly")
+        return String(localized: "settings.dataPrivacy.storage.localOnly")
     }
 
     private var attentionMessage: String? {
         if let bucket = iCloudAccountState.displayedBucket {
             switch bucket {
             case .noAccount:
-                return String(localized: "DataPrivacy.attention.noAccount.summary")
+                return String(localized: "settings.dataPrivacy.attention.noAccount.summary")
             case .restricted:
-                return String(localized: "DataPrivacy.attention.restricted.summary")
+                return String(localized: "settings.dataPrivacy.attention.restricted.summary")
             case .temporarilyUnavailable:
                 if !preferenceMatchesEffectiveStore {
-                    return String(localized: "DataPrivacy.attention.tempUnavailableMismatch.summary")
+                    return String(localized: "settings.dataPrivacy.attention.tempUnavailableMismatch.summary")
                 }
-                return String(localized: "DataPrivacy.attention.tempUnavailable")
+                return String(localized: "settings.dataPrivacy.attention.tempUnavailable")
             case .couldNotDetermine:
                 if !preferenceMatchesEffectiveStore {
-                    return String(localized: "DataPrivacy.attention.unknownMismatch.summary")
+                    return String(localized: "settings.dataPrivacy.attention.unknownMismatch.summary")
                 }
-                return String(localized: "DataPrivacy.attention.unknown")
+                return String(localized: "settings.dataPrivacy.attention.unknown")
             case .available:
                 break
             }
         }
 
         if persistenceRuntimeSnapshot.startupUsedCloudKitFallback, isICloudSyncEnabled {
-            return String(localized: "DataPrivacy.attention.retryICloudAfterRelaunch.summary")
+            return String(localized: "settings.dataPrivacy.attention.retryICloudAfterRelaunch.summary")
         }
 
         if !preferenceMatchesEffectiveStore {
             if shouldShowICloudSyncToggle {
-                return String(localized: "DataPrivacy.attention.toggleChangedRelaunch.summary")
+                return String(localized: "settings.dataPrivacy.attention.toggleChangedRelaunch.summary")
             }
-            return String(localized: "DataPrivacy.attention.preferenceMismatchRelaunch.summary")
+            return String(localized: "settings.dataPrivacy.attention.preferenceMismatchRelaunch.summary")
         }
 
         return nil
@@ -486,16 +486,16 @@ struct AppTourICloudCard: View {
     private var storageSummaryBlock: some View {
         if isJournalOnCloudKitStore {
             VStack(alignment: .leading, spacing: AppTheme.spacingTight / 2) {
-                Text(String(localized: "DataPrivacy.storage.heading"))
+                Text(String(localized: "settings.dataPrivacy.storage.heading"))
                     .font(AppTheme.warmPaperMeta)
                     .foregroundStyle(AppTheme.settingsTextMuted)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(String(localized: "DataPrivacy.a11y.storage.cloudActive"))
+            .accessibilityLabel(String(localized: "settings.dataPrivacy.a11y.storage.cloudActive"))
         } else {
             VStack(alignment: .leading, spacing: AppTheme.spacingTight / 2) {
-                Text(String(localized: "DataPrivacy.storage.heading"))
+                Text(String(localized: "settings.dataPrivacy.storage.heading"))
                     .font(AppTheme.warmPaperMeta)
                     .foregroundStyle(AppTheme.settingsTextMuted)
                 Text(primaryStorageBody)
@@ -505,7 +505,7 @@ struct AppTourICloudCard: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .combine)
-            .accessibilityLabel(String(localized: "DataPrivacy.a11y.storage"))
+            .accessibilityLabel(String(localized: "settings.dataPrivacy.a11y.storage"))
         }
     }
 
@@ -520,8 +520,7 @@ struct AppTourICloudCard: View {
                 SettingsOpenSystemSettingsButton(
                     action: openSystemSettings,
                     accessibilityHint: String(
-                        localized:
-                            "Opens iOS Settings where you can sign in to iCloud or review restrictions."
+                        localized: "settings.dataPrivacy.openIOSSettingsICloudHint"
                     ),
                     emphasis: .prominent
                 )
@@ -529,6 +528,6 @@ struct AppTourICloudCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(String(localized: "DataPrivacy.a11y.nextSteps"))
+        .accessibilityLabel(String(localized: "settings.dataPrivacy.a11y.nextSteps"))
     }
 }

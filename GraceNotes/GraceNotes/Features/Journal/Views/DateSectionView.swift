@@ -95,13 +95,13 @@ struct DateSectionView: View {
             )
         }
         .buttonStyle(WarmPaperPressStyle())
-        .accessibilityHint(String(localized: "Shows what this status means for today."))
+        .accessibilityHint(String(localized: "accessibility.journalStatusMeaningHint"))
         .accessibilityLabel(statusAccessibilityLabel(for: badgeInfo.completionLevel))
     }
 
     private func statusAccessibilityLabel(for level: JournalCompletionLevel) -> String {
         let statusName = CompletionBadgeInfo.matching(level).title
-        let format = String(localized: "%1$@. Gratitudes %2$d, Needs %3$d, People in Mind %4$d.")
+        let format = String(localized: "journal.share.sectionCountsSentence")
         return String(format: format, locale: Locale.current, statusName, gratitudesCount, needsCount, peopleCount)
     }
 }

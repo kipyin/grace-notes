@@ -49,7 +49,7 @@ extension DeterministicReviewInsightsTests {
 
     func test_weeklyInsightCandidateBuilder_narrativeSummary_sparseFallbackZeroDay_returnsNil() {
         let builder = WeeklyInsightCandidateBuilder(textNormalizer: WeeklyInsightTextNormalizer())
-        let starter = String(localized: "Start with one reflection today to build your weekly review.")
+        let starter = String(localized: "review.insights.starterReflection")
         let insight = ReviewWeeklyInsight(
             pattern: .sparseFallback,
             observation: starter,
@@ -64,7 +64,7 @@ extension DeterministicReviewInsightsTests {
     func test_weeklyInsightCandidateBuilder_narrativeSummary_sparseFallbackNonZeroDay_returnsTrimmed() {
         let builder = WeeklyInsightCandidateBuilder(textNormalizer: WeeklyInsightTextNormalizer())
         let observation = "  Sparse week summary line.  "
-        let easyStart = String(localized: "What would make tomorrow's check-in easy to start?")
+        let easyStart = String(localized: "review.prompts.easyCheckInTomorrow")
         let insight = ReviewWeeklyInsight(
             pattern: .sparseFallback,
             observation: observation,

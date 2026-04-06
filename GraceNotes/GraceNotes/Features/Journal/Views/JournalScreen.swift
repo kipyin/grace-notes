@@ -246,7 +246,7 @@ struct JournalScreen: View {
                     Image(systemName: "square.and.arrow.up")
                         .font(AppTheme.outfitSemiboldHeadline)
                 }
-                .accessibilityLabel(String(localized: "Share"))
+                .accessibilityLabel(String(localized: "common.share"))
                 .accessibilityIdentifier("Share")
             }
         }
@@ -260,12 +260,12 @@ struct JournalScreen: View {
                 applicationActivities: [SaveToPhotosActivity(image: item.image)]
             )
         }
-        .alert(String(localized: "Unable to share"), isPresented: $showShareError) {
-            Button(String(localized: "Dismiss")) {
+        .alert(String(localized: "sharing.error.unable"), isPresented: $showShareError) {
+            Button(String(localized: "common.dismiss")) {
                 showShareError = false
             }
         } message: {
-            Text(String(localized: "We couldn't create a share image right now. Please try again."))
+            Text(String(localized: "sharing.error.createImage"))
         }
         .fullScreenCover(isPresented: $showAppTour) {
             AppTourView(
@@ -654,8 +654,8 @@ private extension JournalScreen {
             JournalOnboardingSuggestionView(
                 title: suggestionTitle(for: onboardingSuggestion),
                 message: suggestionMessage(for: onboardingSuggestion),
-                primaryActionTitle: String(localized: "Open Settings"),
-                secondaryActionTitle: String(localized: "Not now"),
+                primaryActionTitle: String(localized: "settings.openSettings"),
+                secondaryActionTitle: String(localized: "common.notNow"),
                 onPrimaryAction: { openSettings(for: onboardingSuggestion) },
                 onSecondaryAction: { dismissSuggestion(onboardingSuggestion) }
             )
@@ -731,17 +731,17 @@ private extension JournalScreen {
 
     private var gratitudesSequentialSection: some View {
         SequentialSectionView(
-            title: String(localized: "Gratitudes"),
+            title: String(localized: "journal.section.gratitudesTitle"),
             addButtonTitle: viewModel.gratitudes.isEmpty
-                ? String(localized: "Add gratitude")
-                : String(localized: "Add another gratitude"),
-            addButtonAccessibilityHint: String(localized: "Opens a text field so you can add another item."),
+                ? String(localized: "journal.actions.addGratitude")
+                : String(localized: "journal.actions.addAnotherGratitude"),
+            addButtonAccessibilityHint: String(localized: "accessibility.addAnotherItemHint"),
             guidanceTitle: onboardingPresentation.sectionGuidance(for: .gratitude)?.title,
             guidanceMessage: onboardingPresentation.sectionGuidance(for: .gratitude)?.message,
             guidanceMessageSecondary: onboardingPresentation.sectionGuidance(for: .gratitude)?
                 .messageSecondary,
             items: viewModel.gratitudes,
-            placeholder: String(localized: "What's one thing you're grateful for?"),
+            placeholder: String(localized: "journal.prompts.gratefulFor"),
             slotCount: JournalViewModel.slotCount,
             inputAccessibilityIdentifier: "Gratitude 1",
             entryAccessibilityIdentifierPrefix: ProcessInfo.graceNotesIsRunningUITests
@@ -770,15 +770,15 @@ private extension JournalScreen {
 
     private var needsSequentialSection: some View {
         SequentialSectionView(
-            title: String(localized: "Needs"),
+            title: String(localized: "journal.section.needsTitle"),
             addButtonTitle: viewModel.needs.isEmpty
-                ? String(localized: "Add need")
-                : String(localized: "Add another need"),
-            addButtonAccessibilityHint: String(localized: "Opens a text field so you can add another item."),
+                ? String(localized: "journal.actions.addNeed")
+                : String(localized: "journal.actions.addAnotherNeed"),
+            addButtonAccessibilityHint: String(localized: "accessibility.addAnotherItemHint"),
             guidanceTitle: onboardingPresentation.sectionGuidance(for: .need)?.title,
             guidanceMessage: onboardingPresentation.sectionGuidance(for: .need)?.message,
             items: viewModel.needs,
-            placeholder: String(localized: "What do you need today?"),
+            placeholder: String(localized: "journal.prompts.whatNeedToday"),
             slotCount: JournalViewModel.slotCount,
             inputAccessibilityIdentifier: "Need 1",
             entryAccessibilityIdentifierPrefix: ProcessInfo.graceNotesIsRunningUITests
@@ -807,16 +807,16 @@ private extension JournalScreen {
 
     private var peopleSequentialSection: some View {
         SequentialSectionView(
-            title: String(localized: "People in Mind"),
+            title: String(localized: "journal.section.peopleTitle"),
             addButtonTitle: viewModel.people.isEmpty
-                ? String(localized: "Add person")
-                : String(localized: "Add another person"),
-            addButtonAccessibilityHint: String(localized: "Opens a text field so you can add another item."),
+                ? String(localized: "journal.actions.addPerson")
+                : String(localized: "journal.actions.addAnotherPerson"),
+            addButtonAccessibilityHint: String(localized: "accessibility.addAnotherItemHint"),
             showsTrailingChevronOnAddRow: false,
             guidanceTitle: onboardingPresentation.sectionGuidance(for: .person)?.title,
             guidanceMessage: onboardingPresentation.sectionGuidance(for: .person)?.message,
             items: viewModel.people,
-            placeholder: String(localized: "Who are you thinking of today?"),
+            placeholder: String(localized: "journal.prompts.whoThinking"),
             slotCount: JournalViewModel.slotCount,
             inputAccessibilityIdentifier: "Person 1",
             entryAccessibilityIdentifierPrefix: ProcessInfo.graceNotesIsRunningUITests
@@ -873,7 +873,7 @@ private extension JournalScreen {
     private func journalNotesSectionsStack(proxy: ScrollViewProxy) -> some View {
         VStack(alignment: .leading, spacing: AppTheme.todayNotesSpacing) {
             EditableTextSection(
-                title: String(localized: "Reading Notes"),
+                title: String(localized: "journal.section.readingNotesTitle"),
                 guidanceTitle: onboardingPresentation.sectionGuidance(for: .readingNotes)?.title,
                 guidanceMessage: onboardingPresentation.sectionGuidance(for: .readingNotes)?.message,
                 guidanceMessageSecondary: onboardingPresentation.sectionGuidance(for: .readingNotes)?
@@ -893,7 +893,7 @@ private extension JournalScreen {
                 }
             )
             EditableTextSection(
-                title: String(localized: "Reflections"),
+                title: String(localized: "journal.section.reflectionsTitle"),
                 text: Binding(
                     get: { viewModel.reflections },
                     set: { viewModel.updateReflections($0) }
@@ -957,7 +957,7 @@ private extension JournalScreen {
                             JournalUnlockToastView(level: toastLevel, milestoneHighlight: unlockToastMilestone)
                         }
                         .buttonStyle(.plain)
-                        .accessibilityHint(String(localized: "Dismiss"))
+                        .accessibilityHint(String(localized: "common.dismiss"))
                         .transition(unlockToastTransition(for: toastLevel))
                         Spacer(minLength: 0)
                     }
@@ -1340,18 +1340,18 @@ private extension JournalScreen {
     func suggestionTitle(for suggestion: JournalOnboardingSuggestion) -> String {
         switch suggestion {
         case .reminders:
-            return String(localized: "Keep the rhythm close")
+            return String(localized: "review.labels.keepRhythm")
         case .iCloudSync:
-            return String(localized: "Keep Grace Notes with you")
+            return String(localized: "tutorial.icloud.headlineAlt")
         }
     }
 
     func suggestionMessage(for suggestion: JournalOnboardingSuggestion) -> String {
         switch suggestion {
         case .reminders:
-            return String(localized: "If you'd like, you can turn on a daily reminder in Settings.")
+            return String(localized: "tutorial.reminders.optionalSettingsNote")
         case .iCloudSync:
-            return String(localized: "You can turn on iCloud sync in Settings whenever you're ready.")
+            return String(localized: "tutorial.icloud.wheneverReady")
         }
     }
 
@@ -1672,7 +1672,7 @@ private extension JournalScreen {
         if let date = entryDate {
             return date.formatted(date: .abbreviated, time: .omitted)
         }
-        return String(localized: "Today")
+        return String(localized: "shell.tab.today")
     }
 
     func unlockToastTransition(for level: JournalCompletionLevel) -> AnyTransition {

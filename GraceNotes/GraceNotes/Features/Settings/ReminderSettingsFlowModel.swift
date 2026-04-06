@@ -34,9 +34,9 @@ final class ReminderSettingsFlowModel: ObservableObject {
         case .enabled:
             return selectedTime.formatted(date: .omitted, time: .shortened)
         case .denied:
-            return String(localized: "Off (Denied)")
+            return String(localized: "notifications.reminder.offDenied")
         case .off, .notDetermined, .unavailable:
-            return String(localized: "Off")
+            return String(localized: "common.off")
         }
     }
 
@@ -69,7 +69,7 @@ final class ReminderSettingsFlowModel: ObservableObject {
         case .failed:
             liveStatus = .unavailable
             transientErrorMessage = String(
-                localized: "Reminder couldn't be scheduled. Check notification permissions and try again."
+                localized: "notifications.reminder.scheduleFailed"
             )
         case .disabled:
             await refreshStatus()
@@ -109,12 +109,12 @@ final class ReminderSettingsFlowModel: ObservableObject {
             case .permissionDenied:
                 liveStatus = .denied
                 transientErrorMessage = String(
-                    localized: "Allow notifications in Settings to confirm a reminder time."
+                    localized: "notifications.reminder.confirmTimeInSettings"
                 )
             case .failed:
                 liveStatus = .unavailable
                 transientErrorMessage = String(
-                    localized: "Reminder time couldn't be saved. Try again in a moment."
+                    localized: "notifications.reminder.saveFailed"
                 )
             case .disabled:
                 liveStatus = .off

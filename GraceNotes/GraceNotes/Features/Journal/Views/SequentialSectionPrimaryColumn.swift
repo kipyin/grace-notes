@@ -78,7 +78,7 @@ extension SequentialSectionPrimaryColumn {
 
     private var inputAccessibilityLabel: String {
         String(
-            format: String(localized: "%@ input"),
+            format: String(localized: "accessibility.sectionInputLabel"),
             locale: Locale.current,
             title
         )
@@ -222,7 +222,7 @@ extension SequentialSectionPrimaryColumn {
                 HStack(spacing: 6) {
                     ProgressView()
                         .controlSize(.small)
-                    Text(String(localized: "Updating…"))
+                    Text(String(localized: "common.updating"))
                         .font(AppTheme.warmPaperMeta)
                         .foregroundStyle(palette.textMuted)
                 }
@@ -237,7 +237,7 @@ extension SequentialSectionPrimaryColumn {
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(
                     String(
-                        format: String(localized: "%@ section is updating."),
+                        format: String(localized: "accessibility.sectionUpdating"),
                         locale: Locale.current,
                         title
                     )

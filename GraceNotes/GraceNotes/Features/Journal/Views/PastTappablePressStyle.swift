@@ -63,7 +63,7 @@ struct PastToolbarDoneButton: View {
                 .foregroundStyle(foreground)
         }
         .buttonStyle(PastToolbarDoneButtonStyle())
-        .accessibilityLabel(String(localized: "Done"))
+        .accessibilityLabel(String(localized: "common.done"))
         .optionalToolbarDoneAccessibilityIdentifier(accessibilityIdentifier)
     }
 

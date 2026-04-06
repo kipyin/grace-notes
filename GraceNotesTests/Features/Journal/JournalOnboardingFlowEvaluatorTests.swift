@@ -21,15 +21,15 @@ final class JournalOnboardingFlowEvaluatorTests: XCTestCase {
         XCTAssertEqual(presentation.step, .gratitude)
         let gratitudeGuidance = presentation.sectionGuidance(for: .gratitude)
         XCTAssertEqual(gratitudeGuidance?.title, "")
-        XCTAssertEqual(gratitudeGuidance?.message, String(localized: "Start with one gratitude."))
+        XCTAssertEqual(gratitudeGuidance?.message, String(localized: "journal.onboarding.startWithGratitude"))
         XCTAssertEqual(
             gratitudeGuidance?.messageSecondary,
-            String(localized: "When you're finished, press Return or Enter on your keyboard.")
+            String(localized: "journal.onboarding.keyboardFinishHint")
         )
         XCTAssertEqual(presentation.state(for: .gratitude), .active)
         XCTAssertEqual(
             presentation.state(for: .need),
-            .locked(reason: String(localized: "Needs will open after your first gratitude."))
+            .locked(reason: String(localized: "journal.onboarding.needsLockedReason"))
         )
     }
 

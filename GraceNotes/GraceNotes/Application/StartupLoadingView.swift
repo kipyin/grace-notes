@@ -44,7 +44,7 @@ struct StartupLoadingView: View {
                         ProgressView()
                             .frame(maxWidth: .infinity)
                     } else {
-                        Text(String(localized: "Retry"))
+                        Text(String(localized: "common.retry"))
                             .frame(maxWidth: .infinity)
                     }
                 }

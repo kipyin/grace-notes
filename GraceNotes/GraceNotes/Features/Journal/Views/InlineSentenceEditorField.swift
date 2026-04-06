@@ -3,8 +3,7 @@ import UIKit
 
 private enum InlineSentenceEditorFieldCopy {
     static let editingAccessibilityHint = String(
-        localized:
-            "Editing this sentence. Press Done to save, or tap outside the text field."
+        localized: "accessibility.editingSentence"
     )
 }
 
@@ -161,7 +160,7 @@ struct InlineSentenceEditorField: View {
 
     private var inputAccessibilityLabel: String {
         String(
-            format: String(localized: "%@ editor"),
+            format: String(localized: "accessibility.multilineEditorLabel"),
             locale: Locale.current,
             sectionTitle
         )

@@ -12,12 +12,12 @@ enum ScheduledBackupRunner {
         do {
             folderURL = try ScheduledBackupPreferences.resolveFolderURL()
         } catch {
-            await recordScheduledFailure(detail: String(localized: "DataPrivacy.scheduledBackup.folderError"))
+            await recordScheduledFailure(detail: String(localized: "settings.dataPrivacy.scheduledBackup.folderError"))
             return
         }
 
         guard folderURL.startAccessingSecurityScopedResource() else {
-            await recordScheduledFailure(detail: String(localized: "DataPrivacy.scheduledBackup.folderError"))
+            await recordScheduledFailure(detail: String(localized: "settings.dataPrivacy.scheduledBackup.folderError"))
             return
         }
         defer {
@@ -33,7 +33,7 @@ enum ScheduledBackupRunner {
         case .success(let url):
             tempFile = url
         case .failure:
-            await recordScheduledFailure(detail: String(localized: "DataPrivacy.scheduledBackup.failureDetail"))
+            await recordScheduledFailure(detail: String(localized: "settings.dataPrivacy.scheduledBackup.failureDetail"))
             return
         }
         defer {
@@ -52,7 +52,7 @@ enum ScheduledBackupRunner {
                 )
             }
         } catch {
-            await recordScheduledFailure(detail: String(localized: "DataPrivacy.scheduledBackup.failureDetail"))
+            await recordScheduledFailure(detail: String(localized: "settings.dataPrivacy.scheduledBackup.failureDetail"))
         }
     }
 

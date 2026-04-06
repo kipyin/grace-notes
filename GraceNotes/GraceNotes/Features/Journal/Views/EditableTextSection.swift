@@ -113,14 +113,14 @@ struct EditableTextSection: View {
             .disabled(onboardingState.isLocked)
             .accessibilityLabel(
                 String(
-                    format: String(localized: "%@ text"),
+                    format: String(localized: "accessibility.sectionTextLabel"),
                     locale: Locale.current,
                     title
                 )
             )
             .accessibilityHint(
                 String(
-                    format: String(localized: "Write your %@ here."),
+                    format: String(localized: "journal.editor.placeholderSection"),
                     locale: Locale.current,
                     title
                 )

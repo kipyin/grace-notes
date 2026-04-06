@@ -74,15 +74,15 @@ struct JournalCompletionPill: View {
     private var localizedCompletionTitle: String {
         switch completionLevel {
         case .soil:
-            String(localized: "Empty")
+            String(localized: "journal.growthStage.empty")
         case .sprout:
-            String(localized: "Started")
+            String(localized: "journal.growthStage.started")
         case .twig:
-            String(localized: "Growing")
+            String(localized: "journal.growthStage.growing")
         case .leaf:
-            String(localized: "Balanced")
+            String(localized: "journal.growthStage.balanced")
         case .bloom:
-            String(localized: "Full")
+            String(localized: "journal.growthStage.full")
         }
     }
 

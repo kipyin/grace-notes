@@ -16,7 +16,7 @@ struct ReviewTrendingCard: View {
 
     var body: some View {
         ReviewInsightInsetPanel(
-            title: String(localized: "Trending"),
+            title: String(localized: "review.labels.trending"),
             panelChrome: .standard
         ) {
             panelInner
@@ -33,13 +33,13 @@ struct ReviewTrendingCard: View {
         } else if let insights, hasTrendingThemes {
             if isLoading {
                 trendingThemesContent(buckets: insights.weekStats.trendingBuckets)
-                    .accessibilityHint(String(localized: "Updated insights appear when ready."))
+                    .accessibilityHint(String(localized: "review.insights.updatedWhenReady"))
                     .accessibilityAddTraits(.updatesFrequently)
             } else {
                 trendingThemesContent(buckets: insights.weekStats.trendingBuckets)
             }
         } else {
-            Text(String(localized: "Keep writing to see trends for this calendar week."))
+            Text(String(localized: "review.insights.keepWritingForTrends"))
                 .font(AppTheme.warmPaperBody)
                 .foregroundStyle(AppTheme.reviewTextMuted)
                 .fixedSize(horizontal: false, vertical: true)
@@ -55,7 +55,7 @@ struct ReviewTrendingCard: View {
         }
         .modifier(InsightsCalmLoadingBreath(active: !reduceMotion))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(String(localized: "Loading weekly insights."))
+        .accessibilityLabel(String(localized: "review.insights.loading"))
     }
 
     private func trendingThemesContent(buckets: ReviewTrendingBuckets) -> some View {
@@ -70,7 +70,7 @@ struct ReviewTrendingCard: View {
                 Button {
                     browseAllPayload = TrendingBrowsePayload(buckets: buckets)
                 } label: {
-                    browseAllLabel(title: String(localized: "Browse all trending themes"))
+                    browseAllLabel(title: String(localized: "review.actions.browseTrendingThemes"))
                 }
                 .buttonStyle(PastTappablePressStyle())
                 .accessibilityIdentifier("BrowseAllTrendingThemesLink")
@@ -116,14 +116,14 @@ struct ReviewTrendingCard: View {
         let trendText = localizedTrendLabel(theme.trend)
         let subtitle = String(
             format: String(
-                localized: "Current week %1$lld, previous week %2$lld."
+                localized: "review.insights.weekComparisonCurrentPrevious"
             ),
             Int64(theme.currentWeekCount),
             Int64(theme.previousWeekCount)
         )
         return ReviewThemeDrilldownPayload(
             label: theme.label,
-            sectionTitle: String(localized: "Trending"),
+            sectionTitle: String(localized: "review.labels.trending"),
             subtitle: "\(trendText). \(subtitle)",
             trend: theme.trend,
             evidence: theme.evidence
@@ -133,13 +133,13 @@ struct ReviewTrendingCard: View {
     private func localizedTrendLabel(_ trend: ReviewThemeTrend) -> String {
         switch trend {
         case .new:
-            return String(localized: "New")
+            return String(localized: "common.new")
         case .rising:
-            return String(localized: "Up")
+            return String(localized: "common.direction.up")
         case .down:
-            return String(localized: "Down")
+            return String(localized: "common.direction.down")
         case .stable:
-            return String(localized: "Stable")
+            return String(localized: "review.labels.stable")
         }
     }
 

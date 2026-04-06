@@ -61,7 +61,7 @@ final class ImportExportDetailFormattingTests: XCTestCase {
         )
         let parts = ImportExportTechnicalDetailFormatting.exportHistoryLineParts(for: entry)
         let plain = ImportExportTechnicalDetailFormatting.exportHistoryPlainLabel(for: entry)
-        XCTAssertEqual(parts.kindLabel, String(localized: "DataPrivacy.importExport.history.kind.manualFolder"))
+        XCTAssertEqual(parts.kindLabel, String(localized: "settings.dataPrivacy.importExport.history.kind.manualFolder"))
         XCTAssertTrue(plain.contains("grace-notes-export-test.json"))
     }
 }

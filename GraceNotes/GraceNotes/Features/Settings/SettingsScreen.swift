@@ -43,17 +43,17 @@ struct SettingsScreen: View {
                     .id(SettingsScrollTarget.reminders)
                     .settingsTargetHighlight(highlightedTarget == .reminders)
                     .alert(
-                        String(localized: "Unable to update reminder"),
+                        String(localized: "notifications.reminder.updateFailedTitle"),
                         isPresented: reminderErrorIsPresented
                     ) {
-                        Button(String(localized: "OK"), role: .cancel) {
+                        Button(String(localized: "common.ok"), role: .cancel) {
                             reminderState.clearTransientError()
                         }
                     } message: {
-                        Text(reminderState.transientErrorMessage ?? String(localized: "Please try again."))
+                        Text(reminderState.transientErrorMessage ?? String(localized: "common.tryAgainGeneric"))
                     }
                 } header: {
-                    Text(String(localized: "Reminders"))
+                    Text(String(localized: "settings.reminders.sectionTitle"))
                         .font(AppTheme.warmPaperHeader)
                         .foregroundStyle(AppTheme.settingsTextPrimary)
                         .textCase(nil)
@@ -73,7 +73,7 @@ struct SettingsScreen: View {
                         showAppTourFromSettings = true
                     } label: {
                         HStack(spacing: AppTheme.spacingRegular) {
-                            Text(String(localized: "Settings.showAppTour"))
+                            Text(String(localized: "settings.showAppTour"))
                                 .font(AppTheme.warmPaperBody)
                                 .foregroundStyle(AppTheme.settingsTextPrimary)
                             Spacer(minLength: AppTheme.spacingRegular)
@@ -85,9 +85,9 @@ struct SettingsScreen: View {
                     }
                     .buttonStyle(.plain)
                     .frame(minHeight: 44)
-                    .accessibilityHint(String(localized: "Settings.showAppTour.a11yHint"))
+                    .accessibilityHint(String(localized: "settings.showAppTour.a11yHint"))
                 } header: {
-                    Text(String(localized: "Settings.help.sectionTitle"))
+                    Text(String(localized: "settings.help.sectionTitle"))
                         .font(AppTheme.warmPaperHeader)
                         .foregroundStyle(AppTheme.settingsTextPrimary)
                         .textCase(nil)
@@ -98,7 +98,7 @@ struct SettingsScreen: View {
                         AdvancedSettingsScreen()
                     } label: {
                         HStack(spacing: AppTheme.spacingRegular) {
-                            Text(String(localized: "Settings.advanced.navTitle"))
+                            Text(String(localized: "settings.advanced.navTitle"))
                                 .font(AppTheme.warmPaperBody)
                                 .foregroundStyle(AppTheme.settingsTextPrimary)
                             Spacer(minLength: AppTheme.spacingRegular)
@@ -114,7 +114,7 @@ struct SettingsScreen: View {
             .safeAreaInset(edge: .bottom) {
                 Color.clear.frame(height: AppTheme.spacingSection + AppTheme.floatingTabBarClearance)
             }
-            .navigationTitle(String(localized: "Settings"))
+            .navigationTitle(String(localized: "shell.tab.settings"))
             .task {
                 backfillBloomUnlockIfNeeded()
                 await reminderState.refreshStatus()
@@ -211,7 +211,7 @@ private extension SettingsScreen {
             } label: {
                 HStack(spacing: AppTheme.spacingRegular) {
                     VStack(alignment: .leading, spacing: AppTheme.spacingTight / 2) {
-                        Text(String(localized: "Daily reminder"))
+                        Text(String(localized: "notifications.reminder.dailyLabel"))
                             .font(AppTheme.warmPaperBody)
                             .foregroundStyle(AppTheme.settingsTextPrimary)
                         Text(reminderState.summaryText)
@@ -232,38 +232,38 @@ private extension SettingsScreen {
             }
             .buttonStyle(.plain)
             .disabled(!reminderState.isReminderEnabled || reminderState.isWorking)
-            .accessibilityLabel(String(localized: "Reminder time"))
+            .accessibilityLabel(String(localized: "notifications.reminder.timeLabel"))
             .accessibilityValue(
                 reminderState.isReminderEnabled
                     ? reminderState.selectedTime.formatted(date: .omitted, time: .shortened)
-                    : String(localized: "Off")
+                    : String(localized: "common.off")
             )
 
             Toggle("", isOn: reminderToggleBinding)
                 .labelsHidden()
                 .tint(AppTheme.accent)
                 .disabled(reminderState.isPermissionDenied || reminderState.isWorking)
-                .accessibilityLabel(String(localized: "Daily reminder"))
+                .accessibilityLabel(String(localized: "notifications.reminder.dailyLabel"))
         }
         .frame(minHeight: 44)
     }
 
     var reminderPermissionDeniedGuidance: some View {
         VStack(alignment: .leading, spacing: AppTheme.spacingRegular) {
-            Text(String(localized: "Allow notifications in Settings to enable daily reminders."))
+            Text(String(localized: "notifications.reminder.enableInSettings"))
                 .font(AppTheme.warmPaperMeta)
                 .foregroundStyle(AppTheme.settingsTextMuted)
 
             SettingsOpenSystemSettingsButton(
                 action: openSystemSettings,
-                accessibilityHint: String(localized: "Open iOS Settings for notification permissions.")
+                accessibilityHint: String(localized: "notifications.reminder.openIOSSettingsHint")
             )
         }
     }
 
     var reminderUnavailableGuidance: some View {
         VStack(alignment: .leading, spacing: AppTheme.spacingRegular) {
-            Text(String(localized: "Unavailable. Check notification permissions and try again."))
+            Text(String(localized: "notifications.reminder.unavailablePermissions"))
                 .font(AppTheme.warmPaperMeta)
                 .foregroundStyle(AppTheme.settingsTextMuted)
 
@@ -273,7 +273,7 @@ private extension SettingsScreen {
                         await reminderState.enableReminders()
                     }
                 } label: {
-                    Text(String(localized: "Try again"))
+                    Text(String(localized: "common.tryAgain"))
                         .frame(maxWidth: .infinity, minHeight: 44)
                 }
                 .buttonStyle(.borderedProminent)
@@ -281,14 +281,14 @@ private extension SettingsScreen {
                 .foregroundStyle(AppTheme.reminderPrimaryActionForeground)
                 .font(AppTheme.warmPaperBody)
                 .disabled(reminderState.isWorking)
-                .accessibilityHint(String(localized: "Retry scheduling your daily reminder."))
+                .accessibilityHint(String(localized: "notifications.reminder.retrySchedulingHint"))
 
                 Button {
                     Task {
                         await reminderState.refreshStatus()
                     }
                 } label: {
-                    Text(String(localized: "Refresh"))
+                    Text(String(localized: "common.refresh"))
                         .frame(maxWidth: .infinity, minHeight: 44)
                 }
                 .buttonStyle(.bordered)
@@ -296,7 +296,7 @@ private extension SettingsScreen {
                 .foregroundStyle(AppTheme.reminderSecondaryActionTint)
                 .font(AppTheme.warmPaperBody)
                 .disabled(reminderState.isWorking)
-                .accessibilityHint(String(localized: "Check if notification permissions have changed."))
+                .accessibilityHint(String(localized: "notifications.reminder.checkPermissionsHint"))
             }
         }
     }
@@ -314,8 +314,8 @@ private extension SettingsScreen {
             .font(AppTheme.warmPaperBody)
             .foregroundStyle(AppTheme.settingsTextPrimary)
             .tint(AppTheme.reminderSecondaryActionTint)
-            .accessibilityLabel(String(localized: "Reminder time"))
-            .accessibilityHint(String(localized: "Choose a reminder time."))
+            .accessibilityLabel(String(localized: "notifications.reminder.timeLabel"))
+            .accessibilityHint(String(localized: "notifications.reminder.chooseTimeHint"))
         } else {
             DatePicker(
                 "",
@@ -326,8 +326,8 @@ private extension SettingsScreen {
             .datePickerStyle(.wheel)
             .font(AppTheme.warmPaperBody)
             .foregroundStyle(AppTheme.settingsTextPrimary)
-            .accessibilityLabel(String(localized: "Reminder time"))
-            .accessibilityHint(String(localized: "Choose a reminder time."))
+            .accessibilityLabel(String(localized: "notifications.reminder.timeLabel"))
+            .accessibilityHint(String(localized: "notifications.reminder.chooseTimeHint"))
         }
     }
 

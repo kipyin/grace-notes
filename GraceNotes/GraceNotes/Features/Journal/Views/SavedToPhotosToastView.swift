@@ -9,7 +9,7 @@ struct SavedToPhotosToastView: View {
         HStack(spacing: 8) {
             Image(systemName: "checkmark.circle.fill")
                 .foregroundStyle(palette.complete)
-            Text(String(localized: "Saved to Photos"))
+            Text(String(localized: "sharing.savedToPhotos"))
                 .font(AppTheme.warmPaperBody)
                 .foregroundStyle(palette.textPrimary)
         }

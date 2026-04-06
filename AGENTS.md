@@ -15,6 +15,7 @@ This project **requires macOS + Xcode 26+** to build, run, and test with the **d
 ### What works on Linux
 
 - **Linting**: `swiftlint lint` (invoke `swiftlint` from PATH; binary location can vary by environment). In Cursor Cloud Linux, the static SwiftLint binary is preinstalled and runs without the Swift toolchain; it reports style violations across all Swift source files. The dynamic SwiftLint binary will crash on Linux because `libsourcekitdInProc.so` is unavailable, so use the static variant there.
+- **String catalog audit**: `grace l10n audit` — compares `Localizable.xcstrings` to Swift `String(localized:)` / `localized:` references (no Xcode). Use `--full` for exhaustive tables.
 - **Code review / static analysis**: Reading and reviewing Swift source files.
 
 ### What does NOT work on Linux

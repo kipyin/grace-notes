@@ -147,7 +147,7 @@ struct SequentialSectionView: View {
         let editingCount = slotStatuses.filter { $0 == .editing }.count
         let pendingCount = slotStatuses.filter { $0 == .pending }.count
         return String(
-            format: String(localized: "%1$@ progress. %2$d complete, %3$d in progress, %4$d open."),
+            format: String(localized: "journal.section.progressSummary"),
             locale: Locale.current,
             title,
             editedCount,

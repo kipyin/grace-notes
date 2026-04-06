@@ -39,7 +39,7 @@ struct BackupFolderLinkHint: ViewModifier {
 
     func body(content: Content) -> some View {
         if showDisabledHint {
-            content.accessibilityHint(String(localized: "DataPrivacy.importExport.backupFolder.disabledHint"))
+            content.accessibilityHint(String(localized: "settings.dataPrivacy.importExport.backupFolder.disabledHint"))
         } else {
             content
         }
@@ -67,7 +67,7 @@ struct BackupFolderImportFileListView: View {
                     .foregroundStyle(AppTheme.settingsTextMuted)
                     .padding()
             } else if files.isEmpty {
-                Text(String(localized: "DataPrivacy.importExport.backupFolder.empty"))
+                Text(String(localized: "settings.dataPrivacy.importExport.backupFolder.empty"))
                     .font(AppTheme.warmPaperBody)
                     .foregroundStyle(AppTheme.settingsTextMuted)
                     .padding()
@@ -88,7 +88,7 @@ struct BackupFolderImportFileListView: View {
                 .background(AppTheme.settingsBackground)
             }
         }
-        .navigationTitle(String(localized: "DataPrivacy.importExport.backupFolder.title"))
+        .navigationTitle(String(localized: "settings.dataPrivacy.importExport.backupFolder.title"))
         .background(AppTheme.settingsBackground)
         .task {
             load()
@@ -100,11 +100,11 @@ struct BackupFolderImportFileListView: View {
         do {
             folderURL = try ScheduledBackupPreferences.resolveFolderURL()
         } catch {
-            listError = String(localized: "DataPrivacy.importExport.backupFolder.unreachable")
+            listError = String(localized: "settings.dataPrivacy.importExport.backupFolder.unreachable")
             return
         }
         guard folderURL.startAccessingSecurityScopedResource() else {
-            listError = String(localized: "DataPrivacy.importExport.backupFolder.unreachable")
+            listError = String(localized: "settings.dataPrivacy.importExport.backupFolder.unreachable")
             return
         }
         defer {
@@ -113,7 +113,7 @@ struct BackupFolderImportFileListView: View {
         do {
             files = try BackupFolderLibrary.listExportFiles(in: folderURL)
         } catch {
-            listError = String(localized: "DataPrivacy.importExport.backupFolder.unreachable")
+            listError = String(localized: "settings.dataPrivacy.importExport.backupFolder.unreachable")
         }
     }
 }

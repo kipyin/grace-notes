@@ -2,7 +2,7 @@ import Foundation
 
 struct WeeklyInsightCandidateBuilder {
     let defaultContinuityPrompt = String(
-        localized: "What feels most important to carry into next week?"
+        localized: "review.prompts.carryIntoNextWeek"
     )
 
     private let maxInsights = 2
@@ -72,7 +72,7 @@ struct WeeklyInsightCandidateBuilder {
             return ReviewWeeklyInsight(
                 pattern: .sparseFallback,
                 observation: String(
-                    localized: "Start with one reflection today to build your weekly review."
+                    localized: "review.insights.starterReflection"
                 ),
                 action: defaultContinuityPrompt,
                 primaryTheme: nil,
@@ -84,10 +84,10 @@ struct WeeklyInsightCandidateBuilder {
         return ReviewWeeklyInsight(
             pattern: .sparseFallback,
             observation: renderLocalizedDayCountTemplate(
-                "You showed up for reflection on %lld day(s) this week.",
+                "review.insights.reflectionDays.observation",
                 dayCount: reflectionDayCount
             ),
-            action: String(localized: "What would make tomorrow's check-in easy to start?"),
+            action: String(localized: "review.prompts.easyCheckInTomorrow"),
             primaryTheme: nil,
             mentionCount: nil,
             dayCount: reflectionDayCount
@@ -111,7 +111,7 @@ struct WeeklyInsightCandidateBuilder {
                    against: [textNormalizer.normalizeThemeLabel(secondTheme)]
                ) {
                 return String(
-                    format: String(localized: "Both %1$@ and %2$@ showed up more than once in your week."),
+                    format: String(localized: "review.insights.bothThemesMultiple"),
                     firstTheme,
                     secondTheme
                 )
@@ -120,7 +120,7 @@ struct WeeklyInsightCandidateBuilder {
         }
         if let theme = insights[0].primaryTheme, !theme.isEmpty {
             return String(
-                format: String(localized: "That thread around %@ showed up across more than one day this week."),
+                format: String(localized: "review.insights.threadAcrossDays"),
                 theme
             )
         }

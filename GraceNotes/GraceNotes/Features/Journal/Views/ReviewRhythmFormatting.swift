@@ -27,7 +27,7 @@ enum ReviewRhythmFormatting {
     ) -> String {
         let dayStart = cal.startOfDay(for: date)
         if displayInterval.contains(dayStart), cal.isDate(dayStart, inSameDayAs: referenceNow) {
-            return String(localized: "Today")
+            return String(localized: "shell.tab.today")
         }
         if Self.isLocalDayInPastSevenCalendarDaysEndingReference(
             dayStart: dayStart,

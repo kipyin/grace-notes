@@ -41,12 +41,12 @@ struct JournalTutorialHintView: View {
                 .fixedSize(horizontal: false, vertical: true)
 
             Button(action: onDismiss) {
-                Text(String(localized: "Got it"))
+                Text(String(localized: "journal.tutorial.gotIt"))
                     .font(AppTheme.warmPaperMetaEmphasis)
                     .foregroundStyle(AppTheme.accentText)
             }
             .buttonStyle(.plain)
-            .accessibilityHint(String(localized: "Dismisses this tip."))
+            .accessibilityHint(String(localized: "journal.tutorial.dismissTipHint"))
         }
         .padding(AppTheme.spacingRegular)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -64,11 +64,11 @@ struct JournalTutorialHintView: View {
         switch kind {
         case .sprout:
             return String(
-                localized: "Write one gratitude line to plant your first seed. Tap the status above anytime if you want a reminder."
+                localized: "journal.tutorial.firstGratitudeSeed"
             )
         case .bloom:
             return String(
-                localized: "Add one more line in any section. Small steps are easier to keep. Tap the status above anytime if you want a reminder."
+                localized: "journal.guidance.addOneMoreLineAnySection"
             )
         }
     }

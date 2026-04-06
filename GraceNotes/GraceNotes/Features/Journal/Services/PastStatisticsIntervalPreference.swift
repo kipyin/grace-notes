@@ -109,25 +109,25 @@ extension PastStatisticsIntervalSelection {
         let selection = validated
         switch selection.mode {
         case .all:
-            return String(localized: "PastStatisticsInterval.phrase.allJournal")
+            return String(localized: "settings.pastStatisticsInterval.phrase.allJournal")
         case .custom:
             let count = Int64(selection.quantity)
             switch selection.unit {
             case .week:
                 if selection.quantity == 1 {
-                    return String(localized: "PastStatisticsInterval.phrase.lastOneWeek")
+                    return String(localized: "settings.pastStatisticsInterval.phrase.lastOneWeek")
                 }
-                return String(format: String(localized: "PastStatisticsInterval.phrase.lastNWeeks"), count)
+                return String(format: String(localized: "settings.pastStatisticsInterval.phrase.lastNWeeks"), count)
             case .month:
                 if selection.quantity == 1 {
-                    return String(localized: "PastStatisticsInterval.phrase.lastOneMonth")
+                    return String(localized: "settings.pastStatisticsInterval.phrase.lastOneMonth")
                 }
-                return String(format: String(localized: "PastStatisticsInterval.phrase.lastNMonths"), count)
+                return String(format: String(localized: "settings.pastStatisticsInterval.phrase.lastNMonths"), count)
             case .year:
                 if selection.quantity == 1 {
-                    return String(localized: "PastStatisticsInterval.phrase.lastOneYear")
+                    return String(localized: "settings.pastStatisticsInterval.phrase.lastOneYear")
                 }
-                return String(format: String(localized: "PastStatisticsInterval.phrase.lastNYears"), count)
+                return String(format: String(localized: "settings.pastStatisticsInterval.phrase.lastNYears"), count)
             }
         }
     }
@@ -135,7 +135,7 @@ extension PastStatisticsIntervalSelection {
     func mostRecurringDrilldownSubtitle(mentionCount: Int) -> String {
         let interval = statisticsIntervalSubtitlePhrase()
         return String(
-            format: String(localized: "Review.mostRecurring.drilldown.subtitle"),
+            format: String(localized: "review.mostRecurring.drilldown.subtitle"),
             Int64(mentionCount),
             interval
         )

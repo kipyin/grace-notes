@@ -38,15 +38,15 @@ enum ReviewThemeSourceCategory: String, CaseIterable, Equatable, Hashable, Senda
     var localizedJournalSurfaceTitle: String {
         switch self {
         case .gratitudes:
-            return String(localized: "Gratitudes")
+            return String(localized: "journal.section.gratitudesTitle")
         case .needs:
-            return String(localized: "Needs")
+            return String(localized: "journal.section.needsTitle")
         case .people:
-            return String(localized: "People in Mind")
+            return String(localized: "journal.section.peopleTitle")
         case .readingNotes:
-            return String(localized: "Reading notes")
+            return String(localized: "journal.section.readingNotesShort")
         case .reflections:
-            return String(localized: "Reflections")
+            return String(localized: "journal.section.reflectionsTitle")
         }
     }
 }

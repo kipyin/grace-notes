@@ -90,7 +90,7 @@ final class JournalViewModelCompletionAndLimitsTests: XCTestCase {
         XCTAssertEqual(
             viewModel.entryCapacityProgressText,
             String(
-                format: String(localized: "%d of %d"),
+                format: String(localized: "journal.completion.countOfTotal"),
                 locale: Locale.current,
                 15,
                 15
@@ -119,7 +119,7 @@ final class JournalViewModelCompletionAndLimitsTests: XCTestCase {
         XCTAssertEqual(
             viewModel.entryCapacityProgressText,
             String(
-                format: String(localized: "%d of %d"),
+                format: String(localized: "journal.completion.countOfTotal"),
                 locale: Locale.current,
                 14,
                 15

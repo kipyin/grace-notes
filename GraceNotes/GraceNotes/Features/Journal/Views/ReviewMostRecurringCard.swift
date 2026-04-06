@@ -57,7 +57,7 @@ struct ReviewMostRecurringCard: View {
                     referenceDate: insights.generatedAt,
                     calendar: reviewCalendar
                 )
-                .accessibilityHint(String(localized: "Updated insights appear when ready."))
+                .accessibilityHint(String(localized: "review.insights.updatedWhenReady"))
                 .accessibilityAddTraits(.updatesFrequently)
             } else {
                 themesPanel(
@@ -75,7 +75,7 @@ struct ReviewMostRecurringCard: View {
         calendar: Calendar
     ) -> some View {
         ReviewInsightInsetPanel(
-            title: String(localized: "Most recurring"),
+            title: String(localized: "review.labels.mostRecurring"),
             panelChrome: .standard
         ) {
             VStack(alignment: .leading, spacing: 10) {
@@ -92,7 +92,7 @@ struct ReviewMostRecurringCard: View {
                             calendar: calendar
                         )
                     } label: {
-                        browseAllLabel(title: String(localized: "Browse all recurring themes"))
+                        browseAllLabel(title: String(localized: "review.actions.browseRecurringThemes"))
                     }
                     .buttonStyle(PastTappablePressStyle())
                     .accessibilityIdentifier("BrowseAllRecurringThemesLink")
@@ -121,9 +121,9 @@ struct ReviewMostRecurringCard: View {
         .accessibilityIdentifier("MostRecurringThemeRow.\(reviewInsightSanitizedThemeId(theme.id))")
         .accessibilityLabel(
             String(
-                format: String(localized: "%1$@, %2$@, %3$lld"),
+                format: String(localized: "journal.share.lineCountsThree"),
                 theme.label,
-                String(localized: "Count"),
+                String(localized: "review.labels.count"),
                 Int64(theme.totalCount)
             )
         )
@@ -134,7 +134,7 @@ struct ReviewMostRecurringCard: View {
             .validated
         return ReviewThemeDrilldownPayload(
             label: theme.label,
-            sectionTitle: String(localized: "Most recurring"),
+            sectionTitle: String(localized: "review.labels.mostRecurring"),
             subtitle: selection.mostRecurringDrilldownSubtitle(mentionCount: theme.totalCount),
             trend: nil,
             evidence: theme.evidence
@@ -154,7 +154,7 @@ struct ReviewMostRecurringCard: View {
 
     private var loadingSkeleton: some View {
         ReviewInsightInsetPanel(
-            title: String(localized: "Most recurring"),
+            title: String(localized: "review.labels.mostRecurring"),
             panelChrome: .standard
         ) {
             VStack(alignment: .leading, spacing: 10) {

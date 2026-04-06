@@ -77,10 +77,10 @@ struct ReviewInsightsProvider: Sendable {
         let fallbackInsight = ReviewWeeklyInsight(
             pattern: .sparseFallback,
             observation: String(
-                localized: "Start with one reflection today to build your weekly review."
+                localized: "review.insights.starterReflection"
             ),
             action: String(
-                localized: "What feels most important to carry into next week?"
+                localized: "review.prompts.carryIntoNextWeek"
             ),
             primaryTheme: nil,
             mentionCount: nil,
@@ -98,7 +98,7 @@ struct ReviewInsightsProvider: Sendable {
             recurringPeople: [],
             resurfacingMessage: fallbackInsight.observation,
             continuityPrompt: fallbackInsight.action ?? String(
-                localized: "What feels most important to carry into next week?"
+                localized: "review.prompts.carryIntoNextWeek"
             ),
             narrativeSummary: nil,
             weekStats: aggregates.stats

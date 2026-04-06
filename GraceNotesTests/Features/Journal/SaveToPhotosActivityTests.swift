@@ -19,6 +19,6 @@ final class SaveToPhotosActivityTests: XCTestCase {
         let activity = SaveToPhotosActivity(image: UIImage())
 
         XCTAssertNotNil(activity.activityType)
-        XCTAssertEqual(activity.activityTitle, String(localized: "Save to Photos"))
+        XCTAssertEqual(activity.activityTitle, String(localized: "sharing.saveToPhotos"))
     }
 }

@@ -183,7 +183,7 @@ final class DeterministicReviewInsightsTests: XCTestCase {
         XCTAssertEqual(insights.presentationMode, .statsFirst)
         XCTAssertEqual(
             insights.weeklyInsights.first?.observation,
-            String(localized: "Start with one reflection today to build your weekly review.")
+            String(localized: "review.insights.starterReflection")
         )
     }
 

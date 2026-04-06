@@ -160,7 +160,7 @@ extension ReviewScreen {
                 historyList
             }
         }
-        .navigationTitle(String(localized: "Past"))
+        .navigationTitle(String(localized: "shell.tab.past"))
         .background(AppTheme.reviewBackground)
         .onAppear {
             PerformanceTrace.instant("ReviewScreen.onAppear")
@@ -227,9 +227,9 @@ extension ReviewScreen {
             if !isPastSearchMode {
                 Section {
                     ContentUnavailableView {
-                        Label(String(localized: "No entries yet"), systemImage: "doc.text")
+                        Label(String(localized: "past.empty.noEntries"), systemImage: "doc.text")
                     } description: {
-                        Text(String(localized: "Start with today."))
+                        Text(String(localized: "review.insights.startWithToday"))
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 24)

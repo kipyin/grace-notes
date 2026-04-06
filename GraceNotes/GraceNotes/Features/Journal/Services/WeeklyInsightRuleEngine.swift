@@ -48,7 +48,7 @@ struct WeeklyInsightRuleEngine {
 
         let narrativeSummary = candidateBuilder.narrativeSummary(from: selectedInsights)
         let resurfacingMessage = selectedInsights.first?.observation
-            ?? String(localized: "Start with one reflection today to build your weekly review.")
+            ?? String(localized: "review.insights.starterReflection")
         let continuityPrompt = selectedInsights.compactMap(\.action).first
             ?? candidateBuilder.defaultContinuityPrompt
 

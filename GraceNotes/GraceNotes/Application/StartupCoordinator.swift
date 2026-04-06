@@ -57,7 +57,7 @@ final class StartupCoordinator: ObservableObject {
         self.reassuranceCopy = reassuranceCopy
         self.persistenceFactory = persistenceFactory
         self.startupMessage = loadingCopy.first
-            ?? String(localized: "We are setting up your private Grace Notes space...")
+            ?? String(localized: "startup.status.settingUp")
     }
 
     deinit {
@@ -188,14 +188,14 @@ final class StartupCoordinator: ObservableObject {
 
     private func loadingMessage(for index: Int) -> String {
         guard !loadingCopy.isEmpty else {
-            return String(localized: "We are setting up your private Grace Notes space...")
+            return String(localized: "startup.status.settingUp")
         }
         return loadingCopy[safe: index] ?? loadingCopy[0]
     }
 
     private func reassuranceMessage(for index: Int) -> String {
         guard !reassuranceCopy.isEmpty else {
-            return String(localized: "Still getting things ready...")
+            return String(localized: "startup.status.stillWorking")
         }
         return reassuranceCopy[safe: index] ?? reassuranceCopy[0]
     }
@@ -211,20 +211,20 @@ final class StartupCoordinator: ObservableObject {
            !message.isEmpty {
             return message
         }
-        return String(localized: "We couldn't finish setting up your Grace Notes space. Please try again.")
+        return String(localized: "startup.error.setupFailed")
     }
 }
 
 private extension StartupCoordinator {
     static let defaultLoadingCopy: [String] = [
-        String(localized: "We are setting up your private Grace Notes space..."),
-        String(localized: "Preparing a calm place for your first reflection..."),
-        String(localized: "Almost ready. Bringing your Grace Notes space online...")
+        String(localized: "startup.status.settingUp"),
+        String(localized: "startup.status.preparingCalm"),
+        String(localized: "startup.status.almostReady")
     ]
 
     static let defaultReassuranceCopy: [String] = [
-        String(localized: "Still getting things ready..."),
-        String(localized: "Thanks for your patience. We are almost there.")
+        String(localized: "startup.status.stillWorking"),
+        String(localized: "startup.status.thanksPatience")
     ]
 }
 

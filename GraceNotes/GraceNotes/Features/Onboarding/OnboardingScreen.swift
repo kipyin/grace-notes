@@ -7,12 +7,12 @@ struct OnboardingScreen: View {
         VStack(alignment: .leading, spacing: AppTheme.spacingSection) {
             Spacer(minLength: AppTheme.spacingWide)
 
-            Text(String(localized: "Welcome to Grace Notes"))
+            Text(String(localized: "onboarding.welcome.title"))
                 .font(AppTheme.warmPaperHeader)
                 .foregroundStyle(AppTheme.settingsTextPrimary)
 
             VStack(alignment: .leading, spacing: AppTheme.spacingRegular) {
-                Text(String(localized: "Start with one gratitude, and the rest will follow."))
+                Text(String(localized: "onboarding.tagline"))
                     .font(AppTheme.warmPaperMetaEmphasis)
                     .foregroundStyle(AppTheme.reminderSecondaryActionTint)
             }
@@ -26,7 +26,7 @@ struct OnboardingScreen: View {
             )
 
             Button(action: onGetStarted) {
-                Text(String(localized: "Begin today's entry"))
+                Text(String(localized: "onboarding.beginToday"))
                     .font(AppTheme.warmPaperBody.weight(.semibold))
                     .foregroundStyle(AppTheme.reminderPrimaryActionForeground)
                     .frame(maxWidth: .infinity)
@@ -35,7 +35,7 @@ struct OnboardingScreen: View {
                     .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium))
             }
             .buttonStyle(WarmPaperPressStyle())
-            .accessibilityHint(String(localized: "Opens Today and starts the guided first entry."))
+            .accessibilityHint(String(localized: "onboarding.beginEntryAccessibilityHint"))
 
             Spacer()
         }

@@ -16,7 +16,7 @@ final class PastSearchDayCaptionTests: XCTestCase {
         let day = calendar.startOfDay(for: now)
         XCTAssertEqual(
             PastSearchDayCaption.string(day: day, now: now, calendar: calendar),
-            String(localized: "Today")
+            String(localized: "shell.tab.today")
         )
     }
 
@@ -25,7 +25,7 @@ final class PastSearchDayCaptionTests: XCTestCase {
         let yesterday = calendar.date(byAdding: .day, value: -1, to: calendar.startOfDay(for: now))!
         XCTAssertEqual(
             PastSearchDayCaption.string(day: yesterday, now: now, calendar: calendar),
-            String(localized: "PastSearch.dateLabel.yesterday")
+            String(localized: "past.search.dateLabel.yesterday")
         )
     }
 

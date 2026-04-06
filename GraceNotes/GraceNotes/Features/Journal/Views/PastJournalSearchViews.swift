@@ -171,15 +171,15 @@ struct PastJournalSearchBar: View {
         PastJournalSearchBarChrome {
             Group {
                 if let searchFocus {
-                    TextField(String(localized: "Search journal"), text: $text)
+                    TextField(String(localized: "past.search.placeholder"), text: $text)
                         .focused(searchFocus)
                 } else {
-                    TextField(String(localized: "Search journal"), text: $text)
+                    TextField(String(localized: "past.search.placeholder"), text: $text)
                 }
             }
             .textFieldStyle(.plain)
             .submitLabel(.search)
-            .accessibilityLabel(String(localized: "Search journal"))
+            .accessibilityLabel(String(localized: "past.search.placeholder"))
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
@@ -217,8 +217,8 @@ struct PastJournalSearchFieldRow: View {
             .buttonStyle(PastTappablePressStyle())
             .frame(width: Metrics.dismissSlotWidth, height: Metrics.dismissSlotWidth)
             .contentShape(Rectangle())
-            .accessibilityLabel(String(localized: "PastSearch.dismissControl.a11yLabel"))
-            .accessibilityHint(String(localized: "PastSearch.dismissControl.a11yHint"))
+            .accessibilityLabel(String(localized: "past.search.dismissControl.a11yLabel"))
+            .accessibilityHint(String(localized: "past.search.dismissControl.a11yHint"))
             .accessibilityHidden(!showDismissChrome)
             .allowsHitTesting(showDismissChrome)
             .frame(width: showDismissChrome ? Metrics.dismissSlotWidth : 0, alignment: .trailing)
@@ -331,7 +331,7 @@ private struct PastJournalSearchDayCard: View {
         .buttonStyle(PastTappablePressStyle())
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(dayCaption)
-        .accessibilityHint(String(localized: "ThemeDrilldown.openEntry.a11yHint"))
+        .accessibilityHint(String(localized: "review.themeDrilldown.openEntry.a11yHint"))
     }
 }
 
@@ -352,9 +352,9 @@ struct PastJournalSearchResultsList: View {
 
     private var searchEmptyStateMessage: String {
         if isAwaitingInput {
-            String(localized: "PastSearch.awaitingInput.subtitle")
+            String(localized: "past.search.awaitingInput.subtitle")
         } else {
-            String(localized: "PastSearch.noMatches.description")
+            String(localized: "past.search.noMatches.description")
         }
     }
 

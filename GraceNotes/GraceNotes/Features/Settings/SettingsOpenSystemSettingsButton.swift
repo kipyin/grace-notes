@@ -14,7 +14,7 @@ struct SettingsOpenSystemSettingsButton: View {
 
     var body: some View {
         Button(action: action) {
-            Text(String(localized: "Open Settings"))
+            Text(String(localized: "settings.openSettings"))
                 .frame(maxWidth: .infinity, minHeight: 44)
         }
         .font(AppTheme.warmPaperBody)

@@ -10,8 +10,8 @@ extension ReviewInsights {
         let weekStats = appTourTutorialWeekStats(calendar: calendar, referenceDate: referenceDate)
         let weeklyInsight = ReviewWeeklyInsight(
             pattern: .sparseFallback,
-            observation: String(localized: "AppTour.sampleInsights.row1.observation"),
-            action: String(localized: "AppTour.sampleInsights.row1.action"),
+            observation: String(localized: "tutorial.appTour.sampleInsights.row1.observation"),
+            action: String(localized: "tutorial.appTour.sampleInsights.row1.action"),
             primaryTheme: nil,
             mentionCount: nil,
             dayCount: nil

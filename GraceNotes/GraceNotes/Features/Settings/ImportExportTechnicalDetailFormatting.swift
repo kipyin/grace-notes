@@ -22,17 +22,17 @@ enum ImportExportTechnicalDetailFormatting {
         let kindLabel: String
         switch entry.kind {
         case .manualShare:
-            kindLabel = String(localized: "DataPrivacy.importExport.history.kind.manual")
+            kindLabel = String(localized: "settings.dataPrivacy.importExport.history.kind.manual")
         case .manualFolder:
-            kindLabel = String(localized: "DataPrivacy.importExport.history.kind.manualFolder")
+            kindLabel = String(localized: "settings.dataPrivacy.importExport.history.kind.manualFolder")
         case .scheduledFolder:
-            kindLabel = String(localized: "DataPrivacy.importExport.history.kind.scheduled")
+            kindLabel = String(localized: "settings.dataPrivacy.importExport.history.kind.scheduled")
         }
         let statusLabel: String
         if entry.success {
-            statusLabel = String(localized: "DataPrivacy.importExport.history.status.success")
+            statusLabel = String(localized: "settings.dataPrivacy.importExport.history.status.success")
         } else {
-            statusLabel = String(localized: "DataPrivacy.importExport.history.status.failed")
+            statusLabel = String(localized: "settings.dataPrivacy.importExport.history.status.failed")
         }
         let detail: String?
         if let raw = entry.detail, !raw.isEmpty {

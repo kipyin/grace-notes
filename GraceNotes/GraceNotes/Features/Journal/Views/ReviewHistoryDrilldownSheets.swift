@@ -180,11 +180,11 @@ private struct JournalingDaysDrilldownSheet: View {
                         VStack(spacing: 12) {
                             ContentUnavailableView {
                                 Label(
-                                    String(localized: "Review history journaling days drilldown empty title"),
+                                    String(localized: "review.history.journalingDaysEmptyTitle"),
                                     systemImage: "calendar"
                                 )
                             } description: {
-                                Text(String(localized: "Review history journaling days drilldown empty description"))
+                                Text(String(localized: "review.history.journalingDaysEmptyDescription"))
                                     .font(AppTheme.warmPaperBody)
                                     .foregroundStyle(AppTheme.reviewTextMuted)
                             }
@@ -226,7 +226,7 @@ private struct JournalingDaysDrilldownSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text(String(localized: "Reflection rhythm"))
+                    Text(String(localized: "review.labels.reflectionRhythm"))
                         .font(AppTheme.warmPaperBody.weight(.semibold))
                         .foregroundStyle(AppTheme.reviewTextPrimary)
                         .accessibilityIdentifier("ReviewHistoryJournalingDaysDrilldownTitle")
@@ -245,7 +245,7 @@ private struct JournalingDaysDrilldownSheet: View {
     }
 
     private var journalingDaysCaption: some View {
-        Text(String(localized: "Review history journaling days drilldown caption"))
+        Text(String(localized: "review.history.journalingDaysCaption"))
             .font(AppTheme.warmPaperMeta)
             .foregroundStyle(AppTheme.reviewTextMuted)
             .multilineTextAlignment(.center)
@@ -321,11 +321,11 @@ private struct GrowthStageDrilldownSheet: View {
                             growthStageCriterionCaption
                             ContentUnavailableView {
                                 Label(
-                                    String(localized: "Review history growth drilldown calendar empty title"),
+                                    String(localized: "review.history.growthCalendarEmptyTitle"),
                                     systemImage: "calendar"
                                 )
                             } description: {
-                                Text(String(localized: "Review history growth drilldown calendar empty description"))
+                                Text(String(localized: "review.history.growthCalendarEmptyDescription"))
                                     .font(AppTheme.warmPaperBody)
                                     .foregroundStyle(AppTheme.reviewTextMuted)
                             }
@@ -404,30 +404,30 @@ private struct GrowthStageDrilldownSheet: View {
     private func growthStageDisplayTitle(for level: JournalCompletionLevel) -> String {
         switch level {
         case .soil:
-            String(localized: "Empty")
+            String(localized: "journal.growthStage.empty")
         case .sprout:
-            String(localized: "Started")
+            String(localized: "journal.growthStage.started")
         case .twig:
-            String(localized: "Growing")
+            String(localized: "journal.growthStage.growing")
         case .leaf:
-            String(localized: "Balanced")
+            String(localized: "journal.growthStage.balanced")
         case .bloom:
-            String(localized: "Full")
+            String(localized: "journal.growthStage.full")
         }
     }
 
     private func growthStageCriterion(for level: JournalCompletionLevel) -> String {
         switch level {
         case .soil:
-            String(localized: "AppTour.path.criterion.empty")
+            String(localized: "tutorial.appTour.path.criterion.empty")
         case .sprout:
-            String(localized: "AppTour.path.criterion.started")
+            String(localized: "tutorial.appTour.path.criterion.started")
         case .twig:
-            String(localized: "AppTour.path.criterion.growing")
+            String(localized: "tutorial.appTour.path.criterion.growing")
         case .leaf:
-            String(localized: "AppTour.path.criterion.balanced")
+            String(localized: "tutorial.appTour.path.criterion.balanced")
         case .bloom:
-            String(localized: "AppTour.path.criterion.full")
+            String(localized: "tutorial.appTour.path.criterion.full")
         }
     }
 }
@@ -497,13 +497,13 @@ private struct SectionEntriesDrilldownSheet: View {
                 if contributingEntries.isEmpty {
                     ContentUnavailableView {
                         Label(
-                            String(localized: "Review section drilldown empty title"),
+                            String(localized: "review.sectionDrilldown.emptyTitle"),
                             systemImage: "doc.text.magnifyingglass"
                         )
                     } description: {
                         Text(
                             String(
-                                format: String(localized: "Review section drilldown empty format"),
+                                format: String(localized: "review.sectionDrilldown.emptyFormat"),
                                 localizedSectionTitle(for: section)
                             )
                         )
@@ -560,11 +560,11 @@ private struct SectionEntriesDrilldownSheet: View {
     private func localizedSectionTitle(for kind: ReviewStatsSectionKind) -> String {
         switch kind {
         case .gratitudes:
-            String(localized: "Gratitudes")
+            String(localized: "journal.section.gratitudesTitle")
         case .needs:
-            String(localized: "Needs")
+            String(localized: "journal.section.needsTitle")
         case .people:
-            String(localized: "People in Mind")
+            String(localized: "journal.section.peopleTitle")
         }
     }
 }

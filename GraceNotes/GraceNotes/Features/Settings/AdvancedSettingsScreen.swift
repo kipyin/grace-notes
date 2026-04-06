@@ -24,7 +24,7 @@ struct AdvancedSettingsScreen: View {
         List {
             Section {
                 Picker(
-                    String(localized: "Settings.advanced.firstWeekday.label"),
+                    String(localized: "settings.advanced.firstWeekday.label"),
                     selection: reviewWeekBoundaryBinding
                 ) {
                     ForEach(ReviewWeekBoundaryPreference.allCases, id: \.self) { option in
@@ -40,13 +40,13 @@ struct AdvancedSettingsScreen: View {
 
             Section {
                 Picker(
-                    String(localized: "Settings.advanced.pastStatsInterval.label"),
+                    String(localized: "settings.advanced.pastStatsInterval.label"),
                     selection: $intervalMode
                 ) {
-                    Text(String(localized: "Settings.advanced.pastStatsInterval.all")).tag(
+                    Text(String(localized: "settings.advanced.pastStatsInterval.all")).tag(
                         PastStatisticsIntervalPickerMode.all
                     )
-                    Text(String(localized: "Settings.advanced.pastStatsInterval.custom")).tag(
+                    Text(String(localized: "settings.advanced.pastStatsInterval.custom")).tag(
                         PastStatisticsIntervalPickerMode.custom
                     )
                 }
@@ -60,7 +60,7 @@ struct AdvancedSettingsScreen: View {
                 if intervalMode == .custom {
                     HStack(alignment: .center, spacing: 12) {
                         Picker(
-                            String(localized: "Settings.advanced.pastStatsInterval.quantity.a11y"),
+                            String(localized: "settings.advanced.pastStatsInterval.quantity.a11y"),
                             selection: $customQuantity
                         ) {
                             ForEach(1...999, id: \.self) { value in
@@ -72,7 +72,7 @@ struct AdvancedSettingsScreen: View {
                         .frame(maxWidth: .infinity)
 
                         Picker(
-                            String(localized: "Settings.advanced.pastStatsInterval.unit.a11y"),
+                            String(localized: "settings.advanced.pastStatsInterval.unit.a11y"),
                             selection: $customUnit
                         ) {
                             ForEach(PastStatisticsIntervalUnit.allCases, id: \.self) { unit in
@@ -87,7 +87,7 @@ struct AdvancedSettingsScreen: View {
                     .onChange(of: customUnit) { _, _ in persistCustomInterval() }
                 }
 
-                Text(String(localized: "Settings.advanced.pastStatsInterval.footnote"))
+                Text(String(localized: "settings.advanced.pastStatsInterval.footnote"))
                     .font(AppTheme.warmPaperMeta)
                     .foregroundStyle(AppTheme.settingsTextMuted)
                     .fixedSize(horizontal: false, vertical: true)
@@ -96,19 +96,19 @@ struct AdvancedSettingsScreen: View {
             if hasCelebratedFirstBloom {
                 Section {
                     Toggle(isOn: bloomModeBinding) {
-                        Text(String(localized: "Bloom"))
+                        Text(String(localized: "journal.growthStage.bloom"))
                             .font(AppTheme.warmPaperBody)
                             .foregroundStyle(AppTheme.settingsTextPrimary)
                     }
                     .tint(AppTheme.accent)
-                    .accessibilityHint(String(localized: "Settings.todayJournalAppearance.bloomToggleA11yHint"))
+                    .accessibilityHint(String(localized: "settings.todayJournalAppearance.bloomToggleA11yHint"))
                 }
             }
         }
         .listRowBackground(AppTheme.settingsPaper.opacity(0.9))
         .scrollContentBackground(.hidden)
         .background(AppTheme.settingsBackground)
-        .navigationTitle(String(localized: "Settings.advanced.title"))
+        .navigationTitle(String(localized: "settings.advanced.title"))
         .onAppear {
             loadIntervalState()
         }
@@ -142,11 +142,11 @@ struct AdvancedSettingsScreen: View {
     private func localizedUnitLabel(_ unit: PastStatisticsIntervalUnit) -> String {
         switch unit {
         case .week:
-            return String(localized: "Settings.advanced.pastStatsInterval.unit.week")
+            return String(localized: "settings.advanced.pastStatsInterval.unit.week")
         case .month:
-            return String(localized: "Settings.advanced.pastStatsInterval.unit.month")
+            return String(localized: "settings.advanced.pastStatsInterval.unit.month")
         case .year:
-            return String(localized: "Settings.advanced.pastStatsInterval.unit.year")
+            return String(localized: "settings.advanced.pastStatsInterval.unit.year")
         }
     }
 

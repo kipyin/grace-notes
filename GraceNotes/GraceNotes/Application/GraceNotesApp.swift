@@ -139,7 +139,7 @@ struct GraceNotesApp: App {
             return .retryableFailure(message: message)
         case .ready:
             return .loading(
-                message: String(localized: "We are setting up your private Grace Notes space..."),
+                message: String(localized: "startup.status.settingUp"),
                 isReassurance: false
             )
         }
@@ -173,21 +173,21 @@ struct GraceNotesApp: App {
             TabView(selection: $appNavigation.selectedTab) {
                 TodayTabRoot()
                     .tabItem {
-                        Label(String(localized: "Today"), image: "pen-scribble")
+                        Label(String(localized: "shell.tab.today"), image: "pen-scribble")
                     }
                     .tag(AppTab.today)
                 NavigationStack {
                     DeferredReviewRoot(isSelected: appNavigation.selectedTab == .history)
                 }
                 .tabItem {
-                    Label(String(localized: "Past"), image: "calendar")
+                    Label(String(localized: "shell.tab.past"), image: "calendar")
                 }
                 .tag(AppTab.history)
                 NavigationStack {
                     SettingsScreen()
                 }
                 .tabItem {
-                    Label(String(localized: "Settings"), image: "nodes-2")
+                    Label(String(localized: "shell.tab.settings"), image: "nodes-2")
                 }
                 .tag(AppTab.settings)
             }
@@ -224,7 +224,7 @@ private struct DeferredReviewRoot: View {
                 ReviewScreen()
             } else {
                 Color.clear
-                    .navigationTitle(String(localized: "Past"))
+                    .navigationTitle(String(localized: "shell.tab.past"))
             }
         }
         .onChange(of: isSelected) { _, selected in

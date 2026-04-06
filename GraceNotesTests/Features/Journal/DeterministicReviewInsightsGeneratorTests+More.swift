@@ -75,7 +75,7 @@ extension DeterministicReviewInsightsTests {
 
         XCTAssertEqual(
             insights.resurfacingMessage,
-            String(localized: "Start with one reflection today to build your weekly review.")
+            String(localized: "review.insights.starterReflection")
         )
         XCTAssertEqual(insights.weeklyInsights.first?.pattern, .sparseFallback)
         XCTAssertNil(insights.narrativeSummary)

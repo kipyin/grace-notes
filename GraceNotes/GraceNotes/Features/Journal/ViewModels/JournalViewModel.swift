@@ -85,7 +85,7 @@ final class JournalViewModel {
             PerformanceTrace.end("JournalViewModel.loadEntry.fetchEntry.miss", startedAt: fetchTrace)
         } catch {
             PerformanceTrace.end("JournalViewModel.loadEntry.fetchEntry.failed", startedAt: fetchTrace)
-            saveErrorMessage = String(localized: "Unable to load today's entry.")
+            saveErrorMessage = String(localized: "journal.error.loadToday")
             PerformanceTrace.end("JournalViewModel.loadEntry.failed", startedAt: loadTrace)
             return
         }
@@ -152,7 +152,7 @@ final class JournalViewModel {
                 PerformanceTrace.end("JournalViewModel.persistChanges", startedAt: saveTrace)
             }
         } catch {
-            saveErrorMessage = String(localized: "Unable to save your entry.")
+            saveErrorMessage = String(localized: "journal.error.saveEntry")
             PerformanceTrace.end("JournalViewModel.persistChanges.failed", startedAt: saveTrace)
         }
     }
@@ -218,7 +218,7 @@ final class JournalViewModel {
 
     /// Localized progress text for the chips-only milestone.
     var entryCapacityProgressText: String {
-        let formatKey = String(localized: "%d of %d")
+        let formatKey = String(localized: "journal.completion.countOfTotal")
         return String(
             format: formatKey,
             locale: Locale.current,

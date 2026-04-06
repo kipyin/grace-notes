@@ -25,7 +25,7 @@ final class ReviewRhythmFormattingTests: XCTestCase {
             referenceNow: reference
         )
 
-        XCTAssertEqual(label, String(localized: "Today"))
+        XCTAssertEqual(label, String(localized: "shell.tab.today"))
     }
 
     func test_dayLabel_withinPastSevenDays_usesAbbreviatedWeekday() {

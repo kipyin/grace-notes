@@ -41,15 +41,14 @@ struct JournalUnlockToastView: View {
     private var message: String {
         switch milestoneHighlight {
         case .firstOneOneOne:
-            return String(localized: "First time with one line in each section. Nice work.")
+            return String(localized: "journal.guidance.firstTimeOneLineEach")
         case .firstBalanced:
             return String(
-                localized: "Your first Leaf day. Each section has at least three lines. Keep going toward Bloom."
+                localized: "journal.guidance.firstLeafDay"
             )
         case .firstFull:
             return String(
-                localized:
-                    "Your first Bloom day. Each section has five lines. Add reading notes or reflections when you want."
+                localized: "journal.guidance.firstBloomDay"
             )
         case .none:
             break
@@ -58,13 +57,13 @@ struct JournalUnlockToastView: View {
         case .soil:
             return ""
         case .sprout:
-            return String(localized: "You reached Sprout today.")
+            return String(localized: "journal.guidance.reachedSproutToday")
         case .twig:
-            return String(localized: "Keep going in each section toward Leaf.")
+            return String(localized: "journal.guidance.towardLeafShort")
         case .leaf:
-            return String(localized: "You reached Leaf today.")
+            return String(localized: "journal.guidance.reachedLeafToday")
         case .bloom:
-            return String(localized: "You reached Bloom today. All five lines are filled in each section.")
+            return String(localized: "journal.guidance.reachedBloomToday")
         }
     }
 

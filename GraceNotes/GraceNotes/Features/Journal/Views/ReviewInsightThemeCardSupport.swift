@@ -61,13 +61,13 @@ struct ReviewTrendBadge: View {
     private var label: String {
         switch trend {
         case .new:
-            return String(localized: "New")
+            return String(localized: "common.new")
         case .rising:
-            return String(localized: "Up")
+            return String(localized: "common.direction.up")
         case .down:
-            return String(localized: "Down")
+            return String(localized: "common.direction.down")
         case .stable:
-            return String(localized: "Stable")
+            return String(localized: "review.labels.stable")
         }
     }
 }
@@ -90,7 +90,7 @@ struct ReviewTrendCountCapsule: View {
             } else {
                 Text(
                     String(
-                        format: String(localized: "%1$lld → %2$lld"),
+                        format: String(localized: "review.history.weekComparisonArrow"),
                         Int64(previous),
                         Int64(current)
                     )
@@ -116,24 +116,24 @@ func reviewTrendingThemeRowAccessibilityLabel(
     let trendWords: String
     switch trend {
     case .new:
-        trendWords = String(localized: "New")
+        trendWords = String(localized: "common.new")
     case .rising:
-        trendWords = String(localized: "Up")
+        trendWords = String(localized: "common.direction.up")
     case .down:
-        trendWords = String(localized: "Down")
+        trendWords = String(localized: "common.direction.down")
     case .stable:
-        trendWords = String(localized: "Stable")
+        trendWords = String(localized: "review.labels.stable")
     }
     if trend == .new {
         return String(
-            format: String(localized: "%1$@, %2$@, %3$lld"),
+            format: String(localized: "journal.share.lineCountsThree"),
             label,
             trendWords,
             Int64(currentWeekCount)
         )
     }
     return String(
-        format: String(localized: "%1$@, %2$@, %3$lld, %4$lld"),
+        format: String(localized: "journal.share.lineCountsFour"),
         label,
         trendWords,
         Int64(previousWeekCount),
@@ -225,28 +225,28 @@ struct MostRecurringThemesBrowseView: View {
             if !gratitudeRows.isEmpty {
                 recurringSection(
                     section: .gratitudes,
-                    title: String(localized: "Gratitudes"),
+                    title: String(localized: "journal.section.gratitudesTitle"),
                     rows: gratitudeRows
                 )
             }
             if !needsRows.isEmpty {
                 recurringSection(
                     section: .needs,
-                    title: String(localized: "Needs"),
+                    title: String(localized: "journal.section.needsTitle"),
                     rows: needsRows
                 )
             }
             if !peopleRows.isEmpty {
                 recurringSection(
                     section: .people,
-                    title: String(localized: "People in Mind"),
+                    title: String(localized: "journal.section.peopleTitle"),
                     rows: peopleRows
                 )
             }
         }
         .scrollContentBackground(.hidden)
         .background(AppTheme.reviewBackground)
-        .navigationTitle(String(localized: "Most recurring"))
+        .navigationTitle(String(localized: "review.labels.mostRecurring"))
     }
 
     private func recurringSection(
@@ -350,7 +350,7 @@ struct MostRecurringThemesBrowseView: View {
     private func drilldownPayload(for row: MostRecurringBrowseRowModel) -> ReviewThemeDrilldownPayload {
         ReviewThemeDrilldownPayload(
             label: row.label,
-            sectionTitle: String(localized: "Most recurring"),
+            sectionTitle: String(localized: "review.labels.mostRecurring"),
             subtitle: pastStatisticsSelection.mostRecurringDrilldownSubtitle(mentionCount: row.mentionCount),
             trend: nil,
             evidence: row.evidence
@@ -379,18 +379,18 @@ struct TrendingThemesBrowseView: View {
     var body: some View {
         List {
             if !buckets.newThemes.isEmpty {
-                trendingSection(title: String(localized: "New"), themes: buckets.newThemes)
+                trendingSection(title: String(localized: "common.new"), themes: buckets.newThemes)
             }
             if !buckets.upThemes.isEmpty {
-                trendingSection(title: String(localized: "Up"), themes: buckets.upThemes)
+                trendingSection(title: String(localized: "common.direction.up"), themes: buckets.upThemes)
             }
             if !buckets.downThemes.isEmpty {
-                trendingSection(title: String(localized: "Down"), themes: buckets.downThemes)
+                trendingSection(title: String(localized: "common.direction.down"), themes: buckets.downThemes)
             }
         }
         .scrollContentBackground(.hidden)
         .background(AppTheme.reviewBackground)
-        .navigationTitle(String(localized: "Trending"))
+        .navigationTitle(String(localized: "review.labels.trending"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -456,9 +456,9 @@ struct TrendingThemesBrowseView: View {
     private func drilldownPayload(for theme: ReviewMovementTheme) -> ReviewThemeDrilldownPayload {
         ReviewThemeDrilldownPayload(
             label: theme.label,
-            sectionTitle: String(localized: "Trending"),
+            sectionTitle: String(localized: "review.labels.trending"),
             subtitle: String(
-                format: String(localized: "Current week %1$lld, previous week %2$lld."),
+                format: String(localized: "review.insights.weekComparisonCurrentPrevious"),
                 Int64(theme.currentWeekCount),
                 Int64(theme.previousWeekCount)
             ),
@@ -519,7 +519,7 @@ struct ThemeDrilldownView: View {
                     }
                     .padding(.vertical, 2)
                 } header: {
-                    Text(String(localized: "Summary"))
+                    Text(String(localized: "review.labels.summary"))
                         .font(AppTheme.warmPaperMeta)
                         .foregroundStyle(AppTheme.reviewTextMuted)
                         .textCase(nil)
@@ -550,7 +550,7 @@ struct ThemeDrilldownView: View {
                                     .accessibilityLabel(
                                         themeDrilldownRowAccessibilityLabel(day: group.day, evidence: evidence)
                                     )
-                                    .accessibilityHint(String(localized: "ThemeDrilldown.openEntry.a11yHint"))
+                                    .accessibilityHint(String(localized: "review.themeDrilldown.openEntry.a11yHint"))
                                 }
                             } header: {
                                 Text(group.day.formatted(date: .abbreviated, time: .omitted))
@@ -560,7 +560,7 @@ struct ThemeDrilldownView: View {
                             }
                         }
                     } header: {
-                        Text(String(localized: "Matching writing surfaces"))
+                        Text(String(localized: "review.labels.matchingSurfaces"))
                             .font(AppTheme.warmPaperMeta)
                             .foregroundStyle(AppTheme.reviewTextMuted)
                             .textCase(nil)
@@ -569,7 +569,7 @@ struct ThemeDrilldownView: View {
             }
             .scrollContentBackground(.hidden)
             .background(AppTheme.reviewBackground)
-            .navigationTitle(String(localized: "Theme details"))
+            .navigationTitle(String(localized: "review.labels.themeDetails"))
             .toolbar {
                 if includeDoneButton {
                     ToolbarItem(placement: .topBarTrailing) {

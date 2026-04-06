@@ -13,13 +13,13 @@ struct JournalShareCardView: View {
                 .font(AppTheme.warmPaperHeader)
                 .foregroundStyle(AppTheme.textPrimary)
 
-            sectionIfNonEmpty(String(localized: "Gratitudes"), items: payload.gratitudes)
-            sectionIfNonEmpty(String(localized: "Needs"), items: payload.needs)
-            sectionIfNonEmpty(String(localized: "People in Mind"), items: payload.people)
+            sectionIfNonEmpty(String(localized: "journal.section.gratitudesTitle"), items: payload.gratitudes)
+            sectionIfNonEmpty(String(localized: "journal.section.needsTitle"), items: payload.needs)
+            sectionIfNonEmpty(String(localized: "journal.section.peopleTitle"), items: payload.people)
 
             if !payload.readingNotes.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(String(localized: "Reading Notes"))
+                    Text(String(localized: "journal.section.readingNotesTitle"))
                         .font(AppTheme.warmPaperHeader)
                         .foregroundStyle(AppTheme.textPrimary)
                     Text(payload.readingNotes)
@@ -31,7 +31,7 @@ struct JournalShareCardView: View {
 
             if !payload.reflections.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(String(localized: "Reflections"))
+                    Text(String(localized: "journal.section.reflectionsTitle"))
                         .font(AppTheme.warmPaperHeader)
                         .foregroundStyle(AppTheme.textPrimary)
                     Text(payload.reflections)
@@ -65,7 +65,11 @@ struct JournalShareCardView: View {
     }
 
     private func numberedLineText(index: Int, item: String) -> String {
-        let format = String(localized: "%lld. %@")
+        let format = String(
+            localized: "sharing.numberedLine",
+            defaultValue: "%1$lld. %2$@",
+            comment: "Generic numbered line format used for share-card list items."
+        )
         return String(format: format, locale: Locale.current, Int64(index + 1), item)
     }
 }
