@@ -12,12 +12,15 @@ struct JournalOnboardingSuggestionContext: Equatable {
     var dismissedICloudSuggestion: Bool
     var openedICloudSuggestion: Bool
     var isICloudSyncEnabled: Bool
+    /// When linear journal onboarding is showing section guidance on Today (`JournalOnboardingFlowEvaluator`).
+    var isGuidanceActive: Bool
 }
 
 enum JournalOnboardingSuggestionEvaluator {
     /// Single source of truth for milestone suggestion priority (Reminders → AI → iCloud).
     static func currentSuggestion(context: JournalOnboardingSuggestionContext) -> JournalOnboardingSuggestion? {
         guard context.entryDate == nil else { return nil }
+        guard !context.isGuidanceActive else { return nil }
 
         if context.hasCelebratedFirstTripleOne,
            !context.dismissedRemindersSuggestion,

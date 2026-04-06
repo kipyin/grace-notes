@@ -124,14 +124,38 @@ final class JournalTodayOrientationPolicyTests: XCTestCase {
         )
     }
 
-    func test_shouldSuppressSproutUnlockToast_milestoneWithSprout_doesNotSuppress() {
-        XCTAssertFalse(
+    func test_shouldSuppressSproutUnlockToast_firstOneOneOne_tripleOne_notSeenTour_suppresses() {
+        XCTAssertTrue(
             JournalTodayOrientationPolicy.shouldSuppressSproutUnlockToast(
                 isTodayEntry: true,
                 newLevel: .sprout,
                 hasSeenAppTour: false,
                 milestoneHighlight: .firstOneOneOne,
                 hasAtLeastOneEntryInEachSection: true
+            )
+        )
+    }
+
+    func test_shouldSuppressSproutUnlockToast_firstOneOneOne_seenTour_doesNotSuppress() {
+        XCTAssertFalse(
+            JournalTodayOrientationPolicy.shouldSuppressSproutUnlockToast(
+                isTodayEntry: true,
+                newLevel: .sprout,
+                hasSeenAppTour: true,
+                milestoneHighlight: .firstOneOneOne,
+                hasAtLeastOneEntryInEachSection: true
+            )
+        )
+    }
+
+    func test_shouldSuppressSproutUnlockToast_firstOneOneOne_firstEntryOnly_doesNotSuppress() {
+        XCTAssertFalse(
+            JournalTodayOrientationPolicy.shouldSuppressSproutUnlockToast(
+                isTodayEntry: true,
+                newLevel: .sprout,
+                hasSeenAppTour: false,
+                milestoneHighlight: .firstOneOneOne,
+                hasAtLeastOneEntryInEachSection: false
             )
         )
     }

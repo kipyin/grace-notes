@@ -40,6 +40,23 @@ final class OnboardingSuggestionEvaluatorTests: XCTestCase {
         XCTAssertNil(JournalOnboardingSuggestionEvaluator.currentSuggestion(context: context))
     }
 
+    func test_currentSuggestion_guidanceActive_returnsNilEvenWhenRemindersEligible() {
+        var context = baseContext(entryDate: nil)
+        context.hasCelebratedFirstTripleOne = true
+        context.isGuidanceActive = true
+
+        XCTAssertNil(JournalOnboardingSuggestionEvaluator.currentSuggestion(context: context))
+    }
+
+    func test_currentSuggestion_guidanceActive_returnsNilEvenWhenICloudEligible() {
+        var context = baseContext(entryDate: nil)
+        context.hasConfiguredReminderTime = true
+        context.hasCompletedGuidedJournal = true
+        context.isGuidanceActive = true
+
+        XCTAssertNil(JournalOnboardingSuggestionEvaluator.currentSuggestion(context: context))
+    }
+
     func test_currentSuggestion_afterAppTourCompletionDismissals_returnsNilOnToday() {
         let context = JournalOnboardingSuggestionContext(
             entryDate: nil,
@@ -51,7 +68,8 @@ final class OnboardingSuggestionEvaluatorTests: XCTestCase {
             hasCompletedGuidedJournal: true,
             dismissedICloudSuggestion: true,
             openedICloudSuggestion: false,
-            isICloudSyncEnabled: false
+            isICloudSyncEnabled: false,
+            isGuidanceActive: false
         )
 
         XCTAssertNil(JournalOnboardingSuggestionEvaluator.currentSuggestion(context: context))
@@ -68,7 +86,8 @@ final class OnboardingSuggestionEvaluatorTests: XCTestCase {
             hasCompletedGuidedJournal: false,
             dismissedICloudSuggestion: false,
             openedICloudSuggestion: false,
-            isICloudSyncEnabled: false
+            isICloudSyncEnabled: false,
+            isGuidanceActive: false
         )
     }
 }

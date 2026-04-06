@@ -4,6 +4,17 @@
 
 Marketing version **0.5.0** ships as successive **builds** (TestFlight / App Store); git tags **`v0.5.0+{build}`**. GitHub milestones **0.5.2**, **0.5.3**, etc. name **scope lanes**, not separate marketing versions — see **README.md** (Roadmap) and GitHub milestones. Older docs or issues may still mention interim labels (**0.5.1**, **0.5.2**); **ship truth** is **0.5.0 + build** below.
 
+### Next build (in progress)
+
+#### Changed
+
+- Journal (**#216**): On **Today**, reduce stacked onboarding nudges—when the one-time App Tour presents at first 1/1/1, suppress the bottom Sprout unlock toast and header celebration for both the generic tier bump and the first-triple-one variant (recording flags unchanged). The Settings suggestion strip (reminders / iCloud) does not show while linear section guidance is active.
+- Journal: Remove the dismissible **hint card** under the completion pill; guided steps **end after first 1/1/1** (no ripening/harvest phases). Focus still advances from first gratitude → first need → first person. Toast presentation polish is tracked in **#225**.
+
+#### Developer
+
+- Tests: `JournalTodayOrientationPolicyTests`, `OnboardingSuggestionEvaluatorTests`, `JournalOnboardingFlowEvaluatorTests`; removed `JournalTutorialHintPresentationTests`.
+
 ### Build 9 — 2026-04-04
 
 Marketing **0.5.0** / bundle **9** (git tag **`v0.5.0+9`** at release).
