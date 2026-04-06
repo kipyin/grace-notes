@@ -132,10 +132,6 @@ enum ShareCardStyle: String, CaseIterable, Identifiable, Sendable {
         true
     }
 
-    var showsAccentRuleUnderDate: Bool {
-        false
-    }
-
     var showsSectionDividers: Bool {
         self == .editorialMist
     }
