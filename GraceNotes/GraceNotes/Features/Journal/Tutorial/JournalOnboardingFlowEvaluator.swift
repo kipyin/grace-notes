@@ -4,8 +4,6 @@ enum JournalOnboardingStep: Equatable {
     case gratitude
     case need
     case person
-    case ripening
-    case harvest
 }
 
 enum JournalOnboardingSection: Hashable {
@@ -58,7 +56,7 @@ struct JournalOnboardingPresentation: Equatable {
         sectionStates[section] ?? .standard
     }
 
-    /// Per-section placement: linear steps use the active row; multi-active chips use Gratitudes.
+    /// Per-section placement: linear steps use the active row.
     func sectionGuidance(for section: JournalOnboardingSection) -> JournalOnboardingSectionGuidance? {
         guard let title, let message, let step else { return nil }
         let bannerSection: JournalOnboardingSection = switch step {
@@ -68,14 +66,12 @@ struct JournalOnboardingPresentation: Equatable {
             .need
         case .person:
             .person
-        case .ripening, .harvest:
-            .gratitude
         }
         guard section == bannerSection else { return nil }
         let secondary: String? = switch step {
         case .gratitude:
             String(localized: "journal.onboarding.keyboardFinishHint")
-        case .need, .person, .ripening, .harvest:
+        case .need, .person:
             nil
         }
         return JournalOnboardingSectionGuidance(title: title, message: message, messageSecondary: secondary)
@@ -88,25 +84,10 @@ struct JournalOnboardingContext: Equatable {
     let needsCount: Int
     let peopleCount: Int
     let hasCompletedGuidedJournal: Bool
-
-    var hasRipening: Bool {
-        Journal.minimumEntryCountAcrossSections(
-            gratitudesCount: gratitudesCount,
-            needsCount: needsCount,
-            peopleCount: peopleCount
-        ) >= 3
-    }
-
-    var hasBloom: Bool {
-        Journal.entriesIndicateBloom(
-            gratitudesCount: gratitudesCount,
-            needsCount: needsCount,
-            peopleCount: peopleCount
-        )
-    }
 }
 
 enum JournalOnboardingFlowEvaluator {
+    /// Linear guided steps through first 1/1/1; afterwards presentation is inactive on Today.
     static func presentation(for context: JournalOnboardingContext) -> JournalOnboardingPresentation {
         guard context.entryDate == nil, !context.hasCompletedGuidedJournal else {
             return .inactive
@@ -122,14 +103,6 @@ enum JournalOnboardingFlowEvaluator {
 
         if context.peopleCount == 0 {
             return firstPersonPresentation()
-        }
-
-        if !context.hasRipening {
-            return ripeningPresentation()
-        }
-
-        if !context.hasBloom {
-            return bloomPresentation()
         }
 
         return .inactive
@@ -149,20 +122,6 @@ private extension JournalOnboardingFlowEvaluator {
             message: message,
             sectionStates: states
         )
-    }
-
-    static func chipSectionPresentation(
-        chipState: JournalOnboardingSectionState,
-        notesState: JournalOnboardingSectionState,
-        reflectionsState: JournalOnboardingSectionState
-    ) -> [JournalOnboardingSection: JournalOnboardingSectionState] {
-        [
-            .gratitude: chipState,
-            .need: chipState,
-            .person: chipState,
-            .readingNotes: notesState,
-            .reflections: reflectionsState
-        ]
     }
 
     static func lockedNotesState() -> JournalOnboardingSectionState {
@@ -217,34 +176,6 @@ private extension JournalOnboardingFlowEvaluator {
                 .readingNotes: lockedNotesState(),
                 .reflections: lockedReflectionsState()
             ]
-        )
-    }
-
-    static func ripeningPresentation() -> JournalOnboardingPresentation {
-        presentation(
-            step: .ripening,
-            title: String(localized: "journal.growthStage.started"),
-            message: String(localized: "journal.onboarding.startedContinueMessage"),
-            states: chipSectionPresentation(
-                chipState: .active,
-                notesState: .active,
-                reflectionsState: .active
-            )
-        )
-    }
-
-    static func bloomPresentation() -> JournalOnboardingPresentation {
-        presentation(
-            step: .harvest,
-            title: String(localized: "journal.growthStage.balanced"),
-            message: String(
-                localized: "journal.onboarding.balancedContinueMessage"
-            ),
-            states: chipSectionPresentation(
-                chipState: .active,
-                notesState: .active,
-                reflectionsState: .active
-            )
         )
     }
 }
