@@ -9,7 +9,7 @@ This project uses **String Catalog** (`GraceNotes/GraceNotes/Localizable.xcstrin
   - `app`, `shell`, `common`, `calendar`, `startup`, `onboarding`, `journal`, `past`, `review`, `sharing`, `notifications`, `tutorial`, `settings`, `data`, `accessibility`
 - Prefer **feature-specific** keys over generic English sentences as keys.
 - Use **lowerCamelCase** segments (e.g. `sectionTitle`, `mergeConflict.title`), not Title Case in key names.
-- Shared strings (OK, Cancel, Today) live under **`common.*`** or **`shell.*`** when they are tab chrome.
+- Shared strings (OK, Cancel, Today) live under `**common.*`** or `**shell.***` when they are tab chrome.
 
 ## Adding a new string
 
@@ -21,14 +21,14 @@ This project uses **String Catalog** (`GraceNotes/GraceNotes/Localizable.xcstrin
 Text(String(localized: "journal.section.gratitudesTitle"))
 ```
 
-4. For **format strings**, use positional specifiers (`%1$@`, `%2$d`) and document placeholders in the catalog **comment** (see below).
+1. For **format strings**, use positional specifiers (`%1$@`, `%2$d`) and document placeholders in the catalog **comment** (see below).
 
 ## Placeholders and format strings
 
 - Prefer **one format string** with positional placeholders instead of concatenating translated fragments.
 - For **count-sensitive** English copy, prefer:
   - **String Catalog plural variants** (variations / plural rules) when the sentence structure allows, or
-  - A **single template** with explicit placeholders when logic post-processes (see weekly insight templates under `review.insights.*`).
+  - A **single template** with explicit placeholders when logic post-processes (see weekly insight templates under `review.insights.`*).
 
 Some templates use a literal `day(s)` substring in English that **runtime code replaces** with localized “day” / “days” (`WeeklyInsightCandidateBuilder+Candidates.renderLocalizedDayCountTemplate`). Translators should preserve that substring when English needs it, or adapt the sentence in `zh-Hans` without relying on that hack.
 
@@ -42,19 +42,20 @@ Use the string entry’s **comment** field for:
 
 ## Stale / unused keys
 
-- Run `python3 Scripts/localization_audit.py` from the repo root. It reports:
+- Run `grace l10n audit` from the repo root (after installing `gracenotes-dev`; see `AGENTS.md`). By default it prints a **short status**, capped samples, and **next steps**; use **`grace l10n audit --full`** for exhaustive tables (all unused keys, duplicate groups, and multi-file references).
+- The audit covers:
   - keys in the catalog not referenced from Swift (with a small allowlist for dynamic template keys)
   - duplicate English values across keys (possible drift)
-- **Deleting** unused keys is safe only when you are sure nothing loads them dynamically. Keys passed to `String(localized: String.LocalizationValue(key))` are **not** visible to a simple text search—keep the allowlist in `Scripts/localization_audit.py` in sync if you add more dynamic keys.
+- **Deleting** unused keys is safe only when you are sure nothing loads them dynamically. Keys passed to `String(localized: String.LocalizationValue(key))` are **not** visible to a simple text search—keep the allowlist in `Scripts/gracenotes-dev/src/gracenotes_dev/cli/l10n_cmd.py` (`DYNAMIC_TEMPLATE_KEYS`) in sync if you add more dynamic keys.
 
 ## Anti-patterns
 
 - **English sentence as the key** (hard to grep, unstable when copy edits).
 - **Concatenating** localized strings for grammar (breaks in other languages).
-- **`NSLocalizedString` with raw English keys**—use `String(localized:)` or `String(localized: String.LocalizationValue(_:))` so the catalog stays the source of truth.
+- **`NSLocalizedString` with raw English keys** — use `String(localized:)` or `String(localized: String.LocalizationValue(_:))` so the catalog stays the source of truth.
 - **Duplicating the same English under different keys** without a product reason—review duplicate groups from the audit script.
 
-## Related scripts
+## Related tooling
 
-- `Scripts/localization_migrate.py` — one-time bulk rename helper (already applied; kept for history).
-- `Scripts/localization_audit.py` — ongoing catalog vs. code audit.
+- **`grace l10n audit`** — compares `Localizable.xcstrings` to Swift `String(localized:)` / `localized:` references (see `Scripts/gracenotes-dev/…/cli/l10n_cmd.py`). A prior one-off bulk rename lived in `Scripts/localization_migrate.py` (removed); recover from git history if needed.
+

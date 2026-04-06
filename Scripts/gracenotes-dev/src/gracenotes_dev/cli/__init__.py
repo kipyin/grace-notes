@@ -45,6 +45,7 @@ def app_callback(
 
 from gracenotes_dev.cli import config_cmd as _config_cmd  # noqa: E402, F401
 from gracenotes_dev.cli import doctor_lint as _doctor_lint  # noqa: E402, F401
+from gracenotes_dev.cli import l10n_cmd as _l10n_cmd  # noqa: E402, F401
 from gracenotes_dev.cli import sim as _sim  # noqa: E402, F401
 from gracenotes_dev.cli import workflows as _workflows  # noqa: E402, F401
 from gracenotes_dev.cli.config_cmd import config_interactive  # noqa: E402

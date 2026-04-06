@@ -23,6 +23,7 @@ from gracenotes_dev.cli import config_cmd as cli_config_cmd
 from gracenotes_dev.cli import core as cli_core
 from gracenotes_dev.cli import doctor_lint as cli_doctor_lint
 from gracenotes_dev.cli import workflows as cli_workflows
+from gracenotes_dev.cli import l10n_cmd
 
 
 class CLISurfaceTest(unittest.TestCase):
@@ -36,6 +37,7 @@ class CLISurfaceTest(unittest.TestCase):
             "lint",
             "sim",
             "config",
+            "l10n",
             "build",
             "clean",
             "test",
@@ -101,6 +103,43 @@ class CLISurfaceTest(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
         for token in ["list", "edit", "open", "set", "interactive"]:
             self.assertIn(token, result.output)
+
+    def test_l10n_help_lists_audit(self) -> None:
+        runner = CliRunner()
+        result = runner.invoke(app, ["l10n", "--help"])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn("audit", result.output)
+
+    def test_l10n_audit_help_includes_full(self) -> None:
+        runner = CliRunner()
+        result = runner.invoke(app, ["l10n", "audit", "--help"])
+
+        self.assertEqual(result.exit_code, 0, msg=result.output)
+        self.assertIn("--full", result.output)
+
+    def test_l10n_audit_focused_plain_output_against_repo_fixture(self) -> None:
+        repo_root = Path(__file__).resolve().parents[3]
+        buf = io.StringIO()
+        l10n_cmd.print_strings_catalog_audit(repo_root=repo_root, stream=buf)
+        text = buf.getvalue()
+        self.assertIn("=== grace l10n audit ===", text)
+        self.assertIn("Status:", text)
+        self.assertIn("Next:", text)
+
+    def test_l10n_audit_full_plain_includes_legacy_sections(self) -> None:
+        repo_root = Path(__file__).resolve().parents[3]
+        buf = io.StringIO()
+        l10n_cmd.print_strings_catalog_audit(repo_root=repo_root, stream=buf, full=True)
+        text = buf.getvalue()
+        self.assertIn("=== Grace Notes string catalog audit ===", text)
+        self.assertIn("--- Duplicate English values", text)
+
+    def test_build_strings_catalog_audit_against_repo(self) -> None:
+        repo_root = Path(__file__).resolve().parents[3]
+        report = l10n_cmd.build_strings_catalog_audit(repo_root)
+        self.assertGreater(report.catalog_key_count, 0)
+        self.assertGreater(len(l10n_cmd.DYNAMIC_TEMPLATE_KEYS), 0)
 
     def test_sim_without_subcommand_prints_help(self) -> None:
         runner = CliRunner()

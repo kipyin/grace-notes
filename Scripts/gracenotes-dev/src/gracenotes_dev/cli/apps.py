@@ -38,3 +38,7 @@ runtime_app = typer.Typer(
 sim_app.add_typer(runtime_app, name="runtime")
 config_app = typer.Typer(help="Inspect and edit gracenotes-dev.toml.")
 app.add_typer(config_app, name="config")
+l10n_app = typer.Typer(
+    help="String catalog checks: Localizable.xcstrings vs Swift String(localized:) / localized:.",
+)
+app.add_typer(l10n_app, name="l10n")
