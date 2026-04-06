@@ -114,15 +114,11 @@ def build_strings_catalog_audit(repo_root: Path) -> StringsCatalogAuditReport:
 
     dup_raw = [(en, ks) for en, ks in by_en.items() if len(ks) > 1 and en.strip()]
     dup_raw.sort(key=lambda x: -len(x[1]))
-    duplicate_english_groups = tuple(
-        (en, tuple(sorted(ks))) for en, ks in dup_raw
-    )
+    duplicate_english_groups = tuple((en, tuple(sorted(ks))) for en, ks in dup_raw)
 
     multi_raw = [(k, locs[k]) for k in code_keys if len(set(locs[k])) > 1]
     multi_raw.sort(key=lambda x: -len(x[1]))
-    multi_file_keys = tuple(
-        (k, tuple(sorted(set(paths)))) for k, paths in multi_raw
-    )
+    multi_file_keys = tuple((k, tuple(sorted(set(paths)))) for k, paths in multi_raw)
 
     return StringsCatalogAuditReport(
         catalog_key_count=len(catalog_keys),
