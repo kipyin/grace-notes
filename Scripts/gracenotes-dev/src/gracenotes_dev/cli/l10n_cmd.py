@@ -63,7 +63,8 @@ def _unescape_swift_string(inner: str) -> str:
     return inner
 
 
-def _keys_in_swift(repo_root: Path) -> tuple[set[str], dict[str, list[str]]]:
+def swift_localization_key_locations(repo_root: Path) -> tuple[set[str], dict[str, list[str]]]:
+    """Scan GraceNotes + GraceNotesTests for ``String(localized:)`` / ``localized:`` literals."""
     found: set[str] = set()
     locations: dict[str, list[str]] = defaultdict(list)
     for base in _swift_roots(repo_root):
@@ -98,7 +99,7 @@ def build_strings_catalog_audit(repo_root: Path) -> StringsCatalogAuditReport:
     data = json.loads(catalog_file.read_text(encoding="utf-8"))
     catalog_keys = set(data.get("strings", {}).keys())
 
-    code_keys, locs = _keys_in_swift(repo_root)
+    code_keys, locs = swift_localization_key_locations(repo_root)
     effective_code = code_keys | DYNAMIC_TEMPLATE_KEYS
     unused = tuple(sorted(catalog_keys - effective_code))
     missing = tuple(sorted(code_keys - catalog_keys))
