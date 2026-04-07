@@ -254,7 +254,8 @@ extension JournalViewModel {
                 needs: needs,
                 people: people,
                 readingNotes: readingNotes,
-                reflections: reflections
+                reflections: reflections,
+                completionLevel: completionLevel
             )
         )
     }

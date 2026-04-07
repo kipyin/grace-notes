@@ -22,7 +22,6 @@ enum CompletionBadgeInfo: Equatable {
         }
     }
 
-    // swiftlint:disable line_length
     var description: String {
         switch self {
         case .empty:
@@ -37,5 +36,4 @@ enum CompletionBadgeInfo: Equatable {
             return String(localized: "journal.guidance.allSectionsCompleteToday")
         }
     }
-    // swiftlint:enable line_length
 }

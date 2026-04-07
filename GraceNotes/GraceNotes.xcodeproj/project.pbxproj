@@ -244,23 +244,43 @@
 			inputFileListPaths = (
 			);
 			inputPaths = (
-				"$(PROJECT_DIR)/GraceNotes/Resources/Fonts/PlayfairDisplay-Variable.ttf",
-				"$(PROJECT_DIR)/GraceNotes/Resources/Fonts/SourceSerif4-Variable.ttf",
+				"$(PROJECT_DIR)/GraceNotes/Resources/Fonts/BebasNeue-Regular.ttf",
+				"$(PROJECT_DIR)/GraceNotes/Resources/Fonts/BodoniModa-Variable.ttf",
+				"$(PROJECT_DIR)/GraceNotes/Resources/Fonts/CormorantGaramond-Variable.ttf",
+				"$(PROJECT_DIR)/GraceNotes/Resources/Fonts/CrimsonText-Regular.ttf",
+				"$(PROJECT_DIR)/GraceNotes/Resources/Fonts/CrimsonText-SemiBold.ttf",
+				"$(PROJECT_DIR)/GraceNotes/Resources/Fonts/IBMPlexSerif-Regular.ttf",
+				"$(PROJECT_DIR)/GraceNotes/Resources/Fonts/IBMPlexSerif-SemiBold.ttf",
+				"$(PROJECT_DIR)/GraceNotes/Resources/Fonts/Inter-Variable.ttf",
 				"$(PROJECT_DIR)/GraceNotes/Resources/Fonts/Outfit-Regular.ttf",
 				"$(PROJECT_DIR)/GraceNotes/Resources/Fonts/Outfit-SemiBold.ttf",
+				"$(PROJECT_DIR)/GraceNotes/Resources/Fonts/PlayfairDisplay-Variable.ttf",
+				"$(PROJECT_DIR)/GraceNotes/Resources/Fonts/SourceSerif4-Variable.ttf",
+				"$(PROJECT_DIR)/GraceNotes/Resources/Fonts/Spectral-Regular.ttf",
+				"$(PROJECT_DIR)/GraceNotes/Resources/Fonts/Spectral-SemiBold.ttf",
 			);
 			name = "Copy Fonts to bundle";
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Fonts/PlayfairDisplay-Variable.ttf",
-				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Fonts/SourceSerif4-Variable.ttf",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Fonts/BebasNeue-Regular.ttf",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Fonts/BodoniModa-Variable.ttf",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Fonts/CormorantGaramond-Variable.ttf",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Fonts/CrimsonText-Regular.ttf",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Fonts/CrimsonText-SemiBold.ttf",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Fonts/IBMPlexSerif-Regular.ttf",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Fonts/IBMPlexSerif-SemiBold.ttf",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Fonts/Inter-Variable.ttf",
 				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Fonts/Outfit-Regular.ttf",
 				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Fonts/Outfit-SemiBold.ttf",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Fonts/PlayfairDisplay-Variable.ttf",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Fonts/SourceSerif4-Variable.ttf",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Fonts/Spectral-Regular.ttf",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Fonts/Spectral-SemiBold.ttf",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\n\nFONT_SRC=\"${PROJECT_DIR}/GraceNotes/Resources/Fonts\"\nFONT_DEST=\"${TARGET_BUILD_DIR}/${WRAPPER_NAME}/Fonts\"\n\nmkdir -p \"$FONT_DEST\"\ncp \"${FONT_SRC}/PlayfairDisplay-Variable.ttf\" \"${SCRIPT_OUTPUT_FILE_0}\"\ncp \"${FONT_SRC}/SourceSerif4-Variable.ttf\" \"${SCRIPT_OUTPUT_FILE_1}\"\ncp \"${FONT_SRC}/Outfit-Regular.ttf\" \"${SCRIPT_OUTPUT_FILE_2}\"\ncp \"${FONT_SRC}/Outfit-SemiBold.ttf\" \"${SCRIPT_OUTPUT_FILE_3}\"\n";
+			shellScript = "set -euo pipefail\n\nFONT_SRC=\"${PROJECT_DIR}/GraceNotes/Resources/Fonts\"\nFONT_DEST=\"${TARGET_BUILD_DIR}/${WRAPPER_NAME}/Fonts\"\n\nmkdir -p \"$FONT_DEST\"\ncp \"${FONT_SRC}/BebasNeue-Regular.ttf\" \"${SCRIPT_OUTPUT_FILE_0}\"\ncp \"${FONT_SRC}/BodoniModa-Variable.ttf\" \"${SCRIPT_OUTPUT_FILE_1}\"\ncp \"${FONT_SRC}/CormorantGaramond-Variable.ttf\" \"${SCRIPT_OUTPUT_FILE_2}\"\ncp \"${FONT_SRC}/CrimsonText-Regular.ttf\" \"${SCRIPT_OUTPUT_FILE_3}\"\ncp \"${FONT_SRC}/CrimsonText-SemiBold.ttf\" \"${SCRIPT_OUTPUT_FILE_4}\"\ncp \"${FONT_SRC}/IBMPlexSerif-Regular.ttf\" \"${SCRIPT_OUTPUT_FILE_5}\"\ncp \"${FONT_SRC}/IBMPlexSerif-SemiBold.ttf\" \"${SCRIPT_OUTPUT_FILE_6}\"\ncp \"${FONT_SRC}/Inter-Variable.ttf\" \"${SCRIPT_OUTPUT_FILE_7}\"\ncp \"${FONT_SRC}/Outfit-Regular.ttf\" \"${SCRIPT_OUTPUT_FILE_8}\"\ncp \"${FONT_SRC}/Outfit-SemiBold.ttf\" \"${SCRIPT_OUTPUT_FILE_9}\"\ncp \"${FONT_SRC}/PlayfairDisplay-Variable.ttf\" \"${SCRIPT_OUTPUT_FILE_10}\"\ncp \"${FONT_SRC}/SourceSerif4-Variable.ttf\" \"${SCRIPT_OUTPUT_FILE_11}\"\ncp \"${FONT_SRC}/Spectral-Regular.ttf\" \"${SCRIPT_OUTPUT_FILE_12}\"\ncp \"${FONT_SRC}/Spectral-SemiBold.ttf\" \"${SCRIPT_OUTPUT_FILE_13}\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */

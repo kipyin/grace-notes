@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- **Share card:** Three distinct typographic presets — Grace Notes default (Playfair + Source Serif 4), **Editorial** (Outfit + IBM Plex Serif), **Embellished** (Spectral on the sunrise gradient). Watermark uses the warm paper meta font for a consistent footer; stubs use each style’s meta font. Section include/exclude uses subtle **plus** / **xmark** (44pt target). Sunrise preset text ink slightly darkened for contrast on the gradient. Bundled **IBM Plex Serif** and **Spectral** (SIL OFL); license texts alongside fonts under `GraceNotes/GraceNotes/Resources/Fonts/`.
+- **Share:** Composer and manual backup actions use the label **Share** / **分享** (no ellipsis). Share card preview places the completion badge on the **same row** as the date, **trailing**-aligned, at a **larger** scale for balance with section titles; sunrise accent rule stays below that row.
+
 ## [0.5.0]
 
 Marketing version **0.5.0** ships as successive **builds** (TestFlight / App Store); git tags **`v0.5.0+{build}`**. GitHub milestones **0.5.2**, **0.5.3**, etc. name **scope lanes**, not separate marketing versions — see **README.md** (Roadmap) and GitHub milestones. Older docs or issues may still mention interim labels (**0.5.1**, **0.5.2**); **ship truth** is **0.5.0 + build** below.

@@ -27,7 +27,7 @@ extension View {
 }
 
 /// Layout values shared by ``ReviewHistoryDrilldownPeekContainer``'s height math and its ``VStack`` (keep in sync).
-private enum ReviewHistoryDrilldownPeekContainerLayout {
+private enum ReviewHistoryPeekContainerLayout {
     /// Must match ``VStack`` `spacing` between `above` and `grid` when there is real header content.
     static let aboveToGridSpacing: CGFloat = 12
     /// Single value passed to ``View/padding(_:_:)`` for vertical padding on the ``VStack``.
@@ -48,7 +48,7 @@ private struct ReviewHistoryDrilldownPeekContainer<Above: View, GridContent: Vie
     init(
         above: Above,
         abovePeekHeight: Binding<CGFloat>,
-        aboveAndGridSpacing: CGFloat = ReviewHistoryDrilldownPeekContainerLayout.aboveToGridSpacing,
+        aboveAndGridSpacing: CGFloat = ReviewHistoryPeekContainerLayout.aboveToGridSpacing,
         grid: @escaping (CGFloat) -> GridContent
     ) {
         self.above = above
@@ -61,7 +61,7 @@ private struct ReviewHistoryDrilldownPeekContainer<Above: View, GridContent: Vie
         GeometryReader { proxy in
             let remaining = proxy.size.height
                 - abovePeekHeight
-                - ReviewHistoryDrilldownPeekContainerLayout.verticalPaddingTotal
+                - ReviewHistoryPeekContainerLayout.verticalPaddingTotal
                 - aboveAndGridSpacing
             let peek = ReviewHistoryDrilldownPeekMetrics.clampedViewportHeight(remainingHeight: remaining)
 
@@ -71,7 +71,7 @@ private struct ReviewHistoryDrilldownPeekContainer<Above: View, GridContent: Vie
                 grid(peek)
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, ReviewHistoryDrilldownPeekContainerLayout.verticalPadding)
+            .padding(.vertical, ReviewHistoryPeekContainerLayout.verticalPadding)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .onPreferenceChange(ReviewHistoryDrilldownAbovePeekHeightKey.self) { abovePeekHeight = $0 }
         }

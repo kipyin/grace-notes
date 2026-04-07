@@ -152,6 +152,7 @@ final class JournalViewModelTests: XCTestCase {
         XCTAssertEqual(payload.people, ["Alice"])
         XCTAssertEqual(payload.readingNotes, "Matthew 5")
         XCTAssertEqual(payload.reflections, "Be patient today")
+        XCTAssertEqual(payload.completionLevel, .sprout)
     }
 
     func test_exportSnapshot_partialEntry_producesValidPayload() async throws {
@@ -173,6 +174,7 @@ final class JournalViewModelTests: XCTestCase {
         XCTAssertTrue(payload.readingNotes.isEmpty)
         XCTAssertTrue(payload.reflections.isEmpty)
         XCTAssertFalse(payload.dateFormatted.isEmpty)
+        XCTAssertEqual(payload.completionLevel, .sprout)
     }
 
     func test_updatesPersistAfterDebouncedAutosave() async throws {

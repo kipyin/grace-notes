@@ -64,6 +64,8 @@ enum AppTheme {
     static let reviewRhythmColumnStroke = reviewStandardBorder
     /// Rhythm icon tint; dark mode uses near-white so SVG strokes stay visible.
     static let reviewRhythmIconTint = Color.adaptive(lightHex: 0x5C5346, darkHex: 0xF2E8DE)
+    /// Stroke for unselected share-composer style chips; readable on dark paper.
+    static let shareComposerChipBorder = Color.adaptive(lightHex: 0xD2C4B5, darkHex: 0x5C5346)
 
     // MARK: - Journal Semantic Colors
 

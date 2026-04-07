@@ -33,7 +33,9 @@ enum ScheduledBackupRunner {
         case .success(let url):
             tempFile = url
         case .failure:
-            await recordScheduledFailure(detail: String(localized: "settings.dataPrivacy.scheduledBackup.failureDetail"))
+            await recordScheduledFailure(
+                detail: String(localized: "settings.dataPrivacy.scheduledBackup.failureDetail")
+            )
             return
         }
         defer {
@@ -52,7 +54,9 @@ enum ScheduledBackupRunner {
                 )
             }
         } catch {
-            await recordScheduledFailure(detail: String(localized: "settings.dataPrivacy.scheduledBackup.failureDetail"))
+            await recordScheduledFailure(
+                detail: String(localized: "settings.dataPrivacy.scheduledBackup.failureDetail")
+            )
         }
     }
 
