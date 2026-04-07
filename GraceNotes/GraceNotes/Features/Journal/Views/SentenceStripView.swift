@@ -149,9 +149,9 @@ struct SentenceStripView: View {
 
     private var rowAccessibilityHint: String {
         if isExpandable {
-            return String(localized: "accessibility.doubleTapEditSentenceShowMore")
+            return String(localized: "accessibility.tapToEditSentenceShowMore")
         }
-        return String(localized: "accessibility.doubleTapEditSentence")
+        return String(localized: "accessibility.tapToEditSentence")
     }
 
     static func requiresExpandedPreview(_ sentence: String) -> Bool {

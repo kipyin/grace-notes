@@ -2114,34 +2114,34 @@
         }
       }
     },
-    "accessibility.doubleTapEditSentence": {
+    "accessibility.tapToEditSentence": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Double-tap to edit this sentence."
+            "value": "Tap to edit this sentence."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "连点两下即可编辑这句话。"
+            "value": "轻点即可编辑这句话。"
           }
         }
       }
     },
-    "accessibility.doubleTapEditSentenceShowMore": {
+    "accessibility.tapToEditSentenceShowMore": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Double-tap to edit this sentence. Use Show more to preview the full text."
+            "value": "Tap to edit this sentence. Use Show more to preview the full text."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "连点两下即可编辑这句话。如需查看全文，可轻点“展开”。"
+            "value": "轻点即可编辑这句话。如需查看全文，可轻点“展开”。"
           }
         }
       }
