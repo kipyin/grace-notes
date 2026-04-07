@@ -58,4 +58,5 @@ Use the string entry’s **comment** field for:
 ## Related tooling
 
 - **`grace l10n audit`** — compares `Localizable.xcstrings` to Swift `String(localized:)` / `localized:` references (see `Scripts/gracenotes-dev/…/cli/l10n_cmd.py`). A prior one-off bulk rename lived in `Scripts/localization_migrate.py` (removed); recover from git history if needed.
+- **`grace l10n review`** — interactive, TTY-only walkthrough of keys used in Swift, grouped by product surface (first run, Today, Past, Settings, shared chrome), showing English and zh-Hans plus optional audit hints from the same scan as `audit`. Optional per-key surface fixes live in repo-root `l10n-review-overrides.toml`. The command does not edit the string catalog; it can append Markdown notes to a file you specify (default timestamped file under the repo root, gitignored).
 

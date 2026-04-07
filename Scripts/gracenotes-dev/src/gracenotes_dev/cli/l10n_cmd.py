@@ -63,7 +63,8 @@ def _unescape_swift_string(inner: str) -> str:
     return inner
 
 
-def _keys_in_swift(repo_root: Path) -> tuple[set[str], dict[str, list[str]]]:
+def swift_localization_key_locations(repo_root: Path) -> tuple[set[str], dict[str, list[str]]]:
+    """Scan GraceNotes + GraceNotesTests for ``String(localized:)`` / ``localized:`` literals."""
     found: set[str] = set()
     locations: dict[str, list[str]] = defaultdict(list)
     for base in _swift_roots(repo_root):
@@ -98,7 +99,7 @@ def build_strings_catalog_audit(repo_root: Path) -> StringsCatalogAuditReport:
     data = json.loads(catalog_file.read_text(encoding="utf-8"))
     catalog_keys = set(data.get("strings", {}).keys())
 
-    code_keys, locs = _keys_in_swift(repo_root)
+    code_keys, locs = swift_localization_key_locations(repo_root)
     effective_code = code_keys | DYNAMIC_TEMPLATE_KEYS
     unused = tuple(sorted(catalog_keys - effective_code))
     missing = tuple(sorted(code_keys - catalog_keys))
@@ -554,3 +555,46 @@ def l10n_audit(
             try_commands=("cd …/grace-notes", "grace l10n audit"),
         )
     print_strings_catalog_audit(repo_root=repo_root, full=full)
+
+
+@l10n_app.command("review")
+def l10n_review_cmd(
+    notes: Annotated[
+        Path | None,
+        typer.Option(
+            "--notes",
+            help=(
+                "Append-only Markdown file for notes "
+                "(default: l10n-review-notes-*.md in repo root)."
+            ),
+        ),
+    ] = None,
+    all_surfaces: Annotated[
+        bool,
+        typer.Option(
+            "--all",
+            help="Walk every surface in order without prompting for which to open first.",
+        ),
+    ] = False,
+) -> None:
+    """Interactive walkthrough of localized strings by product surface (en + zh-Hans); read-only.
+
+    Scans keys referenced from Swift (see ``grace l10n audit`` for catalog-only issues).
+    """
+    repo_root = xcode_helpers.repo_root_from(Path.cwd())
+    catalog = repo_root / "GraceNotes/GraceNotes/Localizable.xcstrings"
+    if not catalog.is_file():
+        cli_core._fail(
+            code=2,
+            title="Localization catalog not found",
+            problem=f"Expected catalog at {catalog}",
+            likely_cause="Run from the Grace Notes repo root (directory containing GraceNotes/).",
+            try_commands=("cd …/grace-notes", "grace l10n review"),
+        )
+    from gracenotes_dev.cli import l10n_review as l10n_review_mod
+
+    l10n_review_mod.run_l10n_review_interactive(
+        repo_root,
+        notes_path=notes,
+        walk_all=all_surfaces,
+    )

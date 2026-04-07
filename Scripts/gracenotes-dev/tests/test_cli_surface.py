@@ -109,6 +109,7 @@ class CLISurfaceTest(unittest.TestCase):
 
         self.assertEqual(result.exit_code, 0)
         self.assertIn("audit", result.output)
+        self.assertIn("review", result.output)
 
     def test_l10n_audit_help_includes_full(self) -> None:
         runner = CliRunner()
@@ -139,6 +140,12 @@ class CLISurfaceTest(unittest.TestCase):
         report = l10n_cmd.build_strings_catalog_audit(repo_root)
         self.assertGreater(report.catalog_key_count, 0)
         self.assertGreater(len(l10n_cmd.DYNAMIC_TEMPLATE_KEYS), 0)
+
+    def test_swift_localization_key_locations_returns_paths_for_known_key(self) -> None:
+        repo_root = Path(__file__).resolve().parents[3]
+        code_keys, locs = l10n_cmd.swift_localization_key_locations(repo_root)
+        self.assertIn("shell.tab.today", code_keys)
+        self.assertTrue(any("GraceNotesApp.swift" in p for p in locs["shell.tab.today"]))
 
     def test_sim_without_subcommand_prints_help(self) -> None:
         runner = CliRunner()

@@ -28,6 +28,7 @@ DerivedData/
 .swiftpm/
 
 # Python (dev tooling under Scripts/)
+l10n-review-notes-*.md
 __pycache__/
 *.py[cod]
 .pytest_cache/
