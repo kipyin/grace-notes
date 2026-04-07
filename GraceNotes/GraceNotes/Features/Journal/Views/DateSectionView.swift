@@ -8,6 +8,8 @@ struct DateSectionView: View {
 
     let completionInfo: JournalCompletionInfoPresentation
     let completionInfoMorphNamespace: Namespace.ID
+    let stickyMorphNamespace: Namespace.ID
+    let showStickyCompletionBar: Bool
 
     let completionLevel: JournalCompletionLevel
     let celebratingLevel: JournalCompletionLevel?
@@ -82,7 +84,9 @@ struct DateSectionView: View {
                 morphSource: false,
                 morphNamespace: completionInfoMorphNamespace,
                 morphAccentColor: (completionInfo.selectedBadgeInfo ?? badgeInfo).infoCardTintColor(using: palette),
-                morphBloomProgress: completionInfo.infoCardBloomProgress
+                morphBloomProgress: completionInfo.infoCardBloomProgress,
+                stickyMorphNamespace: stickyMorphNamespace,
+                isStickyMorphSourceForToolbar: !showStickyCompletionBar
             )
         }
         .buttonStyle(WarmPaperPressStyle())

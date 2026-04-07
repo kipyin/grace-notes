@@ -12,11 +12,19 @@ import Combine
 private enum JournalScreenLayout {
     static let journalScrollCoordinateSpaceName = "journalMainScroll"
     static let unlockToastScrollDismissThreshold: CGFloat = 20
-    /// After scrolling this many points, show the compact completion control in the navigation bar.
-    static let stickyCompletionScrollThresholdPoints: CGFloat = 88
+    /// Once the completion header's top edge scrolls this many points above the scroll viewport's top,
+    /// show the compact bar chip (small value works with large titles and shorter journals).
+    static let stickyCompletionScrollThresholdPoints: CGFloat = 6
 }
 
 private struct JournalScrollOffsetPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
+private struct JournalHeaderScrollMinYKey: PreferenceKey {
     static var defaultValue: CGFloat = 0
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
         value = nextValue()
@@ -224,13 +232,15 @@ struct JournalScreen: View {
     @FocusState private var isReadingNotesFocused: Bool
     @FocusState private var isReflectionsFocused: Bool
     @Namespace private var completionInfoMorphNamespace
+    @Namespace private var stickyCompletionMorphNamespace
     @State private var completionInfoPresentation = JournalCompletionInfoPresentation()
     @State private var completionHeaderScrollPulse: UInt = 0
+    @State private var completionHeaderMinYInScrollSpace: CGFloat = 0
     var entryDate: Date?
     var body: some View {
         let palette = TodayJournalPalette.resolve(mode: effectiveTodayAppearance)
         let showStickyCompletionBar = JournalStickyCompletionVisibility.shouldShowBarIndicator(
-            scrollContentMinY: journalScrollOffsetY,
+            scrollContentMinY: completionHeaderMinYInScrollSpace,
             hideUntilScrolledPast: JournalScreenLayout.stickyCompletionScrollThresholdPoints
         )
         ZStack {
@@ -246,26 +256,28 @@ struct JournalScreen: View {
         .overlay { journalToastOverlay }
         .navigationTitle(navigationTitle)
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                JournalCompletionBarChip(
-                    completionLevel: viewModel.completionLevel,
-                    gratitudesCount: viewModel.gratitudes.count,
-                    needsCount: viewModel.needs.count,
-                    peopleCount: viewModel.people.count,
-                    onTap: {
-                        let badge = CompletionBadgeInfo.matching(viewModel.completionLevel)
-                        completionInfoPresentation.completionBadgeTapped(badge, reduceMotion: reduceMotion)
-                        if showStickyCompletionBar, completionInfoPresentation.isInfoCardPresented {
-                            completionHeaderScrollPulse &+= 1
+            if showStickyCompletionBar {
+                ToolbarItem(placement: .topBarLeading) {
+                    JournalCompletionBarChip(
+                        completionLevel: viewModel.completionLevel,
+                        gratitudesCount: viewModel.gratitudes.count,
+                        needsCount: viewModel.needs.count,
+                        peopleCount: viewModel.people.count,
+                        stickyMorphNamespace: stickyCompletionMorphNamespace,
+                        isStickyMorphSource: true,
+                        onTap: {
+                            let badge = CompletionBadgeInfo.matching(viewModel.completionLevel)
+                            completionInfoPresentation.completionBadgeTapped(badge, reduceMotion: reduceMotion)
+                            if completionInfoPresentation.isInfoCardPresented {
+                                completionHeaderScrollPulse &+= 1
+                            }
                         }
-                    }
-                )
-                .opacity(showStickyCompletionBar ? 1 : 0)
-                .allowsHitTesting(showStickyCompletionBar)
-                .animation(
-                    reduceMotion ? nil : .easeInOut(duration: 0.18),
-                    value: showStickyCompletionBar
-                )
+                    )
+                    .animation(
+                        reduceMotion ? nil : .easeInOut(duration: 0.2),
+                        value: showStickyCompletionBar
+                    )
+                }
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -384,6 +396,9 @@ struct JournalScreen: View {
                     }
                 }
             }
+            .onPreferenceChange(JournalHeaderScrollMinYKey.self) { minY in
+                completionHeaderMinYInScrollSpace = minY
+            }
     }
 
     @ViewBuilder
@@ -480,24 +495,15 @@ struct JournalScreen: View {
 private extension JournalScreen {
     @ViewBuilder
     func journalScrollMainColumn(proxy: ScrollViewProxy) -> some View {
+        let showStickyCompletionBar = JournalStickyCompletionVisibility.shouldShowBarIndicator(
+            scrollContentMinY: completionHeaderMinYInScrollSpace,
+            hideUntilScrolledPast: JournalScreenLayout.stickyCompletionScrollThresholdPoints
+        )
         VStack(alignment: .leading, spacing: AppTheme.todaySectionSpacing) {
-            Group {
-                DateSectionView(
-                    completionInfo: completionInfoPresentation,
-                    completionInfoMorphNamespace: completionInfoMorphNamespace,
-                    completionLevel: viewModel.completionLevel,
-                    celebratingLevel: celebratingLevel,
-                    gratitudesCount: viewModel.gratitudes.count,
-                    needsCount: viewModel.needs.count,
-                    peopleCount: viewModel.people.count
-                )
-                .id(JournalScrollTarget.completionHeader)
-
-                journalOnboardingSuggestionIfNeeded
-            }
-            .journalDismissInlineEditOnTap(isAnyInlineChipEditing) {
-                dismissInlineChipEditingSession()
-            }
+            journalTodayHeaderGroup(showStickyCompletionBar: showStickyCompletionBar)
+                .journalDismissInlineEditOnTap(isAnyInlineChipEditing) {
+                    dismissInlineChipEditingSession()
+                }
 
             journalSentenceSections(proxy: proxy)
                 .id(JournalScrollTarget.sentenceSections)
@@ -540,6 +546,34 @@ private extension JournalScreen {
             withAnimation(.easeOut(duration: 0.25)) {
                 proxy.scrollTo(JournalScrollTarget.completionHeader, anchor: .top)
             }
+        }
+    }
+
+    @ViewBuilder
+    private func journalTodayHeaderGroup(showStickyCompletionBar: Bool) -> some View {
+        Group {
+            DateSectionView(
+                completionInfo: completionInfoPresentation,
+                completionInfoMorphNamespace: completionInfoMorphNamespace,
+                stickyMorphNamespace: stickyCompletionMorphNamespace,
+                showStickyCompletionBar: showStickyCompletionBar,
+                completionLevel: viewModel.completionLevel,
+                celebratingLevel: celebratingLevel,
+                gratitudesCount: viewModel.gratitudes.count,
+                needsCount: viewModel.needs.count,
+                peopleCount: viewModel.people.count
+            )
+            .background(
+                GeometryReader { geo in
+                    Color.clear.preference(
+                        key: JournalHeaderScrollMinYKey.self,
+                        value: geo.frame(in: .named(JournalScreenLayout.journalScrollCoordinateSpaceName)).minY
+                    )
+                }
+            )
+            .id(JournalScrollTarget.completionHeader)
+
+            journalOnboardingSuggestionIfNeeded
         }
     }
 

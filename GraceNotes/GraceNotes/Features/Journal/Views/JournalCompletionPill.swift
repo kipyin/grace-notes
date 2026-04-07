@@ -14,9 +14,11 @@ struct JournalCompletionPill: View {
     var morphNamespace: Namespace.ID?
     var morphAccentColor: Color = .clear
     var morphBloomProgress: CGFloat = 0
+    var stickyMorphNamespace: Namespace.ID?
+    var isStickyMorphSourceForToolbar: Bool = false
 
     var body: some View {
-        pillLabel
+        pillLabelWithStickyMorph
             .fixedSize(horizontal: false, vertical: true)
             .padding(.horizontal, AppTheme.spacingRegular)
             .padding(.vertical, AppTheme.spacingTight)
@@ -53,6 +55,22 @@ struct JournalCompletionPill: View {
 
     private var isCelebrating: Bool {
         celebratingLevel == completionLevel && completionLevel != .soil
+    }
+
+    @ViewBuilder
+    private var pillLabelWithStickyMorph: some View {
+        if let namespace = stickyMorphNamespace {
+            pillLabel
+                .matchedGeometryEffect(
+                    id: "journalStickyCompletionLabel",
+                    in: namespace,
+                    properties: .frame,
+                    anchor: .topLeading,
+                    isSource: isStickyMorphSourceForToolbar
+                )
+        } else {
+            pillLabel
+        }
     }
 
     private var pillLabel: some View {

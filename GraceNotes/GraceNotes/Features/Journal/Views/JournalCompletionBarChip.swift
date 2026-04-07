@@ -10,31 +10,44 @@ struct JournalCompletionBarChip: View {
     let gratitudesCount: Int
     let needsCount: Int
     let peopleCount: Int
+    let stickyMorphNamespace: Namespace.ID
+    let isStickyMorphSource: Bool
     let onTap: () -> Void
 
     @ScaledMetric(relativeTo: .body) private var tierIconLength: CGFloat = 15
 
     var body: some View {
         Button(action: onTap) {
-            HStack(spacing: AppTheme.spacingTight) {
-                Image(ReviewRhythmFormatting.assetName(for: completionLevel))
-                    .renderingMode(.template)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: tierIconLength, height: tierIconLength)
-                    .accessibilityHidden(true)
-                Text(completionTitle)
-                    .font(AppTheme.warmPaperMetaEmphasis)
-                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
-            }
-            .foregroundStyle(labelColor)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .contentShape(Rectangle())
+            labelCore
+                .matchedGeometryEffect(
+                    id: "journalStickyCompletionLabel",
+                    in: stickyMorphNamespace,
+                    properties: .frame,
+                    anchor: .topLeading,
+                    isSource: isStickyMorphSource
+                )
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(accessibilityLabelText)
         .accessibilityHint(String(localized: "accessibility.journalStatusMeaningHint"))
+    }
+
+    private var labelCore: some View {
+        HStack(spacing: AppTheme.spacingTight) {
+            Image(ReviewRhythmFormatting.assetName(for: completionLevel))
+                .renderingMode(.template)
+                .resizable()
+                .scaledToFit()
+                .frame(width: tierIconLength, height: tierIconLength)
+                .accessibilityHidden(true)
+            Text(completionTitle)
+                .font(AppTheme.warmPaperMetaEmphasis)
+                .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
+        }
+        .foregroundStyle(labelColor)
     }
 
     private var completionTitle: String {

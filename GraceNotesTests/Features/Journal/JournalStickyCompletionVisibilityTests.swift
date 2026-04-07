@@ -6,13 +6,13 @@ final class JournalStickyCompletionVisibilityTests: XCTestCase {
         XCTAssertFalse(
             JournalStickyCompletionVisibility.shouldShowBarIndicator(
                 scrollContentMinY: 0,
-                hideUntilScrolledPast: 88
+                hideUntilScrolledPast: 6
             )
         )
         XCTAssertFalse(
             JournalStickyCompletionVisibility.shouldShowBarIndicator(
-                scrollContentMinY: -40,
-                hideUntilScrolledPast: 88
+                scrollContentMinY: -4,
+                hideUntilScrolledPast: 6
             )
         )
     }
@@ -20,8 +20,8 @@ final class JournalStickyCompletionVisibilityTests: XCTestCase {
     func test_barIndicatorVisible_afterScrollingPastThreshold() {
         XCTAssertTrue(
             JournalStickyCompletionVisibility.shouldShowBarIndicator(
-                scrollContentMinY: -120,
-                hideUntilScrolledPast: 88
+                scrollContentMinY: -24,
+                hideUntilScrolledPast: 6
             )
         )
     }
