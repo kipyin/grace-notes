@@ -197,8 +197,6 @@ struct JournalScreen: View {
     @AppStorage(JournalOnboardingStorageKeys.openedICloudSuggestion)
     private var openedICloudSuggestion = false
     @AppStorage(PersistenceController.iCloudSyncEnabledKey) private var isICloudSyncEnabled = false
-    @AppStorage(JournalTutorialStorageKeys.dismissedSproutGuidance) private var dismissedSproutGuidance = false
-    @AppStorage(JournalTutorialStorageKeys.dismissedBloomGuidance) private var dismissedBloomGuidance = false
     @AppStorage(JournalAppearanceStorageKeys.todayMode)
     private var journalTodayAppearanceRaw = JournalAppearanceMode.standard.rawValue
 
@@ -462,7 +460,6 @@ private extension JournalScreen {
                     peopleCount: viewModel.people.count
                 )
 
-                journalTutorialHintIfNeeded
                 journalOnboardingSuggestionIfNeeded
             }
             .journalDismissInlineEditOnTap(isAnyInlineChipEditing) {
@@ -634,27 +631,6 @@ private extension JournalScreen {
             adjustment += AppTheme.spacingRegular
         }
         return adjustment
-    }
-
-    @ViewBuilder
-    var journalTutorialHintIfNeeded: some View {
-        if !onboardingPresentation.isGuidanceActive,
-           let hintKind = JournalTutorialHintPresentation.hintKind(
-            entryDate: entryDate,
-            completionLevel: viewModel.completionLevel,
-            filledEntryCount: viewModel.filledEntryCount,
-            dismissedSproutGuidance: dismissedSproutGuidance,
-            dismissedBloomGuidance: dismissedBloomGuidance
-        ) {
-            JournalTutorialHintView(kind: hintKind) {
-                switch hintKind {
-                case .sprout:
-                    dismissedSproutGuidance = true
-                case .bloom:
-                    dismissedBloomGuidance = true
-                }
-            }
-        }
     }
 
     @ViewBuilder
@@ -1101,29 +1077,29 @@ private extension JournalScreen {
         newLevel: JournalCompletionLevel
     ) {
         tutorialProgress.applyRecording(from: milestoneOutcome)
-        triggerStatusCelebration(for: newLevel)
-        let suppress = JournalTodayOrientationPolicy.shouldSuppressSproutUnlockToast(
+        let suppressSproutFeedbackForAppTour = JournalTodayOrientationPolicy.shouldSuppressSproutUnlockToast(
             isTodayEntry: entryDate == nil,
             newLevel: newLevel,
             hasSeenAppTour: hasSeenAppTour,
             milestoneHighlight: milestoneOutcome.milestoneHighlight,
             hasAtLeastOneEntryInEachSection: viewModel.hasAtLeastOneEntryInEachSection
         )
-        if !suppress {
+        if !suppressSproutFeedbackForAppTour {
+            triggerStatusCelebration(for: newLevel)
             presentUnlockToast(for: newLevel, milestoneHighlight: milestoneOutcome.milestoneHighlight)
         }
     }
 
     private func applyGenericRankUpUnlockToast(newLevel: JournalCompletionLevel) {
-        triggerStatusCelebration(for: newLevel)
-        let suppress = JournalTodayOrientationPolicy.shouldSuppressSproutUnlockToast(
+        let suppressSproutFeedbackForAppTour = JournalTodayOrientationPolicy.shouldSuppressSproutUnlockToast(
             isTodayEntry: entryDate == nil,
             newLevel: newLevel,
             hasSeenAppTour: hasSeenAppTour,
             milestoneHighlight: .none,
             hasAtLeastOneEntryInEachSection: viewModel.hasAtLeastOneEntryInEachSection
         )
-        if !suppress {
+        if !suppressSproutFeedbackForAppTour {
+            triggerStatusCelebration(for: newLevel)
             presentUnlockToast(for: newLevel, milestoneHighlight: .none)
         }
     }
@@ -1212,7 +1188,8 @@ private extension JournalScreen {
             hasCompletedGuidedJournal: hasCompletedGuidedJournal,
             dismissedICloudSuggestion: dismissedICloudSuggestion,
             openedICloudSuggestion: openedICloudSuggestion,
-            isICloudSyncEnabled: isICloudSyncEnabled
+            isICloudSyncEnabled: isICloudSyncEnabled,
+            isGuidanceActive: onboardingPresentation.isGuidanceActive
         )
     }
 
@@ -1290,10 +1267,6 @@ private extension JournalScreen {
             restoreInputFocus($isNeedInputFocused)
         case .person:
             restoreInputFocus($isPersonInputFocused)
-        case .ripening:
-            focusOnboardingChipStep(.ripening)
-        case .harvest:
-            focusOnboardingChipStep(.harvest)
         case .none:
             break
         }
@@ -1306,8 +1279,6 @@ private extension JournalScreen {
             return viewModel.gratitudes.count == 1
         case .person where section == .need:
             return viewModel.needs.count == 1
-        case .ripening where section == .person:
-            return viewModel.people.count == 1
         default:
             return false
         }
@@ -1317,31 +1288,6 @@ private extension JournalScreen {
         isGratitudeInputFocused = false
         isNeedInputFocused = false
         isPersonInputFocused = false
-    }
-
-    func focusOnboardingChipStep(_ step: JournalOnboardingStep) {
-        switch step {
-        case .ripening:
-            focusFirstIncompleteChipSection(targetCount: 3)
-        case .harvest:
-            focusFirstIncompleteChipSection(targetCount: JournalViewModel.slotCount)
-        case .gratitude, .need, .person:
-            break
-        }
-    }
-
-    func focusFirstIncompleteChipSection(targetCount: Int) {
-        if viewModel.gratitudes.count < targetCount {
-            restoreInputFocus($isGratitudeInputFocused)
-            return
-        }
-        if viewModel.needs.count < targetCount {
-            restoreInputFocus($isNeedInputFocused)
-            return
-        }
-        if viewModel.people.count < targetCount {
-            restoreInputFocus($isPersonInputFocused)
-        }
     }
 
     func suggestionTitle(for suggestion: JournalOnboardingSuggestion) -> String {
