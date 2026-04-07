@@ -65,13 +65,15 @@ class TestL10nReview(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as td:
             notes_file = Path(td) / "session.md"
+            quiet_console = mock.Mock()
             with mock.patch.object(cli_core, "_require_interactive_cli"):
-                with mock.patch.object(l10n_review.questionary, "select", side_effect=select_side_effect):
-                    with mock.patch.object(l10n_review.questionary, "text", return_value=text_mock):
-                        with self.assertRaises(typer.Exit) as ctx:
-                            l10n_review.run_l10n_review_interactive(
-                                repo_root,
-                                notes_path=notes_file,
-                                walk_all=False,
-                            )
+                with mock.patch.object(cli_core, "_stdout_console", return_value=quiet_console):
+                    with mock.patch.object(l10n_review.questionary, "select", side_effect=select_side_effect):
+                        with mock.patch.object(l10n_review.questionary, "text", return_value=text_mock):
+                            with self.assertRaises(typer.Exit) as ctx:
+                                l10n_review.run_l10n_review_interactive(
+                                    repo_root,
+                                    notes_path=notes_file,
+                                    walk_all=False,
+                                )
         self.assertEqual(ctx.exception.exit_code, 0)
