@@ -66,14 +66,10 @@ struct JournalCompletionBarChip: View {
             onCollapseExpandTap()
         } label: {
             chipLabelContent
-                // Logs showed intermittent w=40 with h=46 when collapsed (`maxWidth` only) — not square, reads as
-                // a tall pill and lets the toolbar compress the chip. Pin collapsed width with min=max; expanded
-                // uses no min width (avoids earlier min+animated-max oscillation when expanded).
-                .frame(
-                    minWidth: showsCompletionTitle ? nil : collapsedChipHeight,
-                    maxWidth: showsCompletionTitle ? .infinity : collapsedChipHeight,
-                    alignment: .leading
-                )
+                // Avoid animating `minWidth: 46 → nil` (UIKit toolbar can treat that like symmetric growth).
+                // Pin retracted width with `width:`; expanded uses intrinsic width + trailing infinity cap.
+                .frame(width: showsCompletionTitle ? nil : collapsedChipHeight, alignment: .leading)
+                .frame(maxWidth: showsCompletionTitle ? .infinity : collapsedChipHeight, alignment: .leading)
                 .frame(height: chipHeight)
                 .background {
                     chipCapsuleBackground
@@ -87,6 +83,7 @@ struct JournalCompletionBarChip: View {
             GeometryReader { geo in
                 Color.clear
                     .onChange(of: geo.size) { _, size in
+                        let globalFrame = geo.frame(in: .global)
                         StickyChipAgentDebug.log(
                             hypothesisId: "C",
                             location: "JournalCompletionBarChip.labelGeometry",
@@ -94,8 +91,9 @@ struct JournalCompletionBarChip: View {
                             data: [
                                 "w": String(format: "%.2f", size.width),
                                 "h": String(format: "%.2f", size.height),
+                                "gx": String(format: "%.2f", globalFrame.minX),
                                 "expanded": "\(showsCompletionTitle)",
-                                "layout": "centerRetract_toolbarFadeIsolated"
+                                "layout": "widthNotMinW_globalGx"
                             ]
                         )
                     }
@@ -105,8 +103,9 @@ struct JournalCompletionBarChip: View {
         // #endregion
         .dynamicTypeSize(Self.toolbarChipDynamicTypeRange)
         /// Always horizontal fixedSize so the toolbar cannot squeeze the chip to ~40pt (see debug oscillation 46→40).
-        /// Collapsed width is enforced by ``frame(minWidth:maxWidth:)`` above.
+        /// Collapsed width is enforced by explicit ``frame(width:maxWidth:)`` above.
         .fixedSize(horizontal: true, vertical: true)
+        .compositingGroup()
         .simultaneousGesture(
             LongPressGesture(minimumDuration: 0.45).onEnded { _ in
                 suppressNextCollapseExpandTap = true
@@ -246,7 +245,7 @@ enum StickyChipAgentDebug {
     static func log(hypothesisId: String, location: String, message: String, data: [String: String] = [:]) {
         let payload: [String: Any] = [
             "sessionId": "6cf017",
-            "runId": "toolbarTx-v1",
+            "runId": "globalFrame-v1",
             "hypothesisId": hypothesisId,
             "location": location,
             "message": message,
