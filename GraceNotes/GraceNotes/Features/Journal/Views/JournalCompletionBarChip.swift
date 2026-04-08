@@ -40,14 +40,14 @@ struct JournalCompletionBarChip: View {
         max(toolbarControlHeight - 1, tierIconLength + 8)
     }
 
-    private var chipHeight: CGFloat {
-        showsCompletionTitle ? toolbarControlHeight : collapsedChipHeight
-    }
+    /// Match toolbar row height in both states so expand/collapse does not animate 46↔47 (see debug `h` flips).
+    private var chipHeight: CGFloat { toolbarControlHeight }
 
-    /// Symmetric inset that centers the icon in the retracted square; keep this on the **leading** side when
-    /// expanded so the glyph does not shift horizontally (logs showed stable w/h but pad still animated 11↔14).
+    private var iconTitleGap: CGFloat { AppTheme.spacingTight }
+
+    /// Centers the row in the retracted square accounting for a **constant** icon–title gap (spacing no longer 0↔8).
     private var chipLeadingInset: CGFloat {
-        max(0, (collapsedChipHeight - tierIconLength) / 2)
+        max(0, (collapsedChipHeight - tierIconLength - iconTitleGap) / 2)
     }
 
     /// Trailing inset: tighter when retracted (circle); sheet-style 14pt when expanded.
@@ -93,7 +93,7 @@ struct JournalCompletionBarChip: View {
                                 "w": String(format: "%.2f", size.width),
                                 "h": String(format: "%.2f", size.height),
                                 "expanded": "\(showsCompletionTitle)",
-                                "layout": "fixedLeadPad_asymTrail"
+                                "layout": "constGap_fixedHeightToolbar"
                             ]
                         )
                     }
@@ -128,14 +128,15 @@ struct JournalCompletionBarChip: View {
                     "collapsedH": "\(collapsedChipHeight)",
                     "toolbarH": "\(toolbarControlHeight)",
                     "leadInset": String(format: "%.2f", chipLeadingInset),
-                    "trailInset": String(format: "%.2f", chipTrailingInset)
+                    "trailInset": String(format: "%.2f", chipTrailingInset),
+                    "iconTitleGap": String(format: "%.2f", iconTitleGap)
                 ]
             )
             StickyChipAgentDebug.log(
                 hypothesisId: "J",
                 location: "JournalCompletionBarChip.onChange.expanded",
                 message: "leading_frame_alignment",
-                data: ["blurPulse": "removed", "collapsedCenter": "fixedLead_asymTrail"]
+                data: ["blurPulse": "removed", "collapsedCenter": "constGap_toolbarH"]
             )
             #endif
             // #endregion
@@ -144,7 +145,7 @@ struct JournalCompletionBarChip: View {
 
     /// One stable row: no Spacer branch so expand/collapse interpolate the same subviews.
     private var chipLabelContent: some View {
-        HStack(alignment: .center, spacing: showsCompletionTitle ? AppTheme.spacingTight : 0) {
+        HStack(alignment: .center, spacing: iconTitleGap) {
             tierIcon
             Text(completionTitle)
                 .font(AppTheme.warmPaperToolbarChipTitle)
@@ -242,7 +243,7 @@ enum StickyChipAgentDebug {
     static func log(hypothesisId: String, location: String, message: String, data: [String: String] = [:]) {
         let payload: [String: Any] = [
             "sessionId": "6cf017",
-            "runId": "fixed-lead-pad-v1",
+            "runId": "const-gap-v1",
             "hypothesisId": hypothesisId,
             "location": location,
             "message": message,
