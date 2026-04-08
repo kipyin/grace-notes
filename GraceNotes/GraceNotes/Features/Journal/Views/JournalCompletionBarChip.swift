@@ -44,10 +44,6 @@ struct JournalCompletionBarChip: View {
         showsCompletionTitle ? toolbarControlHeight : collapsedChipHeight
     }
 
-    private var collapsedHorizontalPadding: CGFloat {
-        max(0, (collapsedChipHeight - tierIconLength) / 2)
-    }
-
     private var titleRevealAnimation: Animation {
         if reduceMotion {
             return .easeInOut(duration: 0.18)
@@ -64,9 +60,8 @@ struct JournalCompletionBarChip: View {
             onCollapseExpandTap()
         } label: {
             chipLabelContent
-                // Collapsed: clamp width — title has zero layout width while hidden.
-                // Expanded: maxWidth .infinity — avoid minWidth pair that caused width oscillation in earlier builds.
-                .frame(maxWidth: showsCompletionTitle ? .infinity : collapsedChipHeight)
+                // Collapsed: fixed width; expanded: grow by trailing only (content stays ``.leading`` in frame).
+                .frame(maxWidth: showsCompletionTitle ? .infinity : collapsedChipHeight, alignment: .leading)
                 .frame(height: chipHeight)
                 .background {
                     chipCapsuleBackground
@@ -88,7 +83,7 @@ struct JournalCompletionBarChip: View {
                                 "w": String(format: "%.2f", size.width),
                                 "h": String(format: "%.2f", size.height),
                                 "expanded": "\(showsCompletionTitle)",
-                                "layout": "singleIcon_textFade"
+                                "layout": "leadingGrow_spacerCenterCollapse"
                             ]
                         )
                     }
@@ -125,19 +120,22 @@ struct JournalCompletionBarChip: View {
                 ]
             )
             StickyChipAgentDebug.log(
-                hypothesisId: "I",
+                hypothesisId: "J",
                 location: "JournalCompletionBarChip.onChange.expanded",
-                message: "text_only_crossfade",
-                data: ["blurPulse": "removed", "symbolFade": "none"]
+                message: "leading_frame_alignment",
+                data: ["blurPulse": "removed", "collapsedCenter": "spacerRow"]
             )
             #endif
             // #endregion
         }
     }
 
-    /// One tier icon (no crossfade duplicate); only the title opacity animates.
+    /// One tier icon; title stays in the hierarchy for opacity animation. Collapsed: spacers center the glyph.
     private var chipLabelContent: some View {
-        HStack(alignment: .center, spacing: AppTheme.spacingTight) {
+        HStack(alignment: .center, spacing: showsCompletionTitle ? AppTheme.spacingTight : 0) {
+            if !showsCompletionTitle {
+                Spacer(minLength: 0)
+            }
             tierIcon
             Text(completionTitle)
                 .font(AppTheme.warmPaperToolbarChipTitle)
@@ -149,9 +147,13 @@ struct JournalCompletionBarChip: View {
                 .animation(titleRevealAnimation, value: showsCompletionTitle)
                 .accessibilityHidden(true)
                 .allowsHitTesting(showsCompletionTitle)
+            if !showsCompletionTitle {
+                Spacer(minLength: 0)
+            }
         }
         .foregroundStyle(labelColor)
-        .padding(.horizontal, showsCompletionTitle ? 14 : collapsedHorizontalPadding)
+        .padding(.horizontal, showsCompletionTitle ? 14 : 0)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .frame(maxHeight: .infinity)
     }
 
@@ -233,7 +235,7 @@ enum StickyChipAgentDebug {
     static func log(hypothesisId: String, location: String, message: String, data: [String: String] = [:]) {
         let payload: [String: Any] = [
             "sessionId": "6cf017",
-            "runId": "text-fade-v1",
+            "runId": "anchor-v1",
             "hypothesisId": hypothesisId,
             "location": location,
             "message": message,
