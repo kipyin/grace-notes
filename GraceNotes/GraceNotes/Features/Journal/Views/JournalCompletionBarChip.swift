@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Compact completion control for the navigation bar: **capsule** fill (tier colors).
 ///
@@ -8,9 +9,6 @@ import SwiftUI
 struct JournalCompletionBarChip: View {
     /// Sticky chip stays one line; cap text scaling at the largest standard Dynamic Type (not accessibility buckets).
     private static let toolbarChipDynamicTypeRange = DynamicTypeSize.xSmall ... DynamicTypeSize.xxxLarge
-
-    /// Capsule width for expanded title; wide enough for CJK growth-stage strings at capped Dynamic Type.
-    private static let expandedTitleMaxWidth: CGFloat = 400
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
@@ -43,18 +41,22 @@ struct JournalCompletionBarChip: View {
     /// Match toolbar row height in both states so expand/collapse does not animate 46↔47 (see debug `h` flips).
     private var chipHeight: CGFloat { toolbarControlHeight }
 
-    /// Centers the icon in the retracted width; title spacing is ``Text`` leading padding when expanded only.
+    /// Keep icon centered inside the collapsed capsule.
+    private var collapsedChipWidth: CGFloat { collapsedChipHeight }
+
     private var chipLeadingInset: CGFloat {
         max(0, (collapsedChipHeight - tierIconLength) / 2)
     }
 
-    /// Trailing inset: symmetric when retracted; sheet-style 14pt when expanded.
-    private var chipTrailingInset: CGFloat {
-        showsCompletionTitle ? 14 : chipLeadingInset
+    /// Fixed expanded width keeps the leading edge anchored in the toolbar host.
+    private var expandedChipWidth: CGFloat {
+        let contentWidth =
+            chipLeadingInset + tierIconLength + AppTheme.spacingTight + completionTitleWidth + chipLeadingInset
+        return max(collapsedChipWidth, ceil(contentWidth))
     }
 
-    private var titleLeadingPadWhenExpanded: CGFloat {
-        showsCompletionTitle ? AppTheme.spacingTight : 0
+    private var hiddenScale: CGFloat {
+        reduceMotion ? 1 : 0.98
     }
 
     var body: some View {
@@ -65,47 +67,21 @@ struct JournalCompletionBarChip: View {
             }
             onCollapseExpandTap()
         } label: {
-            chipLabelContent
-                // Avoid animating `minWidth: 46 → nil` (UIKit toolbar can treat that like symmetric growth).
-                // Pin retracted width with `width:`; expanded uses intrinsic width + trailing infinity cap.
-                .frame(width: showsCompletionTitle ? nil : collapsedChipHeight, alignment: .leading)
-                .frame(maxWidth: showsCompletionTitle ? .infinity : collapsedChipHeight, alignment: .leading)
-                .frame(height: chipHeight)
-                .background {
-                    chipCapsuleBackground
-                }
-                .contentShape(Capsule(style: .continuous))
+            ZStack(alignment: .leading) {
+                collapsedChipLabel
+                    .opacity(showsCompletionTitle ? 0 : 1)
+                    .scaleEffect(showsCompletionTitle ? hiddenScale : 1, anchor: .leading)
+
+                expandedChipLabel
+                    .opacity(showsCompletionTitle ? 1 : 0)
+                    .scaleEffect(showsCompletionTitle ? 1 : hiddenScale, anchor: .leading)
+            }
+            .frame(width: expandedChipWidth, alignment: .leading)
+            .frame(height: chipHeight)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        // #region agent log
-        #if DEBUG
-        .background {
-            GeometryReader { geo in
-                Color.clear
-                    .onChange(of: geo.size) { _, size in
-                        let globalFrame = geo.frame(in: .global)
-                        StickyChipAgentDebug.log(
-                            hypothesisId: "C",
-                            location: "JournalCompletionBarChip.labelGeometry",
-                            message: "label_size",
-                            data: [
-                                "w": String(format: "%.2f", size.width),
-                                "h": String(format: "%.2f", size.height),
-                                "gx": String(format: "%.2f", globalFrame.minX),
-                                "expanded": "\(showsCompletionTitle)",
-                                "layout": "widthNotMinW_globalGx"
-                            ]
-                        )
-                    }
-            }
-        }
-        #endif
-        // #endregion
         .dynamicTypeSize(Self.toolbarChipDynamicTypeRange)
-        /// Always horizontal fixedSize so the toolbar cannot squeeze the chip to ~40pt (see debug oscillation 46→40).
-        /// Collapsed width is enforced by explicit ``frame(width:maxWidth:)`` above.
-        .fixedSize(horizontal: true, vertical: true)
-        .compositingGroup()
         .simultaneousGesture(
             LongPressGesture(minimumDuration: 0.45).onEnded { _ in
                 suppressNextCollapseExpandTap = true
@@ -117,54 +93,32 @@ struct JournalCompletionBarChip: View {
         .accessibilityAction(named: String(localized: "accessibility.stickyCompletionChipShowDetailsAction")) {
             onShowCompletionInfo()
         }
-        .onChange(of: showsCompletionTitle) { _, newValue in
-            // #region agent log
-            #if DEBUG
-            StickyChipAgentDebug.log(
-                hypothesisId: "D",
-                location: "JournalCompletionBarChip.onChange.expanded",
-                message: "showsCompletionTitle_changed",
-                data: [
-                    "showsTitle": "\(newValue)",
-                    "collapsedH": "\(collapsedChipHeight)",
-                    "toolbarH": "\(toolbarControlHeight)",
-                    "leadInset": String(format: "%.2f", chipLeadingInset),
-                    "trailInset": String(format: "%.2f", chipTrailingInset),
-                    "titleLeadPad": String(format: "%.2f", titleLeadingPadWhenExpanded)
-                ]
-            )
-            StickyChipAgentDebug.log(
-                hypothesisId: "J",
-                location: "JournalCompletionBarChip.onChange.expanded",
-                message: "leading_frame_alignment",
-                data: ["blurPulse": "removed", "collapsedCenter": "symInset_titlePadIfExpanded"]
-            )
-            #endif
-            // #endregion
-        }
     }
 
-    /// Stable row; glyph centers when retracted; title gets leading padding only when expanded.
-    private var chipLabelContent: some View {
-        HStack(alignment: .center, spacing: 0) {
+    private var collapsedChipLabel: some View {
+        tierIcon
+            .foregroundStyle(labelColor)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            .frame(width: collapsedChipWidth, height: chipHeight, alignment: .center)
+            .background { chipCapsuleBackground }
+            .contentShape(Capsule(style: .continuous))
+    }
+
+    private var expandedChipLabel: some View {
+        HStack(alignment: .center, spacing: AppTheme.spacingTight) {
             tierIcon
             Text(completionTitle)
                 .font(AppTheme.warmPaperToolbarChipTitle)
                 .lineLimit(1)
                 .minimumScaleFactor(toolbarCompletionTitleMinimumScaleFactor)
-                .padding(.leading, titleLeadingPadWhenExpanded)
-                .frame(maxWidth: showsCompletionTitle ? Self.expandedTitleMaxWidth : 0, alignment: .leading)
-                .clipped()
-                // Inherit ``JournalScreenLayout/stickyChipMorphAnimation`` from ``withAnimation`` on expand/collapse.
-                .opacity(showsCompletionTitle ? 1 : 0)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityHidden(true)
-                .allowsHitTesting(showsCompletionTitle)
         }
         .foregroundStyle(labelColor)
-        .padding(.leading, chipLeadingInset)
-        .padding(.trailing, chipTrailingInset)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .frame(maxHeight: .infinity)
+        .padding(.horizontal, chipLeadingInset)
+        .frame(width: expandedChipWidth, height: chipHeight, alignment: .leading)
+        .background { chipCapsuleBackground }
+        .contentShape(Capsule(style: .continuous))
     }
 
     private var tierIcon: some View {
@@ -210,6 +164,16 @@ struct JournalCompletionBarChip: View {
         }
     }
 
+    /// Approximate rendered width for the current localized title using the same font family/size.
+    private var completionTitleWidth: CGFloat {
+        let baseFont = UIFont(name: "SourceSerif4Roman-Regular", size: 16)
+            ?? UIFont.preferredFont(forTextStyle: .body)
+        let scaledFont = UIFontMetrics(forTextStyle: .body).scaledFont(for: baseFont)
+        let attributes: [NSAttributedString.Key: Any] = [.font: scaledFont]
+        let width = (completionTitle as NSString).size(withAttributes: attributes).width
+        return width
+    }
+
     private var completionTitle: String {
         CompletionBadgeInfo.matching(completionLevel).title
     }
@@ -234,32 +198,3 @@ struct JournalCompletionBarChip: View {
     }
 
 }
-
-// #region agent log
-#if DEBUG
-enum StickyChipAgentDebug {
-    private static let ingestURL = URL(
-        string: "http://127.0.0.1:7480/ingest/6b1dfaaa-db34-40e4-8b30-a71cc1c45d32"
-    )!
-
-    static func log(hypothesisId: String, location: String, message: String, data: [String: String] = [:]) {
-        let payload: [String: Any] = [
-            "sessionId": "6cf017",
-            "runId": "globalFrame-v1",
-            "hypothesisId": hypothesisId,
-            "location": location,
-            "message": message,
-            "data": data,
-            "timestamp": Int(Date().timeIntervalSince1970 * 1000)
-        ]
-        guard let body = try? JSONSerialization.data(withJSONObject: payload) else { return }
-        var request = URLRequest(url: ingestURL)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("6cf017", forHTTPHeaderField: "X-Debug-Session-Id")
-        request.httpBody = body
-        URLSession.shared.dataTask(with: request).resume()
-    }
-}
-#endif
-// #endregion

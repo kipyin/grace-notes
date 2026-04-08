@@ -296,15 +296,8 @@ struct JournalScreen: View {
 
     /// Leading toolbar chrome for the sticky chip (shared iOS 26 / earlier).
     private var stickyCompletionToolbarLeadingChrome: some View {
-        HStack(spacing: 0) {
-            stickyJournalCompletionToolbarChip
-                .padding(.leading, stickyCompletionToolbarLeadingInset)
-                // `applyStickyCompletionRevealed` used to use `withTransaction` for the bar fade; that transaction
-                // could leak into later chip width morphs (first expand / after scroll reveal felt centered on glyph).
-                .animation(nil, value: stickyCompletionRevealedByScroll)
-            Spacer(minLength: 0)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        stickyJournalCompletionToolbarChip
+            .padding(.leading, stickyCompletionToolbarLeadingInset)
         .opacity(showStickyJournalCompletionBar ? 1 : 0)
         .animation(
             .easeInOut(duration: JournalScreenLayout.stickyToolbarChipFadeDurationSeconds),
@@ -519,16 +512,6 @@ struct JournalScreen: View {
         stickyCompletionChipCollapseTask = Task { @MainActor in
             try? await Task.sleep(for: .seconds(seconds))
             guard !Task.isCancelled else { return }
-            // #region agent log
-            #if DEBUG
-            StickyChipAgentDebug.log(
-                hypothesisId: "E",
-                location: "JournalScreen.scheduleStickyCompletionChipAutoCollapse",
-                message: "collapse_auto_timer_begin",
-                data: ["reduceMotion": "\(reduceMotion)"]
-            )
-            #endif
-            // #endregion
             withAnimation(JournalScreenLayout.stickyChipMorphAnimation(reduceMotion: reduceMotion)) {
                 stickyCompletionChipLabelExpanded = false
             }
@@ -537,28 +520,6 @@ struct JournalScreen: View {
     }
 
     private func expandStickyCompletionChipLabel() {
-        // #region agent log
-        #if DEBUG
-        StickyChipAgentDebug.log(
-            hypothesisId: "E",
-            location: "JournalScreen.expandStickyCompletionChipLabel",
-            message: "expand",
-            data: [
-                "reduceMotion": "\(reduceMotion)",
-                "stickyBarVisible": "\(showStickyJournalCompletionBar)"
-            ]
-        )
-        StickyChipAgentDebug.log(
-            hypothesisId: "L",
-            location: "JournalScreen.expandStickyCompletionChipLabel",
-            message: "expand_toolbar_context",
-            data: [
-                "revealedScroll": "\(stickyCompletionRevealedByScroll)",
-                "fadeUsesOpacityOnly": "true"
-            ]
-        )
-        #endif
-        // #endregion
         withAnimation(JournalScreenLayout.stickyChipMorphAnimation(reduceMotion: reduceMotion)) {
             stickyCompletionChipLabelExpanded = true
         }
@@ -568,16 +529,6 @@ struct JournalScreen: View {
 
     private func collapseStickyCompletionChipLabel() {
         cancelStickyCompletionChipCollapseTask()
-        // #region agent log
-        #if DEBUG
-        StickyChipAgentDebug.log(
-            hypothesisId: "E",
-            location: "JournalScreen.collapseStickyCompletionChipLabel",
-            message: "collapse_manual",
-            data: ["reduceMotion": "\(reduceMotion)"]
-        )
-        #endif
-        // #endregion
         withAnimation(JournalScreenLayout.stickyChipMorphAnimation(reduceMotion: reduceMotion)) {
             stickyCompletionChipLabelExpanded = false
         }
