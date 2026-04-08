@@ -20,8 +20,17 @@ private enum JournalScreenLayout {
     static let stickyToolbarChipFadeDurationSeconds: TimeInterval = 0.28
     /// After the sticky completion chip expands, collapse back to icon-only when idle this long.
     static let stickyCompletionChipAutoCollapseSeconds: TimeInterval = 3
-    /// Matches expand/collapse layout on ``JournalCompletionBarChip`` (opacity, width, height).
-    static let stickyChipLayoutAnimationDuration: TimeInterval = 0.32
+
+    /// Expand/collapse: smooth with ``JournalCompletionBarChip`` crossfade; Reduce Motion uses a shorter ease.
+    static func stickyChipMorphAnimation(reduceMotion: Bool) -> Animation {
+        if reduceMotion {
+            return .easeInOut(duration: 0.22)
+        }
+        if #available(iOS 26, *) {
+            return .smooth(duration: 0.38, extraBounce: 0.05)
+        }
+        return .easeInOut(duration: 0.32)
+    }
 }
 
 private struct JournalScrollOffsetPreferenceKey: PreferenceKey {
@@ -502,26 +511,16 @@ struct JournalScreen: View {
         stickyCompletionChipCollapseTask = Task { @MainActor in
             try? await Task.sleep(for: .seconds(seconds))
             guard !Task.isCancelled else { return }
-            let duration = JournalScreenLayout.stickyChipLayoutAnimationDuration
-            if reduceMotion {
+            withAnimation(JournalScreenLayout.stickyChipMorphAnimation(reduceMotion: reduceMotion)) {
                 stickyCompletionChipLabelExpanded = false
-            } else {
-                withAnimation(.easeInOut(duration: duration)) {
-                    stickyCompletionChipLabelExpanded = false
-                }
             }
             stickyCompletionChipCollapseTask = nil
         }
     }
 
     private func expandStickyCompletionChipLabel() {
-        let duration = JournalScreenLayout.stickyChipLayoutAnimationDuration
-        if reduceMotion {
+        withAnimation(JournalScreenLayout.stickyChipMorphAnimation(reduceMotion: reduceMotion)) {
             stickyCompletionChipLabelExpanded = true
-        } else {
-            withAnimation(.easeInOut(duration: duration)) {
-                stickyCompletionChipLabelExpanded = true
-            }
         }
         stickyChipExpansionScrollBaselineY = journalScrollOffsetY
         scheduleStickyCompletionChipAutoCollapse()
@@ -529,13 +528,8 @@ struct JournalScreen: View {
 
     private func collapseStickyCompletionChipLabel() {
         cancelStickyCompletionChipCollapseTask()
-        let duration = JournalScreenLayout.stickyChipLayoutAnimationDuration
-        if reduceMotion {
+        withAnimation(JournalScreenLayout.stickyChipMorphAnimation(reduceMotion: reduceMotion)) {
             stickyCompletionChipLabelExpanded = false
-        } else {
-            withAnimation(.easeInOut(duration: duration)) {
-                stickyCompletionChipLabelExpanded = false
-            }
         }
         stickyChipExpansionScrollBaselineY = nil
     }

@@ -12,6 +12,15 @@ struct JournalCompletionBarChip: View {
     /// Capsule width for expanded title; wide enough for CJK growth-stage strings at capped Dynamic Type.
     private static let expandedTitleMaxWidth: CGFloat = 400
 
+    private enum MorphBlurPulse {
+        static let peakRadius: CGFloat = 5
+        static let easeInSeconds: TimeInterval = 0.1
+        static let easeOutSeconds: TimeInterval = 0.26
+    }
+
+    @Namespace private var iconMorphNamespace
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.locale) private var locale
     @Environment(\.todayJournalPalette) private var palette
@@ -34,6 +43,9 @@ struct JournalCompletionBarChip: View {
     /// After a long-press succeeds, UIKit may still deliver the `Button` action on finger-up; skip one cycle.
     @State private var suppressNextCollapseExpandTap = false
 
+    @State private var morphBlurRadius: CGFloat = 0
+    @State private var morphBlurPulseTask: Task<Void, Never>?
+
     /// Icon-only: slightly shorter than the share row and padded so width tracks height (near-circular capsule).
     private var collapsedChipHeight: CGFloat {
         max(toolbarControlHeight - 1, tierIconLength + 8)
@@ -43,9 +55,8 @@ struct JournalCompletionBarChip: View {
         showsCompletionTitle ? toolbarControlHeight : collapsedChipHeight
     }
 
-    private var horizontalPadding: CGFloat {
-        if showsCompletionTitle { return 14 }
-        return max(0, (collapsedChipHeight - tierIconLength) / 2)
+    private var collapsedHorizontalPadding: CGFloat {
+        max(0, (collapsedChipHeight - tierIconLength) / 2)
     }
 
     var body: some View {
@@ -56,13 +67,22 @@ struct JournalCompletionBarChip: View {
             }
             onCollapseExpandTap()
         } label: {
-            labelCore
-                .padding(.horizontal, horizontalPadding)
-                .frame(minHeight: chipHeight, maxHeight: chipHeight)
-                .background {
-                    chipCapsuleBackground
-                }
-                .contentShape(Capsule(style: .continuous))
+            ZStack(alignment: .center) {
+                collapsedChipLabel
+                    .opacity(showsCompletionTitle ? 0 : 1)
+                    .allowsHitTesting(!showsCompletionTitle)
+                expandedChipLabel
+                    .opacity(showsCompletionTitle ? 1 : 0)
+                    .allowsHitTesting(showsCompletionTitle)
+            }
+            .frame(minWidth: collapsedChipHeight)
+            .frame(maxWidth: showsCompletionTitle ? .infinity : collapsedChipHeight)
+            .frame(height: chipHeight)
+            .blur(radius: morphBlurRadius)
+            .background {
+                chipCapsuleBackground
+            }
+            .contentShape(Capsule(style: .continuous))
         }
         .buttonStyle(.plain)
         .dynamicTypeSize(Self.toolbarChipDynamicTypeRange)
@@ -77,6 +97,69 @@ struct JournalCompletionBarChip: View {
         .accessibilityHint(String(localized: "accessibility.stickyCompletionChipHint"))
         .accessibilityAction(named: String(localized: "accessibility.stickyCompletionChipShowDetailsAction")) {
             onShowCompletionInfo()
+        }
+        .onChange(of: showsCompletionTitle) { _, _ in
+            scheduleMorphBlurPulseIfAllowed()
+        }
+        .onDisappear {
+            morphBlurPulseTask?.cancel()
+            morphBlurPulseTask = nil
+            morphBlurRadius = 0
+        }
+    }
+
+    private var collapsedChipLabel: some View {
+        HStack {
+            Spacer(minLength: 0)
+            tierIconMatched
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, collapsedHorizontalPadding)
+        .frame(maxHeight: .infinity)
+    }
+
+    private var expandedChipLabel: some View {
+        HStack(alignment: .center, spacing: AppTheme.spacingTight) {
+            tierIconMatched
+            Text(completionTitle)
+                .font(AppTheme.warmPaperToolbarChipTitle)
+                .lineLimit(1)
+                .minimumScaleFactor(toolbarCompletionTitleMinimumScaleFactor)
+                .frame(maxWidth: Self.expandedTitleMaxWidth, alignment: .leading)
+                .accessibilityHidden(true)
+        }
+        .foregroundStyle(labelColor)
+        .padding(.horizontal, 14)
+        .frame(maxHeight: .infinity)
+    }
+
+    private var tierIconMatched: some View {
+        Image(ReviewRhythmFormatting.assetName(for: completionLevel))
+            .renderingMode(.template)
+            .resizable()
+            .scaledToFit()
+            .frame(width: tierIconLength, height: tierIconLength)
+            .matchedGeometryEffect(id: "stickyCompletionTierIcon", in: iconMorphNamespace)
+            .accessibilityHidden(true)
+    }
+
+    private func scheduleMorphBlurPulseIfAllowed() {
+        morphBlurPulseTask?.cancel()
+        morphBlurPulseTask = nil
+        guard !reduceMotion else {
+            morphBlurRadius = 0
+            return
+        }
+        morphBlurPulseTask = Task { @MainActor in
+            withAnimation(.easeIn(duration: MorphBlurPulse.easeInSeconds)) {
+                morphBlurRadius = MorphBlurPulse.peakRadius
+            }
+            try? await Task.sleep(for: .seconds(MorphBlurPulse.easeInSeconds))
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeOut(duration: MorphBlurPulse.easeOutSeconds)) {
+                morphBlurRadius = 0
+            }
+            morphBlurPulseTask = nil
         }
     }
 
@@ -101,28 +184,6 @@ struct JournalCompletionBarChip: View {
         } else {
             capsule
         }
-    }
-
-    private var labelCore: some View {
-        HStack(alignment: .center, spacing: showsCompletionTitle ? AppTheme.spacingTight : 0) {
-            Image(ReviewRhythmFormatting.assetName(for: completionLevel))
-                .renderingMode(.template)
-                .resizable()
-                .scaledToFit()
-                .frame(width: tierIconLength, height: tierIconLength)
-                .accessibilityHidden(true)
-            Text(completionTitle)
-                .font(AppTheme.warmPaperToolbarChipTitle)
-                .lineLimit(1)
-                .minimumScaleFactor(toolbarCompletionTitleMinimumScaleFactor)
-                .opacity(showsCompletionTitle ? 1 : 0)
-                .frame(maxWidth: showsCompletionTitle ? Self.expandedTitleMaxWidth : 0, alignment: .leading)
-                .clipped()
-                .allowsHitTesting(false)
-                .accessibilityHidden(true)
-        }
-        .foregroundStyle(labelColor)
-        .frame(maxHeight: .infinity)
     }
 
     /// Latin titles stay short; CJK growth-stage strings are wider. Shrinking them made the chip read
