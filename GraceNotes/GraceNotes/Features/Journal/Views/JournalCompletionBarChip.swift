@@ -9,7 +9,9 @@ struct JournalCompletionBarChip: View {
     /// Sticky chip stays one line; cap text scaling at the largest standard Dynamic Type (not accessibility buckets).
     private static let toolbarChipDynamicTypeRange = DynamicTypeSize.xSmall ... DynamicTypeSize.xxxLarge
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Capsule width for expanded title; wide enough for CJK growth-stage strings at capped Dynamic Type.
+    private static let expandedTitleMaxWidth: CGFloat = 400
+
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.locale) private var locale
     @Environment(\.todayJournalPalette) private var palette
@@ -32,6 +34,20 @@ struct JournalCompletionBarChip: View {
     /// After a long-press succeeds, UIKit may still deliver the `Button` action on finger-up; skip one cycle.
     @State private var suppressNextCollapseExpandTap = false
 
+    /// Icon-only: slightly shorter than the share row and padded so width tracks height (near-circular capsule).
+    private var collapsedChipHeight: CGFloat {
+        max(toolbarControlHeight - 1, tierIconLength + 8)
+    }
+
+    private var chipHeight: CGFloat {
+        showsCompletionTitle ? toolbarControlHeight : collapsedChipHeight
+    }
+
+    private var horizontalPadding: CGFloat {
+        if showsCompletionTitle { return 14 }
+        return max(0, (collapsedChipHeight - tierIconLength) / 2)
+    }
+
     var body: some View {
         Button {
             if suppressNextCollapseExpandTap {
@@ -41,9 +57,8 @@ struct JournalCompletionBarChip: View {
             onCollapseExpandTap()
         } label: {
             labelCore
-                .padding(.horizontal, showsCompletionTitle ? 14 : 10)
-                .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: showsCompletionTitle)
-                .frame(minHeight: toolbarControlHeight, maxHeight: toolbarControlHeight)
+                .padding(.horizontal, horizontalPadding)
+                .frame(minHeight: chipHeight, maxHeight: chipHeight)
                 .background {
                     chipCapsuleBackground
                 }
@@ -89,19 +104,22 @@ struct JournalCompletionBarChip: View {
     }
 
     private var labelCore: some View {
-        HStack(alignment: .center, spacing: AppTheme.spacingTight) {
+        HStack(alignment: .center, spacing: showsCompletionTitle ? AppTheme.spacingTight : 0) {
             Image(ReviewRhythmFormatting.assetName(for: completionLevel))
                 .renderingMode(.template)
                 .resizable()
                 .scaledToFit()
                 .frame(width: tierIconLength, height: tierIconLength)
                 .accessibilityHidden(true)
-            if showsCompletionTitle {
-                Text(completionTitle)
-                    .font(AppTheme.warmPaperToolbarChipTitle)
-                    .lineLimit(1)
-                    .minimumScaleFactor(toolbarCompletionTitleMinimumScaleFactor)
-            }
+            Text(completionTitle)
+                .font(AppTheme.warmPaperToolbarChipTitle)
+                .lineLimit(1)
+                .minimumScaleFactor(toolbarCompletionTitleMinimumScaleFactor)
+                .opacity(showsCompletionTitle ? 1 : 0)
+                .frame(maxWidth: showsCompletionTitle ? Self.expandedTitleMaxWidth : 0, alignment: .leading)
+                .clipped()
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
         }
         .foregroundStyle(labelColor)
         .frame(maxHeight: .infinity)

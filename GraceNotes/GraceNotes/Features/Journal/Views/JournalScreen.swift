@@ -20,6 +20,8 @@ private enum JournalScreenLayout {
     static let stickyToolbarChipFadeDurationSeconds: TimeInterval = 0.28
     /// After the sticky completion chip expands, collapse back to icon-only when idle this long.
     static let stickyCompletionChipAutoCollapseSeconds: TimeInterval = 3
+    /// Matches expand/collapse layout on ``JournalCompletionBarChip`` (opacity, width, height).
+    static let stickyChipLayoutAnimationDuration: TimeInterval = 0.32
 }
 
 private struct JournalScrollOffsetPreferenceKey: PreferenceKey {
@@ -500,20 +502,41 @@ struct JournalScreen: View {
         stickyCompletionChipCollapseTask = Task { @MainActor in
             try? await Task.sleep(for: .seconds(seconds))
             guard !Task.isCancelled else { return }
-            stickyCompletionChipLabelExpanded = false
+            let duration = JournalScreenLayout.stickyChipLayoutAnimationDuration
+            if reduceMotion {
+                stickyCompletionChipLabelExpanded = false
+            } else {
+                withAnimation(.easeInOut(duration: duration)) {
+                    stickyCompletionChipLabelExpanded = false
+                }
+            }
             stickyCompletionChipCollapseTask = nil
         }
     }
 
     private func expandStickyCompletionChipLabel() {
-        stickyCompletionChipLabelExpanded = true
+        let duration = JournalScreenLayout.stickyChipLayoutAnimationDuration
+        if reduceMotion {
+            stickyCompletionChipLabelExpanded = true
+        } else {
+            withAnimation(.easeInOut(duration: duration)) {
+                stickyCompletionChipLabelExpanded = true
+            }
+        }
         stickyChipExpansionScrollBaselineY = journalScrollOffsetY
         scheduleStickyCompletionChipAutoCollapse()
     }
 
     private func collapseStickyCompletionChipLabel() {
         cancelStickyCompletionChipCollapseTask()
-        stickyCompletionChipLabelExpanded = false
+        let duration = JournalScreenLayout.stickyChipLayoutAnimationDuration
+        if reduceMotion {
+            stickyCompletionChipLabelExpanded = false
+        } else {
+            withAnimation(.easeInOut(duration: duration)) {
+                stickyCompletionChipLabelExpanded = false
+            }
+        }
         stickyChipExpansionScrollBaselineY = nil
     }
 
