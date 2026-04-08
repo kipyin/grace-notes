@@ -75,9 +75,10 @@ struct JournalCompletionBarChip: View {
                     .opacity(showsCompletionTitle ? 1 : 0)
                     .allowsHitTesting(showsCompletionTitle)
             }
-            // Single width constraint: post-fix logs showed 46→97→46 width while `expanded` was still true
-            // (minWidth + animated maxWidth infinity produced transient collapsed-width layouts mid-expand).
-            .frame(width: showsCompletionTitle ? nil : collapsedChipHeight)
+            // Collapsed: clamp width so the opacity-0 expanded row cannot widen the chip (circle).
+            // Expanded: maxWidth .infinity only — avoid minWidth(collapsed), which caused 46↔97 oscillation in logs.
+            // `frame(width: nil)` + `fixedSize(horizontal: false)` squeezed the title away in the toolbar.
+            .frame(maxWidth: showsCompletionTitle ? .infinity : collapsedChipHeight)
             .frame(height: chipHeight)
             .blur(radius: morphBlurRadius)
             .background {
@@ -117,9 +118,9 @@ struct JournalCompletionBarChip: View {
         #endif
         // #endregion
         .dynamicTypeSize(Self.toolbarChipDynamicTypeRange)
-        /// Avoid ``fixedSize(horizontal: true)`` here: it fights animated min/max width and can make the
-        /// leading toolbar item re-center each frame (visible “slide” when width snaps ~97→46 pt per logs).
-        .fixedSize(horizontal: false, vertical: true)
+        /// Collapsed: allow horizontal compression to the capsule max width.
+        /// Expanded: lock horizontal to intrinsic width so the title is not clipped by the toolbar proposal.
+        .fixedSize(horizontal: showsCompletionTitle, vertical: true)
         .simultaneousGesture(
             LongPressGesture(minimumDuration: 0.45).onEnded { _ in
                 suppressNextCollapseExpandTap = true
@@ -282,7 +283,7 @@ enum StickyChipAgentDebug {
     static func log(hypothesisId: String, location: String, message: String, data: [String: String] = [:]) {
         let payload: [String: Any] = [
             "sessionId": "6cf017",
-            "runId": "post-fix-2",
+            "runId": "post-fix-3",
             "hypothesisId": hypothesisId,
             "location": location,
             "message": message,
