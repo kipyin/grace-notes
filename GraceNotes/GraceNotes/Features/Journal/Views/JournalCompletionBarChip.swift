@@ -38,8 +38,13 @@ struct JournalCompletionBarChip: View {
         max(toolbarControlHeight - 1, tierIconLength + 8)
     }
 
-    /// Match toolbar row height in both states so expand/collapse does not animate 46↔47 (see debug `h` flips).
-    private var chipHeight: CGFloat { toolbarControlHeight }
+    /// Keep 44+ tap target in nav bar while letting the visual capsule hug icon/title content.
+    private var chipTapTargetHeight: CGFloat { toolbarControlHeight }
+
+    /// Visual capsule height used in both collapsed and expanded states.
+    private var chipVisualHeight: CGFloat {
+        min(collapsedChipHeight, 36)
+    }
 
     /// Keep icon centered inside the collapsed capsule.
     private var collapsedChipWidth: CGFloat { collapsedChipHeight }
@@ -77,7 +82,7 @@ struct JournalCompletionBarChip: View {
                     .scaleEffect(showsCompletionTitle ? 1 : hiddenScale, anchor: .leading)
             }
             .frame(width: expandedChipWidth, alignment: .leading)
-            .frame(height: chipHeight)
+            .frame(height: chipTapTargetHeight)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -99,7 +104,7 @@ struct JournalCompletionBarChip: View {
         tierIcon
             .foregroundStyle(labelColor)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-            .frame(width: collapsedChipWidth, height: chipHeight, alignment: .center)
+            .frame(width: collapsedChipWidth, height: chipVisualHeight, alignment: .center)
             .background { chipCapsuleBackground }
             .contentShape(Capsule(style: .continuous))
     }
@@ -116,7 +121,7 @@ struct JournalCompletionBarChip: View {
         }
         .foregroundStyle(labelColor)
         .padding(.horizontal, chipLeadingInset)
-        .frame(width: expandedChipWidth, height: chipHeight, alignment: .leading)
+        .frame(width: expandedChipWidth, height: chipVisualHeight, alignment: .leading)
         .background { chipCapsuleBackground }
         .contentShape(Capsule(style: .continuous))
     }
