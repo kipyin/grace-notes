@@ -34,7 +34,8 @@ struct JournalCompletionBarChip: View {
     /// After a long-press succeeds, UIKit may still deliver the `Button` action on finger-up; skip one cycle.
     @State private var suppressNextCollapseExpandTap = false
 
-    /// Icon-only: slightly shorter than the share row and padded so width tracks height (near-circular capsule).
+    /// Icon-only size tracks ``toolbarControlHeight``
+    /// (``JournalScreen/journalToolbarControlHeight``), matching the trailing share symbol row.
     private var collapsedChipHeight: CGFloat {
         max(toolbarControlHeight - 1, tierIconLength + 8)
     }
@@ -42,17 +43,14 @@ struct JournalCompletionBarChip: View {
     /// Keep 44+ tap target in nav bar while letting the visual capsule hug icon/title content.
     private var chipTapTargetHeight: CGFloat { toolbarControlHeight }
 
-    /// Visual capsule height used in both collapsed and expanded states.
-    private var chipVisualHeight: CGFloat {
-        min(collapsedChipHeight, 36)
-    }
+    /// Collapsed + expanded chrome height — same as the share row (no fixed 36pt cap).
+    private var chipVisualHeight: CGFloat { collapsedChipHeight }
 
-    /// Icon-only capsule: match width to ``chipVisualHeight`` so the shape stays square (circle), not a wide pill.
-    private var collapsedChipWidth: CGFloat { chipVisualHeight }
+    /// Square collapsed capsule (width = height) so the chip stays round, not a wide pill.
+    private var collapsedChipWidth: CGFloat { collapsedChipHeight }
 
-    /// Horizontal padding inside the capsule; derived from the **visual** span so icon fits without stretching width.
     private var chipLeadingInset: CGFloat {
-        max(0, (chipVisualHeight - tierIconLength) / 2)
+        max(0, (collapsedChipHeight - tierIconLength) / 2)
     }
 
     /// Fixed expanded width keeps the leading edge anchored in the toolbar host.
