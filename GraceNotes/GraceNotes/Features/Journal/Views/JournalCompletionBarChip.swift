@@ -1,5 +1,10 @@
 import SwiftUI
 
+private enum JournalCompletionBarChipMorphTiming {
+    static let crossfadeOutgoingSeconds: TimeInterval = 0.13
+    static let crossfadeIncomingSeconds: TimeInterval = 0.22
+}
+
 /// Compact completion control for the navigation bar: **capsule** fill (tier colors).
 ///
 /// Shadows read poorly in toolbar chrome on **iOS 17–18** (clip / double edge), so the chip stays flat there.
@@ -16,6 +21,21 @@ struct JournalCompletionBarChip: View {
         static let peakRadius: CGFloat = 5
         static let easeInSeconds: TimeInterval = 0.1
         static let easeOutSeconds: TimeInterval = 0.26
+    }
+
+    private var crossfadeOutgoingDuration: TimeInterval {
+        reduceMotion ? 0.1 : JournalCompletionBarChipMorphTiming.crossfadeOutgoingSeconds
+    }
+
+    private var crossfadeIncomingDuration: TimeInterval {
+        reduceMotion ? 0.14 : JournalCompletionBarChipMorphTiming.crossfadeIncomingSeconds
+    }
+
+    /// Incoming fade waits for outgoing to mostly finish (same gap in both directions).
+    private var crossfadeIncomingDelay: TimeInterval { crossfadeOutgoingDuration }
+
+    private var crossfadeBlurLeadSeconds: TimeInterval {
+        crossfadeOutgoingDuration + crossfadeIncomingDelay
     }
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -70,9 +90,23 @@ struct JournalCompletionBarChip: View {
                 collapsedChipLabel
                     .frame(maxWidth: .infinity)
                     .opacity(showsCompletionTitle ? 0 : 1)
+                    .animation(
+                        showsCompletionTitle
+                            ? .easeOut(duration: crossfadeOutgoingDuration)
+                            : .easeIn(duration: crossfadeIncomingDuration)
+                            .delay(crossfadeIncomingDelay),
+                        value: showsCompletionTitle
+                    )
                     .allowsHitTesting(!showsCompletionTitle)
                 expandedChipLabel
                     .opacity(showsCompletionTitle ? 1 : 0)
+                    .animation(
+                        showsCompletionTitle
+                            ? .easeIn(duration: crossfadeIncomingDuration)
+                            .delay(crossfadeIncomingDelay)
+                            : .easeOut(duration: crossfadeOutgoingDuration),
+                        value: showsCompletionTitle
+                    )
                     .allowsHitTesting(showsCompletionTitle)
             }
             // Collapsed: clamp width so the opacity-0 expanded row cannot widen the chip (circle).
@@ -199,8 +233,9 @@ struct JournalCompletionBarChip: View {
             return
         }
         morphBlurPulseTask = Task { @MainActor in
-            // Let width/layout settle before blur (same window as bad 46pt frames in logs).
-            try? await Task.sleep(for: .milliseconds(85))
+            // After staggered crossfade so blur does not stack on icon/text overlap.
+            let leadNanoseconds = Int(crossfadeBlurLeadSeconds * 1_000_000_000)
+            try? await Task.sleep(nanoseconds: UInt64(leadNanoseconds))
             guard !Task.isCancelled else { return }
             withAnimation(.easeIn(duration: MorphBlurPulse.easeInSeconds)) {
                 morphBlurRadius = MorphBlurPulse.peakRadius
