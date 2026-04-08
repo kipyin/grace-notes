@@ -44,6 +44,12 @@ struct JournalCompletionBarChip: View {
         showsCompletionTitle ? toolbarControlHeight : collapsedChipHeight
     }
 
+    /// Collapsed: insets so icon + zero-width title fill ``collapsedChipHeight`` (circle).
+    /// Expanded: 14pt horizontal padding (sheet chip).
+    private var chipHorizontalPadding: CGFloat {
+        showsCompletionTitle ? 14 : max(0, (collapsedChipHeight - tierIconLength) / 2)
+    }
+
     var body: some View {
         Button {
             if suppressNextCollapseExpandTap {
@@ -82,7 +88,7 @@ struct JournalCompletionBarChip: View {
                                 "w": String(format: "%.2f", size.width),
                                 "h": String(format: "%.2f", size.height),
                                 "expanded": "\(showsCompletionTitle)",
-                                "layout": "pinnedW_sharedMorphOpacity"
+                                "layout": "stableHStack_symmetricPad"
                             ]
                         )
                     }
@@ -122,19 +128,16 @@ struct JournalCompletionBarChip: View {
                 hypothesisId: "J",
                 location: "JournalCompletionBarChip.onChange.expanded",
                 message: "leading_frame_alignment",
-                data: ["blurPulse": "removed", "collapsedCenter": "spacerRow"]
+                data: ["blurPulse": "removed", "collapsedCenter": "symmetricPad_noSpacerBranch"]
             )
             #endif
             // #endregion
         }
     }
 
-    /// One tier icon; title stays in the hierarchy for opacity animation. Collapsed: spacers center the glyph.
+    /// One stable row: no Spacer branch so expand/collapse interpolate the same subviews.
     private var chipLabelContent: some View {
         HStack(alignment: .center, spacing: showsCompletionTitle ? AppTheme.spacingTight : 0) {
-            if !showsCompletionTitle {
-                Spacer(minLength: 0)
-            }
             tierIcon
             Text(completionTitle)
                 .font(AppTheme.warmPaperToolbarChipTitle)
@@ -142,17 +145,13 @@ struct JournalCompletionBarChip: View {
                 .minimumScaleFactor(toolbarCompletionTitleMinimumScaleFactor)
                 .frame(maxWidth: showsCompletionTitle ? Self.expandedTitleMaxWidth : 0, alignment: .leading)
                 .clipped()
-                // Inherit ``JournalScreenLayout/stickyChipMorphAnimation`` from ``withAnimation`` on expand/collapse
-                // so expansion matches retraction (separate title curve caused a “different” expand).
+                // Inherit ``JournalScreenLayout/stickyChipMorphAnimation`` from ``withAnimation`` on expand/collapse.
                 .opacity(showsCompletionTitle ? 1 : 0)
                 .accessibilityHidden(true)
                 .allowsHitTesting(showsCompletionTitle)
-            if !showsCompletionTitle {
-                Spacer(minLength: 0)
-            }
         }
         .foregroundStyle(labelColor)
-        .padding(.horizontal, showsCompletionTitle ? 14 : 0)
+        .padding(.horizontal, chipHorizontalPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .frame(maxHeight: .infinity)
     }
@@ -235,7 +234,7 @@ enum StickyChipAgentDebug {
     static func log(hypothesisId: String, location: String, message: String, data: [String: String] = [:]) {
         let payload: [String: Any] = [
             "sessionId": "6cf017",
-            "runId": "symmetric-morph-v1",
+            "runId": "stable-stack-v1",
             "hypothesisId": hypothesisId,
             "location": location,
             "message": message,
