@@ -60,8 +60,14 @@ struct JournalCompletionBarChip: View {
             onCollapseExpandTap()
         } label: {
             chipLabelContent
-                // Collapsed: fixed width; expanded: grow by trailing only (content stays ``.leading`` in frame).
-                .frame(maxWidth: showsCompletionTitle ? .infinity : collapsedChipHeight, alignment: .leading)
+                // Logs showed intermittent w=40 with h=46 when collapsed (`maxWidth` only) — not square, reads as
+                // a tall pill and lets the toolbar compress the chip. Pin collapsed width with min=max; expanded
+                // uses no min width (avoids earlier min+animated-max oscillation when expanded).
+                .frame(
+                    minWidth: showsCompletionTitle ? nil : collapsedChipHeight,
+                    maxWidth: showsCompletionTitle ? .infinity : collapsedChipHeight,
+                    alignment: .leading
+                )
                 .frame(height: chipHeight)
                 .background {
                     chipCapsuleBackground
@@ -83,7 +89,7 @@ struct JournalCompletionBarChip: View {
                                 "w": String(format: "%.2f", size.width),
                                 "h": String(format: "%.2f", size.height),
                                 "expanded": "\(showsCompletionTitle)",
-                                "layout": "leadingGrow_spacerCenterCollapse"
+                                "layout": "pinnedW_collapsed_minMax"
                             ]
                         )
                     }
@@ -92,9 +98,9 @@ struct JournalCompletionBarChip: View {
         #endif
         // #endregion
         .dynamicTypeSize(Self.toolbarChipDynamicTypeRange)
-        /// Collapsed: allow horizontal compression to the capsule max width.
-        /// Expanded: lock horizontal to intrinsic width so the title is not clipped by the toolbar proposal.
-        .fixedSize(horizontal: showsCompletionTitle, vertical: true)
+        /// Always horizontal fixedSize so the toolbar cannot squeeze the chip to ~40pt (see debug oscillation 46→40).
+        /// Collapsed width is enforced by ``frame(minWidth:maxWidth:)`` above.
+        .fixedSize(horizontal: true, vertical: true)
         .simultaneousGesture(
             LongPressGesture(minimumDuration: 0.45).onEnded { _ in
                 suppressNextCollapseExpandTap = true
@@ -235,7 +241,7 @@ enum StickyChipAgentDebug {
     static func log(hypothesisId: String, location: String, message: String, data: [String: String] = [:]) {
         let payload: [String: Any] = [
             "sessionId": "6cf017",
-            "runId": "anchor-v1",
+            "runId": "anchor-v2",
             "hypothesisId": hypothesisId,
             "location": location,
             "message": message,
