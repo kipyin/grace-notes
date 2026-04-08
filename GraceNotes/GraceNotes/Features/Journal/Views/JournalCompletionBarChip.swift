@@ -6,8 +6,10 @@ import SwiftUI
 /// On **iOS 26+**, with ``ToolbarItem/sharedBackgroundVisibility(_:)`` set to ``Visibility/hidden``, add a
 /// tier-aware shadow stack so the chip reads clearly above the bar.
 struct JournalCompletionBarChip: View {
+    /// Sticky chip stays one line; cap text scaling at the largest standard Dynamic Type (not accessibility buckets).
+    private static let toolbarChipDynamicTypeRange = DynamicTypeSize.xSmall ... DynamicTypeSize.xxxLarge
+
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
     @Environment(\.todayJournalPalette) private var palette
 
@@ -25,29 +27,17 @@ struct JournalCompletionBarChip: View {
 
     var body: some View {
         Button(action: onTap) {
-            Group {
-                if dynamicTypeSize.isAccessibilitySize {
-                    labelCore
-                        .padding(.horizontal, 14)
-                        .frame(minHeight: toolbarControlHeight)
-                        .background {
-                            chipCapsuleBackground
-                        }
-                        .contentShape(Capsule(style: .continuous))
-                } else {
-                    labelCore
-                        .padding(.horizontal, 14)
-                        .frame(minHeight: toolbarControlHeight, maxHeight: toolbarControlHeight)
-                        .background {
-                            chipCapsuleBackground
-                        }
-                        .contentShape(Capsule(style: .continuous))
+            labelCore
+                .padding(.horizontal, 14)
+                .frame(minHeight: toolbarControlHeight, maxHeight: toolbarControlHeight)
+                .background {
+                    chipCapsuleBackground
                 }
-            }
+                .contentShape(Capsule(style: .continuous))
         }
         .buttonStyle(.plain)
-        // At default sizes, pin ideal width to the share row; at accessibility sizes, allow wrapping.
-        .fixedSize(horizontal: !dynamicTypeSize.isAccessibilitySize, vertical: true)
+        .dynamicTypeSize(Self.toolbarChipDynamicTypeRange)
+        .fixedSize(horizontal: true, vertical: true)
         .accessibilityLabel(accessibilityLabelText)
         .accessibilityHint(String(localized: "accessibility.journalStatusMeaningHint"))
     }
@@ -85,8 +75,7 @@ struct JournalCompletionBarChip: View {
                 .accessibilityHidden(true)
             Text(completionTitle)
                 .font(AppTheme.warmPaperToolbarChipTitle)
-                .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
-                .multilineTextAlignment(.leading)
+                .lineLimit(1)
                 .minimumScaleFactor(toolbarCompletionTitleMinimumScaleFactor)
         }
         .foregroundStyle(labelColor)
