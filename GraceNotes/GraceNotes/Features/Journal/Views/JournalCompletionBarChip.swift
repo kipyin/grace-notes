@@ -75,8 +75,9 @@ struct JournalCompletionBarChip: View {
                     .opacity(showsCompletionTitle ? 1 : 0)
                     .allowsHitTesting(showsCompletionTitle)
             }
-            .frame(minWidth: collapsedChipHeight)
-            .frame(maxWidth: showsCompletionTitle ? .infinity : collapsedChipHeight)
+            // Single width constraint: post-fix logs showed 46→97→46 width while `expanded` was still true
+            // (minWidth + animated maxWidth infinity produced transient collapsed-width layouts mid-expand).
+            .frame(width: showsCompletionTitle ? nil : collapsedChipHeight)
             .frame(height: chipHeight)
             .blur(radius: morphBlurRadius)
             .background {
@@ -197,6 +198,9 @@ struct JournalCompletionBarChip: View {
             return
         }
         morphBlurPulseTask = Task { @MainActor in
+            // Let width/layout settle before blur (same window as bad 46pt frames in logs).
+            try? await Task.sleep(for: .milliseconds(85))
+            guard !Task.isCancelled else { return }
             withAnimation(.easeIn(duration: MorphBlurPulse.easeInSeconds)) {
                 morphBlurRadius = MorphBlurPulse.peakRadius
             }
@@ -278,7 +282,7 @@ enum StickyChipAgentDebug {
     static func log(hypothesisId: String, location: String, message: String, data: [String: String] = [:]) {
         let payload: [String: Any] = [
             "sessionId": "6cf017",
-            "runId": "post-fix",
+            "runId": "post-fix-2",
             "hypothesisId": hypothesisId,
             "location": location,
             "message": message,
