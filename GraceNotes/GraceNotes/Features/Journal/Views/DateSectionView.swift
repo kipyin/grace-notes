@@ -8,8 +8,8 @@ struct DateSectionView: View {
 
     let completionInfo: JournalCompletionInfoPresentation
     let completionInfoMorphNamespace: Namespace.ID
-    let stickyMorphNamespace: Namespace.ID
-    let showStickyCompletionBar: Bool
+    /// When the navigation bar chip is shown, the inline completion pill fades out so only one badge reads at a time.
+    let isInlineCompletionBadgeHidden: Bool
 
     let completionLevel: JournalCompletionLevel
     let celebratingLevel: JournalCompletionLevel?
@@ -84,12 +84,14 @@ struct DateSectionView: View {
                 morphSource: false,
                 morphNamespace: completionInfoMorphNamespace,
                 morphAccentColor: (completionInfo.selectedBadgeInfo ?? badgeInfo).infoCardTintColor(using: palette),
-                morphBloomProgress: completionInfo.infoCardBloomProgress,
-                stickyMorphNamespace: stickyMorphNamespace,
-                isStickyMorphSourceForToolbar: !showStickyCompletionBar
+                morphBloomProgress: completionInfo.infoCardBloomProgress
             )
         }
         .buttonStyle(WarmPaperPressStyle())
+        .opacity(isInlineCompletionBadgeHidden ? 0 : 1)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: isInlineCompletionBadgeHidden)
+        .allowsHitTesting(!isInlineCompletionBadgeHidden)
+        .accessibilityHidden(isInlineCompletionBadgeHidden)
         .accessibilityHint(String(localized: "accessibility.journalStatusMeaningHint"))
         .accessibilityLabel(statusAccessibilityLabel(for: badgeInfo.completionLevel))
     }

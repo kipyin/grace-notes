@@ -1,21 +1,17 @@
 import CoreGraphics
 
 enum JournalStickyCompletionVisibility {
-    /// Whether the completion header has scrolled up into the navigation chrome far enough to show the bar chip.
+    /// Whether the journal body has scrolled enough that the completion header may leave the visible area.
     ///
-    /// Uses the header's **global** min Y vs `safeAreaTopInset` because scroll-view named coordinate spaces
-    /// and large titles are inconsistent across OS versions; global + safe area tracks “under the nav” reliably.
+    /// Global header frame vs safe area was unreliable at rest: the header often sits above
+    /// `safeAreaTop + small slack` while still fully on-screen (large title, varied layouts), which kept the
+    /// bar chip visible constantly. Scroll content `minY` in ``journalMainScroll`` decreases as the user
+    /// scrolls down, which tracks “pulled the completion block upward” without depending on key-window reads.
     ///
     /// - Parameters:
-    ///   - completionHeaderTopGlobalY: Top edge of `DateSectionView` in global coordinates (smaller = higher on screen).
-    ///   - safeAreaTopInset: `safeAreaInsets.top` for the journal screen.
-    ///   - headerTopPastToolbarSlackPoints: Extra points below the safe-area top to treat as “past” the toolbar
-    ///     (covers standard / large navigation chrome).
-    static func shouldShowBarIndicator(
-        completionHeaderTopGlobalY: CGFloat,
-        safeAreaTopInset: CGFloat,
-        headerTopPastToolbarSlackPoints: CGFloat
-    ) -> Bool {
-        completionHeaderTopGlobalY < safeAreaTopInset + headerTopPastToolbarSlackPoints
+    ///   - scrollContentMinY: Main journal column’s minY in the scroll view’s named coordinate space.
+    ///   - scrollRevealThreshold: Show the chip when `scrollContentMinY` is below `-scrollRevealThreshold`.
+    static func shouldShowBarIndicator(scrollContentMinY: CGFloat, scrollRevealThreshold: CGFloat) -> Bool {
+        scrollContentMinY < -scrollRevealThreshold
     }
 }

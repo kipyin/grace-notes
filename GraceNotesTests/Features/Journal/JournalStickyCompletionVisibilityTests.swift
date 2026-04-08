@@ -2,22 +2,23 @@ import XCTest
 @testable import GraceNotes
 
 final class JournalStickyCompletionVisibilityTests: XCTestCase {
-    func test_barIndicatorHidden_whenHeaderStillBelowNavRegion() {
+    /// Mirrors `JournalScreenLayout.stickyCompletionBarScrollRevealPoints` (iOS 17 scroll-space path).
+    private let threshold: CGFloat = 0
+
+    func test_barIndicatorHidden_whenScrollMinYAtZero() {
         XCTAssertFalse(
             JournalStickyCompletionVisibility.shouldShowBarIndicator(
-                completionHeaderTopGlobalY: 280,
-                safeAreaTopInset: 59,
-                headerTopPastToolbarSlackPoints: 96
+                scrollContentMinY: 0,
+                scrollRevealThreshold: threshold
             )
         )
     }
 
-    func test_barIndicatorVisible_whenHeaderMovesIntoNavRegion() {
+    func test_barIndicatorVisible_whenScrollMinYNegative() {
         XCTAssertTrue(
             JournalStickyCompletionVisibility.shouldShowBarIndicator(
-                completionHeaderTopGlobalY: 120,
-                safeAreaTopInset: 59,
-                headerTopPastToolbarSlackPoints: 96
+                scrollContentMinY: -4,
+                scrollRevealThreshold: threshold
             )
         )
     }

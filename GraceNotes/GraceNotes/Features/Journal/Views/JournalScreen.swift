@@ -12,8 +12,9 @@ import Combine
 private enum JournalScreenLayout {
     static let journalScrollCoordinateSpaceName = "journalMainScroll"
     static let unlockToastScrollDismissThreshold: CGFloat = 20
-    /// Global Y slack below the safe-area top: when the completion header's top is **above** this line, show the bar chip.
-    static let stickyCompletionBarGlobalSlackPoints: CGFloat = 96
+    /// Reveal toolbar chip when scroll passes this threshold: iOS 18+ uses `contentOffset.y` **>** this;
+    /// iOS 17 uses completion-header scroll-space `minY` **<** `-this`.
+    static let stickyCompletionBarScrollRevealPoints: CGFloat = 0
 }
 
 private struct JournalScrollOffsetPreferenceKey: PreferenceKey {
@@ -23,10 +24,14 @@ private struct JournalScrollOffsetPreferenceKey: PreferenceKey {
     }
 }
 
-private struct JournalHeaderTopGlobalYKey: PreferenceKey {
+/// iOS 17: completion header top in ``journalMainScroll`` (negative after scrolling past the viewport top).
+private struct JournalHeaderScrollMinYPreferenceKey: PreferenceKey {
     static var defaultValue: CGFloat = .infinity
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
+        let next = nextValue()
+        if next.isFinite {
+            value = next
+        }
     }
 }
 
@@ -185,6 +190,8 @@ struct JournalScreen: View {
     @State private var unlockToastLevel: JournalCompletionLevel?
     @State private var unlockToastMilestone: JournalUnlockMilestoneHighlight = .none
     @State private var journalScrollOffsetY: CGFloat = 0
+    /// Sticky toolbar chip: iOS 18+ uses ``onScrollGeometryChange``; iOS 17 uses header scroll ``minY`` preference.
+    @State private var stickyCompletionRevealedByScroll = false
     @State private var unlockToastScrollBaseline: CGFloat?
     /// UIKit keyboard overlap with the key window; drives extra scroll padding and scroll-to-visible.
     @State private var keyboardOverlapHeight: CGFloat = 0
@@ -231,19 +238,62 @@ struct JournalScreen: View {
     @FocusState private var isReadingNotesFocused: Bool
     @FocusState private var isReflectionsFocused: Bool
     @Namespace private var completionInfoMorphNamespace
-    @Namespace private var stickyCompletionMorphNamespace
     @State private var completionInfoPresentation = JournalCompletionInfoPresentation()
     @State private var completionHeaderScrollPulse: UInt = 0
-    /// Global min-Y of `DateSectionView`; `.infinity` until the first geometry read.
-    @State private var completionHeaderTopGlobalY: CGFloat = .infinity
     var entryDate: Date?
-    var body: some View {
-        let palette = TodayJournalPalette.resolve(mode: effectiveTodayAppearance)
-        let showStickyCompletionBar = JournalStickyCompletionVisibility.shouldShowBarIndicator(
-            completionHeaderTopGlobalY: completionHeaderTopGlobalY,
-            safeAreaTopInset: journalSafeAreaTopInset,
-            headerTopPastToolbarSlackPoints: JournalScreenLayout.stickyCompletionBarGlobalSlackPoints
+
+    private var stickyCompletionToolbarTransition: AnyTransition {
+        reduceMotion
+            ? .opacity
+            : .opacity.combined(with: .scale(scale: 0.94, anchor: .leading))
+    }
+
+    private var stickyJournalCompletionToolbarChip: some View {
+        JournalCompletionBarChip(
+            completionLevel: viewModel.completionLevel,
+            gratitudesCount: viewModel.gratitudes.count,
+            needsCount: viewModel.needs.count,
+            peopleCount: viewModel.people.count,
+            onTap: {
+                let badge = CompletionBadgeInfo.matching(viewModel.completionLevel)
+                completionInfoPresentation.completionBadgeTapped(badge, reduceMotion: reduceMotion)
+                if completionInfoPresentation.isInfoCardPresented {
+                    completionHeaderScrollPulse &+= 1
+                }
+            }
         )
+        .transition(stickyCompletionToolbarTransition)
+    }
+
+    @ToolbarContentBuilder
+    private var journalToolbarContent: some ToolbarContent {
+        if showStickyJournalCompletionBar {
+            if #available(iOS 26, *) {
+                ToolbarItem(placement: .topBarLeading) {
+                    // Bleed room so the capsule shadow is not clipped by toolbar bounds.
+                    stickyJournalCompletionToolbarChip
+                        .padding(10)
+                }
+                .sharedBackgroundVisibility(.hidden)
+            } else {
+                ToolbarItem(placement: .topBarLeading) {
+                    stickyJournalCompletionToolbarChip
+                }
+            }
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                shareTapped()
+            } label: {
+                Image(systemName: "square.and.arrow.up")
+                    .font(AppTheme.outfitSemiboldHeadline)
+            }
+            .accessibilityLabel(String(localized: "common.share"))
+            .accessibilityIdentifier("Share")
+        }
+    }
+
+    private var journalScreenBaseStack: some View {
         ZStack {
             if effectiveTodayAppearance == .bloom, !journalBloomAtmosphereHosted {
                 SummerPaperBackgroundView()
@@ -253,106 +303,85 @@ struct JournalScreen: View {
             }
             journalScrollContent
         }
-        .environment(\.todayJournalPalette, palette)
-        .overlay { journalToastOverlay }
-        .navigationTitle(navigationTitle)
-        .toolbar {
-            if showStickyCompletionBar {
-                ToolbarItem(placement: .topBarLeading) {
-                    JournalCompletionBarChip(
-                        completionLevel: viewModel.completionLevel,
-                        gratitudesCount: viewModel.gratitudes.count,
-                        needsCount: viewModel.needs.count,
-                        peopleCount: viewModel.people.count,
-                        stickyMorphNamespace: stickyCompletionMorphNamespace,
-                        isStickyMorphSource: true,
-                        onTap: {
-                            let badge = CompletionBadgeInfo.matching(viewModel.completionLevel)
-                            completionInfoPresentation.completionBadgeTapped(badge, reduceMotion: reduceMotion)
-                            if completionInfoPresentation.isInfoCardPresented {
-                                completionHeaderScrollPulse &+= 1
-                            }
+    }
+
+    var body: some View {
+        journalScreenDecoratedRoot
+    }
+
+    private var journalScreenDecoratedRoot: some View {
+        let palette = TodayJournalPalette.resolve(mode: effectiveTodayAppearance)
+        return journalScreenBaseStack
+            .environment(\.todayJournalPalette, palette)
+            .overlay { journalToastOverlay }
+            .navigationTitle(navigationTitle)
+            .toolbar { journalToolbarContent }
+            .toolbarBackground(
+                effectiveTodayAppearance == .bloom ? .hidden : .automatic,
+                for: .navigationBar
+            )
+            .sheet(isPresented: $showShareComposer) {
+                JournalShareComposerView(
+                    basePayload: viewModel.exportSnapshot(),
+                    onDismiss: { showShareComposer = false },
+                    onShare: { image in
+                        showShareComposer = false
+                        Task { @MainActor in
+                            await Task.yield()
+                            shareableImage = ShareableImage(image: image)
                         }
-                    )
-                    .animation(
-                        reduceMotion ? nil : .easeInOut(duration: 0.2),
-                        value: showStickyCompletionBar
-                    )
-                }
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    shareTapped()
-                } label: {
-                    Image(systemName: "square.and.arrow.up")
-                        .font(AppTheme.outfitSemiboldHeadline)
-                }
-                .accessibilityLabel(String(localized: "common.share"))
-                .accessibilityIdentifier("Share")
-            }
-        }
-        .toolbarBackground(
-            effectiveTodayAppearance == .bloom ? .hidden : .automatic,
-            for: .navigationBar
-        )
-        .sheet(isPresented: $showShareComposer) {
-            JournalShareComposerView(
-                basePayload: viewModel.exportSnapshot(),
-                onDismiss: { showShareComposer = false },
-                onShare: { image in
-                    showShareComposer = false
-                    Task { @MainActor in
-                        await Task.yield()
-                        shareableImage = ShareableImage(image: image)
                     }
-                }
-            )
-        }
-        .sheet(item: $shareableImage) { item in
-            ShareSheet(
-                activityItems: [item.image],
-                applicationActivities: [SaveToPhotosActivity(image: item.image)]
-            )
-        }
-        .fullScreenCover(isPresented: $showAppTour) {
-            AppTourView(
-                onFinish: completeAppTour,
-                skipsCongratulationsPage: appTourSkipsCongratulations
-            )
-        }
-        .onChange(of: showAppTour) { _, isPresented in
-            dismissAllJournalFocusIfAppTourPresented(isPresented)
-        }
-        .onChange(of: isAnyChipInputFocused) { wasFocused, isFocused in
-            handleChipInputFocusChange(wasFocused: wasFocused, isFocused: isFocused)
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .photoSavedToLibrary)) { _ in
-            scheduleSavedToPhotosToast()
-        }
-        .onDisappear {
-            statusCelebrationDismissTask?.cancel()
-        }
-        .onChange(of: onboardingPresentation.step) { _, newStep in
-            focusOnboardingStepIfNeeded(newStep)
-        }
-        .onChange(of: journalProgressFingerprint) { _, _ in
-            if showShareComposer {
-                showShareComposer = false
+                )
             }
-            handleJournalProgressChange()
-        }
-        .onChange(of: scenePhase) { oldPhase, newPhase in
-            guard oldPhase != .active, newPhase == .active else { return }
-            guard appNavigation.selectedTab == .today else { return }
-            refreshTodayAfterSessionResumeIfNeeded()
-        }
-        .onChange(of: appNavigation.selectedTab) { oldTab, newTab in
-            guard newTab == .today, oldTab != .today else { return }
-            refreshTodayAfterSessionResumeIfNeeded()
-        }
-        .task(id: entryDate) {
-            await runJournalScreenLoadTask()
-        }
+            .sheet(item: $shareableImage) { item in
+                ShareSheet(
+                    activityItems: [item.image],
+                    applicationActivities: [SaveToPhotosActivity(image: item.image)]
+                )
+            }
+            .fullScreenCover(isPresented: $showAppTour) {
+                AppTourView(
+                    onFinish: completeAppTour,
+                    skipsCongratulationsPage: appTourSkipsCongratulations
+                )
+            }
+            .onChange(of: showAppTour) { _, isPresented in
+                dismissAllJournalFocusIfAppTourPresented(isPresented)
+            }
+            .onChange(of: isAnyChipInputFocused) { wasFocused, isFocused in
+                handleChipInputFocusChange(wasFocused: wasFocused, isFocused: isFocused)
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .photoSavedToLibrary)) { _ in
+                scheduleSavedToPhotosToast()
+            }
+            .onDisappear {
+                statusCelebrationDismissTask?.cancel()
+            }
+            .onChange(of: onboardingPresentation.step) { _, newStep in
+                focusOnboardingStepIfNeeded(newStep)
+            }
+            .onChange(of: journalProgressFingerprint) { _, _ in
+                if showShareComposer {
+                    showShareComposer = false
+                }
+                handleJournalProgressChange()
+            }
+            .onChange(of: scenePhase) { oldPhase, newPhase in
+                handleScenePhaseChangeForResume(oldPhase: oldPhase, newPhase: newPhase)
+            }
+            .onChange(of: appNavigation.selectedTab) { oldTab, newTab in
+                guard newTab == .today, oldTab != .today else { return }
+                refreshTodayAfterSessionResumeIfNeeded()
+            }
+            .task(id: entryDate) {
+                await runJournalScreenLoadTask()
+            }
+    }
+
+    private func handleScenePhaseChangeForResume(oldPhase: ScenePhase, newPhase: ScenePhase) {
+        guard oldPhase != .active, newPhase == .active else { return }
+        guard appNavigation.selectedTab == .today else { return }
+        refreshTodayAfterSessionResumeIfNeeded()
     }
 
     private var journalScrollContent: some View {
@@ -364,11 +393,43 @@ struct JournalScreen: View {
     @ViewBuilder
     private func journalScrollView(proxy: ScrollViewProxy) -> some View {
         journalScrollViewWithModifiers(
-            content: ScrollView {
-                journalScrollMainColumn(proxy: proxy)
-            },
+            content: journalScrollRootScrollView(proxy: proxy),
             proxy: proxy
         )
+    }
+
+    @ViewBuilder
+    private func journalScrollRootScrollView(proxy: ScrollViewProxy) -> some View {
+        if #available(iOS 18, *) {
+            ScrollView {
+                journalScrollMainColumn(proxy: proxy)
+            }
+            .onScrollGeometryChange(for: Bool.self) { geo in
+                geo.contentOffset.y > JournalScreenLayout.stickyCompletionBarScrollRevealPoints
+            } action: { _, pastThreshold in
+                applyStickyCompletionRevealed(pastThreshold)
+            }
+        } else {
+            ScrollView {
+                journalScrollMainColumn(proxy: proxy)
+            }
+        }
+    }
+
+    private func applyStickyCompletionRevealed(_ revealed: Bool) {
+        guard stickyCompletionRevealedByScroll != revealed else { return }
+        if reduceMotion {
+            stickyCompletionRevealedByScroll = revealed
+        } else {
+            withAnimation(.easeInOut(duration: 0.25)) {
+                stickyCompletionRevealedByScroll = revealed
+            }
+        }
+    }
+
+    private func applyStickyCompletionFromHeaderScrollMinY(_ minY: CGFloat) {
+        let revealed = minY < -JournalScreenLayout.stickyCompletionBarScrollRevealPoints
+        applyStickyCompletionRevealed(revealed)
     }
 
     @ViewBuilder
@@ -483,20 +544,14 @@ struct JournalScreen: View {
 }
 
 private extension JournalScreen {
-    /// Key window inset — avoids `EnvironmentValues.safeAreaInsets`, which is not available on all deployment targets.
-    var journalSafeAreaTopInset: CGFloat {
-        JournalKeyWindowReader.keyWindow()?.safeAreaInsets.top ?? 0
+    var showStickyJournalCompletionBar: Bool {
+        stickyCompletionRevealedByScroll
     }
 
     @ViewBuilder
     func journalScrollMainColumn(proxy: ScrollViewProxy) -> some View {
-        let showStickyCompletionBar = JournalStickyCompletionVisibility.shouldShowBarIndicator(
-            completionHeaderTopGlobalY: completionHeaderTopGlobalY,
-            safeAreaTopInset: journalSafeAreaTopInset,
-            headerTopPastToolbarSlackPoints: JournalScreenLayout.stickyCompletionBarGlobalSlackPoints
-        )
         VStack(alignment: .leading, spacing: AppTheme.todaySectionSpacing) {
-            journalTodayHeaderGroup(showStickyCompletionBar: showStickyCompletionBar)
+            journalTodayHeaderGroup(isInlineCompletionBadgeHidden: showStickyJournalCompletionBar)
                 .journalDismissInlineEditOnTap(isAnyInlineChipEditing) {
                     dismissInlineChipEditingSession()
                 }
@@ -538,8 +593,9 @@ private extension JournalScreen {
                 }
             }
         }
-        .onPreferenceChange(JournalHeaderTopGlobalYKey.self) { topGlobalY in
-            completionHeaderTopGlobalY = topGlobalY
+        .onPreferenceChange(JournalHeaderScrollMinYPreferenceKey.self) { headerMinY in
+            if #available(iOS 18, *) { return }
+            applyStickyCompletionFromHeaderScrollMinY(headerMinY)
         }
         .onChange(of: completionHeaderScrollPulse) { _, _ in
             scrollJournalCompletionHeaderToTop(using: proxy)
@@ -557,27 +613,28 @@ private extension JournalScreen {
     }
 
     @ViewBuilder
-    private func journalTodayHeaderGroup(showStickyCompletionBar: Bool) -> some View {
+    private func journalTodayHeaderGroup(isInlineCompletionBadgeHidden: Bool) -> some View {
         Group {
             DateSectionView(
                 completionInfo: completionInfoPresentation,
                 completionInfoMorphNamespace: completionInfoMorphNamespace,
-                stickyMorphNamespace: stickyCompletionMorphNamespace,
-                showStickyCompletionBar: showStickyCompletionBar,
+                isInlineCompletionBadgeHidden: isInlineCompletionBadgeHidden,
                 completionLevel: viewModel.completionLevel,
                 celebratingLevel: celebratingLevel,
                 gratitudesCount: viewModel.gratitudes.count,
                 needsCount: viewModel.needs.count,
                 peopleCount: viewModel.people.count
             )
-            .background(
+            .background {
                 GeometryReader { geo in
                     Color.clear.preference(
-                        key: JournalHeaderTopGlobalYKey.self,
-                        value: geo.frame(in: .global).minY
+                        key: JournalHeaderScrollMinYPreferenceKey.self,
+                        value: geo.frame(
+                            in: .named(JournalScreenLayout.journalScrollCoordinateSpaceName)
+                        ).minY
                     )
                 }
-            )
+            }
             .id(JournalScrollTarget.completionHeader)
 
             journalOnboardingSuggestionIfNeeded
