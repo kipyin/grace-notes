@@ -44,10 +44,15 @@ struct JournalCompletionBarChip: View {
         showsCompletionTitle ? toolbarControlHeight : collapsedChipHeight
     }
 
-    /// Collapsed: insets so icon + zero-width title fill ``collapsedChipHeight`` (circle).
-    /// Expanded: 14pt horizontal padding (sheet chip).
-    private var chipHorizontalPadding: CGFloat {
-        showsCompletionTitle ? 14 : max(0, (collapsedChipHeight - tierIconLength) / 2)
+    /// Symmetric inset that centers the icon in the retracted square; keep this on the **leading** side when
+    /// expanded so the glyph does not shift horizontally (logs showed stable w/h but pad still animated 11↔14).
+    private var chipLeadingInset: CGFloat {
+        max(0, (collapsedChipHeight - tierIconLength) / 2)
+    }
+
+    /// Trailing inset: tighter when retracted (circle); sheet-style 14pt when expanded.
+    private var chipTrailingInset: CGFloat {
+        showsCompletionTitle ? 14 : chipLeadingInset
     }
 
     var body: some View {
@@ -88,7 +93,7 @@ struct JournalCompletionBarChip: View {
                                 "w": String(format: "%.2f", size.width),
                                 "h": String(format: "%.2f", size.height),
                                 "expanded": "\(showsCompletionTitle)",
-                                "layout": "stableHStack_symmetricPad"
+                                "layout": "fixedLeadPad_asymTrail"
                             ]
                         )
                     }
@@ -121,14 +126,16 @@ struct JournalCompletionBarChip: View {
                 data: [
                     "showsTitle": "\(newValue)",
                     "collapsedH": "\(collapsedChipHeight)",
-                    "toolbarH": "\(toolbarControlHeight)"
+                    "toolbarH": "\(toolbarControlHeight)",
+                    "leadInset": String(format: "%.2f", chipLeadingInset),
+                    "trailInset": String(format: "%.2f", chipTrailingInset)
                 ]
             )
             StickyChipAgentDebug.log(
                 hypothesisId: "J",
                 location: "JournalCompletionBarChip.onChange.expanded",
                 message: "leading_frame_alignment",
-                data: ["blurPulse": "removed", "collapsedCenter": "symmetricPad_noSpacerBranch"]
+                data: ["blurPulse": "removed", "collapsedCenter": "fixedLead_asymTrail"]
             )
             #endif
             // #endregion
@@ -151,7 +158,8 @@ struct JournalCompletionBarChip: View {
                 .allowsHitTesting(showsCompletionTitle)
         }
         .foregroundStyle(labelColor)
-        .padding(.horizontal, chipHorizontalPadding)
+        .padding(.leading, chipLeadingInset)
+        .padding(.trailing, chipTrailingInset)
         .frame(maxWidth: .infinity, alignment: .leading)
         .frame(maxHeight: .infinity)
     }
@@ -234,7 +242,7 @@ enum StickyChipAgentDebug {
     static func log(hypothesisId: String, location: String, message: String, data: [String: String] = [:]) {
         let payload: [String: Any] = [
             "sessionId": "6cf017",
-            "runId": "stable-stack-v1",
+            "runId": "fixed-lead-pad-v1",
             "hypothesisId": hypothesisId,
             "location": location,
             "message": message,
