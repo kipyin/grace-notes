@@ -18,8 +18,6 @@ struct JournalCompletionBarChip: View {
         static let easeOutSeconds: TimeInterval = 0.26
     }
 
-    @Namespace private var iconMorphNamespace
-
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.locale) private var locale
@@ -67,8 +65,10 @@ struct JournalCompletionBarChip: View {
             }
             onCollapseExpandTap()
         } label: {
-            ZStack(alignment: .center) {
+            // `.center` here pinned the expanded HStack by its midpoint, overlapping icon and title.
+            ZStack(alignment: .leading) {
                 collapsedChipLabel
+                    .frame(maxWidth: .infinity)
                     .opacity(showsCompletionTitle ? 0 : 1)
                     .allowsHitTesting(!showsCompletionTitle)
                 expandedChipLabel
@@ -111,16 +111,17 @@ struct JournalCompletionBarChip: View {
     private var collapsedChipLabel: some View {
         HStack {
             Spacer(minLength: 0)
-            tierIconMatched
+            tierIcon
             Spacer(minLength: 0)
         }
+        .foregroundStyle(labelColor)
         .padding(.horizontal, collapsedHorizontalPadding)
         .frame(maxHeight: .infinity)
     }
 
     private var expandedChipLabel: some View {
         HStack(alignment: .center, spacing: AppTheme.spacingTight) {
-            tierIconMatched
+            tierIcon
             Text(completionTitle)
                 .font(AppTheme.warmPaperToolbarChipTitle)
                 .lineLimit(1)
@@ -133,13 +134,12 @@ struct JournalCompletionBarChip: View {
         .frame(maxHeight: .infinity)
     }
 
-    private var tierIconMatched: some View {
+    private var tierIcon: some View {
         Image(ReviewRhythmFormatting.assetName(for: completionLevel))
             .renderingMode(.template)
             .resizable()
             .scaledToFit()
             .frame(width: tierIconLength, height: tierIconLength)
-            .matchedGeometryEffect(id: "stickyCompletionTierIcon", in: iconMorphNamespace)
             .accessibilityHidden(true)
     }
 
