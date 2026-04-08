@@ -12,6 +12,7 @@ struct JournalCompletionBarChip: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.locale) private var locale
     @Environment(\.todayJournalPalette) private var palette
 
@@ -145,12 +146,24 @@ struct JournalCompletionBarChip: View {
                 capsule
             } else {
                 capsule
-                    .shadow(color: Color.black.opacity(0.14), radius: 12, x: 0, y: 6)
                     .shadow(
-                        color: AppTheme.reviewRhythmPillShadow(for: completionLevel),
-                        radius: 5,
+                        color: Color.primary.opacity(colorScheme == .dark ? 0.12 : 0),
+                        radius: colorScheme == .dark ? 1 : 0,
                         x: 0,
-                        y: 3
+                        y: 0
+                    )
+                    .shadow(
+                        color: Color.black.opacity(colorScheme == .dark ? 0.22 : 0.12),
+                        radius: 10,
+                        x: 0,
+                        y: 0
+                    )
+                    .shadow(
+                        color: AppTheme.reviewRhythmPillShadow(for: completionLevel)
+                            .opacity(colorScheme == .dark ? 0.45 : 0.85),
+                        radius: 8,
+                        x: 0,
+                        y: 0
                     )
             }
         } else {
@@ -169,14 +182,8 @@ struct JournalCompletionBarChip: View {
         }
     }
 
-    /// Approximate rendered width for the current localized title using the same font family/size.
     private var completionTitleWidth: CGFloat {
-        let baseFont = UIFont(name: "SourceSerif4Roman-Regular", size: 16)
-            ?? UIFont.preferredFont(forTextStyle: .body)
-        let scaledFont = UIFontMetrics(forTextStyle: .body).scaledFont(for: baseFont)
-        let attributes: [NSAttributedString.Key: Any] = [.font: scaledFont]
-        let width = (completionTitle as NSString).size(withAttributes: attributes).width
-        return width
+        JournalToolbarChipTitleMeasuring.measuredToolbarChipTitleWidth(for: completionTitle)
     }
 
     private var completionTitle: String {
