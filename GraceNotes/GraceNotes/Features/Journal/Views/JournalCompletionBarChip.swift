@@ -44,13 +44,6 @@ struct JournalCompletionBarChip: View {
         showsCompletionTitle ? toolbarControlHeight : collapsedChipHeight
     }
 
-    private var titleRevealAnimation: Animation {
-        if reduceMotion {
-            return .easeInOut(duration: 0.18)
-        }
-        return .easeInOut(duration: 0.26)
-    }
-
     var body: some View {
         Button {
             if suppressNextCollapseExpandTap {
@@ -89,7 +82,7 @@ struct JournalCompletionBarChip: View {
                                 "w": String(format: "%.2f", size.width),
                                 "h": String(format: "%.2f", size.height),
                                 "expanded": "\(showsCompletionTitle)",
-                                "layout": "pinnedW_collapsed_minMax"
+                                "layout": "pinnedW_sharedMorphOpacity"
                             ]
                         )
                     }
@@ -149,8 +142,9 @@ struct JournalCompletionBarChip: View {
                 .minimumScaleFactor(toolbarCompletionTitleMinimumScaleFactor)
                 .frame(maxWidth: showsCompletionTitle ? Self.expandedTitleMaxWidth : 0, alignment: .leading)
                 .clipped()
+                // Inherit ``JournalScreenLayout/stickyChipMorphAnimation`` from ``withAnimation`` on expand/collapse
+                // so expansion matches retraction (separate title curve caused a “different” expand).
                 .opacity(showsCompletionTitle ? 1 : 0)
-                .animation(titleRevealAnimation, value: showsCompletionTitle)
                 .accessibilityHidden(true)
                 .allowsHitTesting(showsCompletionTitle)
             if !showsCompletionTitle {
@@ -241,7 +235,7 @@ enum StickyChipAgentDebug {
     static func log(hypothesisId: String, location: String, message: String, data: [String: String] = [:]) {
         let payload: [String: Any] = [
             "sessionId": "6cf017",
-            "runId": "anchor-v2",
+            "runId": "symmetric-morph-v1",
             "hypothesisId": hypothesisId,
             "location": location,
             "message": message,
