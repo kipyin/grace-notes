@@ -3859,6 +3859,38 @@
         }
       }
     },
+    "accessibility.stickyCompletionChipHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap to show or hide the status label. Touch and hold for what this status means."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "轻点可显示或隐藏状态标签。按住可了解此状态的含义。"
+          }
+        }
+      }
+    },
+    "accessibility.stickyCompletionChipShowDetailsAction": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explain status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "说明状态"
+          }
+        }
+      }
+    },
     "common.skip": {
       "localizations": {
         "en": {

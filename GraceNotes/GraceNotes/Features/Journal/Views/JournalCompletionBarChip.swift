@@ -9,6 +9,7 @@ struct JournalCompletionBarChip: View {
     /// Sticky chip stays one line; cap text scaling at the largest standard Dynamic Type (not accessibility buckets).
     private static let toolbarChipDynamicTypeRange = DynamicTypeSize.xSmall ... DynamicTypeSize.xxxLarge
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.locale) private var locale
     @Environment(\.todayJournalPalette) private var palette
@@ -20,15 +21,28 @@ struct JournalCompletionBarChip: View {
     let gratitudesCount: Int
     let needsCount: Int
     let peopleCount: Int
-    let onTap: () -> Void
+    /// When `false`, show only the tier symbol (toolbar stays compact).
+    let showsCompletionTitle: Bool
+    let onCollapseExpandTap: () -> Void
+    let onShowCompletionInfo: () -> Void
 
     /// Matches the trailing share symbol row (Outfit 17pt headline scale).
     @ScaledMetric(relativeTo: .headline) private var tierIconLength: CGFloat = 24
 
+    /// After a long-press succeeds, UIKit may still deliver the `Button` action on finger-up; skip one cycle.
+    @State private var suppressNextCollapseExpandTap = false
+
     var body: some View {
-        Button(action: onTap) {
+        Button {
+            if suppressNextCollapseExpandTap {
+                suppressNextCollapseExpandTap = false
+                return
+            }
+            onCollapseExpandTap()
+        } label: {
             labelCore
-                .padding(.horizontal, 14)
+                .padding(.horizontal, showsCompletionTitle ? 14 : 10)
+                .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: showsCompletionTitle)
                 .frame(minHeight: toolbarControlHeight, maxHeight: toolbarControlHeight)
                 .background {
                     chipCapsuleBackground
@@ -38,8 +52,17 @@ struct JournalCompletionBarChip: View {
         .buttonStyle(.plain)
         .dynamicTypeSize(Self.toolbarChipDynamicTypeRange)
         .fixedSize(horizontal: true, vertical: true)
+        .simultaneousGesture(
+            LongPressGesture(minimumDuration: 0.45).onEnded { _ in
+                suppressNextCollapseExpandTap = true
+                onShowCompletionInfo()
+            }
+        )
         .accessibilityLabel(accessibilityLabelText)
-        .accessibilityHint(String(localized: "accessibility.journalStatusMeaningHint"))
+        .accessibilityHint(String(localized: "accessibility.stickyCompletionChipHint"))
+        .accessibilityAction(named: String(localized: "accessibility.stickyCompletionChipShowDetailsAction")) {
+            onShowCompletionInfo()
+        }
     }
 
     @ViewBuilder
@@ -73,10 +96,12 @@ struct JournalCompletionBarChip: View {
                 .scaledToFit()
                 .frame(width: tierIconLength, height: tierIconLength)
                 .accessibilityHidden(true)
-            Text(completionTitle)
-                .font(AppTheme.warmPaperToolbarChipTitle)
-                .lineLimit(1)
-                .minimumScaleFactor(toolbarCompletionTitleMinimumScaleFactor)
+            if showsCompletionTitle {
+                Text(completionTitle)
+                    .font(AppTheme.warmPaperToolbarChipTitle)
+                    .lineLimit(1)
+                    .minimumScaleFactor(toolbarCompletionTitleMinimumScaleFactor)
+            }
         }
         .foregroundStyle(labelColor)
         .frame(maxHeight: .infinity)

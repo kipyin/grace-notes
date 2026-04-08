@@ -18,6 +18,8 @@ private enum JournalScreenLayout {
     /// Toolbar chip opacity fade; inline header badge stays hidden until this elapses after hiding the chip
     /// so the two controls do not animate as one “moving down” illusion.
     static let stickyToolbarChipFadeDurationSeconds: TimeInterval = 0.28
+    /// After the sticky completion chip expands, collapse back to icon-only when idle this long.
+    static let stickyCompletionChipAutoCollapseSeconds: TimeInterval = 3
 }
 
 private struct JournalScrollOffsetPreferenceKey: PreferenceKey {
@@ -195,6 +197,9 @@ struct JournalScreen: View {
     @State private var journalScrollOffsetY: CGFloat = 0
     /// Sticky toolbar chip: iOS 18+ uses ``onScrollGeometryChange``; iOS 17 uses header scroll ``minY`` preference.
     @State private var stickyCompletionRevealedByScroll = false
+    @State private var stickyCompletionChipLabelExpanded = false
+    @State private var stickyCompletionChipCollapseTask: Task<Void, Never>?
+    @State private var stickyChipExpansionScrollBaselineY: CGFloat?
     /// After the sticky chip fades out, the inline header pill may show (see ``applyStickyCompletionRevealed``).
     @State private var inlineBadgeUnlockedAfterStickyFade = true
     @State private var inlineStickyFadeUnlockTask: Task<Void, Never>?
@@ -260,7 +265,15 @@ struct JournalScreen: View {
             gratitudesCount: viewModel.gratitudes.count,
             needsCount: viewModel.needs.count,
             peopleCount: viewModel.people.count,
-            onTap: {
+            showsCompletionTitle: stickyCompletionChipLabelExpanded,
+            onCollapseExpandTap: {
+                if stickyCompletionChipLabelExpanded {
+                    collapseStickyCompletionChipLabel()
+                } else {
+                    expandStickyCompletionChipLabel()
+                }
+            },
+            onShowCompletionInfo: {
                 let badge = CompletionBadgeInfo.matching(viewModel.completionLevel)
                 completionInfoPresentation.completionBadgeTapped(badge, reduceMotion: reduceMotion)
                 if completionInfoPresentation.isInfoCardPresented {
@@ -433,6 +446,10 @@ struct JournalScreen: View {
     private func applyStickyCompletionRevealed(_ revealed: Bool) {
         guard stickyCompletionRevealedByScroll != revealed else { return }
 
+        if !revealed {
+            collapseStickyCompletionChipLabel()
+        }
+
         inlineStickyFadeUnlockTask?.cancel()
         inlineStickyFadeUnlockTask = nil
 
@@ -470,6 +487,34 @@ struct JournalScreen: View {
             scrollRevealThreshold: JournalScreenLayout.stickyCompletionBarScrollRevealPoints
         )
         applyStickyCompletionRevealed(revealed)
+    }
+
+    private func cancelStickyCompletionChipCollapseTask() {
+        stickyCompletionChipCollapseTask?.cancel()
+        stickyCompletionChipCollapseTask = nil
+    }
+
+    private func scheduleStickyCompletionChipAutoCollapse() {
+        cancelStickyCompletionChipCollapseTask()
+        let seconds = JournalScreenLayout.stickyCompletionChipAutoCollapseSeconds
+        stickyCompletionChipCollapseTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(seconds))
+            guard !Task.isCancelled else { return }
+            stickyCompletionChipLabelExpanded = false
+            stickyCompletionChipCollapseTask = nil
+        }
+    }
+
+    private func expandStickyCompletionChipLabel() {
+        stickyCompletionChipLabelExpanded = true
+        stickyChipExpansionScrollBaselineY = journalScrollOffsetY
+        scheduleStickyCompletionChipAutoCollapse()
+    }
+
+    private func collapseStickyCompletionChipLabel() {
+        cancelStickyCompletionChipCollapseTask()
+        stickyCompletionChipLabelExpanded = false
+        stickyChipExpansionScrollBaselineY = nil
     }
 
     @ViewBuilder
@@ -643,12 +688,7 @@ private extension JournalScreen {
             dismissUnlockToastIfNeeded()
         }
         .onPreferenceChange(JournalScrollOffsetPreferenceKey.self) { offsetY in
-            journalScrollOffsetY = offsetY
-            if unlockToastLevel != nil, let baseline = unlockToastScrollBaseline {
-                if abs(offsetY - baseline) > JournalScreenLayout.unlockToastScrollDismissThreshold {
-                    dismissUnlockToastIfNeeded()
-                }
-            }
+            journalScrollOffsetPreferenceChanged(offsetY)
         }
         .onPreferenceChange(JournalHeaderScrollMinYPreferenceKey.self) { headerMinY in
             if #available(iOS 18, *) { return }
@@ -656,6 +696,21 @@ private extension JournalScreen {
         }
         .onChange(of: completionHeaderScrollPulse) { _, _ in
             scrollJournalCompletionHeaderToTop(using: proxy)
+        }
+    }
+
+    func journalScrollOffsetPreferenceChanged(_ offsetY: CGFloat) {
+        journalScrollOffsetY = offsetY
+        if stickyCompletionChipLabelExpanded, let baseline = stickyChipExpansionScrollBaselineY {
+            if abs(offsetY - baseline) > JournalScreenLayout.unlockToastScrollDismissThreshold {
+                stickyChipExpansionScrollBaselineY = offsetY
+                scheduleStickyCompletionChipAutoCollapse()
+            }
+        }
+        if unlockToastLevel != nil, let baseline = unlockToastScrollBaseline {
+            if abs(offsetY - baseline) > JournalScreenLayout.unlockToastScrollDismissThreshold {
+                dismissUnlockToastIfNeeded()
+            }
         }
     }
 
