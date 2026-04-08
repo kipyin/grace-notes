@@ -188,6 +188,23 @@ enum JournalKeyboardScrollCoordinator {
         return oldOverlap == 0 || newOverlap == 0 || jitter >= keyboardOverlapJitterEpsilon
     }
 
+    static func scrollAnchor(
+        for reason: JournalKeyboardScrollReason,
+        scrollTarget: JournalScrollTarget
+    ) -> UnitPoint {
+        switch reason {
+        case .focusChanged:
+            switch scrollTarget {
+            case .gratitudeSection, .needInputArea, .peopleInputArea:
+                return .center
+            case .completionHeader, .sentenceSections, .readingNotes, .reflections:
+                return .bottom
+            }
+        case .keyboardDidChangeFrame, .typing, .newlineAdded:
+            return .bottom
+        }
+    }
+
     @MainActor
     static func scheduleScrollAdjust(
         request: JournalKeyboardScrollRequest,
@@ -201,9 +218,9 @@ enum JournalKeyboardScrollCoordinator {
         } else {
             animation = request.reduceMotion ? nil : .easeOut(duration: 0.25)
         }
-        let anchor = UnitPoint.bottom
-        let domain = JournalKeyboardScrollDomain.domain(for: request.scrollTarget)
         let scrollTarget = request.scrollTarget
+        let anchor = scrollAnchor(for: request.reason, scrollTarget: scrollTarget)
+        let domain = JournalKeyboardScrollDomain.domain(for: scrollTarget)
         let keyboardOverlap = request.keyboardOverlapHeight
         let appTourShowing = request.showAppTour
         let proxy = request.proxy

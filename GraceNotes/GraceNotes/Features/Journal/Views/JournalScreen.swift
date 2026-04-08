@@ -511,6 +511,18 @@ struct JournalScreen: View {
                 guard isFocused else { return }
                 scheduleJournalKeyboardScroll(proxy: proxy, reason: .focusChanged(.reflections))
             }
+            .onChange(of: isGratitudeInputFocused) { _, isFocused in
+                guard isFocused else { return }
+                scheduleJournalKeyboardScroll(proxy: proxy, reason: .focusChanged(.gratitudeSection))
+            }
+            .onChange(of: isNeedInputFocused) { _, isFocused in
+                guard isFocused else { return }
+                scheduleJournalKeyboardScroll(proxy: proxy, reason: .focusChanged(.needInputArea))
+            }
+            .onChange(of: isPersonInputFocused) { _, isFocused in
+                guard isFocused else { return }
+                scheduleJournalKeyboardScroll(proxy: proxy, reason: .focusChanged(.peopleInputArea))
+            }
             .overlay {
                 GeometryReader { geo in
                     Color.clear.preference(
@@ -523,7 +535,7 @@ struct JournalScreen: View {
             .onPreferenceChange(JournalScrollBottomSafeAreaPreferenceKey.self) { inset in
                 journalScrollBottomSafeArea = inset
             }
-            .scrollDismissesKeyboard(.immediately)
+            .scrollDismissesKeyboard(.interactively)
             .scrollContentBackground(.hidden)
             .background(todayPalette.background.ignoresSafeArea(edges: [.top, .bottom]))
     }
