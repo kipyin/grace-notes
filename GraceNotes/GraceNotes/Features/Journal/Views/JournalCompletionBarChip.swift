@@ -7,6 +7,7 @@ import SwiftUI
 /// tier-aware shadow stack so the chip reads clearly above the bar.
 struct JournalCompletionBarChip: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
     @Environment(\.todayJournalPalette) private var palette
 
@@ -24,17 +25,29 @@ struct JournalCompletionBarChip: View {
 
     var body: some View {
         Button(action: onTap) {
-            labelCore
-                .padding(.horizontal, 14)
-                .frame(minHeight: toolbarControlHeight, maxHeight: toolbarControlHeight)
-                .background {
-                    chipCapsuleBackground
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    labelCore
+                        .padding(.horizontal, 14)
+                        .frame(minHeight: toolbarControlHeight)
+                        .background {
+                            chipCapsuleBackground
+                        }
+                        .contentShape(Capsule(style: .continuous))
+                } else {
+                    labelCore
+                        .padding(.horizontal, 14)
+                        .frame(minHeight: toolbarControlHeight, maxHeight: toolbarControlHeight)
+                        .background {
+                            chipCapsuleBackground
+                        }
+                        .contentShape(Capsule(style: .continuous))
                 }
-                .contentShape(Capsule(style: .continuous))
+            }
         }
         .buttonStyle(.plain)
-        // Keep the bar from vertically compressing this control (matches trailing symbol row height).
-        .fixedSize(horizontal: true, vertical: true)
+        // At default sizes, pin ideal width to the share row; at accessibility sizes, allow wrapping.
+        .fixedSize(horizontal: !dynamicTypeSize.isAccessibilitySize, vertical: true)
         .accessibilityLabel(accessibilityLabelText)
         .accessibilityHint(String(localized: "accessibility.journalStatusMeaningHint"))
     }
@@ -72,7 +85,8 @@ struct JournalCompletionBarChip: View {
                 .accessibilityHidden(true)
             Text(completionTitle)
                 .font(AppTheme.warmPaperToolbarChipTitle)
-                .lineLimit(1)
+                .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
+                .multilineTextAlignment(.leading)
                 .minimumScaleFactor(toolbarCompletionTitleMinimumScaleFactor)
         }
         .foregroundStyle(labelColor)

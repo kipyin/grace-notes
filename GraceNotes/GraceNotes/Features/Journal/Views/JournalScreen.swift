@@ -660,30 +660,39 @@ private extension JournalScreen {
     @ViewBuilder
     private func journalTodayHeaderGroup(isInlineCompletionBadgeHidden: Bool) -> some View {
         Group {
-            DateSectionView(
-                completionInfo: completionInfoPresentation,
-                completionInfoMorphNamespace: completionInfoMorphNamespace,
-                isInlineCompletionBadgeHidden: isInlineCompletionBadgeHidden,
-                completionLevel: viewModel.completionLevel,
-                celebratingLevel: celebratingLevel,
-                gratitudesCount: viewModel.gratitudes.count,
-                needsCount: viewModel.needs.count,
-                peopleCount: viewModel.people.count
-            )
-            .background {
-                GeometryReader { geo in
-                    Color.clear.preference(
-                        key: JournalHeaderScrollMinYPreferenceKey.self,
-                        value: geo.frame(
-                            in: .named(JournalScreenLayout.journalScrollCoordinateSpaceName)
-                        ).minY
-                    )
-                }
+            if #available(iOS 18, *) {
+                journalCompletionDateSection(isInlineCompletionBadgeHidden: isInlineCompletionBadgeHidden)
+                    .id(JournalScrollTarget.completionHeader)
+            } else {
+                journalCompletionDateSection(isInlineCompletionBadgeHidden: isInlineCompletionBadgeHidden)
+                    .background {
+                        GeometryReader { geo in
+                            Color.clear.preference(
+                                key: JournalHeaderScrollMinYPreferenceKey.self,
+                                value: geo.frame(
+                                    in: .named(JournalScreenLayout.journalScrollCoordinateSpaceName)
+                                ).minY
+                            )
+                        }
+                    }
+                    .id(JournalScrollTarget.completionHeader)
             }
-            .id(JournalScrollTarget.completionHeader)
 
             journalOnboardingSuggestionIfNeeded
         }
+    }
+
+    private func journalCompletionDateSection(isInlineCompletionBadgeHidden: Bool) -> some View {
+        DateSectionView(
+            completionInfo: completionInfoPresentation,
+            completionInfoMorphNamespace: completionInfoMorphNamespace,
+            isInlineCompletionBadgeHidden: isInlineCompletionBadgeHidden,
+            completionLevel: viewModel.completionLevel,
+            celebratingLevel: celebratingLevel,
+            gratitudesCount: viewModel.gratitudes.count,
+            needsCount: viewModel.needs.count,
+            peopleCount: viewModel.people.count
+        )
     }
 
     var effectiveTodayAppearance: JournalAppearanceMode {
