@@ -74,6 +74,8 @@ brew install swiftlint
 
 **Handoffs:** Put anything the next person needs in the **PR** or **linked issue** (description or comments). This repo does not use a separate handoff folder.
 
+**Agent memory:** Skim [`MEMORY.md`](MEMORY.md) for **short, distilled** human decisions and preferences before redoing risky UI or “obvious” fixes. When the human gives a **durable** correction or product call, add **one terse line** there (see file header). Keeps context small; does not replace PR/issue discussion for load-bearing detail.
+
 ## Role index (optional specialists)
 
 Behavior for each role lives in `.agents/skills/`. Shared vocabulary and quality expectations: `.agents/skills/roles-index/SKILL.md`.
