@@ -1071,6 +1071,38 @@ class CLISurfaceTest(unittest.TestCase):
                 )
         self.assertEqual(argv, ["xcodebuild", "-quiet", "build"])
 
+    def test_dry_run_skips_subprocess_for_run(self) -> None:
+        argv = ["echo", "hello"]
+        calls: list[list[str]] = []
+
+        def fake_run(cmd: object, **kwargs: object) -> subprocess.CompletedProcess[str]:
+            calls.append(list(cmd))  # type: ignore[arg-type]
+            return subprocess.run(cmd, **kwargs)  # type: ignore[arg-type]
+
+        with mock.patch.object(subprocess, "run", side_effect=fake_run):
+            completed = cli_core._run(argv, cwd=Path("/tmp"), dry_run=True)
+
+        self.assertEqual(calls, [])
+        self.assertEqual(completed.returncode, 0)
+        self.assertEqual(completed.stdout, "")
+        self.assertEqual(completed.stderr, "")
+
+    def test_dry_run_skips_subprocess_for_run_capture(self) -> None:
+        argv = ["echo", "capture"]
+        calls: list[list[str]] = []
+
+        def fake_run(cmd: object, **kwargs: object) -> subprocess.CompletedProcess[str]:
+            calls.append(list(cmd))  # type: ignore[arg-type]
+            return subprocess.run(cmd, **kwargs)  # type: ignore[arg-type]
+
+        with mock.patch.object(subprocess, "run", side_effect=fake_run):
+            completed = cli_core._run_capture(argv, cwd=Path("/tmp"), dry_run=True)
+
+        self.assertEqual(calls, [])
+        self.assertEqual(completed.returncode, 0)
+        self.assertEqual(completed.stdout, "")
+        self.assertEqual(completed.stderr, "")
+
     def test_config_set_updates_value_in_toml(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)

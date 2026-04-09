@@ -580,8 +580,17 @@ def _run(
     check: bool = True,
     verbose: bool = False,
     silent: bool = False,
+    dry_run: bool = False,
 ) -> subprocess.CompletedProcess[str]:
     prepared_argv = _prepare_xcodebuild_argv(argv, verbose=verbose, silent=silent)
+    if dry_run:
+        _stdout_console().print(f"DRY-RUN: {shlex.join(prepared_argv)}")
+        return subprocess.CompletedProcess(
+            args=prepared_argv,
+            returncode=0,
+            stdout="",
+            stderr="",
+        )
     use_capture = silent
     try:
         if use_capture:
@@ -615,8 +624,17 @@ def _run_capture(
     check: bool = True,
     verbose: bool = False,
     silent: bool = False,
+    dry_run: bool = False,
 ) -> subprocess.CompletedProcess[str]:
     prepared_argv = _prepare_xcodebuild_argv(argv, verbose=verbose, silent=silent)
+    if dry_run:
+        _stdout_console().print(f"DRY-RUN: {shlex.join(prepared_argv)}")
+        return subprocess.CompletedProcess(
+            args=prepared_argv,
+            returncode=0,
+            stdout="",
+            stderr="",
+        )
     try:
         completed = subprocess.run(
             prepared_argv,
