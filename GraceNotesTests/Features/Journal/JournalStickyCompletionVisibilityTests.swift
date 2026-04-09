@@ -7,70 +7,150 @@ final class JournalStickyCompletionVisibilityTests: XCTestCase {
 
     // MARK: - iOS 17 header minY in scroll space
 
-    func test_barIndicatorHidden_whenHeaderMinYAtZero() {
+    func test_headerMinY_notRevealed_staysHiddenUntilEngagePadding() {
         XCTAssertFalse(
             JournalStickyCompletionVisibility.shouldShowBarIndicator(
                 headerMinYInScrollSpace: 0,
-                scrollRevealThreshold: threshold
+                scrollRevealThreshold: threshold,
+                currentlyRevealed: false
+            )
+        )
+        XCTAssertFalse(
+            JournalStickyCompletionVisibility.shouldShowBarIndicator(
+                headerMinYInScrollSpace: -5,
+                scrollRevealThreshold: threshold,
+                currentlyRevealed: false
+            )
+        )
+        XCTAssertTrue(
+            JournalStickyCompletionVisibility.shouldShowBarIndicator(
+                headerMinYInScrollSpace: -13,
+                scrollRevealThreshold: threshold,
+                currentlyRevealed: false
             )
         )
     }
 
-    func test_barIndicatorVisible_whenHeaderMinYNegative() {
+    func test_headerMinY_revealed_hysteresisRelease() {
         XCTAssertTrue(
             JournalStickyCompletionVisibility.shouldShowBarIndicator(
-                headerMinYInScrollSpace: -4,
-                scrollRevealThreshold: threshold
+                headerMinYInScrollSpace: -5,
+                scrollRevealThreshold: threshold,
+                currentlyRevealed: true
+            )
+        )
+        XCTAssertFalse(
+            JournalStickyCompletionVisibility.shouldShowBarIndicator(
+                headerMinYInScrollSpace: -2,
+                scrollRevealThreshold: threshold,
+                currentlyRevealed: true
             )
         )
     }
 
     // MARK: - iOS 18+ scroll content offset
 
-    func test_barIndicatorHidden_whenScrollOffsetAtZero() {
+    func test_scrollOffset_notRevealed_staysHiddenUntilEngagePadding() {
         XCTAssertFalse(
             JournalStickyCompletionVisibility.shouldShowBarIndicator(
                 scrollContentOffsetY: 0,
-                scrollRevealThreshold: threshold
+                scrollRevealThreshold: threshold,
+                currentlyRevealed: false
             )
         )
-    }
-
-    func test_barIndicatorVisible_whenScrollOffsetPositive() {
+        XCTAssertFalse(
+            JournalStickyCompletionVisibility.shouldShowBarIndicator(
+                scrollContentOffsetY: 6,
+                scrollRevealThreshold: threshold,
+                currentlyRevealed: false
+            )
+        )
         XCTAssertTrue(
             JournalStickyCompletionVisibility.shouldShowBarIndicator(
-                scrollContentOffsetY: 4,
-                scrollRevealThreshold: threshold
+                scrollContentOffsetY: 13,
+                scrollRevealThreshold: threshold,
+                currentlyRevealed: false
             )
         )
     }
 
-    func test_barIndicator_respectsNonZeroThreshold_forContentOffset() {
+    func test_scrollOffset_revealed_hysteresisRelease() {
+        XCTAssertTrue(
+            JournalStickyCompletionVisibility.shouldShowBarIndicator(
+                scrollContentOffsetY: 8,
+                scrollRevealThreshold: threshold,
+                currentlyRevealed: true
+            )
+        )
         XCTAssertFalse(
             JournalStickyCompletionVisibility.shouldShowBarIndicator(
                 scrollContentOffsetY: 2,
-                scrollRevealThreshold: 4
-            )
-        )
-        XCTAssertTrue(
-            JournalStickyCompletionVisibility.shouldShowBarIndicator(
-                scrollContentOffsetY: 5,
-                scrollRevealThreshold: 4
+                scrollRevealThreshold: threshold,
+                currentlyRevealed: true
             )
         )
     }
 
-    func test_barIndicator_respectsNonZeroThreshold_forHeaderMinY() {
+    func test_scrollOffset_respectsNonZeroThreshold() {
+        let nonZeroThreshold: CGFloat = 4
         XCTAssertFalse(
             JournalStickyCompletionVisibility.shouldShowBarIndicator(
-                headerMinYInScrollSpace: -2,
-                scrollRevealThreshold: 4
+                scrollContentOffsetY: 5,
+                scrollRevealThreshold: nonZeroThreshold,
+                currentlyRevealed: false
             )
         )
         XCTAssertTrue(
             JournalStickyCompletionVisibility.shouldShowBarIndicator(
-                headerMinYInScrollSpace: -5,
-                scrollRevealThreshold: 4
+                scrollContentOffsetY: 17,
+                scrollRevealThreshold: nonZeroThreshold,
+                currentlyRevealed: false
+            )
+        )
+        XCTAssertTrue(
+            JournalStickyCompletionVisibility.shouldShowBarIndicator(
+                scrollContentOffsetY: 8,
+                scrollRevealThreshold: nonZeroThreshold,
+                currentlyRevealed: true
+            )
+        )
+        XCTAssertFalse(
+            JournalStickyCompletionVisibility.shouldShowBarIndicator(
+                scrollContentOffsetY: 6,
+                scrollRevealThreshold: nonZeroThreshold,
+                currentlyRevealed: true
+            )
+        )
+    }
+
+    func test_headerMinY_respectsNonZeroThreshold() {
+        let nonZeroThreshold: CGFloat = 4
+        XCTAssertFalse(
+            JournalStickyCompletionVisibility.shouldShowBarIndicator(
+                headerMinYInScrollSpace: -10,
+                scrollRevealThreshold: nonZeroThreshold,
+                currentlyRevealed: false
+            )
+        )
+        XCTAssertTrue(
+            JournalStickyCompletionVisibility.shouldShowBarIndicator(
+                headerMinYInScrollSpace: -17,
+                scrollRevealThreshold: nonZeroThreshold,
+                currentlyRevealed: false
+            )
+        )
+        XCTAssertTrue(
+            JournalStickyCompletionVisibility.shouldShowBarIndicator(
+                headerMinYInScrollSpace: -8,
+                scrollRevealThreshold: nonZeroThreshold,
+                currentlyRevealed: true
+            )
+        )
+        XCTAssertFalse(
+            JournalStickyCompletionVisibility.shouldShowBarIndicator(
+                headerMinYInScrollSpace: -6,
+                scrollRevealThreshold: nonZeroThreshold,
+                currentlyRevealed: true
             )
         )
     }

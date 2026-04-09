@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 /// First-time congratulations variant for unlock feedback (issue #60).
 enum JournalUnlockMilestoneHighlight: Equatable {
@@ -94,20 +93,13 @@ struct JournalUnlockFeedbackSurface: View {
 
     @ViewBuilder
     private var background: some View {
-        if reduceTransparency {
-            ribbonSolidFill
-        } else {
-            RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .background(
-                    RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium, style: .continuous)
-                        .fill(ribbonSolidFill.opacity(0.88))
-                )
-        }
-    }
-
-    private var ribbonSolidFill: Color {
-        palette.ambientEditingBackground
+        // Warm paper tokens only (no system Materials)—matches journal section chrome and avoids grey bars.
+        RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium, style: .continuous)
+            .fill(
+                reduceTransparency
+                    ? palette.paper
+                    : palette.paper.opacity(palette.sectionPaperOpacity)
+            )
     }
 
     private var borderTint: Color {

@@ -12,6 +12,8 @@ import Combine
 private enum JournalScreenLayout {
     static let journalScrollCoordinateSpaceName = "journalMainScroll"
     static let unlockToastScrollDismissThreshold: CGFloat = 20
+    /// Unlock feedback ribbon / toolbar banner auto-dismiss after present.
+    static let unlockFeedbackAutoDismissSeconds: TimeInterval = 5
     /// Reveal toolbar chip when scroll passes this threshold: iOS 18+ uses `contentOffset.y` **>** this;
     /// iOS 17 uses completion-header scroll-space `minY` **<** `-this`.
     static let stickyCompletionBarScrollRevealPoints: CGFloat = 0
@@ -215,6 +217,7 @@ struct JournalScreen: View {
     @State private var inlineBadgeUnlockedAfterStickyFade = true
     @State private var inlineStickyFadeUnlockTask: Task<Void, Never>?
     @State private var unlockToastScrollBaseline: CGFloat?
+    @State private var unlockFeedbackAutoDismissTask: Task<Void, Never>?
     /// UIKit keyboard overlap with the key window; drives extra scroll padding and scroll-to-visible.
     @State private var keyboardOverlapHeight: CGFloat = 0
     /// Bottom safe area of the scroll view (tab bar / home indicator; may track keyboard when visible).
@@ -421,6 +424,7 @@ struct JournalScreen: View {
             .onDisappear {
                 statusCelebrationDismissTask?.cancel()
                 inlineStickyFadeUnlockTask?.cancel()
+                unlockFeedbackAutoDismissTask?.cancel()
             }
             .onChange(of: onboardingPresentation.step) { _, newStep in
                 focusOnboardingStepIfNeeded(newStep)
@@ -472,7 +476,8 @@ struct JournalScreen: View {
             .onScrollGeometryChange(for: Bool.self) { geo in
                 JournalStickyCompletionVisibility.shouldShowBarIndicator(
                     scrollContentOffsetY: geo.contentOffset.y,
-                    scrollRevealThreshold: JournalScreenLayout.stickyCompletionBarScrollRevealPoints
+                    scrollRevealThreshold: JournalScreenLayout.stickyCompletionBarScrollRevealPoints,
+                    currentlyRevealed: stickyCompletionRevealedByScroll
                 )
             } action: { _, pastThreshold in
                 applyStickyCompletionRevealed(pastThreshold)
@@ -536,7 +541,8 @@ struct JournalScreen: View {
     private func applyStickyCompletionFromHeaderScrollMinY(_ minY: CGFloat) {
         let revealed = JournalStickyCompletionVisibility.shouldShowBarIndicator(
             headerMinYInScrollSpace: minY,
-            scrollRevealThreshold: JournalScreenLayout.stickyCompletionBarScrollRevealPoints
+            scrollRevealThreshold: JournalScreenLayout.stickyCompletionBarScrollRevealPoints,
+            currentlyRevealed: stickyCompletionRevealedByScroll
         )
         applyStickyCompletionRevealed(revealed)
     }
@@ -822,6 +828,7 @@ private extension JournalScreen {
             journalUnlockHeaderRibbonIfNeeded()
 
             journalOnboardingSuggestionIfNeeded
+                .padding(.top, AppTheme.todaySectionSpacing)
         }
     }
 
@@ -1401,6 +1408,8 @@ private extension JournalScreen {
 
     private func dismissUnlockToastAndCelebrationForRankDown() {
         statusCelebrationDismissTask?.cancel()
+        unlockFeedbackAutoDismissTask?.cancel()
+        unlockFeedbackAutoDismissTask = nil
         celebratingLevel = nil
         let dismissingLevel = unlockToastLevel
         let fallbackExit = Animation.easeOut(duration: 0.16)
@@ -1937,11 +1946,25 @@ private extension JournalScreen {
         for level: JournalCompletionLevel,
         milestoneHighlight: JournalUnlockMilestoneHighlight
     ) {
+        unlockFeedbackAutoDismissTask?.cancel()
+        unlockFeedbackAutoDismissTask = nil
+
         let entrance = reduceMotion ? nil : AppTheme.unlockToastEntranceAnimation(for: level)
         withAnimation(entrance) {
             unlockToastLevel = level
             unlockToastMilestone = milestoneHighlight
             unlockToastScrollBaseline = journalScrollOffsetY
+        }
+
+        let dismissAfter = JournalScreenLayout.unlockFeedbackAutoDismissSeconds
+        unlockFeedbackAutoDismissTask = Task { @MainActor in
+            do {
+                try await Task.sleep(for: .seconds(dismissAfter))
+            } catch {
+                return
+            }
+            guard !Task.isCancelled else { return }
+            dismissUnlockToastIfNeeded()
         }
     }
 
@@ -1951,6 +1974,8 @@ private extension JournalScreen {
     }
 
     func dismissUnlockToast() {
+        unlockFeedbackAutoDismissTask?.cancel()
+        unlockFeedbackAutoDismissTask = nil
         guard let level = unlockToastLevel else { return }
         let exit = reduceMotion ? nil : AppTheme.unlockToastExitAnimation(for: level)
         withAnimation(exit) {

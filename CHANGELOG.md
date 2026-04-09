@@ -5,6 +5,7 @@
 ### Changed
 
 - **Journal (Today):** Completion unlock feedback uses the same **high-contrast card** in the **header** (inline pill visible) and **below the navigation bar** when the **sticky toolbar** completion chip is showing, with an **opacity crossfade** when scrolling switches between the two. The old **bottom** unlock toast is removed. Refs **#225**.
+- **Journal (Today):** Sticky completion chip uses **scroll hysteresis** so unlock placement does not **oscillate** at the reveal threshold; unlock card fill uses **warm paper palette** only (no system grey Materials). Refs **#225**.
 - **Share card:** Three distinct typographic presets — Grace Notes default (Playfair + Source Serif 4), **Editorial** (Outfit + IBM Plex Serif), **Embellished** (Spectral on the sunrise gradient). Watermark uses the warm paper meta font for a consistent footer; stubs use each style’s meta font. Section include/exclude uses subtle **plus** / **xmark** (44pt target). Sunrise preset text ink slightly darkened for contrast on the gradient. Bundled **IBM Plex Serif** and **Spectral** (SIL OFL); license texts alongside fonts under `GraceNotes/GraceNotes/Resources/Fonts/`.
 - **Share:** Composer and manual backup actions use the label **Share** / **分享** (no ellipsis). Share card preview places the completion badge on the **same row** as the date, **trailing**-aligned, at a **larger** scale for balance with section titles; sunrise accent rule stays below that row.
 
