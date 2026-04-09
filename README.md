@@ -35,7 +35,7 @@ Grace Notes is lightweight, private by default, and still powerful enough to sur
 
 ## Release notes
 
-Version history, per-build notes, and git tag shape (**`v{marketing}+{build}`**, e.g. **`v0.5.0+9`**) are maintained in [CHANGELOG.md](CHANGELOG.md).
+Version history, per-build notes, and git tag shape (**`v{marketing}+{build}`**, e.g. **`v0.5.0+10`**) are maintained in [CHANGELOG.md](CHANGELOG.md).
 
 ### Roadmap
 
