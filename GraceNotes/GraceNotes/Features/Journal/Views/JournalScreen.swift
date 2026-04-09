@@ -342,6 +342,31 @@ struct JournalScreen: View {
             }
             journalScrollContent
         }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            journalUnlockToolbarBannerIfNeeded
+        }
+    }
+
+    @ViewBuilder
+    private var journalUnlockToolbarBannerIfNeeded: some View {
+        if journalUnlockFeedbackPlacement == .toolbarBanner,
+           let level = unlockToastLevel {
+            Button {
+                dismissUnlockToastIfNeeded()
+            } label: {
+                JournalUnlockFeedbackSurface(
+                    level: level,
+                    milestoneHighlight: unlockToastMilestone
+                )
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, AppTheme.todayHorizontalPadding)
+            .accessibilityLabel(
+                JournalUnlockFeedbackMessage.message(for: level, milestone: unlockToastMilestone)
+            )
+            .accessibilityHint(String(localized: "common.dismiss"))
+            .transition(.opacity)
+        }
     }
 
     var body: some View {
@@ -481,7 +506,22 @@ struct JournalScreen: View {
             inlineBadgeUnlockedAfterStickyFade = false
         }
 
-        stickyCompletionRevealedByScroll = revealed
+        let shouldAnimateUnlockPlacementCrossfade = unlockToastLevel != nil
+            && JournalUnlockFeedbackPlacement.resolve(
+                isUnlockPresent: true,
+                stickyCompletionRevealed: stickyCompletionRevealedByScroll
+            ) != JournalUnlockFeedbackPlacement.resolve(
+                isUnlockPresent: true,
+                stickyCompletionRevealed: revealed
+            )
+
+        if shouldAnimateUnlockPlacementCrossfade {
+            withAnimation(unlockFeedbackPlacementAnimation) {
+                stickyCompletionRevealedByScroll = revealed
+            }
+        } else {
+            stickyCompletionRevealedByScroll = revealed
+        }
 
         if !revealed {
             let nanos = UInt64(fadeDuration * 1_000_000_000)
@@ -663,6 +703,20 @@ private extension JournalScreen {
         stickyCompletionRevealedByScroll
     }
 
+    var journalUnlockFeedbackPlacement: JournalUnlockFeedbackPlacement {
+        JournalUnlockFeedbackPlacement.resolve(
+            isUnlockPresent: unlockToastLevel != nil,
+            stickyCompletionRevealed: showStickyJournalCompletionBar
+        )
+    }
+
+    /// Fades unlock feedback when moving between the in-page ribbon and the toolbar inset.
+    var unlockFeedbackPlacementAnimation: Animation {
+        reduceMotion
+            ? .easeInOut(duration: 0.18)
+            : .easeInOut(duration: 0.25)
+    }
+
     /// Hidden while the sticky chip shows and briefly after it fades so two badges never overlap in motion.
     var isInlineBadgeHiddenDuringStickyFade: Bool {
         stickyCompletionRevealedByScroll || !inlineBadgeUnlockedAfterStickyFade
@@ -725,7 +779,9 @@ private extension JournalScreen {
                 scheduleStickyCompletionChipAutoCollapse()
             }
         }
-        if unlockToastLevel != nil, let baseline = unlockToastScrollBaseline {
+        if unlockToastLevel != nil,
+           !showStickyJournalCompletionBar,
+           let baseline = unlockToastScrollBaseline {
             if abs(offsetY - baseline) > JournalScreenLayout.unlockToastScrollDismissThreshold {
                 dismissUnlockToastIfNeeded()
             }
@@ -744,7 +800,7 @@ private extension JournalScreen {
 
     @ViewBuilder
     private func journalTodayHeaderGroup(isInlineCompletionBadgeHidden: Bool) -> some View {
-        Group {
+        VStack(alignment: .leading, spacing: 0) {
             if #available(iOS 18, *) {
                 journalCompletionDateSection(isInlineCompletionBadgeHidden: isInlineCompletionBadgeHidden)
                     .id(JournalScrollTarget.completionHeader)
@@ -763,7 +819,31 @@ private extension JournalScreen {
                     .id(JournalScrollTarget.completionHeader)
             }
 
+            journalUnlockHeaderRibbonIfNeeded()
+
             journalOnboardingSuggestionIfNeeded
+        }
+    }
+
+    @ViewBuilder
+    private func journalUnlockHeaderRibbonIfNeeded() -> some View {
+        if journalUnlockFeedbackPlacement == .headerRibbon,
+           let level = unlockToastLevel {
+            Button {
+                dismissUnlockToastIfNeeded()
+            } label: {
+                JournalUnlockFeedbackSurface(
+                    level: level,
+                    milestoneHighlight: unlockToastMilestone
+                )
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(
+                JournalUnlockFeedbackMessage.message(for: level, milestone: unlockToastMilestone)
+            )
+            .accessibilityHint(String(localized: "common.dismiss"))
+            .transition(.opacity)
+            .padding(.top, AppTheme.spacingTight)
         }
     }
 
@@ -1216,21 +1296,6 @@ private extension JournalScreen {
         VStack(spacing: 0) {
             Spacer(minLength: 0)
             VStack(spacing: AppTheme.spacingTight) {
-                if let toastLevel = unlockToastLevel {
-                    HStack {
-                        Spacer(minLength: 0)
-                        Button {
-                            dismissUnlockToastIfNeeded()
-                        } label: {
-                            JournalUnlockToastView(level: toastLevel, milestoneHighlight: unlockToastMilestone)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityHint(String(localized: "common.dismiss"))
-                        .transition(unlockToastTransition(for: toastLevel))
-                        Spacer(minLength: 0)
-                    }
-                    .padding(.horizontal, AppTheme.todayHorizontalPadding)
-                }
                 if showSavedToPhotosToast {
                     SavedToPhotosToastView()
                 }
@@ -1909,39 +1974,6 @@ private extension JournalScreen {
             return date.formatted(date: .abbreviated, time: .omitted)
         }
         return String(localized: "shell.tab.today")
-    }
-
-    func unlockToastTransition(for level: JournalCompletionLevel) -> AnyTransition {
-        if reduceMotion {
-            return .opacity
-        }
-        switch level {
-        case .soil:
-            return .opacity
-        case .sprout:
-            return .move(edge: .bottom).combined(with: .opacity)
-        case .twig:
-            return .asymmetric(
-                insertion: .move(edge: .bottom)
-                    .combined(with: .opacity)
-                    .combined(with: .scale(scale: 0.97, anchor: .bottom)),
-                removal: .opacity.combined(with: .move(edge: .bottom))
-            )
-        case .leaf:
-            return .asymmetric(
-                insertion: .move(edge: .bottom)
-                    .combined(with: .opacity)
-                    .combined(with: .scale(scale: 0.96, anchor: .bottom)),
-                removal: .opacity.combined(with: .move(edge: .bottom))
-            )
-        case .bloom:
-            return .asymmetric(
-                insertion: .move(edge: .bottom)
-                    .combined(with: .opacity)
-                    .combined(with: .scale(scale: 0.93, anchor: .bottom)),
-                removal: .opacity.combined(with: .move(edge: .bottom))
-            )
-        }
     }
 
     func triggerStatusCelebration(for level: JournalCompletionLevel) {
