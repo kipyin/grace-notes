@@ -863,17 +863,20 @@ class CLISurfaceTest(unittest.TestCase):
                 verbose=False,
             )
 
-        self.assertEqual(len(runs), 2)
+        self.assertEqual(len(runs), 4)
         u_idx = runs[0].index("-parallel-testing-enabled")
         self.assertEqual(runs[0][u_idx + 1], "YES")
         self.assertIn("-only-testing", runs[0])
         ot = runs[0].index("-only-testing")
         self.assertEqual(runs[0][ot + 1], cfg.unit_test_bundle)
 
-        ui_idx = runs[1].index("-parallel-testing-enabled")
-        self.assertEqual(runs[1][ui_idx + 1], "NO")
-        ot_ui = runs[1].index("-only-testing")
-        self.assertEqual(runs[1][ot_ui + 1], cfg.ui_test_bundle)
+        self.assertEqual(runs[1], ["xcrun", "simctl", "shutdown", "all"])
+        self.assertEqual(runs[2], ["xcrun", "simctl", "erase", "all"])
+
+        ui_idx = runs[3].index("-parallel-testing-enabled")
+        self.assertEqual(runs[3][ui_idx + 1], "NO")
+        ot_ui = runs[3].index("-only-testing")
+        self.assertEqual(runs[3][ot_ui + 1], cfg.ui_test_bundle)
 
     def test_run_test_once_kind_all_single_invocation_when_parallel_toggles_match(self) -> None:
         repo_root = Path(__file__).resolve().parents[3]

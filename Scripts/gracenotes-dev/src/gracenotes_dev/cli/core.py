@@ -979,6 +979,7 @@ def _run_test_once(
             isolated_dd=isolated_dd,
             verbose=verbose,
         )
+        _reset_sims(repo_root)
         _run_test_once(
             cfg=cfg,
             repo_root=repo_root,
