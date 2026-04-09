@@ -28,7 +28,9 @@ Configuration lives in the repo root file [`gracenotes-dev.toml`](../../gracenot
 | `grace config list` | Show effective config | `grace config list` |
 | `grace l10n audit` | String catalog vs Swift literals | `grace l10n audit --json` |
 
-Global flags (before the subcommand): `grace --repo-root /path/to/grace-notes …` uses that directory as the start of repo discovery; same via `GRACE_REPO_ROOT`. Use `grace COMMAND --dry-run` (or `--print-command`) on `build`, `clean`, `test`, `run`, and `ci` to print tool argv without executing.
+Global flags (before the subcommand): `grace --repo-root /path/to/grace-notes …` uses that directory as the start of repo discovery; same via `GRACE_REPO_ROOT`.
+
+`--dry-run` / `--print-command` on `build`, `clean`, `test`, `run`, and `ci` prints the argv for each workflow step (build, test, install, reset, etc.) without executing those steps. **Simulator discovery** (`xcrun simctl list` and similar) may still run so resolved destinations match a normal run.
 
 ## Shell completion (optional)
 

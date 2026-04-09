@@ -59,6 +59,7 @@ class CLISurfaceTest(unittest.TestCase):
 
         self.assertEqual(result.exit_code, 0)
         self.assertIn("--clean", result.output)
+        self.assertIn("Simulator listing", result.output)
 
     def test_version_option_prints_installed_version(self) -> None:
         with mock.patch.object(cli.importlib.metadata, "version", return_value="9.9.9"):

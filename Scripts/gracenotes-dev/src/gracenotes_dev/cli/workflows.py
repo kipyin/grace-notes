@@ -26,7 +26,10 @@ DryRunOption = Annotated[
     typer.Option(
         "--dry-run",
         "--print-command",
-        help="Print xcodebuild/simctl argv for each step without executing.",
+        help=(
+            "Print xcodebuild/simctl argv for workflow steps without running them. "
+            "Simulator listing (xcrun simctl) may still run so destinations match a real run."
+        ),
     ),
 ]
 
