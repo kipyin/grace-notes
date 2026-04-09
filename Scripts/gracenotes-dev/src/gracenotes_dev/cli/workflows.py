@@ -331,8 +331,7 @@ def test(
             cli_core.TheaterStep(
                 "Reset simulators",
                 lambda dr=dry_run: (
-                    cli_core._reset_sims(repo_root, dry_run=dr)
-                    or "shutdown all + erase all"
+                    cli_core._reset_sims(repo_root, dry_run=dr) or "shutdown all + erase all"
                 ),
             ),
         )
