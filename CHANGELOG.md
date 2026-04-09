@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+*No entries yet.*
+
 ## [0.5.0]
 
 Marketing version **0.5.0** ships as successive **builds** (TestFlight / App Store); git tags **`v0.5.0+{build}`**. GitHub milestones **0.5.2**, **0.5.3**, etc. name **scope lanes**, not separate marketing versions — see **README.md** (Roadmap) and GitHub milestones. Older docs or issues may still mention interim labels (**0.5.1**, **0.5.2**); **ship truth** is **0.5.0 + build** below.
@@ -14,7 +16,7 @@ Marketing version **0.5.0** ships as successive **builds** (TestFlight / App Sto
 
 Marketing **0.5.0** / bundle **10** (git tag **`v0.5.0+10`** at release).
 
-#### Changed
+### Changed
 
 - Journal (**#216**): On **Today**, reduce stacked onboarding nudges—when the one-time App Tour presents at first 1/1/1, suppress the bottom Sprout unlock toast and header celebration for both the generic tier bump and the first-triple-one variant (recording flags unchanged). The Settings suggestion strip (reminders / iCloud) does not show while linear section guidance is active.
 - Journal: Remove the dismissible **hint card** under the completion pill; guided steps **end after first 1/1/1** (no ripening/harvest phases). Focus still advances from first gratitude → first need → first person. Further toast polish is tracked in **#225**.
@@ -24,7 +26,7 @@ Marketing **0.5.0** / bundle **10** (git tag **`v0.5.0+10`** at release).
 - **Share:** Composer and manual backup actions use the label **Share** / **分享** (no ellipsis). Share card preview places the completion badge on the **same row** as the date, **trailing**-aligned, at a **larger** scale for balance with section titles; sunrise accent rule stays below that row.
 - **Copy / localization (zh-Hans):** Review pass for onboarding, journal guidance, App Tour criteria, Past insights, and settings—more consistent **件/位** counting, calmer onboarding tone, and clearer iCloud / completion phrasing (`Localizable.xcstrings`). Removed legacy unused catalog keys that had no Swift references.
 
-#### Developer
+### Developer
 
 - Tests: `JournalTodayOrientationPolicyTests`, `OnboardingSuggestionEvaluatorTests`, `JournalOnboardingFlowEvaluatorTests`; `JournalStickyCompletionVisibilityTests`, `JournalUnlockFeedbackPlacementTests`; removed `JournalTutorialHintPresentationTests`. `JournalUnlockFeedback` replaces the former bottom unlock toast (`JournalUnlockToastView` removed).
 - **gracenotes-dev:** `grace l10n audit` now treats `LocalizedStringResource("…")` and `localized("…")` helper call sites as key references (fixes false “unused key” warnings for iCloud last-activity strings).
