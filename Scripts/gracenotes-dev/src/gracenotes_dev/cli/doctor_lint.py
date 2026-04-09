@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import shutil
 import sys
+from collections.abc import Sequence
 from typing import Annotated
 
 import typer
@@ -30,11 +31,30 @@ from gracenotes_dev.cli.workflows import (
 )
 
 
+def _doctor_strict_should_fail(checks: list[dict[str, object]]) -> bool:
+    return any(str(item["status"]) not in ("ok", "skipped") for item in checks)
+
+
+def run_lint(*, extras: Sequence[str] = (), dry_run: bool = False) -> None:
+    if not dry_run:
+        cli_core._require_swiftlint()
+    repo_root = cli_core._repo_root()
+    argv = ["swiftlint", "lint", *extras]
+    cli_core._run(argv, cwd=repo_root, check=True, dry_run=dry_run)
+
+
 @app.command("doctor")
 def doctor(
     json_out: Annotated[
         bool,
         typer.Option("--json", help="Emit machine-readable health checks."),
+    ] = False,
+    strict: Annotated[
+        bool,
+        typer.Option(
+            "--strict",
+            help="Exit with code 1 when any check is not ok (skipped checks do not fail).",
+        ),
     ] = False,
 ) -> None:
     """Preflight check for local toolchain and configured simulator defaults."""
@@ -112,6 +132,8 @@ def doctor(
             indent=2,
         )
         sys.stdout.write("\n")
+        if strict and _doctor_strict_should_fail(checks):
+            raise typer.Exit(code=1)
         return
 
     table = Table(show_header=True, header_style="bold")
@@ -123,14 +145,27 @@ def doctor(
             str(item["name"]), cli_rich.status_text(str(item["status"])), str(item["detail"])
         )
     cli_core._stdout_console().print(table)
+    if strict and _doctor_strict_should_fail(checks):
+        raise typer.Exit(code=1)
 
 
-@app.command("lint")
-def lint() -> None:
-    """Run swiftlint from repository root."""
-    cli_core._require_swiftlint()
-    repo_root = cli_core._repo_root()
-    cli_core._run(["swiftlint", "lint"], cwd=repo_root, check=True)
+@app.command(
+    "lint",
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
+)
+def lint(
+    ctx: typer.Context,
+    dry_run: Annotated[
+        bool,
+        typer.Option(
+            "--dry-run",
+            "--print-command",
+            help="Print the swiftlint argv without running.",
+        ),
+    ] = False,
+) -> None:
+    """Run swiftlint from repository root; extra arguments are forwarded (e.g. ``--fix``)."""
+    run_lint(extras=tuple(ctx.args), dry_run=dry_run)
 
 
 @app.command("interactive")
@@ -162,7 +197,7 @@ def interactive() -> None:
         show_verbose = cli_core._require_prompt_answer(
             cli_core._q_confirm("Show full xcodebuild logs?", default=False).ask(),
         )
-        _execute_ci_profile(cfg, profile, verbose=show_verbose)
+        _execute_ci_profile(cfg, profile, verbose=show_verbose, dry_run=False)
         return
     if choice == "Build":
         cli_core._require_macos_xcode()
@@ -239,7 +274,7 @@ def interactive() -> None:
         )
         return
     if choice == "Lint":
-        lint()
+        run_lint()
         return
     if choice == "Clean":
         cli_core._require_macos_xcode()

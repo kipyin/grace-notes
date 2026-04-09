@@ -21,6 +21,15 @@ from gracenotes_dev.cli.sim import (
     _prompt_test_options,
 )
 
+DryRunOption = Annotated[
+    bool,
+    typer.Option(
+        "--dry-run",
+        "--print-command",
+        help="Print xcodebuild/simctl argv for each step without executing.",
+    ),
+]
+
 
 @app.command("build")
 def build(
@@ -58,6 +67,7 @@ def build(
         bool,
         typer.Option("--verbose", "-v", help="Show full xcodebuild logs."),
     ] = False,
+    dry_run: DryRunOption = False,
 ) -> None:
     """Build the Grace Notes app for a Simulator or physical device destination."""
     cli_core._require_macos_xcode()
@@ -95,11 +105,11 @@ def build(
         return resolved_destination
 
     def clean_step() -> str:
-        cli_core._run(clean_argv, cwd=repo_root, check=True, verbose=verbose)
+        cli_core._run(clean_argv, cwd=repo_root, check=True, verbose=verbose, dry_run=dry_run)
         return " ".join(clean_argv)
 
     def build_step() -> str:
-        cli_core._run(build_argv, cwd=repo_root, check=True, verbose=verbose)
+        cli_core._run(build_argv, cwd=repo_root, check=True, verbose=verbose, dry_run=dry_run)
         return " ".join(build_argv)
 
     steps = [
@@ -140,6 +150,7 @@ def clean(
         bool,
         typer.Option("--verbose", "-v", help="Show full xcodebuild logs."),
     ] = False,
+    dry_run: DryRunOption = False,
 ) -> None:
     """Run xcodebuild clean for the Grace Notes scheme (Xcode Clean Build Folder scope)."""
     cli_core._require_macos_xcode()
@@ -169,7 +180,7 @@ def clean(
         return resolved_destination
 
     def clean_step() -> str:
-        cli_core._run(argv, cwd=repo_root, check=True, verbose=verbose)
+        cli_core._run(argv, cwd=repo_root, check=True, verbose=verbose, dry_run=dry_run)
         return " ".join(argv)
 
     cli_core._run_theater(
@@ -218,6 +229,7 @@ def test(
         bool,
         typer.Option("--verbose", "-v", help="Show full xcodebuild logs."),
     ] = False,
+    dry_run: DryRunOption = False,
 ) -> None:
     """Run xcodebuild tests (single destination or matrix)."""
     cli_core._require_macos_xcode()
@@ -280,13 +292,16 @@ def test(
                 steps.append(
                     cli_core.TheaterStep(
                         "Reset simulators",
-                        lambda: (cli_core._reset_sims(repo_root) or "shutdown all + erase all"),
+                        lambda dr=dry_run: (
+                            cli_core._reset_sims(repo_root, dry_run=dr)
+                            or "shutdown all + erase all"
+                        ),
                     ),
                 )
             steps.append(
                 cli_core.TheaterStep(
                     f"Run {selected_kind} tests",
-                    lambda resolved_destination=resolved_destination: (
+                    lambda resolved_destination=resolved_destination, dr=dry_run: (
                         cli_core._run_test_once(
                             cfg=cfg,
                             repo_root=repo_root,
@@ -294,6 +309,7 @@ def test(
                             kind=selected_kind,
                             isolated_dd=isolated_dd,
                             verbose=verbose,
+                            dry_run=dr,
                         )
                         or resolved_destination
                     ),
@@ -314,7 +330,10 @@ def test(
         steps.append(
             cli_core.TheaterStep(
                 "Reset simulators",
-                lambda: (cli_core._reset_sims(repo_root) or "shutdown all + erase all"),
+                lambda dr=dry_run: (
+                    cli_core._reset_sims(repo_root, dry_run=dr)
+                    or "shutdown all + erase all"
+                ),
             ),
         )
     steps.append(cli_core.TheaterStep("Resolve destination", lambda: resolved_destination))
@@ -324,9 +343,9 @@ def test(
         steps.append(
             cli_core.TheaterStep(
                 "Boot simulator",
-                lambda: (
-                    cli_core._run(boot, cwd=repo_root, check=False),
-                    cli_core._run(bootstatus, cwd=repo_root, check=False),
+                lambda dr=dry_run: (
+                    cli_core._run(boot, cwd=repo_root, check=False, dry_run=dr),
+                    cli_core._run(bootstatus, cwd=repo_root, check=False, dry_run=dr),
                 )
                 and simulator_name,
             ),
@@ -335,7 +354,7 @@ def test(
     steps.append(
         cli_core.TheaterStep(
             f"Run {selected_kind} tests",
-            lambda: (
+            lambda dr=dry_run: (
                 cli_core._run_test_once(
                     cfg=cfg,
                     repo_root=repo_root,
@@ -343,6 +362,7 @@ def test(
                     kind=selected_kind,
                     isolated_dd=isolated_dd,
                     verbose=verbose,
+                    dry_run=dr,
                 )
                 or resolved_destination
             ),
@@ -355,7 +375,13 @@ def test(
     )
 
 
-def _execute_ci_profile(cfg: config.DevConfig, profile: str, *, verbose: bool = False) -> None:
+def _execute_ci_profile(
+    cfg: config.DevConfig,
+    profile: str,
+    *,
+    verbose: bool = False,
+    dry_run: bool = False,
+) -> None:
     """Run lint / build / test / smoke gates for a configured CI profile name."""
     selected = cfg.ci_profiles.get(profile)
     if selected is None:
@@ -370,16 +396,20 @@ def _execute_ci_profile(cfg: config.DevConfig, profile: str, *, verbose: bool = 
         return
 
     if selected.lint:
-        from gracenotes_dev.cli.doctor_lint import lint as lint_command
+        from gracenotes_dev.cli.doctor_lint import run_lint
 
-        lint_command()
+        run_lint(dry_run=dry_run)
 
     needs_xcode = selected.build or selected.test or selected.smoke
     if needs_xcode:
         cli_core._require_macos_xcode()
 
     if selected.build:
-        build(destination=selected.build_destination or cfg.ci_simulator_pro, verbose=verbose)
+        build(
+            destination=selected.build_destination or cfg.ci_simulator_pro,
+            verbose=verbose,
+            dry_run=dry_run,
+        )
 
     if selected.test:
         test(
@@ -389,6 +419,7 @@ def _execute_ci_profile(cfg: config.DevConfig, profile: str, *, verbose: bool = 
             isolated_dd=selected.isolated_dd,
             no_reset_sims=not selected.reset_simulators_before_test,
             verbose=verbose,
+            dry_run=dry_run,
         )
 
     if selected.smoke:
@@ -399,6 +430,7 @@ def _execute_ci_profile(cfg: config.DevConfig, profile: str, *, verbose: bool = 
             isolated_dd=selected.isolated_dd,
             no_reset_sims=False,
             verbose=verbose,
+            dry_run=dry_run,
         )
 
 
@@ -411,7 +443,8 @@ def ci(
             help=(
                 "CI profile from config (for example: lint-build, lint-build-test, "
                 "test-all, full). "
-                "When omitted, uses defaults.default_ci_profile from gracenotes-dev.toml."
+                "When omitted, uses defaults.default_ci_profile from gracenotes-dev.toml. "
+                "List names with `grace config list`."
             ),
         ),
     ] = None,
@@ -423,6 +456,7 @@ def ci(
         bool,
         typer.Option("--verbose", "-v", help="Show full xcodebuild logs."),
     ] = False,
+    dry_run: DryRunOption = False,
 ) -> None:
     """Run a CI profile from ``gracenotes-dev.toml`` (default: ``defaults.default_ci_profile``)."""
     repo_root = cli_core._repo_root()
@@ -431,7 +465,7 @@ def ci(
         cli_core._require_interactive_cli(cfg=cfg, command_name="grace ci --interactive")
         profile = _prompt_ci_profile(cfg=cfg, profile=profile)
     resolved = (profile or "").strip() or cfg.default_ci_profile
-    _execute_ci_profile(cfg, resolved, verbose=verbose)
+    _execute_ci_profile(cfg, resolved, verbose=verbose, dry_run=dry_run)
 
 
 @app.command(
@@ -483,6 +517,7 @@ def run(
             ),
         ),
     ] = False,
+    dry_run: DryRunOption = False,
 ) -> None:
     """Build, install, and launch Grace Notes on an iOS Simulator or connected device."""
     cli_core._require_macos_xcode()
@@ -573,7 +608,14 @@ def run(
             configuration=launch_configuration,
             derived_data_path=derived_data_path,
         )
-        cli_core._run(argv, cwd=repo_root, check=True, verbose=verbose, silent=run_quiet_output)
+        cli_core._run(
+            argv,
+            cwd=repo_root,
+            check=True,
+            verbose=verbose,
+            silent=run_quiet_output,
+            dry_run=dry_run,
+        )
         return " ".join(argv)
 
     if xcode_helpers.is_physical_ios_destination(resolved_destination):
@@ -600,6 +642,7 @@ def run(
                 check=True,
                 silent=run_quiet_output,
                 verbose=verbose,
+                dry_run=dry_run,
             )
             return f"{app_path.name} -> {device_udid}"
 
@@ -614,6 +657,7 @@ def run(
                 check=True,
                 verbose=verbose,
                 silent=run_quiet_output,
+                dry_run=dry_run,
             )
             detail = completed.stdout.strip() if completed.stdout else ""
             if expanded_args:
@@ -658,6 +702,7 @@ def run(
             check=False,
             silent=run_quiet_output,
             verbose=verbose,
+            dry_run=dry_run,
         )
         cli_core._run(
             bootstatus,
@@ -665,6 +710,7 @@ def run(
             check=False,
             silent=run_quiet_output,
             verbose=verbose,
+            dry_run=dry_run,
         )
         return udid
 
@@ -681,6 +727,7 @@ def run(
             check=True,
             silent=run_quiet_output,
             verbose=verbose,
+            dry_run=dry_run,
         )
         return f"{app_path.name} -> {udid}"
 
@@ -695,6 +742,7 @@ def run(
             check=True,
             verbose=verbose,
             silent=run_quiet_output,
+            dry_run=dry_run,
         )
         detail = completed.stdout.strip() if completed.stdout else ""
         if expanded_args:

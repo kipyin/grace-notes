@@ -17,6 +17,15 @@ app = typer.Typer(
         "  grace build --clean\n"
         '  grace test --kind unit --destination "iPhone 17 Pro@latest"\n'
         '  grace run --destination "iPhone 17 Pro@latest" -- -reset-journal-tutorial\n'
+        "\nEnvironment:\n"
+        "  NO_COLOR                 Disable Rich styling.\n"
+        "  CI                       Disallow interactive prompts; fuller xcodebuild logs "
+        "where applicable.\n"
+        "  GRACE_NONINTERACTIVE=1   Disallow interactive prompts.\n"
+        "  GRACE_RUN_STREAM_TOOL_OUTPUT  Set to 1/true/yes to stream tool output during "
+        "``grace run``.\n"
+        "  GRACE_REPO_ROOT          Optional directory for repo discovery "
+        "(see ``grace --help``).\n"
         "\nTip: run `grace --version` to confirm your installed CLI release."
     ),
 )

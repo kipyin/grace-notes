@@ -17,7 +17,6 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from gracenotes_dev import xcode as xcode_helpers
 from gracenotes_dev.cli import core as cli_core
 from gracenotes_dev.cli.apps import l10n_app
 
@@ -144,6 +143,21 @@ def build_strings_catalog_audit(repo_root: Path) -> StringsCatalogAuditReport:
         duplicate_english_groups=duplicate_english_groups,
         multi_file_keys=multi_file_keys,
     )
+
+
+def audit_report_to_json_dict(report: StringsCatalogAuditReport) -> dict[str, object]:
+    return {
+        "catalog_key_count": report.catalog_key_count,
+        "code_key_count": report.code_key_count,
+        "unused_keys": list(report.unused_keys),
+        "missing_keys": list(report.missing_keys),
+        "duplicate_english_groups": [
+            {"english": en, "keys": list(ks)} for en, ks in report.duplicate_english_groups
+        ],
+        "multi_file_keys": [
+            {"key": k, "paths": list(paths)} for k, paths in report.multi_file_keys
+        ],
+    }
 
 
 def _render_focused_plain(report: StringsCatalogAuditReport, stream: TextIOBase) -> None:
@@ -557,9 +571,13 @@ def l10n_audit(
             help="Print exhaustive tables instead of the short summary and next steps.",
         ),
     ] = False,
+    json_out: Annotated[
+        bool,
+        typer.Option("--json", help="Emit machine-readable audit (counts and key lists)."),
+    ] = False,
 ) -> None:
     """Compare Localizable.xcstrings keys to Swift ``String(localized:)`` / ``localized:`` usage."""
-    repo_root = xcode_helpers.repo_root_from(Path.cwd())
+    repo_root = cli_core._repo_root()
     catalog = repo_root / "GraceNotes/GraceNotes/Localizable.xcstrings"
     if not catalog.is_file():
         cli_core._fail(
@@ -569,6 +587,11 @@ def l10n_audit(
             likely_cause="Run from the Grace Notes repo root (directory containing GraceNotes/).",
             try_commands=("cd …/grace-notes", "grace l10n audit"),
         )
+    if json_out:
+        report = build_strings_catalog_audit(repo_root)
+        json.dump(audit_report_to_json_dict(report), sys.stdout, indent=2)
+        sys.stdout.write("\n")
+        return
     print_strings_catalog_audit(repo_root=repo_root, full=full)
 
 
@@ -596,7 +619,7 @@ def l10n_review_cmd(
 
     Scans keys referenced from Swift (see ``grace l10n audit`` for catalog-only issues).
     """
-    repo_root = xcode_helpers.repo_root_from(Path.cwd())
+    repo_root = cli_core._repo_root()
     catalog = repo_root / "GraceNotes/GraceNotes/Localizable.xcstrings"
     if not catalog.is_file():
         cli_core._fail(

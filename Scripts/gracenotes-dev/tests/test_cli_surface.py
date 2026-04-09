@@ -49,6 +49,9 @@ class CLISurfaceTest(unittest.TestCase):
         self.assertIn("Examples:", result.output)
         self.assertIn("grace doctor", result.output)
         self.assertIn("grace build --clean", result.output)
+        self.assertIn("Environment:", result.output)
+        self.assertIn("GRACE_NONINTERACTIVE", result.output)
+        self.assertIn("--repo-root", result.output)
 
     def test_build_help_includes_clean_option(self) -> None:
         runner = CliRunner()
@@ -117,6 +120,7 @@ class CLISurfaceTest(unittest.TestCase):
 
         self.assertEqual(result.exit_code, 0, msg=result.output)
         self.assertIn("--full", result.output)
+        self.assertIn("--json", result.output)
 
     def test_l10n_audit_focused_plain_output_against_repo_fixture(self) -> None:
         repo_root = Path(__file__).resolve().parents[3]
@@ -287,6 +291,7 @@ class CLISurfaceTest(unittest.TestCase):
             cwd: Path,
             check: bool = True,
             verbose: bool = False,
+            **_: object,
         ) -> subprocess.CompletedProcess[str]:
             captured.append(list(argv))
             return subprocess.CompletedProcess(argv, 0, "", "")
@@ -329,6 +334,7 @@ class CLISurfaceTest(unittest.TestCase):
             cwd: Path,
             check: bool = True,
             verbose: bool = False,
+            **_: object,
         ) -> subprocess.CompletedProcess[str]:
             captured.append(list(argv))
             return subprocess.CompletedProcess(argv, 0, "", "")
@@ -371,6 +377,7 @@ class CLISurfaceTest(unittest.TestCase):
             cwd: Path,
             check: bool = True,
             verbose: bool = False,
+            **_: object,
         ) -> subprocess.CompletedProcess[str]:
             captured.append(list(argv))
             return subprocess.CompletedProcess(argv, 0, "", "")
@@ -452,6 +459,12 @@ class CLISurfaceTest(unittest.TestCase):
 
         self.assertEqual(result.exit_code, 2)
 
+    def test_ci_help_mentions_config_list(self) -> None:
+        runner = CliRunner()
+        result = runner.invoke(app, ["ci", "--help"])
+        self.assertEqual(result.exit_code, 0, msg=result.output)
+        self.assertIn("config list", result.output)
+
     def test_unknown_ci_profile_uses_designed_error_shape(self) -> None:
         runner = CliRunner()
         result = runner.invoke(app, ["ci", "--profile", "missing-profile"])
@@ -470,7 +483,7 @@ class CLISurfaceTest(unittest.TestCase):
                     result = runner.invoke(app, ["ci"])
 
         self.assertEqual(result.exit_code, 0, msg=result.output)
-        run_ci.assert_called_once_with(cfg, "test-all", verbose=False)
+        run_ci.assert_called_once_with(cfg, "test-all", verbose=False, dry_run=False)
 
     def test_ci_with_explicit_profile_passes_through(self) -> None:
         repo_root = Path(__file__).resolve().parents[3]
@@ -482,7 +495,7 @@ class CLISurfaceTest(unittest.TestCase):
                     result = runner.invoke(app, ["ci", "--profile", "full"])
 
         self.assertEqual(result.exit_code, 0, msg=result.output)
-        run_ci.assert_called_once_with(cfg, "full", verbose=False)
+        run_ci.assert_called_once_with(cfg, "full", verbose=False, dry_run=False)
 
     def test_interactive_refused_when_stdin_not_tty(self) -> None:
         repo_root = Path(__file__).resolve().parents[3]
@@ -554,7 +567,7 @@ class CLISurfaceTest(unittest.TestCase):
                                     result = runner.invoke(app, ["interactive"])
 
         self.assertEqual(result.exit_code, 0, msg=f"{result.stdout}\n{result.stderr}")
-        run_ci.assert_called_once_with(cfg, "lint-build", verbose=True)
+        run_ci.assert_called_once_with(cfg, "lint-build", verbose=True, dry_run=False)
 
     def test_interactive_cancel_exits_with_code_one(self) -> None:
         repo_root = Path(__file__).resolve().parents[3]
@@ -610,6 +623,7 @@ class CLISurfaceTest(unittest.TestCase):
             check: bool = True,
             verbose: bool = False,
             silent: bool = False,
+            **_: object,
         ) -> subprocess.CompletedProcess[str]:
             capture_run.append(list(argv))
             return subprocess.CompletedProcess(argv, 0, "", "")
@@ -621,6 +635,7 @@ class CLISurfaceTest(unittest.TestCase):
             check: bool = True,
             verbose: bool = False,
             silent: bool = False,
+            **_: object,
         ) -> subprocess.CompletedProcess[str]:
             capture_capture.append(list(argv))
             return subprocess.CompletedProcess(argv, 0, "com.gracenotes.GraceNotes: 12345", "")
@@ -679,6 +694,7 @@ class CLISurfaceTest(unittest.TestCase):
             check: bool = True,
             verbose: bool = False,
             silent: bool = False,
+            **_: object,
         ) -> subprocess.CompletedProcess[str]:
             if argv[:1] == ["xcodebuild"]:
                 xcode_silents.append(silent)
@@ -691,6 +707,7 @@ class CLISurfaceTest(unittest.TestCase):
             check: bool = True,
             verbose: bool = False,
             silent: bool = False,
+            **_: object,
         ) -> subprocess.CompletedProcess[str]:
             return subprocess.CompletedProcess(argv, 0, "pid: 1", "")
 
@@ -731,6 +748,7 @@ class CLISurfaceTest(unittest.TestCase):
             check: bool = True,
             verbose: bool = False,
             silent: bool = False,
+            **_: object,
         ) -> subprocess.CompletedProcess[str]:
             if argv[:1] == ["xcodebuild"]:
                 xcode_silents.append(silent)
@@ -743,6 +761,7 @@ class CLISurfaceTest(unittest.TestCase):
             check: bool = True,
             verbose: bool = False,
             silent: bool = False,
+            **_: object,
         ) -> subprocess.CompletedProcess[str]:
             return subprocess.CompletedProcess(argv, 0, "pid: 1", "")
 
@@ -773,7 +792,7 @@ class CLISurfaceTest(unittest.TestCase):
         cfg = replace(config.default_config(), test_destination_matrix=("a", "b"))
         resets: list[str] = []
 
-        def count_reset(_: Path) -> None:
+        def count_reset(*_a: object, **_k: object) -> None:
             resets.append("reset")
 
         def noop_test_once(**_: object) -> None:
@@ -811,7 +830,7 @@ class CLISurfaceTest(unittest.TestCase):
         cfg = replace(config.default_config(), test_destination_matrix=("a", "b"))
         resets: list[str] = []
 
-        def count_reset(_: Path) -> None:
+        def count_reset(*_a: object, **_k: object) -> None:
             resets.append("reset")
 
         with mock.patch.object(cli_core, "_require_macos_xcode"):
@@ -1102,6 +1121,130 @@ class CLISurfaceTest(unittest.TestCase):
         self.assertEqual(completed.returncode, 0)
         self.assertEqual(completed.stdout, "")
         self.assertEqual(completed.stderr, "")
+
+    def test_build_dry_run_prints_xcodebuild_without_running(self) -> None:
+        repo_root = Path(__file__).resolve().parents[3]
+        cfg = replace(
+            config.default_config(),
+            destination="platform=iOS Simulator,name=iPhone 17 Pro,OS=latest",
+        )
+        rows = [
+            {"name": "iPhone 17 Pro", "runtime_version": "26.0", "runtime_key": "k1", "udid": "u1"},
+        ]
+
+        def fake_which(name: str) -> str | None:
+            if name in ("swiftlint", "xcodebuild", "xcrun"):
+                return f"/usr/bin/{name}"
+            return None
+
+        with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli_core, "_load_config", return_value=cfg):
+                with mock.patch.object(simulator, "load_available_ios_devices", return_value=rows):
+                    with mock.patch.object(sys, "platform", "darwin"):
+                        with mock.patch.object(shutil, "which", side_effect=fake_which):
+                            with mock.patch.object(cli_core, "_run") as run_mock:
+                                runner = CliRunner()
+                                result = runner.invoke(app, ["build", "--dry-run"])
+
+        self.assertEqual(result.exit_code, 0, msg=result.output)
+        dry_kw = [c.kwargs.get("dry_run") for c in run_mock.call_args_list]
+        self.assertTrue(any(kw is True for kw in dry_kw))
+
+    def test_ci_dry_run_passes_through_to_execute_profile(self) -> None:
+        repo_root = Path(__file__).resolve().parents[3]
+        cfg = config.default_config()
+        with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli_core, "_load_config", return_value=cfg):
+                with mock.patch.object(cli_workflows, "_execute_ci_profile") as run_ci:
+                    runner = CliRunner()
+                    result = runner.invoke(app, ["ci", "--dry-run"])
+
+        self.assertEqual(result.exit_code, 0, msg=result.output)
+        run_ci.assert_called_once_with(
+            cfg,
+            cfg.default_ci_profile,
+            verbose=False,
+            dry_run=True,
+        )
+
+    def test_doctor_strict_exits_nonzero_when_matrix_errors(self) -> None:
+        repo_root = Path(__file__).resolve().parents[3]
+        rows = [
+            {"name": "iPhone 17 Pro", "runtime_version": "26.0", "runtime_key": "k1", "udid": "u1"},
+        ]
+        cfg = replace(
+            config.default_config(),
+            destination="platform=iOS Simulator,name=iPhone 17 Pro,OS=latest",
+            test_destination_matrix=("iPhone 17 Pro@latest", "Nonexistent Device@latest"),
+        )
+
+        def fake_which(name: str) -> str | None:
+            if name in ("swiftlint", "xcodebuild", "xcrun"):
+                return f"/usr/bin/{name}"
+            return None
+
+        with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli_core, "_load_config", return_value=cfg):
+                with mock.patch.object(simulator, "load_available_ios_devices", return_value=rows):
+                    with mock.patch.object(sys, "platform", "darwin"):
+                        with mock.patch.object(shutil, "which", side_effect=fake_which):
+                            runner = CliRunner()
+                            result = runner.invoke(app, ["doctor", "--strict"])
+
+        self.assertNotEqual(result.exit_code, 0, msg=result.output)
+
+    def test_doctor_json_strict_exits_nonzero_when_matrix_errors(self) -> None:
+        repo_root = Path(__file__).resolve().parents[3]
+        rows = [
+            {"name": "iPhone 17 Pro", "runtime_version": "26.0", "runtime_key": "k1", "udid": "u1"},
+        ]
+        cfg = replace(
+            config.default_config(),
+            destination="platform=iOS Simulator,name=iPhone 17 Pro,OS=latest",
+            test_destination_matrix=("iPhone 17 Pro@latest", "Nonexistent Device@latest"),
+        )
+
+        def fake_which(name: str) -> str | None:
+            if name in ("swiftlint", "xcodebuild", "xcrun"):
+                return f"/usr/bin/{name}"
+            return None
+
+        with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli_core, "_load_config", return_value=cfg):
+                with mock.patch.object(simulator, "load_available_ios_devices", return_value=rows):
+                    with mock.patch.object(sys, "platform", "darwin"):
+                        with mock.patch.object(shutil, "which", side_effect=fake_which):
+                            runner = CliRunner()
+                            result = runner.invoke(app, ["doctor", "--json", "--strict"])
+
+        self.assertNotEqual(result.exit_code, 0, msg=result.output)
+        payload = json.loads(result.output)
+        self.assertIn("checks", payload)
+
+    def test_lint_passthrough_forwards_extra_argv(self) -> None:
+        repo_root = Path(__file__).resolve().parents[3]
+        with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+            with mock.patch.object(cli_core, "_require_swiftlint"):
+                with mock.patch.object(cli_core, "_run") as run_mock:
+                    runner = CliRunner()
+                    result = runner.invoke(app, ["lint", "--fix"])
+
+        self.assertEqual(result.exit_code, 0, msg=result.output)
+        run_mock.assert_called_once()
+        argv = run_mock.call_args[0][0]
+        self.assertEqual(argv[:2], ["swiftlint", "lint"])
+        self.assertIn("--fix", argv)
+
+    def test_l10n_audit_json_emits_counts_and_lists(self) -> None:
+        repo_root = Path(__file__).resolve().parents[3]
+        with mock.patch.object(cli_core, "_repo_root", return_value=repo_root):
+            runner = CliRunner()
+            result = runner.invoke(app, ["l10n", "audit", "--json"])
+
+        self.assertEqual(result.exit_code, 0, msg=result.output)
+        payload = json.loads(result.output)
+        self.assertIn("missing_keys", payload)
+        self.assertIsInstance(payload["missing_keys"], list)
 
     def test_config_set_updates_value_in_toml(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
