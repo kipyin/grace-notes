@@ -19,6 +19,30 @@ final class JournalUITests: XCTestCase {
         return XCTWaiter.wait(for: [expectation], timeout: timeout) == .completed
     }
 
+    /// After chip submit, the software keyboard can stay up and bury lower sections on small simulators (CI parity).
+    @MainActor
+    private func dismissSoftwareKeyboardForJournalIfPresent(in app: XCUIApplication) {
+        guard app.keyboards.firstMatch.waitForExistence(timeout: 0.5) else { return }
+        let anchor = app.staticTexts["Gratitudes"].firstMatch
+        if anchor.waitForExistence(timeout: 1) {
+            anchor.tap()
+        } else {
+            app.swipeDown()
+        }
+    }
+
+    /// Scrolls until the section add chip is hittable so `tap()` reaches the morph control, not the keyboard chrome.
+    @MainActor
+    private func ensureJournalAddButtonReady(_ addButtonIdentifier: String, in app: XCUIApplication) {
+        let addButton = app.buttons[addButtonIdentifier].firstMatch
+        for _ in 0..<10 {
+            if addButton.waitForExistence(timeout: 0.6), addButton.isHittable {
+                return
+            }
+            app.swipeUp()
+        }
+    }
+
     @MainActor
     private func launchApp(resetUITestStore: Bool = true) -> XCUIApplication {
         let app = XCUIApplication()
@@ -75,6 +99,8 @@ final class JournalUITests: XCTestCase {
     ) {
         let field = journalTextView(fieldIdentifier, in: app)
         if !field.waitForExistence(timeout: 2), let addButtonIdentifier {
+            dismissSoftwareKeyboardForJournalIfPresent(in: app)
+            ensureJournalAddButtonReady(addButtonIdentifier, in: app)
             let addButton = app.buttons[addButtonIdentifier].firstMatch
             XCTAssertTrue(
                 addButton.waitForExistence(timeout: 5),
