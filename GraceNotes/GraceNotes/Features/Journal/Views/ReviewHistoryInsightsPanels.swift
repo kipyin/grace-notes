@@ -378,7 +378,7 @@ private struct ReviewHistorySectionStrip: View {
                                     String(
                                         format: String(localized: "review.sectionMix.segmentPercent"),
                                         locale: .current,
-                                        percents[index]
+                                        Int64(percents[index])
                                     )
                                 )
                                 .font(AppTheme.warmPaperMeta)
@@ -455,8 +455,11 @@ private struct ReviewHistorySectionStrip: View {
         count: Int,
         percent: Int
     ) -> String {
-        String(
-            format: String(localized: "accessibility.reviewHistory.sectionMixRow"),
+        let format = count == 1
+            ? String(localized: "accessibility.reviewHistory.sectionMixRow.singular")
+            : String(localized: "accessibility.reviewHistory.sectionMixRow.plural")
+        return String(
+            format: format,
             localizedSectionName(for: kind),
             count,
             percent
