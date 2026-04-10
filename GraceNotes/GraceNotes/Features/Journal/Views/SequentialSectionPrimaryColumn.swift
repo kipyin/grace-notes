@@ -5,7 +5,7 @@ private enum SequentialSectionPrimaryColumnLayout {
     static let sectionProgressDotsTrailingInset: CGFloat = 8
 }
 
-/// Main column of `SequentialSectionView` (guidance, sentence strips, text field) split out for type-size limits.
+/// Main column of `SequentialSectionView` (guidance, entry rows, text field) split out for type-size limits.
 struct SequentialSectionPrimaryColumn<ProgressDots: View>: View {
     @Environment(\.todayJournalPalette) private var palette
     let reduceMotion: Bool
@@ -43,8 +43,8 @@ struct SequentialSectionPrimaryColumn<ProgressDots: View>: View {
     @Binding var isAddMorphComposerVisible: Bool
     @State private var expandedItemIDs: Set<UUID> = []
     @State private var morphingItemID: UUID?
-    @State private var lastAcceptedStripTapItemID: UUID?
-    @State private var lastAcceptedStripTapDate: Date?
+    @State private var lastAcceptedEntryRowTapItemID: UUID?
+    @State private var lastAcceptedEntryRowTapDate: Date?
 
     let progressDots: ProgressDots
     /// When set, `ScrollViewReader` targets chip list + input only (not the section header).
@@ -90,7 +90,7 @@ extension SequentialSectionPrimaryColumn {
         ambientInlineEditingActive ? SequentialSectionInlineLayout.ambientUnfocusedOpacity : 1
     }
 
-    private func stripOpacityWhenStripEditing(at index: Int) -> CGFloat {
+    private func entryRowOpacityWhenPeerEditing(at index: Int) -> CGFloat {
         guard ambientInlineEditingActive, sectionHostsInlineFocus else { return 1 }
         guard activeEditingIndex != index else { return 1 }
         return SequentialSectionInlineLayout.ambientUnfocusedOpacity
@@ -279,26 +279,26 @@ extension SequentialSectionPrimaryColumn {
                 .zIndex(2)
                 .transition(.identity)
         } else {
-            stripView(for: item, at: index)
-                .opacity(stripOpacityWhenStripEditing(at: index))
+            entryRowView(for: item, at: index)
+                .opacity(entryRowOpacityWhenPeerEditing(at: index))
                 .zIndex(1)
                 .transition(.identity)
         }
     }
 
     @ViewBuilder
-    private func stripView(for item: Entry, at index: Int) -> some View {
-        let stripIdentifierPrefix = entryAccessibilityIdentifierPrefix.map { "\($0).\(index)" }
-        let strip = makeSentenceStrip(for: item, index: index, stripIdentifierPrefix: stripIdentifierPrefix)
+    private func entryRowView(for item: Entry, at index: Int) -> some View {
+        let rowAccessibilityPrefix = entryAccessibilityIdentifierPrefix.map { "\($0).\(index)" }
+        let row = makeSequentialEntryRow(for: item, index: index, rowAccessibilityPrefix: rowAccessibilityPrefix)
 
         if let onMoveItem, !isInlineEditingActive {
-            strip
+            row
                 .onDrag {
                     itemReorderHoverTargetItemID = nil
                     draggingItemID = item.id
                     return NSItemProvider(object: item.id.uuidString as NSString)
                 } preview: {
-                    strip
+                    row
                         .scaleEffect(reduceMotion ? 1 : 1.07)
                         .shadow(color: .black.opacity(0.14), radius: 8, x: 0, y: 4)
                 }
@@ -314,14 +314,14 @@ extension SequentialSectionPrimaryColumn {
                     )
                 )
         } else {
-            strip
+            row
         }
     }
 
     @ViewBuilder
     private func inlineEditorRow(for item: Entry, at index: Int) -> some View {
-        let stripIdentifierPrefix = entryAccessibilityIdentifierPrefix.map { "\($0).\(index)" }
-        let editorIdentifier = stripIdentifierPrefix.map { "\($0).editor" }
+        let rowAccessibilityPrefix = entryAccessibilityIdentifierPrefix.map { "\($0).\(index)" }
+        let editorIdentifier = rowAccessibilityPrefix.map { "\($0).editor" }
         let isMorphing = morphingItemID == item.id
 
         VStack(alignment: .leading, spacing: AppTheme.spacingTight) {
@@ -396,22 +396,22 @@ private extension View {
 }
 
 private extension SequentialSectionPrimaryColumn {
-    func makeSentenceStrip(
+    func makeSequentialEntryRow(
         for item: Entry,
         index: Int,
-        stripIdentifierPrefix: String?
-    ) -> SentenceStripView {
-        let isExpandable = SentenceStripView.requiresExpandedPreview(item.fullText)
-        return SentenceStripView(
+        rowAccessibilityPrefix: String?
+    ) -> SequentialEntryRowView {
+        let isExpandable = SequentialEntryRowView.requiresExpandedPreview(item.fullText)
+        return SequentialEntryRowView(
             sectionTitle: title,
             itemPosition: index + 1,
             itemCount: items.count,
             sentence: item.fullText,
-            accessibilityIdentifier: stripIdentifierPrefix,
+            accessibilityIdentifier: rowAccessibilityPrefix,
             isSelected: editingIndex == index,
             isExpanded: expandedItemIDs.contains(item.id),
             isExpandable: isExpandable,
-            expansionAccessibilityIdentifier: stripIdentifierPrefix.map { "\($0).more" },
+            expansionAccessibilityIdentifier: rowAccessibilityPrefix.map { "\($0).more" },
             onTap: { handleItemTap(index: index, itemID: item.id) },
             onToggleExpanded: isExpandable ? {
                 if expandedItemIDs.contains(item.id) {
@@ -429,8 +429,8 @@ private extension SequentialSectionPrimaryColumn {
         guard EntryRowTapDebounce.shouldProcessTap(
             itemID: itemID,
             at: now,
-            lastAcceptedItemID: &lastAcceptedStripTapItemID,
-            lastAcceptedDate: &lastAcceptedStripTapDate,
+            lastAcceptedItemID: &lastAcceptedEntryRowTapItemID,
+            lastAcceptedDate: &lastAcceptedEntryRowTapDate,
             interval: EntryRowTapDebounce.sameRowTapDebounceInterval
         ) else { return }
 

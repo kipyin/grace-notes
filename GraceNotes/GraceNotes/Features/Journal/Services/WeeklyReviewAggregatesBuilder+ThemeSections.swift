@@ -39,11 +39,13 @@ extension WeeklyReviewAggregatesBuilder {
             }
 
             for surface in structuredSurfaces(for: entry) {
+                // Chip lines are user-authored section text; do not require the stricter NL threshold (`true`),
+                // or short labels (e.g. "rest") miss noun tagging and fail the recurring floors on some OSes.
                 let concepts = textNormalizer.distillConcepts(
                     from: surface.content,
                     source: surface.source,
                     maximumCount: 3,
-                    highConfidenceOnly: true,
+                    highConfidenceOnly: false,
                     journalThemeDisplayLocale: journalThemeDisplayLocale
                 )
                 let uniqueConcepts = Dictionary(grouping: concepts, by: \.canonicalConcept)

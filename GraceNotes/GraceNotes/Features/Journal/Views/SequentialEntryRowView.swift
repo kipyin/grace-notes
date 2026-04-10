@@ -1,6 +1,6 @@
 import SwiftUI
 
-private struct StripDeleteAccessibilityAction: ViewModifier {
+private struct EntryRowDeleteAccessibilityAction: ViewModifier {
     let onDelete: (() -> Void)?
 
     func body(content: Content) -> some View {
@@ -12,7 +12,7 @@ private struct StripDeleteAccessibilityAction: ViewModifier {
     }
 }
 
-struct SentenceStripView: View {
+struct SequentialEntryRowView: View {
     @Environment(\.todayJournalPalette) private var palette
     private enum Layout {
         static let expansionThreshold = 88
@@ -134,7 +134,7 @@ struct SentenceStripView: View {
                 identifier: accessibilityIdentifier
             )
         )
-        .modifier(StripDeleteAccessibilityAction(onDelete: onDelete))
+        .modifier(EntryRowDeleteAccessibilityAction(onDelete: onDelete))
     }
 
     private var rowAccessibilityLabel: String {

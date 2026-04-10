@@ -60,6 +60,18 @@ final class JournalUITests: XCTestCase {
         app.textViews[identifier]
     }
 
+    /// Inline editors use `UITextView`; a center `tap()` can leave the caret mid-string, so batched
+    /// `XCUIKeyboardKey.delete` may not drain the value. Tap near the trailing edge, then retry.
+    private func clearJournalInlineEditor(_ editor: XCUIElement) {
+        editor.coordinate(withNormalizedOffset: CGVector(dx: 0.97, dy: 0.5)).tap()
+        for _ in 0..<25 {
+            let current = editor.value as? String ?? ""
+            if current.isEmpty { return }
+            editor.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count))
+            Thread.sleep(forTimeInterval: 0.12)
+        }
+    }
+
     /// XCTest does not expose `hasKeyboardFocus` on `XCUIElement` for iOS targets; KVC matches
     /// the accessibility value when the software keyboard UI is absent (e.g. hardware keyboard).
     private func hasVisibleKeyboardOrFocusedEditor(_ editor: XCUIElement, in app: XCUIApplication) -> Bool {
@@ -359,7 +371,7 @@ final class JournalUITests: XCTestCase {
         XCTAssertEqual(expandToggle.label, "Show more")
         XCTAssertFalse(
             app.staticTexts[longSentence].exists,
-            "SentenceStripView ignores child accessibility; the full line is not a standalone StaticText."
+            "SequentialEntryRowView ignores child accessibility; the full line is not a standalone StaticText."
         )
         expandToggle.tap()
         let collapseToggle = app.buttons["JournalGratitudeEntry.0.more"]
@@ -435,13 +447,7 @@ final class JournalUITests: XCTestCase {
 
         let gratitudeEditor = app.textViews["JournalGratitudeEntry.0.editor"]
         XCTAssertTrue(gratitudeEditor.waitForExistence(timeout: 5))
-        gratitudeEditor.tap()
-
-        let originalValue = gratitudeEditor.value as? String ?? ""
-        if !originalValue.isEmpty {
-            let deleteSequence = String(repeating: XCUIKeyboardKey.delete.rawValue, count: originalValue.count)
-            gratitudeEditor.typeText(deleteSequence)
-        }
+        clearJournalInlineEditor(gratitudeEditor)
         XCTAssertEqual(gratitudeEditor.value as? String, "")
 
         app.staticTexts["Gratitudes"].tap()

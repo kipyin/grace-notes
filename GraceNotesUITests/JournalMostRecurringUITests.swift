@@ -58,6 +58,17 @@ final class JournalMostRecurringUITests: XCTestCase {
         )
     }
 
+    /// The inset title is visible while the skeleton loads; theme rows (and their accessibility identifiers)
+    /// appear only after ``ReviewScreen`` finishes generating insights.
+    @MainActor
+    private func waitForMostRecurringThemeRows(in app: XCUIApplication, timeout: TimeInterval = 30) {
+        let rows = mainMostRecurringRows(in: app)
+        XCTAssertTrue(
+            rows.firstMatch.waitForExistence(timeout: timeout),
+            "Expected at least one Most Recurring theme row after insights load."
+        )
+    }
+
     /// With separate list rows for summary, recurring, and trending, the Trending title may need a small scroll.
     @MainActor
     private func scrollPastReviewUntilTrendingVisible(_ app: XCUIApplication) {
@@ -134,6 +145,7 @@ extension JournalMostRecurringUITests {
     func test_reviewScreen_browseAndDrilldown_showMatchingSurfaceContent() {
         let app = launchAppWithWideReviewSeed()
         openPastReviewPanels(app)
+        waitForMostRecurringThemeRows(in: app)
 
         let rows = mainMostRecurringRows(in: app)
         XCTAssertGreaterThan(rows.count, 0, "Expected at least one Most Recurring row.")
@@ -211,6 +223,7 @@ extension JournalMostRecurringUITests {
     func test_reviewScreen_mostRecurringAndTrending_cappedAtThreeOnMainPastCard() {
         let app = launchAppWithWideReviewSeed()
         openPastReviewPanels(app)
+        waitForMostRecurringThemeRows(in: app)
         scrollPastReviewUntilTrendingVisible(app)
 
         let recurringVisible = mainMostRecurringRows(in: app).count
@@ -225,6 +238,7 @@ extension JournalMostRecurringUITests {
     func test_reviewScreen_browseRecurringThemes_opensBrowseList() throws {
         let app = launchAppWithWideReviewSeed()
         openPastReviewPanels(app)
+        waitForMostRecurringThemeRows(in: app)
 
         let browseButton = app.buttons["BrowseAllRecurringThemesLink"]
         guard browseButton.waitForExistence(timeout: 12) else {
@@ -249,6 +263,7 @@ extension JournalMostRecurringUITests {
     func test_reviewScreen_browseAllRecurringThenTrending_openDistinctScreens() throws {
         let app = launchAppWithWideReviewSeed()
         openPastReviewPanels(app)
+        waitForMostRecurringThemeRows(in: app)
 
         let recurringLink = app.buttons["BrowseAllRecurringThemesLink"]
         guard recurringLink.waitForExistence(timeout: 12) else {
@@ -290,6 +305,7 @@ extension JournalMostRecurringUITests {
     func test_reviewScreen_mostRecurringBrowse_sectionsBySurfaceKind() throws {
         let app = launchAppWithWideReviewSeed()
         openPastReviewPanels(app)
+        waitForMostRecurringThemeRows(in: app)
 
         let browseButton = app.buttons["BrowseAllRecurringThemesLink"]
         guard browseButton.waitForExistence(timeout: 12) else {
@@ -396,6 +412,7 @@ extension JournalMostRecurringUITests {
     func test_reviewScreen_mostRecurringAndTrending_areSeparateTopLevelSections() {
         let app = launchAppWithWideReviewSeed()
         openPastReviewPanels(app)
+        waitForMostRecurringThemeRows(in: app)
         scrollPastReviewUntilTrendingVisible(app)
 
         XCTAssertTrue(mainMostRecurringRows(in: app).firstMatch.exists)

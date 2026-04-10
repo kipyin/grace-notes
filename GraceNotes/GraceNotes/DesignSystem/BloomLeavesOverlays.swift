@@ -4,7 +4,7 @@ import AVFoundation
 
 /// Shared seam: looping **bundled** video leaves (`SummerLeavesLoop.mp4`) above the paper field, below content.
 /// There is no Canvas/native fallback—without the asset, Bloom mode shows no leaf layer by design.
-struct SummerLeavesOverlaySeam: View {
+struct BloomLeavesOverlaySeam: View {
     let reduceMotion: Bool
 
     var body: some View {
@@ -12,7 +12,7 @@ struct SummerLeavesOverlaySeam: View {
             if reduceMotion {
                 Color.clear
             } else {
-                SummerLeavesVideoOverlay()
+                BloomLeavesVideoOverlay()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -35,7 +35,7 @@ private final class LeavesVideoHostView: UIView {
 }
 
 /// Leaf overlay from the bundled loop only. Without `SummerLeavesLoop.mp4`, the overlay is empty (intentional).
-struct SummerLeavesVideoOverlay: View {
+struct BloomLeavesVideoOverlay: View {
     var body: some View {
         Group {
             if let url = Bundle.main.url(forResource: "SummerLeavesLoop", withExtension: "mp4") {

@@ -120,6 +120,32 @@ extension WeeklyReviewAggregatesMostRecurringTests {
         XCTAssertEqual(restTheme.totalCount, 3)
     }
 
+    /// Single-word chip gratitudes use phrase-token mining when NL tagging misses; they must still pass
+    /// recurring floors (UI test wide-review seed relies on lines like `rest`).
+    func test_buildThemeSections_shortGratitudeChipTextContributesToMostRecurring() throws {
+        let referenceDate = date(year: 2026, month: 3, day: 18)
+        let period = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
+        let previous = ReviewInsightsPeriod.previousPeriod(before: period, calendar: calendar)
+
+        let entries = [
+            makeEntry(on: date(year: 2026, month: 3, day: 16), gratitudes: ["rest"]),
+            makeEntry(on: date(year: 2026, month: 3, day: 17), gratitudes: ["rest"])
+        ]
+        let aggregates = builder.build(
+            currentPeriod: period,
+            currentWeekEntries: entries.filter { period.contains($0.entryDate) },
+            previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
+            allEntries: entries,
+            calendar: calendar,
+            referenceDate: referenceDate
+        )
+
+        let restTheme = try XCTUnwrap(
+            aggregates.stats.mostRecurringThemes.first(where: { $0.label == "Rest" })
+        )
+        XCTAssertGreaterThanOrEqual(restTheme.totalCount, 2)
+    }
+
     func test_buildThemeSections_peopleRemainLiteralWithLightNormalization() throws {
         let referenceDate = date(year: 2026, month: 3, day: 18)
         let period = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)

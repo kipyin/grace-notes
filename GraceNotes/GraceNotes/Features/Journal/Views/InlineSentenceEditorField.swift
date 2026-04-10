@@ -147,7 +147,7 @@ private struct FocusedWhenLet: ViewModifier {
     }
 }
 
-/// Multiline inline editor for strip editing and the add morph composer (shared field behavior).
+/// Multiline inline editor for entry-row editing and the add morph composer (shared field behavior).
 struct InlineSentenceEditorField: View {
     @Environment(\.todayJournalPalette) private var palette
     let sectionTitle: String

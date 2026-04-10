@@ -64,7 +64,7 @@ extension JournalViewModel {
         return true
     }
 
-    // MARK: - Immediate update/add for instant strip switching
+    // MARK: - Immediate update/add for instant entry-row switching
 
     /// Updates the item immediately. Returns index or nil.
     func updateGratitudeImmediate(at index: Int, fullText: String) -> Int? {

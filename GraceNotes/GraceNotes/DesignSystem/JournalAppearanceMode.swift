@@ -16,7 +16,7 @@ enum JournalAppearanceMode: String, CaseIterable, Identifiable {
     }
 
     /// Rewrites legacy `"summer"` to ``bloom``’s raw value so new exports and debugging stay canonical.
-    static func migrateLegacySummerRawValueIfNeeded(defaults: UserDefaults = .standard) {
+    static func migrateLegacyJournalAppearanceRawValueIfNeeded(defaults: UserDefaults = .standard) {
         let key = JournalAppearanceStorageKeys.todayMode
         guard defaults.string(forKey: key) == "summer" else { return }
         defaults.set(JournalAppearanceMode.bloom.rawValue, forKey: key)

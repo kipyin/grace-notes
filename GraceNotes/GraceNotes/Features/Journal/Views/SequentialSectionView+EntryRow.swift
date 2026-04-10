@@ -20,7 +20,7 @@ private struct AddSentenceBrowseChromeModifier: ViewModifier {
 }
 
 private extension View {
-    /// Browse-state chrome for the add control (matches `SentenceStripView` row styling).
+    /// Browse-state chrome for the add control (matches `SequentialEntryRowView` row styling).
     func journalAddSentenceBrowseRowChrome() -> some View {
         modifier(AddSentenceBrowseChromeModifier())
     }
@@ -107,7 +107,7 @@ enum SequentialSectionEntryRow {
         }
     }
 
-    /// Single slot that morphs between the add control and the composer field (matches strip inline editor layout).
+    /// Single slot that morphs between the add control and the composer field (matches entry-row inline editor layout).
     struct AddSentenceMorphSlot: View {
         let sectionTitle: String
         let addButtonTitle: String
