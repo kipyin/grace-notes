@@ -50,6 +50,7 @@ These are **not** named handoff roles like Strategist or QA Reviewer; they are o
 - **`interview`** — `.agents/skills/interview/SKILL.md` — clarify requirements before large or ambiguous work.
 - **`simplify`** — `.agents/skills/simplify/SKILL.md` — assess implementation shape after delivery (PR diff or git range); does not block merge.
 - **`memory`** — `.agents/skills/memory/SKILL.md` — after frictional loops, append **one terse line** to [`MEMORY.md`](../../../MEMORY.md) so future agents inherit constraints without replaying the thread.
+- **`gh`** — `.agents/skills/gh/SKILL.md` — GitHub issues and PRs via `gh` (labels, milestones, interview-gated issue create, explain-style bodies, vc merge hygiene).
 
 Use the same spirit of clear outputs and handoffs as the sections above, without duplicating the full role contract when a skill file already defines its workflow.
 
@@ -63,5 +64,5 @@ Use the same spirit of clear outputs and handoffs as the sections above, without
 
 ## Coordination
 
-- **Skill folders** use verb slugs (`strategize`, `architect`, `design`, `build`, `promote`, `test`, `vc`, …) while **handoff role titles** in conversation may stay noun-style (**Strategist**, **Architect**, **Designer**, **Builder**, …).
+- **Skill folders** use verb slugs (`strategize`, `architect`, `design`, `build`, `promote`, `test`, …) or short domain tags (`vc`, `gh`) while **handoff role titles** in conversation may stay noun-style (**Strategist**, **Architect**, **Designer**, **Builder**, …).
 - Repo workflow defaults are in [AGENTS.md](../../../AGENTS.md); there is no separate initiative or agent-log directory.
