@@ -69,17 +69,17 @@ struct TodayJournalPalette: Equatable {
     /// Warmer cream paper and ink-forward typography; tier accent colors stay asset-backed for parity.
     static let bloom = TodayJournalPalette(
         background: Color.clear,
-        ambientEditingBackground: summerHex(0xE5DDD0),
-        paper: summerHex(0xFFF8EE),
-        textPrimary: summerHex(0x1A1410),
-        textMuted: summerHex(0x5C534A),
-        border: summerHex(0xD4C4B0),
-        inputBorder: summerHex(0xC4B29A),
-        inputPlaceholder: summerHex(0x6B5E50),
+        ambientEditingBackground: bloomPaperHex(0xE5DDD0),
+        paper: bloomPaperHex(0xFFF8EE),
+        textPrimary: bloomPaperHex(0x1A1410),
+        textMuted: bloomPaperHex(0x5C534A),
+        border: bloomPaperHex(0xD4C4B0),
+        inputBorder: bloomPaperHex(0xC4B29A),
+        inputPlaceholder: bloomPaperHex(0x6B5E50),
         complete: AppTheme.journalComplete,
-        pendingOutline: summerHex(0x7A6E62),
-        activeEditingAccent: summerHex(0x9A5C45),
-        activeEditingAccentStrong: summerHex(0x6B3D2E),
+        pendingOutline: bloomPaperHex(0x7A6E62),
+        activeEditingAccent: bloomPaperHex(0x9A5C45),
+        activeEditingAccentStrong: bloomPaperHex(0x6B3D2E),
         quickCheckInBackground: AppTheme.journalQuickCheckInBackground,
         quickCheckInBorder: AppTheme.journalQuickCheckInBorder,
         quickCheckInText: AppTheme.journalQuickCheckInText,
@@ -107,7 +107,7 @@ struct TodayJournalPalette: Equatable {
     }
 }
 
-private func summerHex(_ hex: UInt) -> Color {
+private func bloomPaperHex(_ hex: UInt) -> Color {
     let red = Double((hex >> 16) & 0xFF) / 255
     let green = Double((hex >> 8) & 0xFF) / 255
     let blue = Double(hex & 0xFF) / 255

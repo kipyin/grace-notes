@@ -31,7 +31,7 @@ struct GraceNotesApp: App {
 
         if !isRunningUnitTests {
             JournalTutorialStorageKeys.migrateLegacyKeysIfNeeded(using: .standard)
-            JournalAppearanceMode.migrateLegacySummerRawValueIfNeeded(defaults: .standard)
+            JournalAppearanceMode.migrateLegacyJournalAppearanceRawValueIfNeeded(defaults: .standard)
             _ = ICloudSyncPreferenceResolver.resolvedCloudSyncEnabled(using: .standard)
             JournalOnboardingProgress.migrateLegacyPostSeedOrientationFlagsIfNeeded(using: .standard)
             JournalOnboardingProgress.migrateLegacyAppTourSeenFlagIfNeeded(using: .standard)
@@ -167,7 +167,7 @@ struct GraceNotesApp: App {
         // Past/Settings stay visually cohesive with Today.
         return ZStack {
             if isBloomAtmosphereGlobal {
-                SummerPaperBackgroundView()
+                BloomPaperBackgroundView()
             }
 
             TabView(selection: $appNavigation.selectedTab) {
@@ -273,6 +273,6 @@ private struct GlobalBloomLeavesOverlayLayer: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        SummerLeavesOverlaySeam(reduceMotion: reduceMotion)
+        BloomLeavesOverlaySeam(reduceMotion: reduceMotion)
     }
 }

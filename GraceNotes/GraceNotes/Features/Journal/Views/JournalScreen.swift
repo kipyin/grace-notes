@@ -338,10 +338,10 @@ struct JournalScreen: View {
     private var journalScreenBaseStack: some View {
         ZStack {
             if effectiveTodayAppearance == .bloom, !journalBloomAtmosphereHosted {
-                SummerPaperBackgroundView()
+                BloomPaperBackgroundView()
             }
             if effectiveTodayAppearance == .bloom, !journalBloomAtmosphereHosted {
-                SummerLeavesOverlaySeam(reduceMotion: reduceMotion)
+                BloomLeavesOverlaySeam(reduceMotion: reduceMotion)
             }
             journalScrollContent
         }
@@ -912,7 +912,7 @@ private extension JournalScreen {
         }
     }
 
-    /// Saves the active inline strip edit and dismisses keyboard (same as tapping outside the editor).
+    /// Saves the active inline entry edit and dismisses keyboard (same as tapping outside the editor).
     func commitActiveInlineChipEdit() {
         if editingGratitudeIndex != nil {
             submit(section: .gratitude, restoreFocusAfterSubmit: false)
@@ -929,8 +929,8 @@ private extension JournalScreen {
         }
     }
 
-    func dismissEmptyAddMorphOrSubmit(section: StripSection, restoreFocusAfterSubmit: Bool) {
-        let adapter = stripSectionAdapter(for: section)
+    func dismissEmptyAddMorphOrSubmit(section: EntryListSection, restoreFocusAfterSubmit: Bool) {
+        let adapter = entryListSectionAdapter(for: section)
         let trimmed = adapter.input.wrappedValue.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.isEmpty {
             clearAddMorphComposer(for: section)
@@ -940,7 +940,7 @@ private extension JournalScreen {
         }
     }
 
-    func clearAddMorphComposer(for section: StripSection) {
+    func clearAddMorphComposer(for section: EntryListSection) {
         switch section {
         case .gratitude:
             isGratitudeAddMorphComposerVisible = false
@@ -951,7 +951,7 @@ private extension JournalScreen {
         }
     }
 
-    func isAddMorphComposerVisible(for section: StripSection) -> Bool {
+    func isAddMorphComposerVisible(for section: EntryListSection) -> Bool {
         switch section {
         case .gratitude:
             return isGratitudeAddMorphComposerVisible
@@ -1633,7 +1633,7 @@ private extension JournalScreen {
         }
     }
 
-    func shouldAdvanceGuidedFocusAfterChipSubmit(section: StripSection) -> Bool {
+    func shouldAdvanceGuidedFocusAfterChipSubmit(section: EntryListSection) -> Bool {
         guard entryDate == nil, !hasCompletedGuidedJournal else { return false }
         switch onboardingPresentation.step {
         case .need where section == .gratitude:
@@ -1705,10 +1705,10 @@ private extension JournalScreen {
         }
     }
 
-    enum StripSection {
+    enum EntryListSection {
         case gratitude, need, person
     }
-    struct StripSectionAdapter {
+    struct EntryListSectionAdapter {
         let input: Binding<String>
         let editingIndex: Binding<Int?>
         let isTransitioning: Binding<Bool>
@@ -1727,7 +1727,7 @@ private extension JournalScreen {
             )
         }
     }
-    func stripSectionAdapter(for section: StripSection) -> StripSectionAdapter {
+    func entryListSectionAdapter(for section: EntryListSection) -> EntryListSectionAdapter {
         switch section {
         case .gratitude:
             return makeGratitudeAdapter()
@@ -1737,8 +1737,8 @@ private extension JournalScreen {
             return makePersonAdapter()
         }
     }
-    func makeGratitudeAdapter() -> StripSectionAdapter {
-        StripSectionAdapter(
+    func makeGratitudeAdapter() -> EntryListSectionAdapter {
+        EntryListSectionAdapter(
             input: $gratitudeInput,
             editingIndex: $editingGratitudeIndex,
             isTransitioning: $isGratitudeTransitioning,
@@ -1756,8 +1756,8 @@ private extension JournalScreen {
             )
         )
     }
-    func makeNeedAdapter() -> StripSectionAdapter {
-        StripSectionAdapter(
+    func makeNeedAdapter() -> EntryListSectionAdapter {
+        EntryListSectionAdapter(
             input: $needInput,
             editingIndex: $editingNeedIndex,
             isTransitioning: $isNeedTransitioning,
@@ -1775,8 +1775,8 @@ private extension JournalScreen {
             )
         )
     }
-    func makePersonAdapter() -> StripSectionAdapter {
-        StripSectionAdapter(
+    func makePersonAdapter() -> EntryListSectionAdapter {
+        EntryListSectionAdapter(
             input: $personInput,
             editingIndex: $editingPersonIndex,
             isTransitioning: $isPersonTransitioning,
@@ -1794,16 +1794,16 @@ private extension JournalScreen {
             )
         )
     }
-    func addNewTapped(section: StripSection) {
-        let adapter = stripSectionAdapter(for: section)
+    func addNewTapped(section: EntryListSection) {
+        let adapter = entryListSectionAdapter(for: section)
         JournalEntryInteractionCoordinator.addNewTapped(
             context: adapter.entryInteractionContext,
             restoreInputFocus: restoreInputFocus
         )
     }
 
-    func deleteChip(section: StripSection, index: Int) {
-        let adapter = stripSectionAdapter(for: section)
+    func deleteChip(section: EntryListSection, index: Int) {
+        let adapter = entryListSectionAdapter(for: section)
         JournalScreenEntryHandling.performDelete(
             index: index,
             remove: adapter.remove,
@@ -1812,8 +1812,8 @@ private extension JournalScreen {
         )
     }
 
-    func moveChip(section: StripSection, from sourceIndex: Int, toOffset destinationOffset: Int) {
-        let adapter = stripSectionAdapter(for: section)
+    func moveChip(section: EntryListSection, from sourceIndex: Int, toOffset destinationOffset: Int) {
+        let adapter = entryListSectionAdapter(for: section)
         JournalScreenEntryHandling.performMove(
             from: sourceIndex,
             to: destinationOffset,
@@ -1822,8 +1822,8 @@ private extension JournalScreen {
         )
     }
 
-    func chipTapped(section: StripSection, index: Int) {
-        let adapter = stripSectionAdapter(for: section)
+    func chipTapped(section: EntryListSection, index: Int) {
+        let adapter = entryListSectionAdapter(for: section)
         JournalEntryInteractionCoordinator.entryTapped(
             context: adapter.entryInteractionContext,
             tapIndex: index,
@@ -1831,8 +1831,8 @@ private extension JournalScreen {
         )
     }
 
-    func submit(section: StripSection, restoreFocusAfterSubmit: Bool = true) {
-        let adapter = stripSectionAdapter(for: section)
+    func submit(section: EntryListSection, restoreFocusAfterSubmit: Bool = true) {
+        let adapter = entryListSectionAdapter(for: section)
         let wasEditingExistingItem = adapter.editingIndex.wrappedValue != nil
         let shouldClearAddMorphAfterSubmit =
             adapter.editingIndex.wrappedValue == nil && isAddMorphComposerVisible(for: section)
@@ -1861,17 +1861,17 @@ private extension JournalScreen {
         }
     }
 
-    private func clearInlineChipEditingState(adapter: StripSectionAdapter) {
+    private func clearInlineChipEditingState(adapter: EntryListSectionAdapter) {
         withAnimation(reduceMotion ? nil : .snappy(duration: 0.24)) {
             adapter.editingIndex.wrappedValue = nil
             adapter.input.wrappedValue = ""
         }
     }
 
-    func commitChipDraftOnInputFocusLost(section: StripSection) {
-        let adapter = stripSectionAdapter(for: section)
+    func commitChipDraftOnInputFocusLost(section: EntryListSection) {
+        let adapter = entryListSectionAdapter(for: section)
         // Keep add-button-first composition stable: losing focus from a "new draft" field
-        // should not auto-submit and block immediate same-section strip taps.
+        // should not auto-submit and block immediate same-section entry-row taps.
         guard adapter.editingIndex.wrappedValue != nil else { return }
         if let editingIndex = adapter.editingIndex.wrappedValue,
            let persisted = adapter.operations.fullText(editingIndex) {

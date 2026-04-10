@@ -41,7 +41,7 @@ struct SequentialSectionView: View {
     let onMoveItem: ((Int, Int) -> Void)?
     let onDeleteItem: ((Int) -> Void)?
     let onAddNew: (() -> Void)?
-    /// When true, another sentence strip or add morph in this journal is focused; fades non-focused rows.
+    /// When true, another entry row or add morph in this journal is focused; fades non-focused rows.
     let ambientInlineEditingActive: Bool
     /// This section contains the focused inline editor or add morph composer.
     let sectionHostsInlineFocus: Bool

@@ -9,7 +9,7 @@ import Foundation
 ///   App Tour once. Skip the congratulations page when `completedGuidedJournal` is already true.
 /// - **Dated entry** (`entryDate != nil`), **UI tests:** No App Tour presentation from this policy.
 ///
-/// **Dual completion:** Guided first entry can end by filling all fifteen strips on Today
+/// **Dual completion:** Guided first entry can end by filling all fifteen entry rows on Today
 /// (`JournalScreen.syncGuidedJournalCompletionIfNeeded`) or by finishing the App Tour
 /// (`JournalScreen.completeAppTour`). Both set `completedGuidedJournal`.
 enum JournalTodayOrientationPolicy {
@@ -38,7 +38,7 @@ enum JournalTodayOrientationPolicy {
     /// present at **1/1/1**—for both the generic rank-up case and the first 1/1/1 milestone highlight.
     /// The first line alone in a section still shows feedback (`hasAtLeastOneEntryInEachSection` is false).
     ///
-    /// **Keep in sync** with `AppTourTrigger.evaluate`: tour eligibility uses the same strip counts as
+    /// **Keep in sync** with `AppTourTrigger.evaluate`: tour eligibility uses the same entry counts as
     /// `hasAtLeastOneEntryInEachSection`.
     static func shouldSuppressSproutUnlockToast(
         isTodayEntry: Bool,

@@ -1,6 +1,6 @@
 import Foundation
 
-/// Shared metrics for inline sentence editing (strip editor and add morph composer).
+/// Shared metrics for inline sentence editing (entry-row editor and add morph composer).
 enum SequentialSectionInlineLayout {
     static let editorMorphHorizontalInset: CGFloat = 6
     static let editorMorphVerticalOffset: CGFloat = 8

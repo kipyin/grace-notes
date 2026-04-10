@@ -359,7 +359,7 @@ final class JournalUITests: XCTestCase {
         XCTAssertEqual(expandToggle.label, "Show more")
         XCTAssertFalse(
             app.staticTexts[longSentence].exists,
-            "SentenceStripView ignores child accessibility; the full line is not a standalone StaticText."
+            "SequentialEntryRowView ignores child accessibility; the full line is not a standalone StaticText."
         )
         expandToggle.tap()
         let collapseToggle = app.buttons["JournalGratitudeEntry.0.more"]

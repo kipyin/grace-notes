@@ -9,7 +9,7 @@ enum AppTourTrigger {
     /// - Returns: `nil` when the tour should not be presented.
     ///
     /// The App Tour runs once each section has at least one item (1/1/1 minimum). ``JournalCompletionLevel``
-    /// does not distinguish (1,0,0) from (1,1,1), so callers pass ``Journal``/view-model strip counts via
+    /// does not distinguish (1,0,0) from (1,1,1), so callers pass ``Journal``/view-model entry counts via
     /// `hasAtLeastOneEntryInEachSection`.
     static func evaluate(
         hasSeenAppTour: Bool,

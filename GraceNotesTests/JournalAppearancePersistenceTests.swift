@@ -25,10 +25,10 @@ final class JournalAppearancePersistenceTests: XCTestCase {
         XCTAssertEqual(JournalAppearanceMode.resolveStored(rawValue: "summer"), .bloom)
     }
 
-    func test_migrateLegacySummer_rewritesStoredRawToBloom() {
+    func test_migrateLegacyJournalAppearance_rewritesSummerRawToBloom() {
         let key = JournalAppearanceStorageKeys.todayMode
         UserDefaults.standard.set("summer", forKey: key)
-        JournalAppearanceMode.migrateLegacySummerRawValueIfNeeded(defaults: .standard)
+        JournalAppearanceMode.migrateLegacyJournalAppearanceRawValueIfNeeded(defaults: .standard)
         XCTAssertEqual(UserDefaults.standard.string(forKey: key), JournalAppearanceMode.bloom.rawValue)
         XCTAssertEqual(
             JournalAppearanceMode.resolveStored(rawValue: UserDefaults.standard.string(forKey: key) ?? ""),

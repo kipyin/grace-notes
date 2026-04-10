@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Full-screen warm paper field (gradient + light grain). Sits behind Today journal content in Bloom mode.
-struct SummerPaperBackgroundView: View {
+struct BloomPaperBackgroundView: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     var body: some View {
