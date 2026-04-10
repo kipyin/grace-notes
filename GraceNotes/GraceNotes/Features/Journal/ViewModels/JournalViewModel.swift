@@ -28,6 +28,9 @@ final class JournalViewModel {
     @ObservationIgnored private var hasLoadedToday = false
     @ObservationIgnored private var isHydrating = false
     @ObservationIgnored private var hasRecordedFirstSave = false
+    @ObservationIgnored private var pendingDailyReminderRescheduleTask: Task<Void, Never>?
+    /// When set, reschedules the daily reminder after today’s journal persists (debounced).
+    @ObservationIgnored var dailyReminderRescheduleAction: (@MainActor () async -> Void)?
 
     init(
         calendar: Calendar = .current,
@@ -145,6 +148,7 @@ final class JournalViewModel {
             try context.save()
             saveErrorMessage = nil
             refreshStreakSummary()
+            scheduleDailyReminderRescheduleIfNeeded(for: entry)
             if !hasRecordedFirstSave {
                 hasRecordedFirstSave = true
                 PerformanceTrace.end("JournalViewModel.firstSave", startedAt: saveTrace)
@@ -191,6 +195,23 @@ final class JournalViewModel {
     func scheduleAutosave() {
         guard !isHydrating else { return }
         autosaveTrigger.send(())
+    }
+
+    private func scheduleDailyReminderRescheduleIfNeeded(for entry: Journal) {
+        guard let action = dailyReminderRescheduleAction else { return }
+        let todayStart = calendar.startOfDay(for: nowProvider())
+        guard calendar.startOfDay(for: entry.entryDate) == todayStart else { return }
+
+        pendingDailyReminderRescheduleTask?.cancel()
+        pendingDailyReminderRescheduleTask = Task { @MainActor in
+            do {
+                try await Task.sleep(nanoseconds: 1_000_000_000)
+                guard !Task.isCancelled else { return }
+                await action()
+            } catch {
+                // Cancellation from rapid saves leaves the last scheduled reschedule in flight.
+            }
+        }
     }
 
     /// True when today's entry has all fifteen chips filled (Harvest / full grid).

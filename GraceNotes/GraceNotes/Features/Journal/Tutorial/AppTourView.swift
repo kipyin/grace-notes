@@ -8,6 +8,7 @@ struct AppTourView: View {
     let skipsCongratulationsPage: Bool
 
     @Environment(\.openURL) var openURL
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.persistenceRuntimeSnapshot) var persistenceRuntimeSnapshot
     @Environment(\.accessibilityReduceMotion) var accessibilityReduceMotion
@@ -60,6 +61,12 @@ struct AppTourView: View {
         }
         .background(AppTheme.settingsBackground.ignoresSafeArea())
         .task {
+            reminderState.reminderNotificationBody = { reminderTime in
+                (try? ReminderNotificationBodyBuilder.localizedBody(
+                    modelContext: modelContext,
+                    reminderTime: reminderTime
+                )) ?? String(localized: String.LocalizationValue("notifications.reminder.body.fallback"))
+            }
             await reminderState.refreshStatus()
             syncReminderControlState(with: reminderState.liveStatus)
             iCloudAccountState.refresh()

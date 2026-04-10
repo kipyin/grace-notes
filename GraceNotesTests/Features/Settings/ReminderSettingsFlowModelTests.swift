@@ -8,6 +8,7 @@ final class ReminderSettingsFlowModelTests: XCTestCase {
         scheduler.enableResult = .permissionDenied
         let userDefaults = makeUserDefaults()
         let model = ReminderSettingsFlowModel(reminderScheduler: scheduler, userDefaults: userDefaults)
+        model.reminderNotificationBody = { _ in "body" }
 
         await model.enableReminders()
 
@@ -23,6 +24,7 @@ final class ReminderSettingsFlowModelTests: XCTestCase {
         let model = ReminderSettingsFlowModel(reminderScheduler: scheduler, userDefaults: userDefaults)
         let selectedTime = Date(timeIntervalSinceReferenceDate: 321_123)
         model.selectedTime = selectedTime
+        model.reminderNotificationBody = { _ in "body" }
 
         await model.enableReminders()
 
@@ -49,6 +51,7 @@ final class ReminderSettingsFlowModelTests: XCTestCase {
         scheduler.currentStatus = .enabled
         scheduler.rescheduleResult = .permissionDenied
         let model = ReminderSettingsFlowModel(reminderScheduler: scheduler, userDefaults: makeUserDefaults())
+        model.reminderNotificationBody = { _ in "body" }
         await model.refreshStatus()
 
         await model.saveEnabledReminderTime()
@@ -73,6 +76,7 @@ final class ReminderSettingsFlowModelTests: XCTestCase {
         scheduler.currentStatus = .enabled
         scheduler.rescheduleResult = .scheduled
         let model = ReminderSettingsFlowModel(reminderScheduler: scheduler, userDefaults: makeUserDefaults())
+        model.reminderNotificationBody = { _ in "body" }
         await model.refreshStatus()
 
         model.selectedTime = Date(timeIntervalSinceReferenceDate: 911_000)
@@ -87,6 +91,7 @@ final class ReminderSettingsFlowModelTests: XCTestCase {
         scheduler.currentStatus = .enabled
         scheduler.rescheduleResult = .scheduled
         let model = ReminderSettingsFlowModel(reminderScheduler: scheduler, userDefaults: makeUserDefaults())
+        model.reminderNotificationBody = { _ in "body" }
         await model.refreshStatus()
 
         model.selectedTime = Date(timeIntervalSinceReferenceDate: 100_000)
@@ -104,6 +109,7 @@ final class ReminderSettingsFlowModelTests: XCTestCase {
         let scheduler = MockReminderScheduling()
         scheduler.currentStatus = .off
         let model = ReminderSettingsFlowModel(reminderScheduler: scheduler, userDefaults: makeUserDefaults())
+        model.reminderNotificationBody = { _ in "body" }
         await model.refreshStatus()
 
         model.selectedTime = Date(timeIntervalSinceReferenceDate: 456_000)
@@ -144,8 +150,9 @@ private final class MockReminderScheduling: ReminderScheduling {
         currentStatus
     }
 
-    func enableDailyReminder(at time: Date) async -> ReminderSyncResult {
+    func enableDailyReminder(at time: Date, body: String) async -> ReminderSyncResult {
         enableCallCount += 1
+        _ = body
         return enableResult
     }
 
@@ -153,8 +160,9 @@ private final class MockReminderScheduling: ReminderScheduling {
         disableResult
     }
 
-    func rescheduleEnabledReminder(at time: Date) async -> ReminderSyncResult {
+    func rescheduleEnabledReminder(at time: Date, body: String) async -> ReminderSyncResult {
         rescheduleCallCount += 1
+        _ = body
         return rescheduleResult
     }
 }

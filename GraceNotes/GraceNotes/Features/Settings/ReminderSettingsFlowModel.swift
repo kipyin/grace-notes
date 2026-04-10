@@ -8,6 +8,9 @@ final class ReminderSettingsFlowModel: ObservableObject {
     @Published private(set) var isWorking = false
     @Published var transientErrorMessage: String?
 
+    /// Set from a view with SwiftData access. Maps scheduled reminder clock time to the localized notification body.
+    var reminderNotificationBody: ((Date) -> String)?
+
     private let reminderScheduler: any ReminderScheduling
     private let userDefaults: UserDefaults
     private var pendingRescheduleTask: Task<Void, Never>?
@@ -59,7 +62,7 @@ final class ReminderSettingsFlowModel: ObservableObject {
         defer { isWorking = false }
 
         transientErrorMessage = nil
-        let result = await reminderScheduler.enableDailyReminder(at: selectedTime)
+        let result = await reminderScheduler.enableDailyReminder(at: selectedTime, body: resolvedReminderBody())
         switch result {
         case .scheduled:
             persistSelectedTime()
@@ -101,7 +104,7 @@ final class ReminderSettingsFlowModel: ObservableObject {
             pendingRescheduleAfterCurrentSave = false
             transientErrorMessage = nil
 
-            let result = await reminderScheduler.rescheduleEnabledReminder(at: selectedTime)
+            let result = await reminderScheduler.rescheduleEnabledReminder(at: selectedTime, body: resolvedReminderBody())
             switch result {
             case .scheduled:
                 persistSelectedTime()
@@ -150,6 +153,13 @@ final class ReminderSettingsFlowModel: ObservableObject {
                 // Ignore cancellation from rapid picker updates.
             }
         }
+    }
+
+    private func resolvedReminderBody() -> String {
+        if let reminderNotificationBody {
+            return reminderNotificationBody(selectedTime)
+        }
+        return String(localized: String.LocalizationValue("notifications.reminder.body.fallback"))
     }
 
     private func persistSelectedTime() {

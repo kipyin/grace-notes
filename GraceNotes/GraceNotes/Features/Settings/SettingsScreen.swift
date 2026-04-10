@@ -117,6 +117,12 @@ struct SettingsScreen: View {
             .navigationTitle(String(localized: "shell.tab.settings"))
             .task {
                 backfillBloomUnlockIfNeeded()
+                reminderState.reminderNotificationBody = { reminderTime in
+                    (try? ReminderNotificationBodyBuilder.localizedBody(
+                        modelContext: modelContext,
+                        reminderTime: reminderTime
+                    )) ?? String(localized: String.LocalizationValue("notifications.reminder.body.fallback"))
+                }
                 await reminderState.refreshStatus()
                 syncReminderControlState(with: reminderState.liveStatus)
                 iCloudAccountState.refresh()

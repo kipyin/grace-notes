@@ -33,6 +33,42 @@ PAT_LOCALIZED_HELPER_CALL = re.compile(
     re.MULTILINE,
 )
 # Keys resolved at runtime (see WeeklyInsightCandidateBuilder+Candidates.renderLocalizedTemplate).
+_REMINDER_NOTIFICATION_BODY_KEYS = frozenset(
+    {
+        "notifications.reminder.body.fallback",
+        "notifications.reminder.body.lapse.afternoon",
+        "notifications.reminder.body.lapse.evening",
+        "notifications.reminder.body.lapse.morning",
+        "notifications.reminder.body.complete.afternoon.none",
+        "notifications.reminder.body.complete.afternoon.some",
+        "notifications.reminder.body.complete.afternoon.steady",
+        "notifications.reminder.body.complete.evening.none",
+        "notifications.reminder.body.complete.evening.some",
+        "notifications.reminder.body.complete.evening.steady",
+        "notifications.reminder.body.complete.morning.none",
+        "notifications.reminder.body.complete.morning.some",
+        "notifications.reminder.body.complete.morning.steady",
+        "notifications.reminder.body.empty.afternoon.none",
+        "notifications.reminder.body.empty.afternoon.some",
+        "notifications.reminder.body.empty.afternoon.steady",
+        "notifications.reminder.body.empty.evening.none",
+        "notifications.reminder.body.empty.evening.some",
+        "notifications.reminder.body.empty.evening.steady",
+        "notifications.reminder.body.empty.morning.none",
+        "notifications.reminder.body.empty.morning.some",
+        "notifications.reminder.body.empty.morning.steady",
+        "notifications.reminder.body.inProgress.afternoon.none",
+        "notifications.reminder.body.inProgress.afternoon.some",
+        "notifications.reminder.body.inProgress.afternoon.steady",
+        "notifications.reminder.body.inProgress.evening.none",
+        "notifications.reminder.body.inProgress.evening.some",
+        "notifications.reminder.body.inProgress.evening.steady",
+        "notifications.reminder.body.inProgress.morning.none",
+        "notifications.reminder.body.inProgress.morning.some",
+        "notifications.reminder.body.inProgress.morning.steady",
+    }
+)
+
 DYNAMIC_TEMPLATE_KEYS = frozenset(
     {
         "review.insights.recurringPeople.observation",
@@ -72,6 +108,7 @@ DYNAMIC_TEMPLATE_KEYS = frozenset(
         "review.theme.walking",
         "review.theme.work_pressure",
     }
+    | _REMINDER_NOTIFICATION_BODY_KEYS
 )
 
 _DUP_GROUPS_SHOWN = 40

@@ -198,6 +198,7 @@ struct GraceNotesApp: App {
         }
         .environment(\.journalBloomAtmosphereHosted, isBloomAtmosphereGlobal)
         .preferredColorScheme(isBloomAtmosphereGlobal ? .light : nil)
+        .modifier(DailyReminderRefreshOnActiveModifier())
     }
 
     @MainActor
@@ -236,6 +237,20 @@ private struct DeferredReviewRoot: View {
             guard isSelected, !hasOpenedReviewTab else { return }
             hasOpenedReviewTab = true
             PerformanceTrace.instant("ReviewScreen.deferredUntilSelected")
+        }
+    }
+}
+
+private struct DailyReminderRefreshOnActiveModifier: ViewModifier {
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.scenePhase) private var scenePhase
+
+    func body(content: Content) -> some View {
+        content.onChange(of: scenePhase) { _, phase in
+            guard phase == .active else { return }
+            Task {
+                await DailyReminderNotificationSync.rescheduleEnabledReminderIfNeeded(modelContext: modelContext)
+            }
         }
     }
 }

@@ -50,7 +50,7 @@ final class ReminderSchedulerTests: XCTestCase {
         let center = MockUserNotificationCenter()
         let scheduler = ReminderScheduler(notificationCenter: center)
 
-        let result = await scheduler.syncDailyReminder(enabled: false, time: Date())
+        let result = await scheduler.syncDailyReminder(enabled: false, time: Date(), body: "x")
 
         XCTAssertEqual(result, .disabled)
         XCTAssertEqual(center.removedIdentifiers, [ReminderSettings.notificationIdentifier])
@@ -61,7 +61,7 @@ final class ReminderSchedulerTests: XCTestCase {
         let center = MockUserNotificationCenter(status: .denied)
         let scheduler = ReminderScheduler(notificationCenter: center)
 
-        let result = await scheduler.syncDailyReminder(enabled: true, time: Date())
+        let result = await scheduler.syncDailyReminder(enabled: true, time: Date(), body: "Body A")
 
         XCTAssertEqual(result, .permissionDenied)
         XCTAssertNil(center.lastAddedRequest)
@@ -79,11 +79,12 @@ final class ReminderSchedulerTests: XCTestCase {
             calendar: calendar
         )
 
-        let result = await scheduler.syncDailyReminder(enabled: true, time: reminderTime)
+        let result = await scheduler.syncDailyReminder(enabled: true, time: reminderTime, body: "Evening prompt")
 
         XCTAssertEqual(result, .scheduled)
         let request = try? XCTUnwrap(center.lastAddedRequest)
         XCTAssertEqual(request?.identifier, ReminderSettings.notificationIdentifier)
+        XCTAssertEqual(request?.content.body, "Evening prompt")
         let trigger = request?.trigger as? UNCalendarNotificationTrigger
         XCTAssertNotNil(trigger)
         XCTAssertEqual(trigger?.dateComponents.hour, 19)
@@ -95,7 +96,7 @@ final class ReminderSchedulerTests: XCTestCase {
         let center = MockUserNotificationCenter(status: .notDetermined, shouldGrantRequestAuthorization: true)
         let scheduler = ReminderScheduler(notificationCenter: center)
 
-        let result = await scheduler.syncDailyReminder(enabled: true, time: Date())
+        let result = await scheduler.syncDailyReminder(enabled: true, time: Date(), body: "Body A")
 
         XCTAssertEqual(result, .scheduled)
         XCTAssertTrue(center.didRequestAuthorization)
@@ -106,7 +107,7 @@ final class ReminderSchedulerTests: XCTestCase {
         let center = MockUserNotificationCenter(status: .notDetermined, shouldGrantRequestAuthorization: true)
         let scheduler = ReminderScheduler(notificationCenter: center)
 
-        let result = await scheduler.rescheduleEnabledReminder(at: Date())
+        let result = await scheduler.rescheduleEnabledReminder(at: Date(), body: "x")
 
         XCTAssertEqual(result, .permissionDenied)
         XCTAssertFalse(center.didRequestAuthorization)
@@ -127,7 +128,7 @@ final class ReminderSchedulerTests: XCTestCase {
         let center = MockUserNotificationCenter(status: .authorized, shouldFailAdd: true)
         let scheduler = ReminderScheduler(notificationCenter: center)
 
-        let result = await scheduler.syncDailyReminder(enabled: true, time: Date())
+        let result = await scheduler.syncDailyReminder(enabled: true, time: Date(), body: "Body A")
 
         XCTAssertEqual(result, .failed)
         XCTAssertNil(center.lastAddedRequest)

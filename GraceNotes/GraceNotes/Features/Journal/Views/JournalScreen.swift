@@ -1468,8 +1468,12 @@ private extension JournalScreen {
         }
         let loadTrace = PerformanceTrace.begin("JournalScreen.loadTask")
         if let date = entryDate {
+            viewModel.dailyReminderRescheduleAction = nil
             viewModel.loadEntry(for: date, using: modelContext)
         } else {
+            viewModel.dailyReminderRescheduleAction = {
+                await DailyReminderNotificationSync.rescheduleEnabledReminderIfNeeded(modelContext: modelContext)
+            }
             viewModel.loadTodayIfNeeded(using: modelContext)
             let hadPending051GuidedBranch = UserDefaults.standard.bool(
                 forKey: JournalOnboardingStorageKeys.legacy051GuidedBranchResolution

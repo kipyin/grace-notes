@@ -18,9 +18,9 @@ enum ReminderLiveStatus: Equatable {
 
 protocol ReminderScheduling {
     func currentReminderStatus() async -> ReminderLiveStatus
-    func enableDailyReminder(at time: Date) async -> ReminderSyncResult
+    func enableDailyReminder(at time: Date, body: String) async -> ReminderSyncResult
     func disableDailyReminder() async -> ReminderSyncResult
-    func rescheduleEnabledReminder(at time: Date) async -> ReminderSyncResult
+    func rescheduleEnabledReminder(at time: Date, body: String) async -> ReminderSyncResult
 }
 
 protocol UserNotificationCenterClient {
@@ -70,10 +70,10 @@ struct ReminderScheduler {
         }
     }
 
-    func enableDailyReminder(at time: Date) async -> ReminderSyncResult {
+    func enableDailyReminder(at time: Date, body: String) async -> ReminderSyncResult {
         switch await notificationPermissionOutcome(allowPermissionPrompt: true) {
         case .granted:
-            let wasScheduled = await scheduleReminder(at: time)
+            let wasScheduled = await scheduleReminder(at: time, body: body)
             return wasScheduled ? .scheduled : .failed
         case .denied:
             removeReminder()
@@ -90,10 +90,10 @@ struct ReminderScheduler {
     }
 
     /// Reschedules only when authorization is already available.
-    func rescheduleEnabledReminder(at time: Date) async -> ReminderSyncResult {
+    func rescheduleEnabledReminder(at time: Date, body: String) async -> ReminderSyncResult {
         switch await notificationPermissionOutcome(allowPermissionPrompt: false) {
         case .granted:
-            let wasScheduled = await scheduleReminder(at: time)
+            let wasScheduled = await scheduleReminder(at: time, body: body)
             return wasScheduled ? .scheduled : .failed
         case .denied:
             removeReminder()
@@ -104,12 +104,12 @@ struct ReminderScheduler {
         }
     }
 
-    func syncDailyReminder(enabled: Bool, time: Date) async -> ReminderSyncResult {
+    func syncDailyReminder(enabled: Bool, time: Date, body: String) async -> ReminderSyncResult {
         if !enabled {
             return await disableDailyReminder()
         }
 
-        return await enableDailyReminder(at: time)
+        return await enableDailyReminder(at: time, body: body)
     }
 
     private func notificationPermissionOutcome(
@@ -136,12 +136,12 @@ struct ReminderScheduler {
         }
     }
 
-    private func scheduleReminder(at time: Date) async -> Bool {
+    private func scheduleReminder(at time: Date, body: String) async -> Bool {
         removeReminder()
 
         let content = UNMutableNotificationContent()
         content.title = String(localized: "app.name")
-        content.body = String(localized: "notifications.reminder.bodyCompleteEntry")
+        content.body = body
         content.sound = .default
 
         let timeComponents = ReminderSettings.timeComponents(from: time, calendar: calendar)
