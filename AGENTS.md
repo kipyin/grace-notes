@@ -70,7 +70,7 @@ brew install swiftlint
 
 **Specialist skills:** `.agents/skills/` holds optional roles (Strategist, Architect, Builder, and others). Attach or follow them **only** when work is ambiguous, high-risk, or you explicitly want that lens — not as a default pipeline. For **plain-language explanations** of code or fixes with **user-visible impact** first (not diff walkthroughs), use `.agents/skills/explain/SKILL.md`.
 
-**Process skills (optional, high-signal):** Lock requirements before a large or ambiguous change with `.agents/skills/interview/SKILL.md` (user-invokable; agents may also use it when a task is non-trivial). After implementation is verified, review code shape and optional follow-ups with `.agents/skills/simplify/SKILL.md`. Neither is required for small, obvious edits.
+**Process skills (optional, high-signal):** Lock requirements before a large or ambiguous change with `.agents/skills/interview/SKILL.md` (user-invokable; agents may also use it when a task is non-trivial). After implementation is verified, review code shape and optional follow-ups with `.agents/skills/simplify/SKILL.md`. For **GitHub issue/PR workflow** with `gh` (labels, milestones, agent-driven branches), use `.agents/skills/gh/SKILL.md`. None of these are required for small, obvious edits.
 
 **Handoffs:** Put anything the next person needs in the **PR** or **linked issue** (description or comments). This repo does not use a separate handoff folder.
 
