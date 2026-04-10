@@ -36,9 +36,33 @@ Use **only** these names unless the user adds new ones in GitHub:
 - **Priority:** `p1`, `p2`, `p3`.
 - **Product area:** `onboarding`, `today`, `past`, `settings`.
 - **Infra / tooling:** `infra`.
-- **CI on PRs:** `full-ci`, `no-ci` (when they apply—see [AGENTS.md](../../../AGENTS.md)).
+- **CI on PRs:** `full-ci`, `no-ci` (semantics below; see [AGENTS.md](../../../AGENTS.md)).
 
 **PR labels:** When type, area, or priority are inferable, apply the **full set** (`bug`/`feat`/`chore` + area + `p1`/`p2`/`p3`). If area or priority is unclear, **ask**—do not guess. Mirror labels from a linked issue when it already has them.
+
+## CI labels: `full-ci` and `no-ci`
+
+- **`full-ci`:** PR **branch** runs the **full** `grace ci` profile (add when change is risky or you want SE UI smoke on the PR).
+- **`no-ci`:** Does **not** skip PR checks. It only affects **post-merge** behavior: the **`push` → `main`** workflow may **skip the full suite** when the **merged** PR had `no-ci` (see `ci.yml` **Main push — evaluate no-ci**).
+
+### When `no-ci` is sensible (non-app work)
+
+Add **`no-ci`** when the PR **does not touch the iOS app implementation**—typical cases:
+
+- **Markdown / docs only** (e.g. `README.md`, `AGENTS.md`, `MEMORY.md`, `CHANGELOG.md`).
+- **Agent / process docs** under `.agents/skills/**` (this skill, role files, etc.).
+- **Localization wording** in `Localizable.xcstrings` (copy changes only).
+- **Python tooling** under `Scripts/gracenotes-dev/**` (Ruff still runs on the PR; post-merge full may still be unnecessary if no Swift app changed).
+
+### When **not** to use `no-ci`
+
+Do **not** add it (or **remove** it if the diff grows) when the PR touches, even lightly:
+
+- Swift sources, UI tests, or **Xcode project / workspace** files for the app.
+- **`.github/workflows/**`** (CI behavior changes need the normal post-merge gate unless the user explicitly wants otherwise).
+- **Mixed “doc + app”** diffs—**ask** or omit `no-ci` until scope is clearly non-app.
+
+If unsure, **omit `no-ci`** or confirm with the user once; a redundant post-merge full run is safer than skipping it after a misclassified PR.
 
 ## Branch naming
 
