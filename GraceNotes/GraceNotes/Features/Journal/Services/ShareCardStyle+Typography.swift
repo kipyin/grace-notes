@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 extension ShareCardStyle {
     func dateFont(for script: ShareTypographyScript) -> Font {
@@ -116,6 +117,6 @@ extension ShareCardStyle {
 
     func dateTracking(for script: ShareTypographyScript) -> CGFloat? {
         guard self == .sunriseGradient, script == .latin else { return nil }
-        return 3.2
+        return UIFontMetrics(forTextStyle: .largeTitle).scaledValue(for: 3.2)
     }
 }
