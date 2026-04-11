@@ -9,6 +9,8 @@ import SwiftUI
 import SwiftData
 import UIKit
 
+// Test PR only: touch Swift so Copilot/Cursor review hooks run; revert before merge if undesired.
+
 @main
 struct GraceNotesApp: App {
     @UIApplicationDelegateAdaptor(GraceNotesAppDelegate.self) private var appDelegate
