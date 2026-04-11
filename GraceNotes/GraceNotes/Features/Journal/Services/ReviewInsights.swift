@@ -70,7 +70,7 @@ struct ReviewThemeSurfaceEvidence: Equatable, Hashable, Sendable, Codable, Ident
     let content: String
 
     var id: String {
-        "\(Int(entryDate.timeIntervalSince1970))|\(source.rawValue)|\(content)"
+        "\(entryDate.timeIntervalSince1970)|\(source.rawValue)|\(content)"
     }
 }
 
