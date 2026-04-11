@@ -101,6 +101,7 @@ struct ReviewHistoryDrilldownSheetContainer: View {
     let calendar: Calendar
     let referenceDate: Date
     let pastStatisticsInterval: PastStatisticsIntervalSelection
+    let onOpenJournalDay: (Date) -> Void
 
     var body: some View {
         switch payload {
@@ -110,7 +111,8 @@ struct ReviewHistoryDrilldownSheetContainer: View {
                 entries: entries,
                 calendar: calendar,
                 referenceDate: referenceDate,
-                pastStatisticsInterval: pastStatisticsInterval
+                pastStatisticsInterval: pastStatisticsInterval,
+                onOpenJournalDay: onOpenJournalDay
             )
         case .section(let kind):
             SectionEntriesDrilldownSheet(
@@ -118,14 +120,16 @@ struct ReviewHistoryDrilldownSheetContainer: View {
                 entries: entries,
                 calendar: calendar,
                 referenceDate: referenceDate,
-                pastStatisticsInterval: pastStatisticsInterval
+                pastStatisticsInterval: pastStatisticsInterval,
+                onOpenJournalDay: onOpenJournalDay
             )
         case .journalingDays:
             JournalingDaysDrilldownSheet(
                 entries: entries,
                 calendar: calendar,
                 referenceDate: referenceDate,
-                pastStatisticsInterval: pastStatisticsInterval
+                pastStatisticsInterval: pastStatisticsInterval,
+                onOpenJournalDay: onOpenJournalDay
             )
         }
     }
@@ -135,9 +139,9 @@ struct ReviewHistoryDrilldownSheetContainer: View {
 
 private struct JournalingDaysDrilldownSheet: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var journalNavigationDay: ReviewHistoryDrilldownJournalNavigationDay?
     @State private var abovePeekHeight: CGFloat = 0
 
+    private let onOpenJournalDay: (Date) -> Void
     private let historyJournalDays: Set<Date>
     private let historyDayRange: Range<Date>
     private let displayRange: Range<Date>
@@ -147,8 +151,10 @@ private struct JournalingDaysDrilldownSheet: View {
         entries: [Journal],
         calendar: Calendar,
         referenceDate: Date,
-        pastStatisticsInterval: PastStatisticsIntervalSelection
+        pastStatisticsInterval: PastStatisticsIntervalSelection,
+        onOpenJournalDay: @escaping (Date) -> Void
     ) {
+        self.onOpenJournalDay = onOpenJournalDay
         drilldownCalendar = calendar
         historyDayRange = pastStatisticsInterval.validated.resolvedHistoryRange(
             referenceDate: referenceDate,
@@ -210,10 +216,7 @@ private struct JournalingDaysDrilldownSheet: View {
                                 sectionStripChipCountsByDay: nil,
                                 scrollViewportHeight: peek,
                                 onMatchingDaySelected: { day in
-                                    journalNavigationDay = ReviewHistoryDrilldownJournalNavigationDay(
-                                        dayStart: day,
-                                        calendar: drilldownCalendar
-                                    )
+                                    onOpenJournalDay(drilldownCalendar.startOfDay(for: day))
                                 }
                             )
                             .padding(.vertical, 4)
@@ -238,9 +241,6 @@ private struct JournalingDaysDrilldownSheet: View {
                     )
                 }
             }
-            .navigationDestination(item: $journalNavigationDay) { item in
-                JournalScreen(entryDate: item.date)
-            }
         }
     }
 
@@ -262,9 +262,9 @@ private struct JournalingDaysDrilldownSheet: View {
 private struct GrowthStageDrilldownSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @State private var journalNavigationDay: ReviewHistoryDrilldownJournalNavigationDay?
     @State private var abovePeekHeight: CGFloat = 0
 
+    private let onOpenJournalDay: (Date) -> Void
     let level: JournalCompletionLevel
     private let matchingDayStarts: Set<Date>
     private let historyJournalDays: Set<Date>
@@ -277,8 +277,10 @@ private struct GrowthStageDrilldownSheet: View {
         entries: [Journal],
         calendar: Calendar,
         referenceDate: Date,
-        pastStatisticsInterval: PastStatisticsIntervalSelection
+        pastStatisticsInterval: PastStatisticsIntervalSelection,
+        onOpenJournalDay: @escaping (Date) -> Void
     ) {
+        self.onOpenJournalDay = onOpenJournalDay
         self.level = level
         drilldownCalendar = calendar
         historyDayRange = pastStatisticsInterval.validated.resolvedHistoryRange(
@@ -351,10 +353,7 @@ private struct GrowthStageDrilldownSheet: View {
                                 sectionStripChipCountsByDay: nil,
                                 scrollViewportHeight: peek,
                                 onMatchingDaySelected: { day in
-                                    journalNavigationDay = ReviewHistoryDrilldownJournalNavigationDay(
-                                        dayStart: day,
-                                        calendar: drilldownCalendar
-                                    )
+                                    onOpenJournalDay(drilldownCalendar.startOfDay(for: day))
                                 }
                             )
                             .padding(.vertical, 4)
@@ -381,9 +380,6 @@ private struct GrowthStageDrilldownSheet: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     PastToolbarDoneButton(action: { dismiss() })
                 }
-            }
-            .navigationDestination(item: $journalNavigationDay) { item in
-                JournalScreen(entryDate: item.date)
             }
         }
     }
@@ -436,8 +432,8 @@ private struct GrowthStageDrilldownSheet: View {
 
 private struct SectionEntriesDrilldownSheet: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var journalNavigationDay: ReviewHistoryDrilldownJournalNavigationDay?
 
+    private let onOpenJournalDay: (Date) -> Void
     let section: ReviewStatsSectionKind
     private let contributingEntries: [Journal]
     private let sectionMatchingDayStarts: Set<Date>
@@ -452,8 +448,10 @@ private struct SectionEntriesDrilldownSheet: View {
         entries: [Journal],
         calendar: Calendar,
         referenceDate: Date,
-        pastStatisticsInterval: PastStatisticsIntervalSelection
+        pastStatisticsInterval: PastStatisticsIntervalSelection,
+        onOpenJournalDay: @escaping (Date) -> Void
     ) {
+        self.onOpenJournalDay = onOpenJournalDay
         self.section = section
         drilldownCalendar = calendar
         historyDayRange = pastStatisticsInterval.validated.resolvedHistoryRange(
@@ -527,10 +525,7 @@ private struct SectionEntriesDrilldownSheet: View {
                                 sectionStripChipCountsByDay: sectionStripChipCountsByDay,
                                 scrollViewportHeight: peek,
                                 onMatchingDaySelected: { day in
-                                    journalNavigationDay = ReviewHistoryDrilldownJournalNavigationDay(
-                                        dayStart: day,
-                                        calendar: drilldownCalendar
-                                    )
+                                    onOpenJournalDay(drilldownCalendar.startOfDay(for: day))
                                 }
                             )
                             .padding(.vertical, 4)
@@ -550,9 +545,6 @@ private struct SectionEntriesDrilldownSheet: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     PastToolbarDoneButton(action: { dismiss() })
                 }
-            }
-            .navigationDestination(item: $journalNavigationDay) { item in
-                JournalScreen(entryDate: item.date)
             }
         }
     }

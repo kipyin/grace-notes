@@ -25,14 +25,16 @@ struct JournalCompletionBarChip: View {
     let peopleCount: Int
     /// When `false`, show only the tier symbol (toolbar stays compact).
     let showsCompletionTitle: Bool
-    let onCollapseExpandTap: () -> Void
-    let onShowCompletionInfo: () -> Void
+    /// Matches inline completion: show or toggle the info card and scroll the header into view.
+    let onPrimaryTap: () -> Void
+    /// Touch-and-hold: expand or collapse the status label in the toolbar chip.
+    let onLongPressToggleLabelExpansion: () -> Void
 
     /// Matches the trailing share symbol row (Outfit 17pt headline scale).
     @ScaledMetric(relativeTo: .headline) private var tierIconLength: CGFloat = 24
 
     /// After a long-press succeeds, UIKit may still deliver the `Button` action on finger-up; skip one cycle.
-    @State private var suppressNextCollapseExpandTap = false
+    @State private var suppressNextPrimaryTapAfterLongPress = false
 
     /// Icon-only size tracks ``toolbarControlHeight``
     /// (``JournalScreen/journalToolbarControlHeight``), matching the trailing share symbol row.
@@ -66,11 +68,11 @@ struct JournalCompletionBarChip: View {
 
     var body: some View {
         Button {
-            if suppressNextCollapseExpandTap {
-                suppressNextCollapseExpandTap = false
+            if suppressNextPrimaryTapAfterLongPress {
+                suppressNextPrimaryTapAfterLongPress = false
                 return
             }
-            onCollapseExpandTap()
+            onPrimaryTap()
         } label: {
             ZStack(alignment: .leading) {
                 collapsedChipLabel
@@ -89,14 +91,14 @@ struct JournalCompletionBarChip: View {
         .dynamicTypeSize(Self.toolbarChipDynamicTypeRange)
         .simultaneousGesture(
             LongPressGesture(minimumDuration: 0.45).onEnded { _ in
-                suppressNextCollapseExpandTap = true
-                onShowCompletionInfo()
+                suppressNextPrimaryTapAfterLongPress = true
+                onLongPressToggleLabelExpansion()
             }
         )
         .accessibilityLabel(accessibilityLabelText)
         .accessibilityHint(String(localized: "accessibility.stickyCompletionChipHint"))
-        .accessibilityAction(named: String(localized: "accessibility.stickyCompletionChipShowDetailsAction")) {
-            onShowCompletionInfo()
+        .accessibilityAction(named: String(localized: "accessibility.stickyCompletionChipToggleLabelAction")) {
+            onLongPressToggleLabelExpansion()
         }
     }
 

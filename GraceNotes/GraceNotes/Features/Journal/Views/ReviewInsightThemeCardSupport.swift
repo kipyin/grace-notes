@@ -186,11 +186,17 @@ struct MostRecurringBrowseSheetContainer: View {
     let themes: [ReviewMostRecurringTheme]
     let referenceDate: Date
     let calendar: Calendar
+    let onOpenJournalDay: (Date) -> Void
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
-            MostRecurringThemesBrowseView(themes: themes, referenceDate: referenceDate, calendar: calendar)
+            MostRecurringThemesBrowseView(
+                themes: themes,
+                referenceDate: referenceDate,
+                calendar: calendar,
+                onOpenJournalDay: onOpenJournalDay
+            )
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
                         PastToolbarDoneButton(
@@ -205,10 +211,11 @@ struct MostRecurringBrowseSheetContainer: View {
 
 struct TrendingBrowseSheetContainer: View {
     let buckets: ReviewTrendingBuckets
+    let onOpenJournalDay: (Date) -> Void
 
     var body: some View {
         NavigationStack {
-            TrendingThemesBrowseView(buckets: buckets)
+            TrendingThemesBrowseView(buckets: buckets, onOpenJournalDay: onOpenJournalDay)
         }
     }
 }
@@ -217,6 +224,7 @@ struct MostRecurringThemesBrowseView: View {
     let themes: [ReviewMostRecurringTheme]
     let referenceDate: Date
     let calendar: Calendar
+    let onOpenJournalDay: (Date) -> Void
     @AppStorage(PastStatisticsIntervalPreference.appStorageKey)
     private var pastStatisticsIntervalEncoded = ""
 
@@ -259,7 +267,8 @@ struct MostRecurringThemesBrowseView: View {
                 NavigationLink {
                     ThemeDrilldownView(
                         payload: drilldownPayload(for: row),
-                        includeDoneButton: false
+                        includeDoneButton: false,
+                        onOpenJournalDay: onOpenJournalDay
                     )
                 } label: {
                     HStack(alignment: .center, spacing: 10) {
@@ -374,6 +383,7 @@ struct MostRecurringBrowseRowModel: Identifiable {
 
 struct TrendingThemesBrowseView: View {
     let buckets: ReviewTrendingBuckets
+    let onOpenJournalDay: (Date) -> Void
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -406,7 +416,11 @@ struct TrendingThemesBrowseView: View {
         Section {
             ForEach(themes) { theme in
                 NavigationLink {
-                    ThemeDrilldownView(payload: drilldownPayload(for: theme), includeDoneButton: false)
+                    ThemeDrilldownView(
+                        payload: drilldownPayload(for: theme),
+                        includeDoneButton: false,
+                        onOpenJournalDay: onOpenJournalDay
+                    )
                 } label: {
                     HStack(alignment: .center, spacing: 10) {
                         Text(theme.label)
@@ -470,15 +484,21 @@ struct TrendingThemesBrowseView: View {
 
 struct ThemeDrilldownSheet: View {
     let payload: ReviewThemeDrilldownPayload
+    let onOpenJournalDay: (Date) -> Void
 
     var body: some View {
-        ThemeDrilldownView(payload: payload, includeDoneButton: true)
+        ThemeDrilldownView(
+            payload: payload,
+            includeDoneButton: true,
+            onOpenJournalDay: onOpenJournalDay
+        )
     }
 }
 
 struct ThemeDrilldownView: View {
     let payload: ReviewThemeDrilldownPayload
     let includeDoneButton: Bool
+    let onOpenJournalDay: (Date) -> Void
     @Environment(\.dismiss) private var dismiss
     @AppStorage(ReviewWeekBoundaryPreference.userDefaultsKey)
     private var reviewWeekBoundaryRawValue = ReviewWeekBoundaryPreference.defaultValue.rawValue
@@ -530,8 +550,8 @@ struct ThemeDrilldownView: View {
                         ForEach(evidenceGroupedByDay, id: \.day) { group in
                             Section {
                                 ForEach(group.rows) { evidence in
-                                    NavigationLink {
-                                        JournalScreen(entryDate: evidence.entryDate)
+                                    Button {
+                                        onOpenJournalDay(groupingCalendar.startOfDay(for: evidence.entryDate))
                                     } label: {
                                         VStack(alignment: .leading, spacing: 8) {
                                             Text(evidence.source.localizedJournalSurfaceTitle)

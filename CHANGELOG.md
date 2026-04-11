@@ -4,6 +4,8 @@
 
 ### Changed
 
+- **Past (#257):** Sticky completion toolbar chip matches inline completion (tap shows status info and scrolls to header; touch-and-hold toggles the expanded label). Past journal navigation titles align with search/list day captions (same calendar year omits year; **Today** / **Yesterday** unchanged). Opening a day from **Growth**, **Section mix**, **Reflection rhythm** drill-down, **theme** drill-downs, or **browse** sheets presents **Journal** in the top-level day sheet (drill-down sheet dismisses first).
+
 - **Past (#247):** Section mix strip shows **integer percentages** in each segment; the legend keeps **mention counts** with **meta** labels and per-section **count capsules** aligned with other insight cards.
 
 ## [0.5.0]

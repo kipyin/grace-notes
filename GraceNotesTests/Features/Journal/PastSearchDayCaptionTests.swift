@@ -59,6 +59,26 @@ final class PastSearchDayCaptionTests: XCTestCase {
         XCTAssertTrue(caption.contains("2024"), "Expected year in caption, got: \(caption)")
     }
 
+    func test_journalNavigationTitle_matchesPastSearchCaption_forSundayStartPreference() {
+        let now = date(year: 2026, month: 7, day: 15, hour: 12)
+        let day = date(year: 2026, month: 3, day: 8, hour: 12)
+        let locale = Locale(identifier: "en_US_POSIX")
+        let preferenceCalendar = ReviewWeekBoundaryPreference.sundayStart.configuredCalendar(base: calendar)
+        let expected = PastSearchDayCaption.string(
+            day: day,
+            now: now,
+            calendar: preferenceCalendar,
+            dateFormattingLocale: locale
+        )
+        let title = PastSearchDayCaption.journalNavigationTitle(
+            forEntryDate: day,
+            now: now,
+            weekBoundaryRawValue: ReviewWeekBoundaryPreference.sundayStart.rawValue,
+            dateFormattingLocale: locale
+        )
+        XCTAssertEqual(title, expected)
+    }
+
     private func date(year: Int, month: Int, day: Int, hour: Int = 12) -> Date {
         var components = DateComponents()
         components.year = year

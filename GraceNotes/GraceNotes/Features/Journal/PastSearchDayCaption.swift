@@ -42,4 +42,15 @@ enum PastSearchDayCaption {
                 .locale(dateFormattingLocale)
         )
     }
+
+    /// Navigation bar title for a journal opened for a specific day from Past; matches search/list day captions.
+    static func journalNavigationTitle(
+        forEntryDate day: Date,
+        now: Date = Date(),
+        weekBoundaryRawValue: String,
+        dateFormattingLocale: Locale = .current
+    ) -> String {
+        let calendar = ReviewWeekBoundaryPreference.resolve(from: weekBoundaryRawValue).configuredCalendar()
+        return string(day: day, now: now, calendar: calendar, dateFormattingLocale: dateFormattingLocale)
+    }
 }
