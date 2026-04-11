@@ -8,20 +8,11 @@ enum ScheduledBackupRunner {
         guard interval != .off else { return }
         guard ScheduledBackupPreferences.isDue() else { return }
 
-        let folderURL: URL
         do {
-            folderURL = try ScheduledBackupPreferences.resolveFolderURL()
+            _ = try ScheduledBackupPreferences.resolveFolderURL()
         } catch {
             await recordScheduledFailure(detail: String(localized: "settings.dataPrivacy.scheduledBackup.folderError"))
             return
-        }
-
-        guard folderURL.startAccessingSecurityScopedResource() else {
-            await recordScheduledFailure(detail: String(localized: "settings.dataPrivacy.scheduledBackup.folderError"))
-            return
-        }
-        defer {
-            folderURL.stopAccessingSecurityScopedResource()
         }
 
         let exportResult = await Task.detached(priority: .utility) {
@@ -43,7 +34,9 @@ enum ScheduledBackupRunner {
         }
 
         do {
-            let fileName = try copyTempExport(at: tempFile, to: folderURL)
+            let fileName = try await Task.detached(priority: .utility) {
+                try Self.copyScheduledExportToFolder(tempFile: tempFile)
+            }.value
             await MainActor.run {
                 ScheduledBackupPreferences.lastRunAt = Date()
                 ScheduledBackupPreferences.lastFailedAttemptAt = nil
@@ -54,9 +47,14 @@ enum ScheduledBackupRunner {
                 )
             }
         } catch {
-            await recordScheduledFailure(
-                detail: String(localized: "settings.dataPrivacy.scheduledBackup.failureDetail")
-            )
+            let detail = failureDetail(for: error)
+            await recordScheduledFailure(detail: detail)
+        }
+    }
+
+    private static func copyScheduledExportToFolder(tempFile: URL) throws -> String {
+        try ScheduledBackupPreferences.withFolderSecurityScopedAccess { folderURL in
+            try copyTempExport(at: tempFile, to: folderURL)
         }
     }
 
@@ -73,6 +71,18 @@ enum ScheduledBackupRunner {
             destinationFileName: name,
             fileManager: .default
         )
+    }
+
+    private static func failureDetail(for error: Error) -> String {
+        if let scheduled = error as? ScheduledBackupError {
+            switch scheduled {
+            case .noFolderBookmark, .securityScopeDenied:
+                return String(localized: "settings.dataPrivacy.scheduledBackup.folderError")
+            case .staleBookmark, .exportFailed:
+                return String(localized: "settings.dataPrivacy.scheduledBackup.failureDetail")
+            }
+        }
+        return String(localized: "settings.dataPrivacy.scheduledBackup.failureDetail")
     }
 
     private enum ExportToTempResult {
