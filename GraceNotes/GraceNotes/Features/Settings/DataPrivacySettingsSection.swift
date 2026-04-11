@@ -150,7 +150,6 @@ private extension DataPrivacySettingsSection {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(String(localized: "settings.dataPrivacy.a11y.storage"))
     }
 
     func attentionBlock(message: String) -> some View {
@@ -172,7 +171,6 @@ private extension DataPrivacySettingsSection {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(String(localized: "settings.dataPrivacy.a11y.nextSteps"))
     }
 
     var importExportRow: some View {
