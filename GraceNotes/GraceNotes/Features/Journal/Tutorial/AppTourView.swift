@@ -102,7 +102,7 @@ struct AppTourView: View {
 private enum AppTourPathTitleMetricsKey: PreferenceKey {
     static var defaultValue: CGFloat = 0
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
+        value = max(value, nextValue())
     }
 }
 
@@ -261,7 +261,7 @@ struct AppTourPathStrip: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            ForEach(Array(Self.orderedLevels.enumerated()), id: \.offset) { index, level in
+            ForEach(Array(Self.orderedLevels.enumerated()), id: \.element) { index, level in
                 AppTourPathStepRow(
                     index: index,
                     stepCount: Self.orderedLevels.count,
