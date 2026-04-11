@@ -95,4 +95,15 @@ final class SectionDistributionStripLayoutTests: XCTestCase {
         )
         XCTAssertEqual(percents, [100, 0, 0])
     }
+
+    /// Plain rounding yields 33+33+33=99; largest remainder assigns the spare point (first index wins ties).
+    func test_integerDisplayPercents_equalCounts_sumTo100() {
+        let percents = ReviewSectionDistributionStripLayout.integerDisplayPercents(
+            gratitudeMentions: 1,
+            needMentions: 1,
+            peopleMentions: 1
+        )
+        XCTAssertEqual(percents, [34, 33, 33])
+        XCTAssertEqual(percents.reduce(0, +), 100)
+    }
 }

@@ -233,8 +233,9 @@ enum ReviewSectionDistributionStripLayout {
         return widths
     }
 
-    /// Display percentages for the section-mix strip (issue #247). Whole numbers only; rounded shares may not sum
-    /// to 100. When all counts are zero, returns `[0, 0, 0]` so each segment can show `0%` with equal thirds widths.
+    /// Display percentages for the section-mix strip (issue #247). Whole numbers only; uses the largest-remainder
+    /// method so the three values always sum to **100** when `total > 0` (plain rounding can yield 99).
+    /// When all counts are zero, returns `[0, 0, 0]` so each segment can show `0%` with equal thirds widths.
     static func integerDisplayPercents(
         gratitudeMentions: Int,
         needMentions: Int,
@@ -243,7 +244,23 @@ enum ReviewSectionDistributionStripLayout {
         let counts = [gratitudeMentions, needMentions, peopleMentions]
         let total = counts.reduce(0, +)
         guard total > 0 else { return [0, 0, 0] }
-        return counts.map { Int((Double($0) / Double(total) * 100).rounded()) }
+
+        let totalDouble = Double(total)
+        let exactShares = counts.map { Double($0) / totalDouble * 100 }
+        var floors = exactShares.map { Int($0.rounded(.down)) }
+        let remainder = 100 - floors.reduce(0, +)
+        guard remainder > 0 else { return floors }
+
+        let indicesByLargestFraction = (0..<counts.count).sorted { lhs, rhs in
+            let leftFraction = exactShares[lhs] - Double(floors[lhs])
+            let rightFraction = exactShares[rhs] - Double(floors[rhs])
+            if leftFraction != rightFraction { return leftFraction > rightFraction }
+            return lhs < rhs
+        }
+        for offset in 0..<remainder {
+            floors[indicesByLargestFraction[offset]] += 1
+        }
+        return floors
     }
 }
 
