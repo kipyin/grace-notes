@@ -5,7 +5,7 @@
 ### Changed
 
 - **Past (#257):** Sticky completion toolbar chip matches inline completion (tap shows status info and scrolls to header; touch-and-hold toggles the expanded label). Past journal navigation titles align with search/list day captions (same calendar year omits year; **Today** / **Yesterday** unchanged). Opening a day from **Growth**, **Section mix**, **Reflection rhythm** drill-down, **theme** drill-downs, or **browse** sheets presents **Journal** in the top-level day sheet (drill-down sheet dismisses first).
-- **Past (#255):** The narrative row below recurring/trending is **Next step** only (no separate Observation panel). A refiner **hides the whole row** when the line would be empty, match the generic glad-happened filler, or echo a **short** recurring-theme action already prominent in stats; longer actions still show. **zh-Hans** tightened for the next-step title and weekly insight action strings (`Localizable.xcstrings`).
+- **Past (#255):** The narrative row below recurring/trending is **Next step** only (no separate Observation panel). Weeks in **stats-first** presentation still omit that row (rhythm-led). Otherwise a refiner **hides the whole row** when the line would be empty, duplicate the generic glad-happened filler, or echo a **short** recurring-theme action already shown in the most-recurring stats; longer actions still show. **zh-Hans** tightened for the next-step title and weekly insight action strings (`Localizable.xcstrings`).
 - **Past (#247):** Section mix strip shows **integer percentages** in each segment; the legend keeps **mention counts** with **meta** labels and per-section **count capsules** aligned with other insight cards.
 
 ## [0.5.0]

@@ -14,7 +14,12 @@ struct ReviewNextStepRowRefiner {
     }
 
     /// Returns `nil` when the row should not appear (no redundant or generic filler).
+    /// Aligns with ``ReviewPresentationMode``: `.statsFirst` weeks stay rhythm-led and omit this narrative row.
     func nextStepText(for insights: ReviewInsights) -> String? {
+        if insights.presentationMode == .statsFirst {
+            return nil
+        }
+
         let action = actionBodyCandidate(for: insights)
         let trimmed = action.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
@@ -45,8 +50,9 @@ struct ReviewNextStepRowRefiner {
             .first { !$0.isEmpty } ?? ""
     }
 
-    /// When the insight is recurring-theme/people and the same label is already in the top recurring stats,
-    /// short template actions add little beyond the cards above; longer behavioral lines are kept.
+    /// When the insight is recurring-theme/people and the same label is already in the top
+    /// ``ReviewWeekStats/mostRecurringThemes`` rows (what the Past cards above show), short template
+    /// actions add little beyond those cards; longer behavioral lines are kept.
     private func shouldHideThinRecurringEcho(_ insights: ReviewInsights, actionLine: String) -> Bool {
         guard let first = insights.weeklyInsights.first,
               let primary = first.primaryTheme,
@@ -80,12 +86,6 @@ struct ReviewNextStepRowRefiner {
         for row in insights.weekStats.mostRecurringThemes.prefix(3)
             where textNormalizer.normalizeThemeLabel(row.label) == normalizedPrimary {
             return true
-        }
-        if insights.weeklyInsights.first?.pattern == .recurringPeople {
-            for person in insights.recurringPeople.prefix(3)
-                where textNormalizer.normalizeThemeLabel(person.label) == normalizedPrimary {
-                return true
-            }
         }
         return false
     }

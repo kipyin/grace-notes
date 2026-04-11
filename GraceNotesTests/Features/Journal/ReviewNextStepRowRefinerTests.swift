@@ -44,6 +44,31 @@ final class ReviewNextStepRowRefinerTests: XCTestCase {
         XCTAssertNil(refiner.nextStepText(for: insights))
     }
 
+    func test_nextStepText_statsFirst_returnsNil_evenWithContinuity() {
+        let weekStart = date(year: 2026, month: 4, day: 6)
+        let insights = makeInsights(
+            weekStart: weekStart,
+            continuityPrompt: "Any next step line.",
+            weeklyInsights: [],
+            mostRecurring: [],
+            presentationMode: .statsFirst
+        )
+        let refiner = ReviewNextStepRowRefiner()
+        XCTAssertNil(refiner.nextStepText(for: insights))
+    }
+
+    func test_shouldShowNarrativeRow_statsFirst_false() {
+        let weekStart = date(year: 2026, month: 4, day: 6)
+        let insights = makeInsights(
+            weekStart: weekStart,
+            continuityPrompt: "Carry something forward.",
+            weeklyInsights: [],
+            mostRecurring: [],
+            presentationMode: .statsFirst
+        )
+        XCTAssertFalse(ReviewNextStepRowRefiner.shouldShowNarrativeRow(insights: insights, isLoading: false))
+    }
+
     func test_nextStepText_thinRecurringEcho_whenThemeMatchesTopRecurring_returnsNil() {
         let weekStart = date(year: 2026, month: 4, day: 6)
         let insights = makeInsights(
@@ -140,7 +165,8 @@ final class ReviewNextStepRowRefinerTests: XCTestCase {
         weekStart: Date,
         continuityPrompt: String,
         weeklyInsights: [ReviewWeeklyInsight],
-        mostRecurring: [ReviewMostRecurringTheme]
+        mostRecurring: [ReviewMostRecurringTheme],
+        presentationMode: ReviewPresentationMode = .insight
     ) -> ReviewInsights {
         let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart)!
         let weekStats = ReviewWeekStats(
@@ -170,7 +196,7 @@ final class ReviewNextStepRowRefinerTests: XCTestCase {
         )
         return ReviewInsights(
             source: .deterministic,
-            presentationMode: .insight,
+            presentationMode: presentationMode,
             generatedAt: weekStart,
             weekStart: weekStart,
             weekEnd: weekEnd,
