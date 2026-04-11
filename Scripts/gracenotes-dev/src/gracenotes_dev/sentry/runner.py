@@ -276,8 +276,6 @@ def run_single_iteration(
             title,
             "--body",
             body,
-            "--json",
-            "number,url",
         ],
         cwd=repo_root,
         capture_output=True,
@@ -300,7 +298,34 @@ def run_single_iteration(
         _cleanup_failed_branch(repo_root, branch)
         return 1
 
-    pr_meta = json.loads(proc.stdout)
+    # `gh pr create` does not support `--json` on many CLI versions; read metadata separately.
+    view = subprocess.run(
+        ["gh", "pr", "view", "--json", "number,url"],
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+    )
+    if view.returncode != 0:
+        _emit(
+            repo_root,
+            sink,
+            {
+                "kind": "error",
+                "message": (
+                    "gh pr create succeeded but could not read PR metadata: "
+                    f"{view.stderr or view.stdout}"
+                ),
+                "branch": branch,
+            },
+        )
+        try:
+            _git_output(repo_root, "checkout", "--", rel)
+        except subprocess.CalledProcessError:
+            pass
+        _cleanup_failed_branch(repo_root, branch)
+        return 1
+
+    pr_meta = json.loads(view.stdout)
     pr_number = int(pr_meta["number"])
     pr_url = pr_meta.get("url", "")
     if sink is not None:
