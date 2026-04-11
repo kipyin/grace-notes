@@ -367,6 +367,62 @@ class SentryCursorIssueReviewTest(unittest.TestCase):
         )
 
 
+class SentryCursorPrReviewGateTest(unittest.TestCase):
+    def test_pr_review_finished_comment_state(self) -> None:
+        self.assertTrue(
+            gh_sentry.cursor_pr_review_finished(
+                [{"user": {"login": "cursor"}, "state": "COMMENTED"}],
+                ("cursor",),
+            )
+        )
+
+    def test_pr_review_finished_pending_not_done(self) -> None:
+        self.assertFalse(
+            gh_sentry.cursor_pr_review_finished(
+                [{"user": {"login": "cursor"}, "state": "PENDING"}],
+                ("cursor",),
+            )
+        )
+
+    def test_merge_gate_ok_when_issue_stuck_but_pr_submitted(self) -> None:
+        """Starter-only issue comment + real review via PR reviews API (deleted starter case)."""
+        self.assertFalse(
+            gh_sentry.cursor_issue_review_ok(
+                [{"user": {"login": "cursor"}, "body": "Taking a look"}],
+                ("cursor",),
+                ("Taking a look",),
+            )
+        )
+        self.assertTrue(
+            gh_sentry.cursor_merge_gate_ok(
+                comments=[{"user": {"login": "cursor"}, "body": "Taking a look"}],
+                pr_reviews=[{"user": {"login": "cursor"}, "state": "COMMENTED"}],
+                cursor_logins=("cursor",),
+                start_phrases=("Taking a look",),
+            )
+        )
+
+    def test_merge_gate_ok_when_issue_stuck_and_only_pending_review(self) -> None:
+        self.assertFalse(
+            gh_sentry.cursor_merge_gate_ok(
+                comments=[{"user": {"login": "cursor"}, "body": "Taking a look"}],
+                pr_reviews=[{"user": {"login": "cursor"}, "state": "PENDING"}],
+                cursor_logins=("cursor",),
+                start_phrases=("Taking a look",),
+            )
+        )
+
+    def test_merge_gate_ok_changes_requested_counts(self) -> None:
+        self.assertTrue(
+            gh_sentry.cursor_merge_gate_ok(
+                comments=[{"user": {"login": "cursor"}, "body": "Taking a look"}],
+                pr_reviews=[{"user": {"login": "cursor"}, "state": "CHANGES_REQUESTED"}],
+                cursor_logins=("cursor",),
+                start_phrases=("Taking a look",),
+            )
+        )
+
+
 class SentryApprovalParseTest(unittest.TestCase):
     def test_phrase(self) -> None:
         from gracenotes_dev.sentry import github as gh

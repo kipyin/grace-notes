@@ -106,6 +106,26 @@ def unresolved_copilot_threads(
     return count
 
 
+def pr_reviews(repo_root: Path, owner: str, repo: str, pr_number: int) -> list[dict[str, Any]]:
+    """Submitted PR reviews (REST). Used with issue comments for Cursor merge gating."""
+    proc = _run_gh(
+        repo_root,
+        [
+            "api",
+            f"repos/{owner}/{repo}/pulls/{pr_number}/reviews",
+            "--paginate",
+        ],
+        check=False,
+    )
+    if proc.returncode != 0:
+        return []
+    try:
+        data = json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        return []
+    return data if isinstance(data, list) else []
+
+
 def issue_comments(repo_root: Path, owner: str, repo: str, pr_number: int) -> list[dict[str, Any]]:
     proc = _run_gh(
         repo_root,
@@ -154,6 +174,30 @@ def _tail_after_first_start_phrase(body: str, start_phrases: tuple[str, ...]) ->
     return ""
 
 
+def cursor_pr_review_finished(
+    reviews: list[dict[str, Any]],
+    cursor_logins: tuple[str, ...],
+) -> bool:
+    """
+    True if a configured Cursor account submitted a non-draft PR review.
+
+    ``PENDING`` is GitHub’s draft / not-yet-submitted state; others count as delivered.
+    """
+    allowed = {x.strip().lower() for x in cursor_logins if x.strip()}
+    if not allowed:
+        return False
+    for r in reviews:
+        user = ((r.get("user") or {}).get("login") or "").strip().lower()
+        if user not in allowed:
+            continue
+        state = (r.get("state") or "").strip().upper()
+        if state == "PENDING":
+            continue
+        if state in ("COMMENTED", "CHANGES_REQUESTED", "APPROVED", "DISMISSED"):
+            return True
+    return False
+
+
 def cursor_issue_review_ok(
     comments: list[dict[str, Any]],
     cursor_logins: tuple[str, ...],
@@ -171,6 +215,9 @@ def cursor_issue_review_ok(
 
     * a later issue comment from Cursor exists, or
     * the same comment contains substantive text after the start phrase (review in one comment).
+
+    For PR reviews (inline or summary) and deleted starters, use
+    :func:`cursor_merge_gate_ok` which also consults :func:`pr_reviews`.
     """
     allowed = {x.strip().lower() for x in cursor_logins if x.strip()}
     if not allowed:
@@ -205,6 +252,26 @@ def cursor_issue_review_ok(
     if start_idx + 1 < len(curs):
         return True
     return False
+
+
+def cursor_merge_gate_ok(
+    *,
+    comments: list[dict[str, Any]],
+    pr_reviews: list[dict[str, Any]],
+    cursor_logins: tuple[str, ...],
+    start_phrases: tuple[str, ...],
+) -> bool:
+    """
+    Cursor merge gate: issue comments and/or submitted PR reviews.
+
+    If issue-comment logic alone is satisfied, returns True. Otherwise, if Cursor
+    submitted a **PR review** (not ``PENDING``), returns True — covers quick reviews
+    where the starter issue comment was deleted, or the review exists only as a
+    GitHub review (not duplicated in issue comments).
+    """
+    if cursor_issue_review_ok(comments, cursor_logins, start_phrases):
+        return True
+    return cursor_pr_review_finished(pr_reviews, cursor_logins)
 
 
 def has_approval_phrase(

@@ -282,7 +282,7 @@ class SentrySettings:
                 "llm_api_key_env",
                 "OPENAI_API_KEY",
             ),
-            interval_seconds=_merge_int("SENTRY_INTERVAL_SEC", tom, "interval_seconds", 60),
+            interval_seconds=_merge_int("SENTRY_INTERVAL_SEC", tom, "interval_seconds", 30),
             max_retries=_merge_int("SENTRY_MAX_RETRIES", tom, "max_retries", 8),
             retry_base_seconds=_merge_float(
                 "SENTRY_RETRY_BASE_SEC",

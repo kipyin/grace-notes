@@ -78,6 +78,6 @@ approval_users = ["kipyin"]
 ci_profile = "lint-build"
 copilot_wait_seconds = 900
 arbitration_stuck_seconds = 172800
-interval_seconds = 300
+interval_seconds = 30
 max_retries = 8
 retry_base_seconds = 1.5
