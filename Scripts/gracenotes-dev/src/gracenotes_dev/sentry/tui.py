@@ -10,6 +10,7 @@ from textual.binding import Binding
 from textual.containers import Vertical
 from textual.widgets import RichLog, Static
 
+from gracenotes_dev.sentry.log_sink import format_sentry_log_line
 from gracenotes_dev.sentry.runner import run_single_iteration
 from gracenotes_dev.sentry.settings import SentrySettings
 from gracenotes_dev.sentry.state import append_event
@@ -158,7 +159,7 @@ class SentryTextualApp(App[int | None]):
         self.query_one("#status", Static).update(self._status_text())
 
     def _append_log(self, line: str) -> None:
-        self.query_one("#log", RichLog).write(line)
+        self.query_one("#log", RichLog).write(format_sentry_log_line(line))
 
 
 __all__ = ["SentryTextualApp"]

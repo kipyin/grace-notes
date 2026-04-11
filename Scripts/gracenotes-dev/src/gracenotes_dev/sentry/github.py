@@ -69,6 +69,21 @@ def graphql_review_threads(
     return [n for n in nodes if isinstance(n, dict)]
 
 
+def review_thread_author_logins(nodes: list[dict[str, Any]]) -> list[str]:
+    """Unique ``author.login`` values from review thread comments (sorted)."""
+    seen: set[str] = set()
+    out: list[str] = []
+    for node in nodes:
+        comments = (node.get("comments") or {}).get("nodes") or []
+        for c in comments:
+            author = (c or {}).get("author") or {}
+            login = (author.get("login") or "").strip()
+            if login and login not in seen:
+                seen.add(login)
+                out.append(login)
+    return sorted(out)
+
+
 def unresolved_copilot_threads(
     nodes: list[dict[str, Any]],
     copilot_login: str | None,

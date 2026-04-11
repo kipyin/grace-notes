@@ -14,6 +14,8 @@ from rich.console import Console
 
 from gracenotes_dev.cli import core as cli_core
 from gracenotes_dev.cli.apps import sentry_app
+from gracenotes_dev.sentry import github as gh_sentry
+from gracenotes_dev.sentry.git_remote import git_remote_owner_repo
 from gracenotes_dev.sentry.log_sink import PlainStderrSink, SentryLogSink
 from gracenotes_dev.sentry.runner import run_single_iteration
 from gracenotes_dev.sentry.settings import SentrySettings
@@ -192,6 +194,37 @@ def sentry_status() -> None:
         _console().print(f"sentry: stale PID file ({pid} not running)")
         raise typer.Exit(code=1)
     _console().print(f"sentry: running (pid {pid})")
+    raise typer.Exit(code=0)
+
+
+@sentry_app.command("review-thread-authors")
+def sentry_review_thread_authors(
+    pr_number: Annotated[
+        int,
+        typer.Argument(help="Pull request number (e.g. 123)."),
+    ],
+) -> None:
+    """
+    Print sorted unique ``author.login`` values from PR review threads (GraphQL).
+
+    Use this to confirm which login to set as ``copilot_login`` / ``SENTRY_COPILOT_LOGIN``
+    for unresolved-thread filtering.
+    """
+    repo_root = cli_core._repo_root()
+    remote = git_remote_owner_repo(repo_root)
+    if not remote:
+        _console().print("[red]Could not parse origin remote (GitHub).[/red]")
+        raise typer.Exit(code=2)
+    owner, name = remote
+    nodes = gh_sentry.graphql_review_threads(repo_root, owner, name, pr_number)
+    logins = gh_sentry.review_thread_author_logins(nodes)
+    if not logins:
+        _console().print(
+            "(no review threads or no comments; check PR number and permissions)"
+        )
+        raise typer.Exit(code=0)
+    for login in logins:
+        print(login)
     raise typer.Exit(code=0)
 
 

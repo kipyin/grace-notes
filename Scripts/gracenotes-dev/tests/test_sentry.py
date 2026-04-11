@@ -18,37 +18,33 @@ from gracenotes_dev.sentry.llm_client import (
     parse_merge_conflict_response,
     parse_pr_material_json,
 )
-from gracenotes_dev.sentry.merge_logic import approval_only_pending, can_merge
+from gracenotes_dev.sentry.merge_logic import can_merge
 from gracenotes_dev.sentry.pr_template import build_pr_body_from_material, fallback_pr_material
 from gracenotes_dev.sentry.settings import SentrySettings
 from gracenotes_dev.sentry.state import format_report, read_recent_events
 
 
 class SentryMergeLogicTest(unittest.TestCase):
-    def test_low_touch_merge_requires_ci_and_copilot(self) -> None:
+    def test_merge_requires_ci_and_copilot_or_approve(self) -> None:
         self.assertTrue(
             can_merge(
                 ci_ok=True,
-                high_touch=False,
                 copilot_ok=True,
                 approve_phrase_present=False,
             )
         )
         self.assertFalse(
-            can_merge(ci_ok=True, high_touch=False, copilot_ok=False, approve_phrase_present=False)
-        )
-
-    def test_high_touch_requires_approve_even_if_copilot_ok(self) -> None:
-        self.assertFalse(
-            can_merge(ci_ok=True, high_touch=True, copilot_ok=True, approve_phrase_present=False)
-        )
-        self.assertTrue(
-            can_merge(ci_ok=True, high_touch=True, copilot_ok=True, approve_phrase_present=True)
+            can_merge(ci_ok=True, copilot_ok=False, approve_phrase_present=False)
         )
 
     def test_approve_overrides_copilot_stuck(self) -> None:
         self.assertTrue(
-            can_merge(ci_ok=True, high_touch=False, copilot_ok=False, approve_phrase_present=True)
+            can_merge(ci_ok=True, copilot_ok=False, approve_phrase_present=True)
+        )
+
+    def test_ci_red_blocks(self) -> None:
+        self.assertFalse(
+            can_merge(ci_ok=False, copilot_ok=True, approve_phrase_present=False)
         )
 
 
@@ -79,38 +75,6 @@ class SentrySettingsTest(unittest.TestCase):
         self.assertEqual(s.main_branch, "main")
         self.assertTrue(s.yield_on_approval_pending)
         self.assertEqual(s.sentry_branch_prefix, "sentry/auto-")
-
-
-class SentryApprovalOnlyPendingTest(unittest.TestCase):
-    def test_true_when_high_touch_needs_approve(self) -> None:
-        self.assertTrue(
-            approval_only_pending(
-                ci_ok=True,
-                copilot_ok=True,
-                high_touch=True,
-                approve_phrase_present=False,
-            )
-        )
-
-    def test_false_when_approved(self) -> None:
-        self.assertFalse(
-            approval_only_pending(
-                ci_ok=True,
-                copilot_ok=True,
-                high_touch=True,
-                approve_phrase_present=True,
-            )
-        )
-
-    def test_false_when_ci_red(self) -> None:
-        self.assertFalse(
-            approval_only_pending(
-                ci_ok=False,
-                copilot_ok=True,
-                high_touch=True,
-                approve_phrase_present=False,
-            )
-        )
 
 
 class SentryTomlTest(unittest.TestCase):
@@ -164,6 +128,7 @@ class SentryPrMaterialParseTest(unittest.TestCase):
         self.assertIn("## User impact", body)
         self.assertIn("## What changed", body)
         self.assertIn("## Verification", body)
+        self.assertIn("Copilot review threads", body)
 
 
 class SentryParseFixTest(unittest.TestCase):
@@ -202,6 +167,39 @@ class SentryGithubGraphQLTest(unittest.TestCase):
 
         # GraphQL requires commas between operation variables.
         self.assertIn("$owner:String!,$name:String!,$number:Int!", gh._REVIEW_THREADS_QUERY)
+
+    def test_review_thread_author_logins_unique_sorted(self) -> None:
+        from gracenotes_dev.sentry import github as gh
+
+        nodes = [
+            {
+                "comments": {
+                    "nodes": [
+                        {"author": {"login": "copilot"}},
+                        {"author": {"login": "alice"}},
+                    ]
+                }
+            },
+            {"comments": {"nodes": [{"author": {"login": "copilot"}}]}},
+        ]
+        self.assertEqual(gh.review_thread_author_logins(nodes), ["alice", "copilot"])
+
+    def test_unresolved_copilot_threads_counts_matching_login(self) -> None:
+        from gracenotes_dev.sentry import github as gh
+
+        nodes = [
+            {
+                "isResolved": False,
+                "comments": {"nodes": [{"author": {"login": "copilot"}}]},
+            },
+            {
+                "isResolved": True,
+                "comments": {"nodes": [{"author": {"login": "copilot"}}]},
+            },
+        ]
+        self.assertEqual(gh.unresolved_copilot_threads(nodes, "copilot"), 1)
+        self.assertEqual(gh.unresolved_copilot_threads(nodes, "Copilot"), 1)
+        self.assertEqual(gh.unresolved_copilot_threads(nodes, None), 0)
 
 
 class SentryGithubListPrsTest(unittest.TestCase):
@@ -267,7 +265,7 @@ class SentryCLISurfaceTest(unittest.TestCase):
         runner = CliRunner()
         result = runner.invoke(app, ["sentry", "--help"])
         self.assertEqual(result.exit_code, 0)
-        for token in ["start", "stop", "status", "report"]:
+        for token in ["start", "stop", "status", "report", "review-thread-authors"]:
             self.assertIn(token, result.output)
         start_help = runner.invoke(app, ["sentry", "start", "--help"])
         self.assertEqual(start_help.exit_code, 0)

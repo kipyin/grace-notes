@@ -9,9 +9,8 @@ from pathlib import Path
 from gracenotes_dev.sentry import github as gh_api
 from gracenotes_dev.sentry.log_sink import SentryLogSink
 from gracenotes_dev.sentry.merge_conflict import try_resolve_merge_conflicts_with_agent
-from gracenotes_dev.sentry.merge_logic import approval_only_pending, can_merge
+from gracenotes_dev.sentry.merge_logic import can_merge
 from gracenotes_dev.sentry.settings import SentrySettings
-from gracenotes_dev.sentry.state import append_event
 
 
 class MergePollOutcome(str, Enum):
@@ -20,7 +19,6 @@ class MergePollOutcome(str, Enum):
     MERGED = "merged"
     CONTINUE_LOOP = "continue_loop"
     WAIT_FOR_GATES = "wait_for_gates"
-    YIELD_APPROVAL = "yield_approval"
     TERMINAL_FAIL = "terminal_fail"
 
 
@@ -30,19 +28,17 @@ def merge_poll_once(
     owner: str,
     repo: str,
     pr_number: int,
-    high_touch: bool,
     allow: set[str],
     main_branch: str,
     *,
     sink: SentryLogSink | None,
-    poll_yield_for_approval: bool,
+    git_git_root: Path | None = None,
 ) -> MergePollOutcome:
     """
     One CI / Copilot / approval check and optional squash + conflict repair.
 
-    When ``poll_yield_for_approval`` is True (merge poll after opening a PR), honor
-    ``yield_on_approval_pending`` and return ``YIELD_APPROVAL`` if only allowlisted
-    approval is missing. Sweep passes False so those PRs are re-checked later.
+    ``git_git_root`` is the directory for git commands when the PR head only exists in a
+    sentry worktree (otherwise defaults to ``repo_root``).
     """
     if sink is not None:
         sink.set_step("merge gates (poll)")
@@ -64,37 +60,12 @@ def merge_poll_once(
 
     if sink is not None:
         sink.log(
-            f"merge poll: pr={pr_number} ci_ok={ci_ok} high_touch={high_touch} "
+            f"merge poll: pr={pr_number} ci_ok={ci_ok} "
             f"copilot_unresolved={unresolved} approve={approve}"
         )
 
-    if (
-        poll_yield_for_approval
-        and settings.yield_on_approval_pending
-        and approval_only_pending(
-            ci_ok=ci_ok,
-            copilot_ok=copilot_ok,
-            high_touch=high_touch,
-            approve_phrase_present=approve,
-        )
-        and not gh_api.pr_merge_is_conflicting(repo_root, pr_number)
-    ):
-        append_event(
-            repo_root,
-            {
-                "kind": "merge_poll_yield_approval_pending",
-                "message": (
-                    f"PR #{pr_number}: only allowlisted approval pending; "
-                    "yielding to next iteration."
-                ),
-                "pr": pr_number,
-            },
-        )
-        return MergePollOutcome.YIELD_APPROVAL
-
     if can_merge(
         ci_ok=ci_ok,
-        high_touch=high_touch,
         copilot_ok=copilot_ok,
         approve_phrase_present=approve,
     ):
@@ -111,6 +82,7 @@ def merge_poll_once(
                     pr_number,
                     main_branch,
                     sink,
+                    git_cwd=git_git_root,
                 ):
                     time.sleep(5.0)
                     return MergePollOutcome.CONTINUE_LOOP
