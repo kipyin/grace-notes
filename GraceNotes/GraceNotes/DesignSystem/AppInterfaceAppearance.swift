@@ -16,16 +16,14 @@ enum AppInterfaceAppearance {
         textStyle: UIFont.TextStyle,
         maximumForContentSizeCategory limit: UIContentSizeCategory? = nil
     ) -> UIFont {
-        guard let font = UIFont(name: name, size: baseSize) else {
-            return UIFont.preferredFont(forTextStyle: textStyle)
-        }
+        let baseFont = UIFont(name: name, size: baseSize) ?? UIFont.preferredFont(forTextStyle: textStyle)
         let metrics = UIFontMetrics(forTextStyle: textStyle)
         guard let limit else {
-            return metrics.scaledFont(for: font)
+            return metrics.scaledFont(for: baseFont)
         }
         let limitTraits = UITraitCollection(preferredContentSizeCategory: limit)
-        let maxPointSize = metrics.scaledFont(for: font, compatibleWith: limitTraits).pointSize
-        return metrics.scaledFont(for: font, maximumPointSize: maxPointSize)
+        let maxPointSize = metrics.scaledFont(for: baseFont, compatibleWith: limitTraits).pointSize
+        return metrics.scaledFont(for: baseFont, maximumPointSize: maxPointSize)
     }
 
     private static func configureNavigationBar() {
