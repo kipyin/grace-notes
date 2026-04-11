@@ -61,10 +61,10 @@ def sentry_start(
         typer.Option("--no-merge", help="Create PR but do not poll for squash merge."),
     ] = False,
 ) -> None:
-    """Run sentry until interrupted (``--once`` = single pass). macOS + gh + fix provider (HTTP or ``agent``)."""
+    """Run sentry until interrupted (``--once`` = one pass). macOS + gh + HTTP or ``agent`` fix."""
     cli_core._require_macos_xcode()
     repo_root = cli_core._repo_root()
-    settings = SentrySettings.from_environ()
+    settings = SentrySettings.from_repo(cli_core._repo_root())
 
     if once:
         code = run_single_iteration(repo_root, settings, dry_run=dry_run, merge=not no_merge)

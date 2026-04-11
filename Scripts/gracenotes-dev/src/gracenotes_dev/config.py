@@ -208,6 +208,30 @@ def config_path(repo_root: Path | None = None) -> Path:
     return root / DEFAULT_CONFIG_FILENAME
 
 
+def discover_repo_root(start: Path | None = None) -> Path:
+    """Walk up from ``start`` (or cwd) to find the Grace Notes repo root."""
+    return _resolve_repo_root(start or Path.cwd())
+
+
+def load_sentry_table(repo_root: Path | None = None) -> dict[str, Any]:
+    """
+    Return the ``[sentry]`` table from ``gracenotes-dev.toml``, or empty dict.
+
+    Secrets (API keys) must not appear here — use environment variables only.
+    """
+    cfg_path = config_path(repo_root=repo_root)
+    if not cfg_path.is_file():
+        return {}
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    sec = data.get("sentry")
+    if not isinstance(sec, dict):
+        return {}
+    # Ignore mistaken secret keys if present (keys belong in env only).
+    for bad in ("api_key", "openai_api_key", "llm_api_key", "bearer_token"):
+        sec.pop(bad, None)
+    return sec
+
+
 def load_config(repo_root: Path | None = None) -> DevConfig:
     loaded = default_config()
     cfg_path = config_path(repo_root=repo_root)

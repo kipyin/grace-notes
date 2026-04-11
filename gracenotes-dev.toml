@@ -55,3 +55,24 @@ smoke_destination = "platform=iOS Simulator,name=iPhone SE (3rd generation),OS=1
 [run.presets]
 tutorial-reset = ["-reset-journal-tutorial"]
 uitest-reset-store = ["-grace-notes-reset-uitest-store"]
+
+# grace sentry — non-secret options only (API keys stay in the environment).
+[sentry]
+fix_provider = "http"
+# Optional overrides (examples):
+# copilot_login = "copilot-pull-request-reviewer"
+# approval_phrase = "/sentry-approve"
+# approval_users = ["your-github-login"]
+# copilot_wait_seconds = 900
+# arbitration_stuck_seconds = 172800
+# llm_base_url = "https://api.openai.com/v1"
+# llm_model = "gpt-4o-mini"
+# llm_api_key_env = "OPENAI_API_KEY"
+# interval_seconds = 300
+# max_retries = 8
+# retry_base_seconds = 1.5
+# ci_profile = "lint-build"
+# agent_bin = "agent"
+# agent_prefix_args = "chat"
+# agent_extra_args = ""
+# agent_timeout_sec = 900

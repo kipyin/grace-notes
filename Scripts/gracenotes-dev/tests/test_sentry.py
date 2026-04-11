@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import tempfile
 import unittest
+from pathlib import Path
 from unittest import mock
 
 from typer.testing import CliRunner
 
 from gracenotes_dev.cli import app
+from gracenotes_dev.config import load_sentry_table
 from gracenotes_dev.sentry.classify import TouchClass, classify_paths
 from gracenotes_dev.sentry.llm_client import parse_fix_response
 from gracenotes_dev.sentry.merge_logic import can_merge
@@ -63,6 +66,32 @@ class SentrySettingsTest(unittest.TestCase):
         self.assertEqual(s.approval_phrase, "/sentry-approve")
         self.assertEqual(s.fix_provider, "http")
         self.assertEqual(s.agent_bin, "agent")
+
+
+class SentryTomlTest(unittest.TestCase):
+    def test_from_repo_reads_toml(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "GraceNotes").mkdir()
+            (root / "gracenotes-dev.toml").write_text(
+                '[sentry]\nfix_provider = "cursor_agent"\nagent_bin = "my-agent"\n',
+                encoding="utf-8",
+            )
+            s = SentrySettings.from_repo(root)
+            self.assertEqual(s.fix_provider, "cursor_agent")
+            self.assertEqual(s.agent_bin, "my-agent")
+
+    def test_load_sentry_table_strips_secret_keys(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "GraceNotes").mkdir()
+            (root / "gracenotes-dev.toml").write_text(
+                '[sentry]\napi_key = "nope"\nfix_provider = "http"\n',
+                encoding="utf-8",
+            )
+            t = load_sentry_table(root)
+            self.assertNotIn("api_key", t)
+            self.assertEqual(t.get("fix_provider"), "http")
 
 
 class SentryParseFixTest(unittest.TestCase):
