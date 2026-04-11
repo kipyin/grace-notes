@@ -36,13 +36,19 @@ def try_resolve_merge_conflicts_with_agent(
     pr_number: int,
     main_branch: str,
     sink: SentryLogSink | None,
+    *,
+    git_cwd: Path | None = None,
 ) -> bool:
     """
     Merge ``origin/{main_branch}`` into the PR head, resolve conflict markers with ``agent``,
     commit, and push. Returns True if push succeeded so ``gh pr merge`` can be retried.
 
     Call only when ``fix_provider`` is ``cursor_agent`` (local ``agent`` CLI).
+
+    ``repo_root`` is used for JSONL events; ``git_cwd`` is the git working tree (defaults to
+    ``repo_root``) for fetch/checkout/merge when the PR branch lives only in a sentry worktree.
     """
+    git_root = git_cwd or repo_root
     append_event(
         repo_root,
         {
@@ -61,7 +67,7 @@ def try_resolve_merge_conflicts_with_agent(
 
     fetch = subprocess.run(
         ["git", "fetch", "origin", main_branch],
-        cwd=repo_root,
+        cwd=git_root,
         capture_output=True,
         text=True,
     )
@@ -79,7 +85,7 @@ def try_resolve_merge_conflicts_with_agent(
 
     pr_view = subprocess.run(
         ["gh", "pr", "view", str(pr_number), "--json", "headRefName"],
-        cwd=repo_root,
+        cwd=git_root,
         capture_output=True,
         text=True,
     )
@@ -102,12 +108,12 @@ def try_resolve_merge_conflicts_with_agent(
         )
         return False
 
-    if _merge_in_progress(repo_root):
-        _git_abort_merge(repo_root)
+    if _merge_in_progress(git_root):
+        _git_abort_merge(git_root)
 
     co = subprocess.run(
         ["git", "checkout", head_ref],
-        cwd=repo_root,
+        cwd=git_root,
         capture_output=True,
         text=True,
     )
@@ -125,14 +131,14 @@ def try_resolve_merge_conflicts_with_agent(
 
     merge = subprocess.run(
         ["git", "merge", f"origin/{main_branch}"],
-        cwd=repo_root,
+        cwd=git_root,
         capture_output=True,
         text=True,
     )
     if merge.returncode == 0:
         push = subprocess.run(
             ["git", "push", "origin", "HEAD"],
-            cwd=repo_root,
+            cwd=git_root,
             capture_output=True,
             text=True,
         )
@@ -158,7 +164,7 @@ def try_resolve_merge_conflicts_with_agent(
         )
         return False
 
-    if not _merge_in_progress(repo_root):
+    if not _merge_in_progress(git_root):
         err = (merge.stderr or merge.stdout or "").strip()
         append_event(
             repo_root,
@@ -172,13 +178,13 @@ def try_resolve_merge_conflicts_with_agent(
 
     unstaged = subprocess.run(
         ["git", "diff", "--name-only", "--diff-filter=U"],
-        cwd=repo_root,
+        cwd=git_root,
         capture_output=True,
         text=True,
     )
     conflict_paths = [p.strip() for p in unstaged.stdout.splitlines() if p.strip()]
     if not conflict_paths:
-        _git_abort_merge(repo_root)
+        _git_abort_merge(git_root)
         append_event(
             repo_root,
             {
@@ -191,12 +197,12 @@ def try_resolve_merge_conflicts_with_agent(
 
     try:
         for rel in conflict_paths:
-            fp = repo_root / rel
+            fp = git_root / rel
             if not fp.is_file():
                 raise RuntimeError(f"Conflict path is not a regular file: {rel}")
             raw = fp.read_text(encoding="utf-8")
             new_src = resolve_merge_conflict_file_via_agent(
-                repo_root=repo_root,
+                repo_root=git_root,
                 agent_bin=settings.agent_bin,
                 prefix_args=settings.agent_prefix_args,
                 extra_args=settings.agent_extra_args,
@@ -216,7 +222,7 @@ def try_resolve_merge_conflicts_with_agent(
                 },
             )
 
-        add = subprocess.run(["git", "add", "-A"], cwd=repo_root, capture_output=True, text=True)
+        add = subprocess.run(["git", "add", "-A"], cwd=git_root, capture_output=True, text=True)
         if add.returncode != 0:
             raise RuntimeError((add.stderr or add.stdout or "").strip())
 
@@ -227,7 +233,7 @@ def try_resolve_merge_conflicts_with_agent(
                 "-m",
                 f"sentry: resolve merge conflicts with origin/{main_branch}",
             ],
-            cwd=repo_root,
+            cwd=git_root,
             capture_output=True,
             text=True,
         )
@@ -236,7 +242,7 @@ def try_resolve_merge_conflicts_with_agent(
 
         push = subprocess.run(
             ["git", "push", "origin", "HEAD"],
-            cwd=repo_root,
+            cwd=git_root,
             capture_output=True,
             text=True,
         )
@@ -264,7 +270,7 @@ def try_resolve_merge_conflicts_with_agent(
             sink.log(f"PR #{pr_number}: merge conflicts resolved with agent; pushed.")
         return True
     except (OSError, RuntimeError, UnicodeError) as exc:
-        _git_abort_merge(repo_root)
+        _git_abort_merge(git_root)
         append_event(
             repo_root,
             {

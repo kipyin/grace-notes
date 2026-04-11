@@ -52,7 +52,10 @@ def build_pr_body(
         f"## Risk\n\n{risk}\n\n"
         f"## Touch class\n\n`{touch.value}`\n"
         f"{human_section}"
-        "---\n*Automated by `grace sentry`.*\n"
+        "---\n"
+        "*Automated by `grace sentry`.* "
+        f"If Copilot review threads block merge, post `{approval_phrase}` "
+        "from an allowlisted account.\n"
     )
 
 
@@ -79,7 +82,10 @@ def build_pr_body_from_material(
         f"## Risk\n\n{risk}\n\n"
         f"## Touch class\n\n`{touch.value}`\n"
         f"{human_section}"
-        "---\n*Automated by `grace sentry`.*\n"
+        "---\n"
+        "*Automated by `grace sentry`.* "
+        f"If Copilot review threads block merge, post `{approval_phrase}` "
+        "from an allowlisted account.\n"
     )
 
 
