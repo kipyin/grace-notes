@@ -3864,29 +3864,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tap to show or hide the status label. Touch and hold for what this status means."
+            "value": "Tap to show what this status means and scroll to the journal header. Touch and hold to show or hide the status label."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "轻点可显示或隐藏状态标签。按住可了解此状态的含义。"
+            "value": "轻点可了解此状态含义并滚动到日记顶部。按住可显示或隐藏状态标签。"
           }
         }
       }
     },
-    "accessibility.stickyCompletionChipShowDetailsAction": {
+    "accessibility.stickyCompletionChipToggleLabelAction": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Explain status"
+            "value": "Show or hide status label"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "说明状态"
+            "value": "显示或隐藏状态标签"
           }
         }
       }

@@ -1,23 +1,6 @@
 import SwiftUI
 import SwiftData
 
-// Opens ``JournalScreen`` from Past history drill-down calendars (``navigationDestination`` item).
-// swiftlint:disable:next type_name
-struct ReviewHistoryDrilldownJournalNavigationDay: Identifiable, Hashable {
-    let id: String
-    let date: Date
-
-    init(dayStart: Date, calendar: Calendar) {
-        let normalized = calendar.startOfDay(for: dayStart)
-        date = normalized
-        let components = calendar.dateComponents([.year, .month, .day], from: normalized)
-        let year = components.year ?? 0
-        let month = components.month ?? 0
-        let day = components.day ?? 0
-        id = "\(year)-\(month)-\(day)"
-    }
-}
-
 /// One structural row in the continuous drill-down calendar (week rows + month banners).
 enum ReviewHistoryDrilldownCalendarRow: Identifiable, Equatable {
     case monthBanner(id: String, title: String)

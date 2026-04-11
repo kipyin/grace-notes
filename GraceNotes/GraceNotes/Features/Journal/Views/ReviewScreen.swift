@@ -181,10 +181,10 @@ extension ReviewScreen {
             )
         }
         .sheet(item: $mostRecurringThemeDrilldown) { payload in
-            ThemeDrilldownSheet(payload: payload)
+            ThemeDrilldownSheet(payload: payload, onOpenJournalDay: presentJournalDismissingThemeDrilldownSheets)
         }
         .sheet(item: $trendingThemeDrilldown) { payload in
-            ThemeDrilldownSheet(payload: payload)
+            ThemeDrilldownSheet(payload: payload, onOpenJournalDay: presentJournalDismissingThemeDrilldownSheets)
         }
         .sheet(item: $browseSheet, onDismiss: {
             browseSheet = nil
@@ -195,10 +195,14 @@ extension ReviewScreen {
                     MostRecurringBrowseSheetContainer(
                         themes: payload.themes,
                         referenceDate: payload.referenceDate,
-                        calendar: payload.calendar
+                        calendar: payload.calendar,
+                        onOpenJournalDay: presentJournalDismissingBrowseSheet
                     )
                 case .trending(let payload):
-                    TrendingBrowseSheetContainer(buckets: payload.buckets)
+                    TrendingBrowseSheetContainer(
+                        buckets: payload.buckets,
+                        onOpenJournalDay: presentJournalDismissingBrowseSheet
+                    )
                 }
             }
             .id(sheet.id)
@@ -209,7 +213,8 @@ extension ReviewScreen {
                 entries: entries,
                 calendar: calendar,
                 referenceDate: insightsReferenceDate,
-                pastStatisticsInterval: pastStatisticsInterval
+                pastStatisticsInterval: pastStatisticsInterval,
+                onOpenJournalDay: presentJournalDismissingHistoryDrilldown
             )
         }
         .sheet(item: $journalDaySheetItem) { item in
@@ -219,6 +224,31 @@ extension ReviewScreen {
 
     private func presentJournalDaySheet(for day: Date) {
         journalDaySheetItem = ReviewJournalDaySheetItem(dayStart: day, calendar: calendar)
+    }
+
+    private func presentJournalDismissingHistoryDrilldown(for day: Date) {
+        historyDrilldown = nil
+        Task { @MainActor in
+            await Task.yield()
+            presentJournalDaySheet(for: day)
+        }
+    }
+
+    private func presentJournalDismissingThemeDrilldownSheets(for day: Date) {
+        mostRecurringThemeDrilldown = nil
+        trendingThemeDrilldown = nil
+        Task { @MainActor in
+            await Task.yield()
+            presentJournalDaySheet(for: day)
+        }
+    }
+
+    private func presentJournalDismissingBrowseSheet(for day: Date) {
+        browseSheet = nil
+        Task { @MainActor in
+            await Task.yield()
+            presentJournalDaySheet(for: day)
+        }
     }
 
     private var emptyStateWithSearch: some View {

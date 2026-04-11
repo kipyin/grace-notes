@@ -240,6 +240,8 @@ struct JournalScreen: View {
     @AppStorage(PersistenceController.iCloudSyncEnabledKey) private var isICloudSyncEnabled = false
     @AppStorage(JournalAppearanceStorageKeys.todayMode)
     private var journalTodayAppearanceRaw = JournalAppearanceMode.standard.rawValue
+    @AppStorage(ReviewWeekBoundaryPreference.userDefaultsKey)
+    private var reviewWeekBoundaryRawValue = ReviewWeekBoundaryPreference.defaultValue.rawValue
 
     @State private var gratitudeInput = ""
     @State private var needInput = ""
@@ -280,18 +282,18 @@ struct JournalScreen: View {
             needsCount: viewModel.needs.count,
             peopleCount: viewModel.people.count,
             showsCompletionTitle: stickyCompletionChipLabelExpanded,
-            onCollapseExpandTap: {
-                if stickyCompletionChipLabelExpanded {
-                    collapseStickyCompletionChipLabel()
-                } else {
-                    expandStickyCompletionChipLabel()
-                }
-            },
-            onShowCompletionInfo: {
+            onPrimaryTap: {
                 let badge = CompletionBadgeInfo.matching(viewModel.completionLevel)
                 completionInfoPresentation.completionBadgeTapped(badge, reduceMotion: reduceMotion)
                 if completionInfoPresentation.isInfoCardPresented {
                     completionHeaderScrollPulse &+= 1
+                }
+            },
+            onLongPressToggleLabelExpansion: {
+                if stickyCompletionChipLabelExpanded {
+                    collapseStickyCompletionChipLabel()
+                } else {
+                    expandStickyCompletionChipLabel()
                 }
             }
         )
@@ -2000,7 +2002,11 @@ private extension JournalScreen {
 
     fileprivate var navigationTitle: String {
         if let date = entryDate {
-            return date.formatted(date: .abbreviated, time: .omitted)
+            return PastSearchDayCaption.journalNavigationTitle(
+                forEntryDate: date,
+                now: Date(),
+                weekBoundaryRawValue: reviewWeekBoundaryRawValue
+            )
         }
         return String(localized: "shell.tab.today")
     }
