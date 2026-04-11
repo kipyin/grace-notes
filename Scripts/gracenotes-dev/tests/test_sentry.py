@@ -20,6 +20,7 @@ from gracenotes_dev.sentry.llm_client import (
 )
 from gracenotes_dev.sentry.merge_logic import can_merge
 from gracenotes_dev.sentry.pr_template import build_pr_body_from_material, fallback_pr_material
+from gracenotes_dev.sentry import runner as sentry_runner
 from gracenotes_dev.sentry.settings import SentrySettings
 from gracenotes_dev.sentry.state import format_report, read_recent_events
 
@@ -40,6 +41,16 @@ class SentryMergeLogicTest(unittest.TestCase):
 
     def test_ci_red_blocks(self) -> None:
         self.assertFalse(can_merge(ci_ok=False, copilot_ok=True, approve_phrase_present=False))
+
+
+class SentryListAtRefTest(unittest.TestCase):
+    def test_ls_tree_failure_raises_runtime_error(self) -> None:
+        fake = mock.Mock(returncode=128, stdout="", stderr="fatal: Not a valid object name")
+        with mock.patch("subprocess.run", return_value=fake):
+            with self.assertRaises(RuntimeError) as ctx:
+                sentry_runner.list_gracenotes_swift_files_at_ref(Path("/repo"), "origin/nope")
+        self.assertIn("git ls-tree failed", str(ctx.exception))
+        self.assertIn("origin/nope", str(ctx.exception))
 
 
 class SentryClassifyTest(unittest.TestCase):

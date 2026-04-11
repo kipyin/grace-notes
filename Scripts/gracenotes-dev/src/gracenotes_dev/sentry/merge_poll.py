@@ -32,13 +32,13 @@ def merge_poll_once(
     main_branch: str,
     *,
     sink: SentryLogSink | None,
-    git_git_root: Path | None = None,
+    git_cwd: Path | None = None,
 ) -> MergePollOutcome:
     """
     One CI / Copilot / approval check and optional squash + conflict repair.
 
-    ``git_git_root`` is the directory for git commands when the PR head only exists in a
-    sentry worktree (otherwise defaults to ``repo_root``).
+    ``git_cwd`` is the directory for git commands when the PR head only exists in a sentry
+    worktree (otherwise defaults to ``repo_root``).
     """
     if sink is not None:
         sink.set_step("merge gates (poll)")
@@ -82,7 +82,7 @@ def merge_poll_once(
                     pr_number,
                     main_branch,
                     sink,
-                    git_cwd=git_git_root,
+                    git_cwd=git_cwd,
                 ):
                     time.sleep(5.0)
                     return MergePollOutcome.CONTINUE_LOOP

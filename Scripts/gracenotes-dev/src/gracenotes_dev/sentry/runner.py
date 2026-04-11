@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import random
+import secrets
 import subprocess
 import sys
 import time
@@ -99,7 +100,11 @@ def list_gracenotes_swift_files_at_ref(repo_root: Path, ref: str) -> list[str]:
         text=True,
     )
     if p.returncode != 0:
-        return []
+        err = (p.stderr or p.stdout or "").strip()
+        msg = f"git ls-tree failed for ref {ref!r} (exit {p.returncode})"
+        if err:
+            msg = f"{msg}: {err}"
+        raise RuntimeError(msg)
     paths: list[str] = []
     for line in p.stdout.splitlines():
         path = line.strip()
@@ -131,19 +136,27 @@ def _line_delta(old: str, new: str) -> dict[str, int]:
 
 
 def _draft_pr_material(
-    repo_root: Path,
+    state_repo_root: Path,
     settings: SentrySettings,
     rel: str,
     old_content: str,
     new_content: str,
     sink: SentryLogSink | None,
+    *,
+    agent_repo_root: Path | None = None,
 ) -> PrMaterial:
-    """LLM or second agent call for gh-style PR title/body; falls back to template on failure."""
+    """
+    LLM or second agent call for gh-style PR title/body; falls back to template on failure.
+
+    ``state_repo_root`` is the primary clone (JSONL events). ``agent_repo_root`` is the cwd for
+    the Cursor ``agent`` subprocess when fixes ran in a worktree; defaults to ``state_repo_root``.
+    """
+    agent_root = agent_repo_root or state_repo_root
     if sink is not None:
         sink.set_step("PR description (LLM/agent)")
         sink.log("Drafting PR title and body from the code change …")
     _emit(
-        repo_root,
+        state_repo_root,
         sink,
         {
             "kind": "pr_draft_invoke",
@@ -154,7 +167,7 @@ def _draft_pr_material(
     try:
         if settings.fix_provider == "cursor_agent":
             material = propose_pr_material_via_agent(
-                repo_root=repo_root,
+                repo_root=agent_root,
                 agent_bin=settings.agent_bin,
                 prefix_args=settings.agent_prefix_args,
                 extra_args=settings.agent_extra_args,
@@ -178,7 +191,7 @@ def _draft_pr_material(
             )
     except (RuntimeError, ValueError, OSError) as exc:
         _emit(
-            repo_root,
+            state_repo_root,
             sink,
             {
                 "kind": "note",
@@ -188,7 +201,7 @@ def _draft_pr_material(
         )
         material = fallback_pr_material(rel)
     _emit(
-        repo_root,
+        state_repo_root,
         sink,
         {
             "kind": "pr_draft",
@@ -266,7 +279,11 @@ def run_single_iteration(
 
     ref = f"origin/{main_branch}"
     if dry_run:
-        paths = list_gracenotes_swift_files_at_ref(repo_root, ref)
+        try:
+            paths = list_gracenotes_swift_files_at_ref(repo_root, ref)
+        except RuntimeError as exc:
+            _emit(repo_root, sink, {"kind": "error", "message": str(exc)})
+            return 1
         rel = _pick_random(paths)
         if not rel:
             if sink is not None:
@@ -295,7 +312,11 @@ def run_single_iteration(
         )
         return 0
 
-    paths = list_gracenotes_swift_files_at_ref(repo_root, ref)
+    try:
+        paths = list_gracenotes_swift_files_at_ref(repo_root, ref)
+    except RuntimeError as exc:
+        _emit(repo_root, sink, {"kind": "error", "message": str(exc)})
+        return 1
     rel = _pick_random(paths)
     if not rel:
         if sink is not None:
@@ -309,9 +330,11 @@ def run_single_iteration(
         sink.set_branch(None)
         sink.set_pr(None)
 
-    ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
-    branch = f"sentry/auto-{ts}"
-    worktree_path = sentry_worktrees_dir(repo_root) / f"wt-{ts}"
+    now = datetime.now(timezone.utc)
+    ts = now.strftime("%Y%m%d-%H%M%S")
+    unique = f"{ts}-{secrets.token_hex(3)}"
+    branch = f"sentry/auto-{unique}"
+    worktree_path = sentry_worktrees_dir(repo_root) / f"wt-{unique}"
     work_branch = branch
 
     try:
@@ -406,7 +429,15 @@ def run_single_iteration(
             },
         )
 
-        material = _draft_pr_material(work_root, settings, rel, content, new_src, sink)
+        material = _draft_pr_material(
+            repo_root,
+            settings,
+            rel,
+            content,
+            new_src,
+            sink,
+            agent_repo_root=work_root,
+        )
 
         touch = classify_paths([rel])
         title = material.title
@@ -551,7 +582,7 @@ def run_single_iteration(
             allow,
             main_branch,
             sink=sink,
-            git_git_root=work_root,
+            git_cwd=work_root,
         )
         if merge_ok:
             _emit(repo_root, sink, {"kind": "merged", "message": f"PR #{pr_number} squash-merged"})
@@ -671,7 +702,7 @@ def _poll_until_merge(
     main_branch: str,
     *,
     sink: SentryLogSink | None = None,
-    git_git_root: Path | None = None,
+    git_cwd: Path | None = None,
 ) -> bool:
     """Return True if merged."""
     deadline = time.monotonic() + float(settings.arbitration_stuck_seconds)
@@ -687,7 +718,7 @@ def _poll_until_merge(
             allow,
             main_branch,
             sink=sink,
-            git_git_root=git_git_root,
+            git_cwd=git_cwd,
         )
         if outcome == MergePollOutcome.MERGED:
             return True
