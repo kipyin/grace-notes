@@ -205,7 +205,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "下一步"
+            "value": "「接下来」"
           }
         }
       }
@@ -5390,7 +5390,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你是怎么把这份稳定保持下来的？下周也许还能用得上。"
+            "value": "你是怎么保持这份稳定的？下周也许还能用上。"
           }
         }
       }
@@ -6163,7 +6163,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "下周你可以怎样再为 %@ 腾出一点空间？"
+            "value": "下周怎样能为 %@ 再腾出一点空间？"
           }
         }
       },
@@ -6197,7 +6197,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这周有什么小方法，能让 %@ 变成一件值得感恩的事？"
+            "value": "这周可以怎样让 %@ 变成一件感恩的事？"
           }
         }
       },
@@ -6231,7 +6231,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你想继续培养这个转向 %@ 的变化吗？"
+            "value": "你想继续顺着这个转向 %@ 的方向走吗？"
           }
         }
       },
