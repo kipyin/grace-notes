@@ -1,82 +1,164 @@
-"""Rich-based TUI for ``grace sentry start`` (status strip + log tail)."""
+"""Textual TUI for ``grace sentry start`` (status strip + log)."""
 
 from __future__ import annotations
 
-from collections import deque
-from typing import Final
+import time
+from pathlib import Path
 
-from rich import box
-from rich.console import Group
-from rich.live import Live
-from rich.panel import Panel
-from rich.table import Table
-from rich.text import Text
+from textual.app import App, ComposeResult
+from textual.binding import Binding
+from textual.containers import Vertical
+from textual.widgets import RichLog, Static
 
-_LOG_MAX_LINES: Final = 200
-_LOG_VISIBLE: Final = 40
+from gracenotes_dev.sentry.runner import run_single_iteration
+from gracenotes_dev.sentry.settings import SentrySettings
+from gracenotes_dev.sentry.state import append_event
 
 
-class RichSentryTUI:
-    """Pin step / branch / PR / file at top; scrollable log tail at bottom."""
+class _SentryTuiSink:
+    """Implements ``SentryLogSink`` without clobbering ``App.log``."""
 
-    def __init__(self) -> None:
+    __slots__ = ("_app",)
+
+    def __init__(self, app: SentryTextualApp) -> None:
+        self._app = app
+
+    def set_step(self, step: str) -> None:
+        self._app._step = step
+        self._app.call_from_thread(self._app._refresh_status)
+
+    def set_branch(self, branch: str | None) -> None:
+        self._app._branch = branch or "—"
+        self._app.call_from_thread(self._app._refresh_status)
+
+    def set_pr(self, pr: str | None) -> None:
+        self._app._pr = pr or "—"
+        self._app.call_from_thread(self._app._refresh_status)
+
+    def set_target_file(self, path: str | None) -> None:
+        self._app._target_file = path or "—"
+        self._app.call_from_thread(self._app._refresh_status)
+
+    def log(self, line: str) -> None:
+        self._app.call_from_thread(self._app._append_log, line)
+
+
+class SentryTextualApp(App[int | None]):
+    """
+    Main thread runs Textual; sentry iterations run in a worker thread.
+
+    The worker uses a ``_SentryTuiSink`` so we do not override ``App.log``.
+    """
+
+    TITLE = "grace sentry"
+
+    BINDINGS = [
+        Binding("ctrl+c", "quit", "Quit", show=False),
+        Binding("q", "quit", "Quit"),
+    ]
+
+    CSS = """
+    Vertical {
+        height: 100%;
+    }
+    #status {
+        height: auto;
+        border: solid $accent;
+        padding: 1 2;
+    }
+    RichLog {
+        height: 1fr;
+        border: solid $accent;
+        min-height: 12;
+    }
+    """
+
+    def __init__(
+        self,
+        *,
+        repo_root: Path,
+        settings: SentrySettings,
+        dry_run: bool,
+        merge: bool,
+        once: bool,
+    ) -> None:
+        super().__init__()
+        self.repo_root = repo_root
+        self.settings = settings
+        self.dry_run = dry_run
+        self.merge = merge
+        self.once = once
         self._step = "—"
         self._branch = "—"
         self._pr = "—"
         self._target_file = "—"
-        self._lines: deque[str] = deque(maxlen=_LOG_MAX_LINES)
-        self._live: Live | None = None
+        self._sink = _SentryTuiSink(self)
 
-    def __enter__(self) -> RichSentryTUI:
-        self._live = Live(
-            self._render(),
-            refresh_per_second=8,
-            transient=False,
-            vertical_overflow="visible",
+    def compose(self) -> ComposeResult:
+        yield Vertical(
+            Static(self._status_text(), id="status"),
+            RichLog(id="log", max_lines=200, highlight=False, auto_scroll=True),
         )
-        self._live.__enter__()
-        return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
-        if self._live is not None:
-            self._live.__exit__(exc_type, exc_val, exc_tb)
-            self._live = None
+    def _status_text(self) -> str:
+        return (
+            f"[bold cyan]Step[/] {self._step}\n"
+            f"[bold cyan]Branch[/] {self._branch}\n"
+            f"[bold cyan]PR[/] {self._pr}\n"
+            f"[bold cyan]File[/] {self._target_file}"
+        )
 
-    def set_step(self, step: str) -> None:
-        self._step = step
-        self._refresh()
+    def on_mount(self) -> None:
+        self.run_worker(self._sentry_worker, thread=True, exclusive=True)
 
-    def set_branch(self, branch: str | None) -> None:
-        self._branch = branch or "—"
-        self._refresh()
+    def _sentry_worker(self) -> None:
+        if self.once:
+            code = run_single_iteration(
+                self.repo_root,
+                self.settings,
+                dry_run=self.dry_run,
+                merge=self.merge,
+                sink=self._sink,
+            )
+            self.call_from_thread(self.exit, code)
+            return
 
-    def set_pr(self, pr: str | None) -> None:
-        self._pr = pr or "—"
-        self._refresh()
+        while True:
+            code = run_single_iteration(
+                self.repo_root,
+                self.settings,
+                dry_run=self.dry_run,
+                merge=self.merge,
+                sink=self._sink,
+            )
+            self._sleep_until_next_iteration(code)
 
-    def set_target_file(self, path: str | None) -> None:
-        self._target_file = path or "—"
-        self._refresh()
+    def _sleep_until_next_iteration(self, code: int) -> None:
+        next_sleep = (
+            self.settings.interval_seconds if code == 0 else min(self.settings.interval_seconds, 60)
+        )
+        append_event(
+            self.repo_root,
+            {
+                "kind": "loop_wait",
+                "message": f"Sleeping {next_sleep}s before next iteration (last exit code {code}).",
+                "exit_code": code,
+                "sleep_seconds": next_sleep,
+            },
+        )
+        self._sink.log(
+            f"[loop] iteration exit={code}; sleeping {next_sleep}s (SENTRY_INTERVAL_SEC)…"
+        )
+        time.sleep(next_sleep)
 
-    def log(self, line: str) -> None:
-        self._lines.append(line)
-        self._refresh()
+    def action_quit(self) -> None:
+        self.exit(0)
 
-    def _refresh(self) -> None:
-        if self._live is not None:
-            self._live.update(self._render())
+    def _refresh_status(self) -> None:
+        self.query_one("#status", Static).update(self._status_text())
 
-    def _render(self) -> Group:
-        status = Table(show_header=False, box=box.SIMPLE, padding=(0, 1))
-        status.add_column("Label", style="bold cyan", no_wrap=True)
-        status.add_column("Value", overflow="fold")
-        status.add_row("Step", self._step)
-        status.add_row("Branch", self._branch)
-        status.add_row("PR", self._pr)
-        status.add_row("File", self._target_file)
+    def _append_log(self, line: str) -> None:
+        self.query_one("#log", RichLog).write(line)
 
-        tail = list(self._lines)[-_LOG_VISIBLE:]
-        log_text = Text("\n".join(tail) if tail else "(no events yet)")
-        top = Panel(status, title="grace sentry", border_style="blue")
-        bottom = Panel(log_text, title="Log", border_style="dim", height=min(_LOG_VISIBLE + 4, 48))
-        return Group(top, bottom)
+
+__all__ = ["SentryTextualApp"]

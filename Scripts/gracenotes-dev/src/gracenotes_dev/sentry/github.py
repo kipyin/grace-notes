@@ -143,6 +143,97 @@ def pr_merge_squash(repo_root: Path, pr_number: int) -> bool:
     return proc.returncode == 0
 
 
+def pr_merge_fields(repo_root: Path, pr_number: int) -> dict[str, Any]:
+    """JSON from ``gh pr view`` (mergeable, mergeState, headRefName)."""
+    proc = _run_gh(
+        repo_root,
+        ["pr", "view", str(pr_number), "--json", "mergeable,mergeState,headRefName"],
+        check=False,
+    )
+    if proc.returncode != 0:
+        return {}
+    try:
+        return json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        return {}
+
+
+def pr_merge_is_conflicting(repo_root: Path, pr_number: int) -> bool:
+    """True when GitHub reports the PR cannot merge due to conflicts with the base branch."""
+    d = pr_merge_fields(repo_root, pr_number)
+    return d.get("mergeable") == "CONFLICTING"
+
+
 def pr_comment(repo_root: Path, pr_number: int, body: str) -> bool:
     proc = _run_gh(repo_root, ["pr", "comment", str(pr_number), "--body", body], check=False)
     return proc.returncode == 0
+
+
+def list_open_sentry_pr_numbers(
+    repo_root: Path,
+    main_branch: str,
+    branch_prefix: str,
+) -> list[int]:
+    """Open PRs into ``main_branch`` whose head ref starts with ``branch_prefix`` (ascending #)."""
+    proc = _run_gh(
+        repo_root,
+        [
+            "pr",
+            "list",
+            "--state",
+            "open",
+            "--base",
+            main_branch,
+            "--json",
+            "number,headRefName",
+            "--limit",
+            "200",
+        ],
+        check=False,
+    )
+    if proc.returncode != 0:
+        return []
+    try:
+        data = json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        return []
+    if not isinstance(data, list):
+        return []
+    out: list[int] = []
+    for item in data:
+        if not isinstance(item, dict):
+            continue
+        head = str(item.get("headRefName") or "")
+        if not head.startswith(branch_prefix):
+            continue
+        try:
+            out.append(int(item["number"]))
+        except (KeyError, TypeError, ValueError):
+            continue
+    return sorted(out)
+
+
+def pr_changed_file_paths(repo_root: Path, pr_number: int) -> list[str]:
+    """Paths from ``gh pr view`` ``files`` (for touch classification)."""
+    proc = _run_gh(
+        repo_root,
+        ["pr", "view", str(pr_number), "--json", "files"],
+        check=False,
+    )
+    if proc.returncode != 0:
+        return []
+    try:
+        data = json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        return []
+    files = data.get("files")
+    if not isinstance(files, list):
+        return []
+    paths: list[str] = []
+    for f in files:
+        if not isinstance(f, dict):
+            continue
+        p = f.get("path")
+        if isinstance(p, str) and p:
+            paths.append(p.replace("\\", "/"))
+    return paths

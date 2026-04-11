@@ -14,6 +14,7 @@ from gracenotes_dev.sentry.pr_template import PrMaterial
 
 _SWIFT_BLOCK = re.compile(r"```(?:swift)?\s*([\s\S]*?)```", re.MULTILINE)
 _JSON_FENCE = re.compile(r"```(?:json)?\s*([\s\S]*?)```", re.MULTILINE)
+_ANY_FENCE_BLOCK = re.compile(r"```(?:[a-zA-Z0-9]+)?\s*([\s\S]*?)```", re.MULTILINE)
 
 
 @dataclass(frozen=True)
@@ -90,6 +91,30 @@ def parse_fix_response(content: str) -> str:
     if not m:
         raise RuntimeError("Model did not return a ```swift``` block and did not say NO_CHANGE.")
     return m.group(1).strip() + "\n"
+
+
+def parse_merge_conflict_response(content: str) -> str:
+    """Extract resolved file from agent output (any fenced block), or empty if NO_CHANGE."""
+    if content.strip().upper().startswith("NO_CHANGE"):
+        return ""
+    m = _ANY_FENCE_BLOCK.search(content)
+    if not m:
+        raise RuntimeError("Model did not return a fenced code block and did not say NO_CHANGE.")
+    return m.group(1).strip() + "\n"
+
+
+def build_merge_conflict_prompt(relative_path: str, file_content: str) -> str:
+    """Instruction block for resolving git conflict markers in a single file."""
+    return (
+        f"File: `{relative_path}`\n\n"
+        "This file contains git merge conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`). "
+        "Resolve the conflict by combining or choosing the correct changes from both sides. "
+        "Remove ALL conflict markers and produce a complete, valid file.\n\n"
+        "Reply with ONLY a markdown fenced code block with the full new file contents "
+        "(use ```swift for Swift files; otherwise a plain ``` block). "
+        "If you cannot safely resolve, reply exactly: NO_CHANGE\n\n"
+        f"---BEGIN FILE---\n{file_content}\n---END FILE---"
+    )
 
 
 def build_fix_user_prompt(relative_path: str, file_content: str) -> str:

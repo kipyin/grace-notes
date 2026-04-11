@@ -17,8 +17,8 @@ from gracenotes_dev.cli.apps import sentry_app
 from gracenotes_dev.sentry.log_sink import PlainStderrSink, SentryLogSink
 from gracenotes_dev.sentry.runner import run_single_iteration
 from gracenotes_dev.sentry.settings import SentrySettings
-from gracenotes_dev.sentry.state import format_report, pid_path, read_recent_events
-from gracenotes_dev.sentry.tui import RichSentryTUI
+from gracenotes_dev.sentry.state import append_event, format_report, pid_path, read_recent_events
+from gracenotes_dev.sentry.tui import SentryTextualApp
 
 
 def _console() -> Console:
@@ -48,14 +48,14 @@ def _read_pid(repo_root: Path) -> int | None:
         return None
 
 
-def _make_sink(tui: bool | None) -> tuple[SentryLogSink, bool]:
-    """Return (sink, use_rich_context). Rich TUI uses a ``with`` block for ``Live``."""
+def _make_sink(tui: bool | None) -> tuple[SentryLogSink | None, bool]:
+    """Return (plain stderr sink or None, use_textual). When Textual is used, sink is None."""
     if tui is True:
-        return RichSentryTUI(), True
+        return None, True
     if tui is False:
         return PlainStderrSink(), False
     if cli_core._supports_rich_output(sys.stdout):
-        return RichSentryTUI(), True
+        return None, True
     return PlainStderrSink(), False
 
 
@@ -77,7 +77,7 @@ def sentry_start(
         bool | None,
         typer.Option(
             "--tui/--no-tui",
-            help="Rich status + log panel (default: on when stdout is a TTY).",
+            help="Textual status + log panel (default: on when stdout is a TTY).",
         ),
     ] = None,
 ) -> None:
@@ -86,7 +86,7 @@ def sentry_start(
     repo_root = cli_core._repo_root()
     settings = SentrySettings.from_repo(cli_core._repo_root())
 
-    sink, use_rich = _make_sink(tui)
+    sink, use_textual = _make_sink(tui)
 
     def _run_one(s: SentryLogSink) -> int:
         return run_single_iteration(
@@ -97,12 +97,50 @@ def sentry_start(
             sink=s,
         )
 
+    def _sleep_until_next_iteration(s: SentryLogSink, code: int) -> None:
+        """Log + JSONL between daemon iterations (long default sleep looked like a hang)."""
+        next_sleep = settings.interval_seconds if code == 0 else min(settings.interval_seconds, 60)
+        append_event(
+            repo_root,
+            {
+                "kind": "loop_wait",
+                "message": f"Sleeping {next_sleep}s before next iteration (last exit code {code}).",
+                "exit_code": code,
+                "sleep_seconds": next_sleep,
+            },
+        )
+        s.log(f"[loop] iteration exit={code}; sleeping {next_sleep}s (SENTRY_INTERVAL_SEC)…")
+        time.sleep(next_sleep)
+
+    if use_textual:
+        app = SentryTextualApp(
+            repo_root=repo_root,
+            settings=settings,
+            dry_run=dry_run,
+            merge=not no_merge,
+            once=once,
+        )
+        if not once:
+            _write_pid(repo_root)
+
+            def _handle_term(*_a: object) -> None:
+                _remove_pid(repo_root)
+                sys.exit(0)
+
+            signal.signal(signal.SIGTERM, _handle_term)
+            signal.signal(signal.SIGINT, _handle_term)
+
+        try:
+            exit_code = app.run()
+        finally:
+            if not once:
+                _remove_pid(repo_root)
+        raise typer.Exit(code=exit_code if exit_code is not None else 0)
+
+    assert sink is not None
+
     if once:
-        if use_rich:
-            with sink as s:
-                code = _run_one(s)
-        else:
-            code = _run_one(sink)
+        code = _run_one(sink)
         raise typer.Exit(code=code)
 
     _write_pid(repo_root)
@@ -115,21 +153,9 @@ def sentry_start(
     signal.signal(signal.SIGINT, _handle_term)
 
     try:
-        if use_rich:
-            with sink as s:
-                while True:
-                    code = _run_one(s)
-                    if code != 0:
-                        time.sleep(min(settings.interval_seconds, 60))
-                    else:
-                        time.sleep(settings.interval_seconds)
-        else:
-            while True:
-                code = _run_one(sink)
-                if code != 0:
-                    time.sleep(min(settings.interval_seconds, 60))
-                else:
-                    time.sleep(settings.interval_seconds)
+        while True:
+            code = _run_one(sink)
+            _sleep_until_next_iteration(sink, code)
     finally:
         _remove_pid(repo_root)
 

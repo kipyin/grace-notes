@@ -18,3 +18,14 @@ def can_merge(
     if high_touch and not approve_phrase_present:
         return False
     return True
+
+
+def approval_only_pending(
+    *,
+    ci_ok: bool,
+    copilot_ok: bool,
+    high_touch: bool,
+    approve_phrase_present: bool,
+) -> bool:
+    """True when CI and Copilot are satisfied but high-touch still needs allowlisted approval."""
+    return ci_ok and copilot_ok and high_touch and not approve_phrase_present

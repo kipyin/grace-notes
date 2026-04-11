@@ -13,8 +13,12 @@ from typer.testing import CliRunner
 from gracenotes_dev.cli import app
 from gracenotes_dev.config import load_sentry_table
 from gracenotes_dev.sentry.classify import TouchClass, classify_paths
-from gracenotes_dev.sentry.llm_client import parse_fix_response, parse_pr_material_json
-from gracenotes_dev.sentry.merge_logic import can_merge
+from gracenotes_dev.sentry.llm_client import (
+    parse_fix_response,
+    parse_merge_conflict_response,
+    parse_pr_material_json,
+)
+from gracenotes_dev.sentry.merge_logic import approval_only_pending, can_merge
 from gracenotes_dev.sentry.pr_template import build_pr_body_from_material, fallback_pr_material
 from gracenotes_dev.sentry.settings import SentrySettings
 from gracenotes_dev.sentry.state import format_report, read_recent_events
@@ -73,6 +77,40 @@ class SentrySettingsTest(unittest.TestCase):
         self.assertEqual(s.fix_provider, "http")
         self.assertEqual(s.agent_bin, "agent")
         self.assertEqual(s.main_branch, "main")
+        self.assertTrue(s.yield_on_approval_pending)
+        self.assertEqual(s.sentry_branch_prefix, "sentry/auto-")
+
+
+class SentryApprovalOnlyPendingTest(unittest.TestCase):
+    def test_true_when_high_touch_needs_approve(self) -> None:
+        self.assertTrue(
+            approval_only_pending(
+                ci_ok=True,
+                copilot_ok=True,
+                high_touch=True,
+                approve_phrase_present=False,
+            )
+        )
+
+    def test_false_when_approved(self) -> None:
+        self.assertFalse(
+            approval_only_pending(
+                ci_ok=True,
+                copilot_ok=True,
+                high_touch=True,
+                approve_phrase_present=True,
+            )
+        )
+
+    def test_false_when_ci_red(self) -> None:
+        self.assertFalse(
+            approval_only_pending(
+                ci_ok=False,
+                copilot_ok=True,
+                high_touch=True,
+                approve_phrase_present=False,
+            )
+        )
 
 
 class SentryTomlTest(unittest.TestCase):
@@ -137,6 +175,20 @@ class SentryParseFixTest(unittest.TestCase):
         self.assertIn("let x = 1", out)
 
 
+class SentryParseMergeConflictTest(unittest.TestCase):
+    def test_no_change(self) -> None:
+        self.assertEqual(parse_merge_conflict_response("NO_CHANGE\n"), "")
+
+    def test_any_fence_block(self) -> None:
+        out = parse_merge_conflict_response("Ok:\n```\nline a\nline b\n```\n")
+        self.assertIn("line a", out)
+        self.assertIn("line b", out)
+
+    def test_swift_fence(self) -> None:
+        out = parse_merge_conflict_response("```swift\nfinal class X {}\n```")
+        self.assertIn("final class X", out)
+
+
 class SentryFixProviderEnvTest(unittest.TestCase):
     def test_cursor_agent_provider(self) -> None:
         with mock.patch.dict("os.environ", {"SENTRY_FIX_PROVIDER": "cursor-agent"}):
@@ -150,6 +202,25 @@ class SentryGithubGraphQLTest(unittest.TestCase):
 
         # GraphQL requires commas between operation variables.
         self.assertIn("$owner:String!,$name:String!,$number:Int!", gh._REVIEW_THREADS_QUERY)
+
+
+class SentryGithubListPrsTest(unittest.TestCase):
+    def test_list_open_sentry_pr_numbers_filters_and_sorts(self) -> None:
+        from unittest import mock
+
+        from gracenotes_dev.sentry import github as gh
+
+        fake = mock.Mock(
+            returncode=0,
+            stdout=(
+                '[{"number":12,"headRefName":"sentry/auto-1"},'
+                '{"number":3,"headRefName":"sentry/auto-2"},'
+                '{"number":99,"headRefName":"feature/foo"}]'
+            ),
+        )
+        with mock.patch("subprocess.run", return_value=fake):
+            nums = gh.list_open_sentry_pr_numbers(Path("/tmp"), "main", "sentry/auto-")
+        self.assertEqual(nums, [3, 12])
 
 
 class SentryStateTailTest(unittest.TestCase):

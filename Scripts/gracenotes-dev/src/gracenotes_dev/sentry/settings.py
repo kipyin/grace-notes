@@ -142,6 +142,22 @@ def _merge_float(
     return default if v is None else v
 
 
+def _merge_bool(env_key: str, tom: dict[str, Any], toml_key: str, default: bool) -> bool:
+    if os.environ.get(env_key, "").strip():
+        raw = os.environ[env_key].strip().lower()
+        return raw in ("1", "true", "yes", "on")
+    raw = tom.get(toml_key)
+    if raw is None:
+        return default
+    if isinstance(raw, bool):
+        return raw
+    if isinstance(raw, (int, float)):
+        return bool(raw)
+    if isinstance(raw, str):
+        return raw.strip().lower() in ("1", "true", "yes", "on")
+    return default
+
+
 def _merge_approval_users(tom: dict[str, Any]) -> tuple[str, ...]:
     if os.environ.get("SENTRY_APPROVAL_USERS", "").strip():
         return _comma_list("SENTRY_APPROVAL_USERS")
@@ -192,6 +208,8 @@ class SentrySettings:
     agent_extra_args: tuple[str, ...]
     agent_timeout_sec: int
     main_branch: str
+    yield_on_approval_pending: bool
+    sentry_branch_prefix: str
 
     @classmethod
     def from_repo(cls, repo_root: Path) -> SentrySettings:
@@ -225,7 +243,7 @@ class SentrySettings:
                 "llm_api_key_env",
                 "OPENAI_API_KEY",
             ),
-            interval_seconds=_merge_int("SENTRY_INTERVAL_SEC", tom, "interval_seconds", 300),
+            interval_seconds=_merge_int("SENTRY_INTERVAL_SEC", tom, "interval_seconds", 60),
             max_retries=_merge_int("SENTRY_MAX_RETRIES", tom, "max_retries", 8),
             retry_base_seconds=_merge_float(
                 "SENTRY_RETRY_BASE_SEC",
@@ -255,6 +273,18 @@ class SentrySettings:
                 900,
             ),
             main_branch=_merge_str("SENTRY_MAIN_BRANCH", tom, "main_branch", "main"),
+            yield_on_approval_pending=_merge_bool(
+                "SENTRY_YIELD_ON_APPROVAL_PENDING",
+                tom,
+                "yield_on_approval_pending",
+                True,
+            ),
+            sentry_branch_prefix=_merge_str(
+                "SENTRY_BRANCH_PREFIX",
+                tom,
+                "sentry_branch_prefix",
+                "sentry/auto-",
+            ),
         )
 
     @classmethod

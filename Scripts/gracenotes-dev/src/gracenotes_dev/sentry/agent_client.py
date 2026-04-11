@@ -12,8 +12,10 @@ from gracenotes_dev.sentry.llm_client import (
     MACOS_XCODE_PREAMBLE,
     PR_MATERIAL_SYSTEM,
     build_fix_user_prompt,
+    build_merge_conflict_prompt,
     build_pr_material_user_prompt,
     parse_fix_response,
+    parse_merge_conflict_response,
     parse_pr_material_json,
 )
 from gracenotes_dev.sentry.pr_template import PrMaterial
@@ -110,6 +112,41 @@ def propose_pr_material_via_agent(
     try:
         return parse_pr_material_json(combined)
     except (ValueError, json.JSONDecodeError) as exc:
+        raise RuntimeError(
+            f"{exc} Exit {proc.returncode}. Output (truncated): {combined[:2000]!r}"
+        ) from exc
+
+
+def resolve_merge_conflict_file_via_agent(
+    *,
+    repo_root: Path,
+    agent_bin: str,
+    prefix_args: tuple[str, ...],
+    extra_args: tuple[str, ...],
+    relative_path: str,
+    file_content: str,
+    timeout_sec: int,
+) -> str:
+    """Run ``agent`` once per conflicted file; parse fenced resolved contents."""
+    resolved = resolve_agent_path(agent_bin)
+    body = build_merge_conflict_prompt(relative_path, file_content)
+    prompt = f"{MACOS_XCODE_PREAMBLE}\n\n{body}"
+    argv = [resolved, *prefix_args, *extra_args, prompt]
+    try:
+        proc = subprocess.run(
+            argv,
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            timeout=timeout_sec,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(f"agent merge-conflict command timed out after {timeout_sec}s") from exc
+
+    combined = (proc.stdout or "") + "\n" + (proc.stderr or "")
+    try:
+        return parse_merge_conflict_response(combined)
+    except RuntimeError as exc:
         raise RuntimeError(
             f"{exc} Exit {proc.returncode}. Output (truncated): {combined[:2000]!r}"
         ) from exc

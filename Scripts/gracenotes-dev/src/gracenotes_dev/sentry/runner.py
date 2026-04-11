@@ -24,7 +24,7 @@ from gracenotes_dev.sentry.llm_client import (
     propose_swift_fix,
 )
 from gracenotes_dev.sentry.log_sink import SentryLogSink
-from gracenotes_dev.sentry.merge_logic import can_merge
+from gracenotes_dev.sentry.merge_poll import MergePollOutcome, merge_poll_once
 from gracenotes_dev.sentry.pr_template import (
     PrMaterial,
     build_pr_body_from_material,
@@ -234,6 +234,19 @@ def run_single_iteration(
             "previous_branch": start_branch,
         },
     )
+
+    if merge and not dry_run:
+        remote = git_remote_owner_repo(repo_root)
+        if remote:
+            owner, gh_repo = remote
+            reconcile_open_sentry_prs(
+                repo_root,
+                settings,
+                owner,
+                gh_repo,
+                main_branch,
+                sink=sink,
+            )
 
     paths = list_gracenotes_swift_files(repo_root)
     rel = _pick_random(paths)
@@ -524,6 +537,7 @@ def run_single_iteration(
         pr_number,
         high_touch,
         allow,
+        main_branch,
         sink=sink,
     )
     if merge_ok:
@@ -541,6 +555,98 @@ def run_single_iteration(
     return 0
 
 
+def reconcile_open_sentry_prs(
+    repo_root: Path,
+    settings: SentrySettings,
+    owner: str,
+    gh_repo: str,
+    main_branch: str,
+    *,
+    sink: SentryLogSink | None = None,
+) -> None:
+    """
+    Merge or repair open PRs whose head matches ``sentry_branch_prefix`` (ascending PR #).
+
+    Runs after syncing ``main`` and before picking a new file so approved PRs are not
+    starved behind new exploratory work.
+    """
+    pr_numbers = gh_api.list_open_sentry_pr_numbers(
+        repo_root,
+        main_branch,
+        settings.sentry_branch_prefix,
+    )
+    if not pr_numbers:
+        return
+    _emit(
+        repo_root,
+        sink,
+        {
+            "kind": "sweep_reconcile",
+            "message": f"Sweeping {len(pr_numbers)} open sentry PR(s) (ascending #).",
+            "prs": pr_numbers,
+        },
+    )
+    allow = set(settings.approval_users)
+    for pr_number in pr_numbers:
+        paths = gh_api.pr_changed_file_paths(repo_root, pr_number)
+        touch = classify_paths(paths)
+        high_touch = is_high_touch(touch)
+        _emit(
+            repo_root,
+            sink,
+            {
+                "kind": "sweep_pr",
+                "message": f"Sweep PR #{pr_number}",
+                "pr": pr_number,
+                "touch": touch.value,
+            },
+        )
+        while True:
+            outcome = merge_poll_once(
+                repo_root,
+                settings,
+                owner,
+                gh_repo,
+                pr_number,
+                high_touch,
+                allow,
+                main_branch,
+                sink=sink,
+                poll_yield_for_approval=False,
+            )
+            if outcome == MergePollOutcome.MERGED:
+                _emit(
+                    repo_root,
+                    sink,
+                    {
+                        "kind": "sweep_merged",
+                        "message": f"PR #{pr_number} squash-merged",
+                        "pr": pr_number,
+                    },
+                )
+                break
+            if outcome == MergePollOutcome.TERMINAL_FAIL:
+                _emit(
+                    repo_root,
+                    sink,
+                    {
+                        "kind": "sweep_merge_fail",
+                        "message": f"PR #{pr_number}: merge attempt failed",
+                        "pr": pr_number,
+                    },
+                )
+                break
+            if outcome == MergePollOutcome.CONTINUE_LOOP:
+                continue
+            break
+
+        try:
+            _git_output(repo_root, "checkout", main_branch)
+            _git_output(repo_root, "pull", "--ff-only", "origin", main_branch)
+        except subprocess.CalledProcessError:
+            pass
+
+
 def _poll_until_merge(
     repo_root: Path,
     settings: SentrySettings,
@@ -549,6 +655,7 @@ def _poll_until_merge(
     pr_number: int,
     high_touch: bool,
     allow: set[str],
+    main_branch: str,
     *,
     sink: SentryLogSink | None = None,
 ) -> bool:
@@ -557,40 +664,26 @@ def _poll_until_merge(
     poll = 30.0
 
     while time.monotonic() < deadline:
-        if sink is not None:
-            sink.set_step("merge gates (poll)")
-        ci_ok = gh_api.pr_checks_passed(repo_root, pr_number)
-        threads = gh_api.graphql_review_threads(repo_root, owner, repo, pr_number)
-        if settings.copilot_login:
-            unresolved = gh_api.unresolved_copilot_threads(threads, settings.copilot_login)
-        else:
-            unresolved = 0
-
-        comments = gh_api.issue_comments(repo_root, owner, repo, pr_number)
-        approve = gh_api.has_approval_phrase(
-            comments,
-            settings.approval_phrase,
+        outcome = merge_poll_once(
+            repo_root,
+            settings,
+            owner,
+            repo,
+            pr_number,
+            high_touch,
             allow,
+            main_branch,
+            sink=sink,
+            poll_yield_for_approval=True,
         )
-
-        copilot_ok = unresolved == 0
-
-        if sink is not None:
-            sink.log(
-                f"merge poll: ci_ok={ci_ok} high_touch={high_touch} "
-                f"copilot_unresolved={unresolved} approve={approve}"
-            )
-
-        if can_merge(
-            ci_ok=ci_ok,
-            high_touch=high_touch,
-            copilot_ok=copilot_ok,
-            approve_phrase_present=approve,
-        ):
-            if sink is not None:
-                sink.set_step("squash merge")
-            return gh_api.pr_merge_squash(repo_root, pr_number)
-
+        if outcome == MergePollOutcome.MERGED:
+            return True
+        if outcome == MergePollOutcome.YIELD_APPROVAL:
+            return False
+        if outcome == MergePollOutcome.TERMINAL_FAIL:
+            return False
+        if outcome == MergePollOutcome.CONTINUE_LOOP:
+            continue
         time.sleep(poll)
 
     gh_api.pr_comment(
