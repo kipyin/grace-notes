@@ -56,8 +56,7 @@ def try_resolve_merge_conflicts_with_agent(
     if sink is not None:
         sink.set_step("resolve merge conflicts (agent)")
         sink.log(
-            f"PR #{pr_number}: merge-conflicted with {main_branch}; "
-            "running local merge + agent …"
+            f"PR #{pr_number}: merge-conflicted with {main_branch}; running local merge + agent …"
         )
 
     fetch = subprocess.run(
