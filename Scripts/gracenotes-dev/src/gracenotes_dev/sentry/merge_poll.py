@@ -35,7 +35,7 @@ def merge_poll_once(
     git_cwd: Path | None = None,
 ) -> MergePollOutcome:
     """
-    One CI / Copilot / approval check and optional squash + conflict repair.
+    One CI / Copilot / Cursor issue comments / approval check and optional squash + conflict repair.
 
     ``git_cwd`` is the directory for git commands when the PR head only exists in a sentry
     worktree (otherwise defaults to ``repo_root``).
@@ -57,16 +57,22 @@ def merge_poll_once(
     )
 
     copilot_ok = unresolved == 0
+    cursor_ok = gh_api.cursor_issue_review_ok(
+        comments,
+        settings.cursor_reviewer_logins,
+        settings.cursor_start_phrases,
+    )
 
     if sink is not None:
         sink.log(
             f"merge poll: pr={pr_number} ci_ok={ci_ok} "
-            f"copilot_unresolved={unresolved} approve={approve}"
+            f"copilot_unresolved={unresolved} cursor_ok={cursor_ok} approve={approve}"
         )
 
     if can_merge(
         ci_ok=ci_ok,
         copilot_ok=copilot_ok,
+        cursor_ok=cursor_ok,
         approve_phrase_present=approve,
     ):
         if sink is not None:

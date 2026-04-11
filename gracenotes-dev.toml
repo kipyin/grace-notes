@@ -70,6 +70,11 @@ copilot_login = "copilot-pull-request-reviewer"
 approval_phrase = "/sentry-approve"
 approval_users = ["kipyin"]
 
+# Cursor merge gate: default logins match common app accounts; use
+# `grace sentry issue-comment-authors <PR#>` to confirm. Set to [] to disable.
+# cursor_reviewer_logins = []
+# cursor_post_review_trigger = true
+
 ci_profile = "lint-build"
 copilot_wait_seconds = 900
 arbitration_stuck_seconds = 172800

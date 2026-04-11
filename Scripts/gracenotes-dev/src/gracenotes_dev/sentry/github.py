@@ -125,6 +125,88 @@ def issue_comments(repo_root: Path, owner: str, repo: str, pr_number: int) -> li
     return data if isinstance(data, list) else []
 
 
+def issue_comment_user_logins(comments: list[dict[str, Any]]) -> list[str]:
+    """Sorted unique ``user.login`` values from issue (PR) comments."""
+    seen: set[str] = set()
+    out: list[str] = []
+    for c in comments:
+        login = ((c.get("user") or {}).get("login") or "").strip()
+        if login and login not in seen:
+            seen.add(login)
+            out.append(login)
+    return sorted(out)
+
+
+def _issue_comment_login(comment: dict[str, Any]) -> str:
+    return ((comment.get("user") or {}).get("login") or "").strip()
+
+
+def _tail_after_first_start_phrase(body: str, start_phrases: tuple[str, ...]) -> str:
+    """Text after the first case-insensitive match of any start phrase (for same-comment review)."""
+    low = body.lower()
+    for p in start_phrases:
+        pl = (p or "").strip().lower()
+        if not pl:
+            continue
+        i = low.find(pl)
+        if i >= 0:
+            return body[i + len(pl) :].strip()
+    return ""
+
+
+def cursor_issue_review_ok(
+    comments: list[dict[str, Any]],
+    cursor_logins: tuple[str, ...],
+    start_phrases: tuple[str, ...],
+) -> bool:
+    """
+    Issue-comment gate for the Cursor PR reviewer (``/review`` flow).
+
+    If ``cursor_logins`` is empty, returns True (gate disabled).
+
+    If there is no comment from a configured login that looks like a “started” message
+    (e.g. “Taking a look”), returns True — nothing to wait on.
+
+    If Cursor posted a start phrase, returns True when either:
+
+    * a later issue comment from Cursor exists, or
+    * the same comment contains substantive text after the start phrase (review in one comment).
+    """
+    allowed = {x.strip().lower() for x in cursor_logins if x.strip()}
+    if not allowed:
+        return True
+
+    def _is_start(body: str) -> bool:
+        b = (body or "").lower()
+        return any((p or "").strip().lower() in b for p in start_phrases if (p or "").strip())
+
+    curs: list[dict[str, Any]] = []
+    for c in comments:
+        if _issue_comment_login(c).lower() in allowed:
+            curs.append(c)
+    curs.sort(key=lambda x: str(x.get("created_at") or ""))
+
+    if not curs:
+        return True
+
+    start_idx: int | None = None
+    for i, c in enumerate(curs):
+        if _is_start(c.get("body") or ""):
+            start_idx = i
+            break
+
+    if start_idx is None:
+        return True
+
+    start_body = curs[start_idx].get("body") or ""
+    tail = _tail_after_first_start_phrase(start_body, start_phrases)
+    if len(tail) >= 10:
+        return True
+    if start_idx + 1 < len(curs):
+        return True
+    return False
+
+
 def has_approval_phrase(
     comments: list[dict[str, Any]],
     phrase: str,

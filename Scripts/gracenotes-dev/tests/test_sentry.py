@@ -12,6 +12,8 @@ from typer.testing import CliRunner
 
 from gracenotes_dev.cli import app
 from gracenotes_dev.config import load_sentry_table
+from gracenotes_dev.sentry import github as gh_sentry
+from gracenotes_dev.sentry import runner as sentry_runner
 from gracenotes_dev.sentry.classify import TouchClass, classify_paths
 from gracenotes_dev.sentry.llm_client import (
     parse_fix_response,
@@ -20,7 +22,6 @@ from gracenotes_dev.sentry.llm_client import (
 )
 from gracenotes_dev.sentry.merge_logic import can_merge
 from gracenotes_dev.sentry.pr_template import build_pr_body_from_material, fallback_pr_material
-from gracenotes_dev.sentry import runner as sentry_runner
 from gracenotes_dev.sentry.settings import SentrySettings
 from gracenotes_dev.sentry.state import format_report, read_recent_events
 
@@ -31,16 +32,48 @@ class SentryMergeLogicTest(unittest.TestCase):
             can_merge(
                 ci_ok=True,
                 copilot_ok=True,
+                cursor_ok=True,
                 approve_phrase_present=False,
             )
         )
-        self.assertFalse(can_merge(ci_ok=True, copilot_ok=False, approve_phrase_present=False))
+        self.assertFalse(
+            can_merge(
+                ci_ok=True,
+                copilot_ok=False,
+                cursor_ok=True,
+                approve_phrase_present=False,
+            )
+        )
 
     def test_approve_overrides_copilot_stuck(self) -> None:
-        self.assertTrue(can_merge(ci_ok=True, copilot_ok=False, approve_phrase_present=True))
+        self.assertTrue(
+            can_merge(
+                ci_ok=True,
+                copilot_ok=False,
+                cursor_ok=False,
+                approve_phrase_present=True,
+            )
+        )
+
+    def test_cursor_pending_blocks_without_approve(self) -> None:
+        self.assertFalse(
+            can_merge(
+                ci_ok=True,
+                copilot_ok=True,
+                cursor_ok=False,
+                approve_phrase_present=False,
+            )
+        )
 
     def test_ci_red_blocks(self) -> None:
-        self.assertFalse(can_merge(ci_ok=False, copilot_ok=True, approve_phrase_present=False))
+        self.assertFalse(
+            can_merge(
+                ci_ok=False,
+                copilot_ok=True,
+                cursor_ok=True,
+                approve_phrase_present=False,
+            )
+        )
 
 
 class SentryListAtRefTest(unittest.TestCase):
@@ -80,6 +113,11 @@ class SentrySettingsTest(unittest.TestCase):
         self.assertEqual(s.main_branch, "main")
         self.assertTrue(s.yield_on_approval_pending)
         self.assertEqual(s.sentry_branch_prefix, "sentry/auto-")
+        self.assertEqual(
+            s.cursor_reviewer_logins,
+            ("cursor[bot]", "cursor", "cursoragent"),
+        )
+        self.assertTrue(s.cursor_post_review_trigger)
 
 
 class SentryTomlTest(unittest.TestCase):
@@ -106,6 +144,18 @@ class SentryTomlTest(unittest.TestCase):
             t = load_sentry_table(root)
             self.assertNotIn("api_key", t)
             self.assertEqual(t.get("fix_provider"), "http")
+
+    def test_cursor_reviewer_logins_empty_disables(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "GraceNotes").mkdir()
+            (root / "gracenotes-dev.toml").write_text(
+                "[sentry]\ncursor_reviewer_logins = []\n",
+                encoding="utf-8",
+            )
+            s = SentrySettings.from_repo(root)
+        self.assertEqual(s.cursor_reviewer_logins, ())
+        self.assertFalse(s.cursor_post_review_trigger)
 
 
 class SentryPrMaterialParseTest(unittest.TestCase):
@@ -249,6 +299,74 @@ class SentryStateTailTest(unittest.TestCase):
             self.assertEqual(events[0].get("a"), 1)
 
 
+class SentryCursorIssueReviewTest(unittest.TestCase):
+    def test_empty_logins_always_ok(self) -> None:
+        self.assertTrue(
+            gh_sentry.cursor_issue_review_ok(
+                [{"user": {"login": "cursor"}, "body": "Taking a look"}],
+                (),
+                ("Taking a look",),
+            )
+        )
+
+    def test_no_cursor_comments_ok(self) -> None:
+        self.assertTrue(
+            gh_sentry.cursor_issue_review_ok(
+                [{"user": {"login": "human"}, "body": "hi"}],
+                ("cursor",),
+                ("Taking a look",),
+            )
+        )
+
+    def test_no_start_phrase_skips(self) -> None:
+        self.assertTrue(
+            gh_sentry.cursor_issue_review_ok(
+                [{"user": {"login": "cursor"}, "body": "LGTM"}],
+                ("cursor",),
+                ("Taking a look",),
+            )
+        )
+
+    def test_start_only_blocks(self) -> None:
+        self.assertFalse(
+            gh_sentry.cursor_issue_review_ok(
+                [{"user": {"login": "cursor"}, "body": "Taking a look"}],
+                ("cursor",),
+                ("Taking a look",),
+            )
+        )
+
+    def test_start_then_followup_ok(self) -> None:
+        self.assertTrue(
+            gh_sentry.cursor_issue_review_ok(
+                [
+                    {
+                        "user": {"login": "cursor"},
+                        "body": "Taking a look",
+                        "created_at": "2020-01-01T00:00:01Z",
+                    },
+                    {
+                        "user": {"login": "cursor"},
+                        "body": "Here is the review.",
+                        "created_at": "2020-01-01T00:00:02Z",
+                    },
+                ],
+                ("cursor",),
+                ("Taking a look",),
+            )
+        )
+
+    def test_same_comment_substantive_tail_ok(self) -> None:
+        body = "Taking a look.\n\n" + ("x" * 20)
+        self.assertTrue(
+            gh_sentry.cursor_issue_review_ok(
+                [{"user": {"login": "cursor"}, "body": body}],
+                ("cursor",),
+                ("Taking a look",),
+            )
+        )
+
+
 class SentryApprovalParseTest(unittest.TestCase):
     def test_phrase(self) -> None:
         from gracenotes_dev.sentry import github as gh
@@ -270,7 +388,14 @@ class SentryCLISurfaceTest(unittest.TestCase):
         runner = CliRunner()
         result = runner.invoke(app, ["sentry", "--help"])
         self.assertEqual(result.exit_code, 0)
-        for token in ["start", "stop", "status", "report", "review-thread-authors"]:
+        for token in [
+            "start",
+            "stop",
+            "status",
+            "report",
+            "review-thread-authors",
+            "issue-comment-authors",
+        ]:
             self.assertIn(token, result.output)
         start_help = runner.invoke(app, ["sentry", "start", "--help"])
         self.assertEqual(start_help.exit_code, 0)

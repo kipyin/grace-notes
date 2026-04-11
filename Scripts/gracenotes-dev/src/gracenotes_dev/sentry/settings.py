@@ -165,6 +165,41 @@ def _merge_approval_users(tom: dict[str, Any]) -> tuple[str, ...]:
     return t if t is not None else ()
 
 
+# PR comments use ``cursor[bot]`` (Bugbot). ``cursor`` / ``cursoragent`` are fallbacks.
+_DEFAULT_CURSOR_REVIEWER_LOGINS = ("cursor[bot]", "cursor", "cursoragent")
+
+_DEFAULT_CURSOR_START_PHRASES = ("Taking a look", "taking a look")
+
+
+def _cursor_list_from_tom(tom: dict[str, Any], key: str) -> tuple[str, ...] | None:
+    raw = tom.get(key)
+    if raw is None:
+        return None
+    if isinstance(raw, list):
+        return tuple(str(x).strip() for x in raw if str(x).strip())
+    if isinstance(raw, str):
+        return tuple(s.strip() for s in raw.split(",") if s.strip())
+    return None
+
+
+def _merge_cursor_reviewer_logins(tom: dict[str, Any]) -> tuple[str, ...]:
+    if os.environ.get("SENTRY_CURSOR_REVIEWER_LOGINS", "").strip():
+        return _comma_list("SENTRY_CURSOR_REVIEWER_LOGINS")
+    t = _cursor_list_from_tom(tom, "cursor_reviewer_logins")
+    if t is not None:
+        return t
+    return _DEFAULT_CURSOR_REVIEWER_LOGINS
+
+
+def _merge_cursor_start_phrases(tom: dict[str, Any]) -> tuple[str, ...]:
+    if os.environ.get("SENTRY_CURSOR_START_PHRASES", "").strip():
+        return _comma_list("SENTRY_CURSOR_START_PHRASES")
+    t = _cursor_list_from_tom(tom, "cursor_start_phrases")
+    if t is not None:
+        return t
+    return _DEFAULT_CURSOR_START_PHRASES
+
+
 def _merge_fix_provider(tom: dict[str, Any]) -> str:
     if os.environ.get("SENTRY_FIX_PROVIDER", "").strip():
         return _normalize_fix_provider(os.environ["SENTRY_FIX_PROVIDER"])
@@ -210,10 +245,14 @@ class SentrySettings:
     main_branch: str
     yield_on_approval_pending: bool
     sentry_branch_prefix: str
+    cursor_reviewer_logins: tuple[str, ...]
+    cursor_start_phrases: tuple[str, ...]
+    cursor_post_review_trigger: bool
 
     @classmethod
     def from_repo(cls, repo_root: Path) -> SentrySettings:
         tom = load_sentry_table(repo_root=repo_root)
+        cursor_reviewer_logins = _merge_cursor_reviewer_logins(tom)
         return cls(
             copilot_login=_merge_opt_str("SENTRY_COPILOT_LOGIN", tom, "copilot_login"),
             approval_phrase=_merge_str(
@@ -284,6 +323,14 @@ class SentrySettings:
                 tom,
                 "sentry_branch_prefix",
                 "sentry/auto-",
+            ),
+            cursor_reviewer_logins=cursor_reviewer_logins,
+            cursor_start_phrases=_merge_cursor_start_phrases(tom),
+            cursor_post_review_trigger=_merge_bool(
+                "SENTRY_CURSOR_POST_REVIEW",
+                tom,
+                "cursor_post_review_trigger",
+                bool(cursor_reviewer_logins),
             ),
         )
 

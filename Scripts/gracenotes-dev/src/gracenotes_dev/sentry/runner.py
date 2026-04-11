@@ -558,6 +558,28 @@ def run_single_iteration(
             },
         )
 
+        if settings.cursor_post_review_trigger and settings.cursor_reviewer_logins:
+            if gh_api.pr_comment(repo_root, pr_number, "/review"):
+                _emit(
+                    repo_root,
+                    sink,
+                    {
+                        "kind": "note",
+                        "message": f"Posted `/review` on PR #{pr_number} (Cursor reviewer).",
+                        "pr": pr_number,
+                    },
+                )
+            else:
+                _emit(
+                    repo_root,
+                    sink,
+                    {
+                        "kind": "error",
+                        "message": f"Could not post `/review` comment on PR #{pr_number}.",
+                        "pr": pr_number,
+                    },
+                )
+
         if not merge:
             _emit(repo_root, sink, {"kind": "note", "message": "Skipping merge (--no-merge)."})
             return 0
@@ -732,6 +754,6 @@ def _poll_until_merge(
         repo_root,
         pr_number,
         "Sentry: timed out waiting for merge gates. "
-        f"Resolve Copilot threads or post `{settings.approval_phrase}` (allowlisted user).",
+        f"Resolve Copilot / Cursor review or post `{settings.approval_phrase}` (allowlisted user).",
     )
     return False

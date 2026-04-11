@@ -226,6 +226,35 @@ def sentry_review_thread_authors(
     raise typer.Exit(code=0)
 
 
+@sentry_app.command("issue-comment-authors")
+def sentry_issue_comment_authors(
+    pr_number: Annotated[
+        int,
+        typer.Argument(help="Pull request number (e.g. 123)."),
+    ],
+) -> None:
+    """
+    Print sorted unique ``user.login`` values from PR issue comments (REST).
+
+    Use this to see which login Cursor (or other bots) use on conversation comments,
+    then set ``cursor_reviewer_logins`` / ``SENTRY_CURSOR_REVIEWER_LOGINS`` accordingly.
+    """
+    repo_root = cli_core._repo_root()
+    remote = git_remote_owner_repo(repo_root)
+    if not remote:
+        _console().print("[red]Could not parse origin remote (GitHub).[/red]")
+        raise typer.Exit(code=2)
+    owner, name = remote
+    comments = gh_sentry.issue_comments(repo_root, owner, name, pr_number)
+    logins = gh_sentry.issue_comment_user_logins(comments)
+    if not logins:
+        _console().print("(no issue comments or check PR number and permissions)")
+        raise typer.Exit(code=0)
+    for login in logins:
+        print(login)
+    raise typer.Exit(code=0)
+
+
 @sentry_app.command("report")
 def sentry_report(
     json_out: Annotated[
