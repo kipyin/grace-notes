@@ -4,6 +4,7 @@
 
 ### Changed
 
+- **Past (#255):** The narrative row below recurring/trending is **Next step** only (no separate Observation panel). A refiner **hides the whole row** when the line would be empty, match the generic glad-happened filler, or echo a **short** recurring-theme action already prominent in stats; longer actions still show. **zh-Hans** tightened for the next-step title and weekly insight action strings (`Localizable.xcstrings`).
 - **Past (#247):** Section mix strip shows **integer percentages** in each segment; the legend keeps **mention counts** with **meta** labels and per-section **count capsules** aligned with other insight cards.
 
 ## [0.5.0]
