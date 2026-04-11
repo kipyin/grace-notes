@@ -9,7 +9,8 @@ struct InsightsPlaceholderBar: View {
 
     var body: some View {
         GeometryReader { geo in
-            let lineWidth = max(geo.size.width * widthFraction, height * 2)
+            let fraction = min(1, max(0, widthFraction))
+            let lineWidth = max(geo.size.width * fraction, height * 2)
             RoundedRectangle(cornerRadius: height * 0.42, style: .continuous)
                 .fill(AppTheme.reviewTextMuted.opacity(0.10))
                 .frame(width: lineWidth, height: height, alignment: .leading)
@@ -41,8 +42,10 @@ struct InsightsCalmLoadingBreath: ViewModifier {
 }
 
 func reviewInsightSanitizedThemeId(_ value: String) -> String {
+    // POSIX keeps accessibility identifiers stable across user locales (e.g. Turkish casing rules).
+    let stableLocale = Locale(identifier: "en_US_POSIX")
     let cleaned = value
-        .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+        .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: stableLocale)
         .replacingOccurrences(of: "[^a-zA-Z0-9]+", with: "-", options: .regularExpression)
         .trimmingCharacters(in: CharacterSet(charactersIn: "-"))
     if cleaned.isEmpty {
