@@ -4,7 +4,7 @@ import SwiftData
 
 @MainActor
 enum DemoDataSeeder {
-    private static let seedVersion = 4
+    private static let seedVersion = 5
     private static let seedVersionKey = "demoDataSeedVersion"
 
     static func seedIfNeeded(context: ModelContext, calendar: Calendar = .current) {
@@ -41,7 +41,8 @@ enum DemoDataSeeder {
     }
 
     private static func upsertEntry(_ payload: DemoEntryPayload, context: ModelContext, calendar: Calendar, now: Date) {
-        if let existing = fetchEntry(for: payload.entryDate, context: context, calendar: calendar) {
+        let dayStart = calendar.startOfDay(for: payload.entryDate)
+        if let existing = fetchEntry(for: dayStart, context: context, calendar: calendar) {
             existing.gratitudes = payload.gratitudes
             existing.needs = payload.needs
             existing.people = payload.people
@@ -49,12 +50,13 @@ enum DemoDataSeeder {
             existing.reflections = payload.reflections
             existing.updatedAt = now
             existing.completedAt = payload.completedAt
+            existing.entryDate = dayStart
             return
         }
 
         context.insert(
             Journal(
-                entryDate: payload.entryDate,
+                entryDate: dayStart,
                 gratitudes: payload.gratitudes,
                 needs: payload.needs,
                 people: payload.people,
@@ -67,11 +69,13 @@ enum DemoDataSeeder {
         )
     }
 
+    /// Uses `[dayStart, nextDay)` like ``JournalRepository/fetchEntry(dayStart:context:)``.
     private static func fetchEntry(for date: Date, context: ModelContext, calendar: Calendar) -> Journal? {
-        guard let nextDay = calendar.date(byAdding: .day, value: 1, to: date) else { return nil }
+        let dayStart = calendar.startOfDay(for: date)
+        guard let nextDay = calendar.date(byAdding: .day, value: 1, to: dayStart) else { return nil }
         let descriptor = FetchDescriptor<Journal>(
             predicate: #Predicate { entry in
-                entry.entryDate >= date && entry.entryDate < nextDay
+                entry.entryDate >= dayStart && entry.entryDate < nextDay
             },
             sortBy: [SortDescriptor(\.createdAt, order: .forward)]
         )
@@ -267,9 +271,8 @@ private func demoDecember2025Entry(calendar: Calendar, now: Date) -> DemoEntryPa
     parts.year = 2025
     parts.month = 12
     parts.day = 10
-    parts.hour = 9
-    parts.minute = 30
-    let entryDate = calendar.date(from: parts) ?? calendar.startOfDay(for: now)
+    let raw = calendar.date(from: parts) ?? calendar.startOfDay(for: now)
+    let entryDate = calendar.startOfDay(for: raw)
     return DemoEntryPayload(
         entryDate: entryDate,
         gratitudes: [
