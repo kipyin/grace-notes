@@ -85,7 +85,9 @@ actor ReviewInsightsCache {
 
     private func loadPayload() -> Payload? {
         // v1 entries did not record boundary preference; never merge them into v2 reads.
-        userDefaults.removeObject(forKey: Self.legacyPayloadKey)
+        if userDefaults.object(forKey: Self.legacyPayloadKey) != nil {
+            userDefaults.removeObject(forKey: Self.legacyPayloadKey)
+        }
         guard let data = userDefaults.data(forKey: Self.payloadKey) else {
             return nil
         }
@@ -118,13 +120,6 @@ actor ReviewInsightsCache {
         return "\(interval)#\(weekBoundaryPreferenceRawValue)#\(pastStatisticsIntervalToken)"
     }
 
-    private static func weekInterval(fromCompositeCacheKey key: String) -> Double {
-        guard let sep = key.firstIndex(of: "#") else {
-            return 0
-        }
-        return Double(key[..<sep]) ?? 0
-    }
-
     private static func prune(
         weeks: [String: ReviewInsights],
         keepingMostRecent: Int
@@ -132,9 +127,17 @@ actor ReviewInsightsCache {
         guard weeks.count > keepingMostRecent else {
             return weeks
         }
+        // Evict by the decoded `weekStart` in each entry, not by re-parsing the composite key string.
+        // That avoids mis-ordering when a key prefix is malformed (e.g. `Double` parse → 0) or the key
+        // format diverges from the payload.
         let sortedKeys = weeks.keys
-            .sorted {
-                weekInterval(fromCompositeCacheKey: $0) > weekInterval(fromCompositeCacheKey: $1)
+            .sorted { key1, key2 in
+                let lhsWeekStart = weeks[key1]!.weekStart
+                let rhsWeekStart = weeks[key2]!.weekStart
+                if lhsWeekStart != rhsWeekStart {
+                    return lhsWeekStart > rhsWeekStart
+                }
+                return key1 < key2
             }
             .prefix(keepingMostRecent)
         let keysToKeep = Set(sortedKeys)
