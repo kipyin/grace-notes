@@ -10,7 +10,7 @@ import typer
 
 from gracenotes_dev import simulator_runtime  # noqa: F401 — ``cli.simulator_runtime`` (tests)
 from gracenotes_dev import xcode as xcode_helpers  # noqa: F401 — ``cli.xcode_helpers`` (tests)
-from gracenotes_dev.cli.apps import app, config_app, runtime_app, sim_app
+from gracenotes_dev.cli.apps import app, config_app, runtime_app, sentry_app, sim_app
 from gracenotes_dev.cli.core import (
     _cli_version,
     _interactive_cli_allowed,  # noqa: F401
@@ -63,6 +63,7 @@ from gracenotes_dev.cli import doctor_lint as _doctor_lint  # noqa: E402, F401
 from gracenotes_dev.cli import l10n_cmd as _l10n_cmd  # noqa: E402, F401
 from gracenotes_dev.cli import sim as _sim  # noqa: E402, F401
 from gracenotes_dev.cli import workflows as _workflows  # noqa: E402, F401
+from gracenotes_dev.cli import sentry_cmd as _sentry_cmd  # noqa: E402, F401
 from gracenotes_dev.cli.config_cmd import config_interactive  # noqa: E402
 
 __all__ = [
@@ -70,5 +71,6 @@ __all__ = [
     "config_app",
     "config_interactive",
     "runtime_app",
+    "sentry_app",
     "sim_app",
 ]

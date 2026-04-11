@@ -27,6 +27,9 @@ Configuration lives in the repo root file [`gracenotes-dev.toml`](../../gracenot
 | `grace ci` | Run a configured CI profile | `grace ci --profile lint-build` |
 | `grace config list` | Show effective config | `grace config list` |
 | `grace l10n audit` | String catalog vs Swift literals | `grace l10n audit --json` |
+| `grace sentry` | macOS: exploratory LLM fix loop, PR, merge gates (see env below) | `grace sentry start --once --dry-run` |
+
+**`grace sentry` (macOS)** expects `gh` on `PATH`, a clean git working tree, and an LLM key (default: `OPENAI_API_KEY`, or set `SENTRY_LLM_API_KEY_ENV`). Configure `SENTRY_COPILOT_LOGIN`, `SENTRY_APPROVAL_USERS`, and optional `SENTRY_CI_PROFILE`. State logs to `.grace/sentry/` (gitignored). Use `grace sentry report` for a briefing.
 
 Global flags (before the subcommand): `grace --repo-root /path/to/grace-notes …` uses that directory as the start of repo discovery; same via `GRACE_REPO_ROOT`.
 

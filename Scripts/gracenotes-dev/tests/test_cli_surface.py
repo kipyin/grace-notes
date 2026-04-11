@@ -37,6 +37,7 @@ class CLISurfaceTest(unittest.TestCase):
             "sim",
             "config",
             "l10n",
+            "sentry",
             "build",
             "clean",
             "test",
