@@ -17,7 +17,7 @@ struct BloomPaperBackgroundView: View {
                     endPoint: .bottomTrailing
                 )
                 if !reduceTransparency {
-                    PaperFibersCanvas(size: proxy.size)
+                    PaperFibersCanvas()
                         .opacity(0.14)
                 }
             }
@@ -29,10 +29,12 @@ struct BloomPaperBackgroundView: View {
 }
 
 private struct PaperFibersCanvas: View {
-    let size: CGSize
-
     var body: some View {
         Canvas { context, canvasSize in
+            guard canvasSize.width.isFinite, canvasSize.height.isFinite,
+                  canvasSize.width > 0, canvasSize.height > 0 else {
+                return
+            }
             let grainCount = 90
             var rng = SeededRandom(seed: 42)
             for _ in 0..<grainCount {
