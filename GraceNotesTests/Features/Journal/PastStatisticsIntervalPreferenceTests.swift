@@ -36,4 +36,20 @@ final class PastStatisticsIntervalPreferenceTests: XCTestCase {
         PastStatisticsIntervalSelection(mode: .custom, quantity: quantity, unit: unit)
             .statisticsIntervalSubtitlePhrase()
     }
+
+    func test_resolvedHistoryRange_allMode_futureOnlyEntries_doesNotTrapAndCapsLowerToReferenceDay() {
+        var calendar = Calendar(identifier: .gregorian)
+        guard let utc = TimeZone(identifier: "UTC") else {
+            XCTFail("Missing UTC timezone")
+            return
+        }
+        calendar.timeZone = utc
+        let refStart = calendar.startOfDay(for: Date(timeIntervalSince1970: 1_700_000_000))
+        let futureDay = calendar.date(byAdding: .day, value: 10, to: refStart)!
+        let entries = [Journal(entryDate: futureDay, gratitudes: [Entry(fullText: "x")], needs: [], people: [])]
+        let range = PastStatisticsIntervalSelection(mode: .all, quantity: 4, unit: .week)
+            .resolvedHistoryRange(referenceDate: refStart, calendar: calendar, allEntries: entries)
+        XCTAssertEqual(range.lowerBound, refStart)
+        XCTAssertEqual(range.upperBound, calendar.date(byAdding: .day, value: 1, to: refStart))
+    }
 }

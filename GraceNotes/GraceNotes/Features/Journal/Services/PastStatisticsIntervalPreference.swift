@@ -53,7 +53,10 @@ struct PastStatisticsIntervalSelection: Codable, Equatable, Hashable, Sendable {
         switch mode {
         case .all:
             let days = allEntries.map { calendar.startOfDay(for: $0.entryDate) }
-            let lower = days.min() ?? refStart
+            let earliest = days.min() ?? refStart
+            // Cap at `refStart` so `lower < endExclusive` when every entry is dated after the reference day
+            // (import/clock skew); otherwise `Range` construction traps.
+            let lower = min(earliest, refStart)
             return lower..<endExclusive
         case .custom:
             let quantityValue = min(max(quantity, 1), 999)
