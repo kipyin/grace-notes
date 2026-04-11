@@ -180,7 +180,11 @@ struct ImportExportSettingsScreen: View {
             JSONImportFileImporterAnchor(isPresented: $showImportPicker) { result in
                 switch result {
                 case .success(let urls):
-                    guard let url = urls.first else { return }
+                    guard let url = urls.first else {
+                        importErrorMessage = String(localized: "settings.dataPrivacy.import.error.readFailed")
+                        showImportError = true
+                        return
+                    }
                     pendingImportURL = url
                     importMode = .merge
                     showImportReview = true
@@ -631,6 +635,7 @@ private extension ImportExportSettingsScreen {
         } catch let error as JournalDataImportError {
             if case .mergeConflicts(let days) = error {
                 mergeConflictDays = days
+                showImportReview = false
                 showMergeConflictResolution = true
             } else {
                 importErrorMessage = importFailureMessage(for: error)
