@@ -53,7 +53,8 @@ l10n_app = typer.Typer(
 app.add_typer(l10n_app, name="l10n")
 sentry_app = typer.Typer(
     help=(
-        "Exploratory automation (macOS): random Swift scope, LLM fix, ``grace ci``, PR, merge gates."
+        "Exploratory automation (macOS): random Swift scope, LLM fix, ``grace ci``, "
+        "PR, merge gates."
     ),
     no_args_is_help=True,
 )

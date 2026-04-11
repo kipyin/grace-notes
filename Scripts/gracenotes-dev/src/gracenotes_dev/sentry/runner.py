@@ -15,9 +15,9 @@ from gracenotes_dev.sentry.agent_client import propose_swift_fix_via_agent
 from gracenotes_dev.sentry.classify import classify_paths, is_high_touch
 from gracenotes_dev.sentry.git_remote import git_remote_owner_repo
 from gracenotes_dev.sentry.llm_client import api_key_from_env, propose_swift_fix
+from gracenotes_dev.sentry.log_sink import SentryLogSink
 from gracenotes_dev.sentry.merge_logic import can_merge
 from gracenotes_dev.sentry.pr_template import build_pr_body, risk_label_for_touch
-from gracenotes_dev.sentry.log_sink import SentryLogSink
 from gracenotes_dev.sentry.settings import SentrySettings
 from gracenotes_dev.sentry.state import append_event
 
@@ -293,6 +293,11 @@ def run_single_iteration(
                 "branch": branch,
             },
         )
+        try:
+            _git_output(repo_root, "checkout", "--", rel)
+        except subprocess.CalledProcessError:
+            pass
+        _cleanup_failed_branch(repo_root, branch)
         return 1
 
     pr_meta = json.loads(proc.stdout)

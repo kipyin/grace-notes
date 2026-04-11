@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 _REVIEW_THREADS_QUERY = (
-    "query($owner:String!$name:String!$number:Int!){"
+    "query($owner:String!,$name:String!,$number:Int!){"
     "repository(owner:$owner,name:$name){"
     "pullRequest(number:$number){"
     "reviewThreads(first:100){nodes{isResolved comments(first:20){nodes{author{login} body}}}}"

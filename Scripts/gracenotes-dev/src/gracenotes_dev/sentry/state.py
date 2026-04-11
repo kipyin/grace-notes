@@ -36,13 +36,40 @@ def append_event(repo_root: Path, event: dict[str, Any]) -> None:
         f.write(json.dumps(line, ensure_ascii=False) + "\n")
 
 
+def _tail_text_line_strings(path: Path, limit: int) -> list[str]:
+    """Last ``limit`` newline-delimited segments without reading the whole file when possible."""
+    try:
+        size = path.stat().st_size
+    except OSError:
+        return []
+    if size == 0:
+        return []
+    chunk = min(size, max(64 * 1024, limit * 400))
+    while True:
+        with path.open("rb") as f:
+            f.seek(size - chunk)
+            raw = f.read()
+        if chunk < size:
+            nl = raw.find(b"\n")
+            if nl == -1:
+                raw = path.read_bytes()
+                text = raw.decode("utf-8", errors="replace")
+                return text.splitlines()[-limit:]
+            raw = raw[nl + 1 :]
+        text = raw.decode("utf-8", errors="replace")
+        lines = text.splitlines()
+        if len(lines) >= limit or chunk >= size:
+            return lines[-limit:]
+        chunk = min(size, chunk * 2)
+
+
 def read_recent_events(repo_root: Path, *, limit: int = 50) -> list[dict[str, Any]]:
     p = state_path(repo_root)
     if not p.is_file():
         return []
-    lines = p.read_text(encoding="utf-8").splitlines()
+    lines = _tail_text_line_strings(p, limit)
     out: list[dict[str, Any]] = []
-    for line in lines[-limit:]:
+    for line in lines:
         line = line.strip()
         if not line:
             continue

@@ -26,9 +26,7 @@ def _chat_completion(
     timeout_sec: int = 120,
 ) -> LLMResult:
     url = base_url.rstrip("/") + "/chat/completions"
-    payload = json.dumps(
-        {"model": model, "messages": messages, "temperature": 0.2}
-    ).encode("utf-8")
+    payload = json.dumps({"model": model, "messages": messages, "temperature": 0.2}).encode("utf-8")
     req = urllib.request.Request(
         url,
         data=payload,
