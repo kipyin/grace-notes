@@ -16,25 +16,41 @@ def review_wait_satisfied(
     pr_reviews: list[dict[str, Any]],
     reviewer_logins: tuple[str, ...],
     start_phrases: tuple[str, ...],
+    review_requested_allowlisted_logins: list[str],
 ) -> bool:
     """
     True when sentry may proceed past “waiting for reviewers” (merge gating still applies).
 
-    Exits when the issue/PR review gate passes, or when ``review_silence_timeout_seconds``
-    has elapsed since PR creation (``createdAt``), or when reviewer logins are empty.
+    Requires:
+
+    * :func:`~gracenotes_dev.sentry.github.reviewer_issue_review_ok` (issue ``/review`` flow).
+    * :func:`~gracenotes_dev.sentry.github.review_bots_quiescent` — no ``PENDING`` drafts from
+      allowlisted reviewers and no outstanding **requested** reviewers (allowlisted) on the PR.
+
+    Otherwise exits when ``review_silence_timeout_seconds`` has elapsed since PR creation,
+    when ``review_silence_timeout_seconds`` is ``<= 0`` (silence disabled), or when reviewer
+    logins are empty.
 
     If ``pr_created_at`` is unknown while the gate is still blocking, returns False so
     silence cannot be assumed (fail closed on missing metadata).
     """
     if not reviewer_logins:
         return True
-    if gh_api.reviewer_merge_gate_ok(
+
+    issue_ok = gh_api.reviewer_issue_review_ok(
         comments=comments,
-        pr_reviews=pr_reviews,
         reviewer_logins=reviewer_logins,
         start_phrases=start_phrases,
-    ):
+    )
+    bots_ok = gh_api.review_bots_quiescent(
+        pr_reviews=pr_reviews,
+        reviewer_logins=reviewer_logins,
+        requested_allowlisted_logins=review_requested_allowlisted_logins,
+    )
+
+    if issue_ok and bots_ok:
         return True
+
     if review_silence_timeout_seconds <= 0:
         return True
     if pr_created_at is None:

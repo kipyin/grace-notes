@@ -107,6 +107,7 @@ class SentryReviewGatesTest(unittest.TestCase):
                 pr_reviews=[],
                 reviewer_logins=(),
                 start_phrases=(),
+                review_requested_allowlisted_logins=[],
             )
         )
 
@@ -122,6 +123,7 @@ class SentryReviewGatesTest(unittest.TestCase):
                 pr_reviews=[],
                 reviewer_logins=("x",),
                 start_phrases=("Taking a look",),
+                review_requested_allowlisted_logins=[],
             )
         )
 
@@ -137,6 +139,7 @@ class SentryReviewGatesTest(unittest.TestCase):
                 pr_reviews=[],
                 reviewer_logins=("x",),
                 start_phrases=("Taking a look",),
+                review_requested_allowlisted_logins=[],
             )
         )
 
@@ -149,6 +152,75 @@ class SentryReviewGatesTest(unittest.TestCase):
                 pr_reviews=[],
                 reviewer_logins=("x",),
                 start_phrases=("Taking a look",),
+                review_requested_allowlisted_logins=[],
+            )
+        )
+
+    def test_review_wait_blocks_while_pending_pr_review(self) -> None:
+        self.assertFalse(
+            review_wait_satisfied(
+                pr_created_at=None,
+                review_silence_timeout_seconds=3600,
+                comments=[],
+                pr_reviews=[{"user": {"login": "cursor"}, "state": "PENDING"}],
+                reviewer_logins=("cursor",),
+                start_phrases=(),
+                review_requested_allowlisted_logins=[],
+            )
+        )
+
+    def test_review_wait_blocks_while_review_still_requested(self) -> None:
+        self.assertFalse(
+            review_wait_satisfied(
+                pr_created_at=None,
+                review_silence_timeout_seconds=3600,
+                comments=[],
+                pr_reviews=[],
+                reviewer_logins=("copilot-pull-request-reviewer",),
+                start_phrases=(),
+                review_requested_allowlisted_logins=["copilot-pull-request-reviewer"],
+            )
+        )
+
+    def test_review_wait_true_when_bots_quiescent(self) -> None:
+        self.assertTrue(
+            review_wait_satisfied(
+                pr_created_at=None,
+                review_silence_timeout_seconds=0,
+                comments=[],
+                pr_reviews=[{"user": {"login": "cursor"}, "state": "COMMENTED"}],
+                reviewer_logins=("cursor",),
+                start_phrases=(),
+                review_requested_allowlisted_logins=[],
+            )
+        )
+
+
+class SentryReviewBotsQuiescentTest(unittest.TestCase):
+    def test_pending_draft_blocks(self) -> None:
+        self.assertFalse(
+            gh_sentry.review_bots_quiescent(
+                [{"user": {"login": "cursor"}, "state": "PENDING"}],
+                ("cursor",),
+                [],
+            )
+        )
+
+    def test_outstanding_request_blocks(self) -> None:
+        self.assertFalse(
+            gh_sentry.review_bots_quiescent(
+                [],
+                ("cursor",),
+                ["cursor"],
+            )
+        )
+
+    def test_quiescent_when_submitted_and_no_requests(self) -> None:
+        self.assertTrue(
+            gh_sentry.review_bots_quiescent(
+                [{"user": {"login": "cursor"}, "state": "COMMENTED"}],
+                ("cursor",),
+                [],
             )
         )
 
@@ -192,6 +264,8 @@ class SentrySettingsTest(unittest.TestCase):
         self.assertIn("addressed", s.review_outcome_templates)
         self.assertIn("product_decision", s.review_clear_block_outcomes)
         self.assertNotIn("addressed", s.review_clear_block_outcomes)
+        self.assertNotIn("no_change", s.review_clear_block_outcomes)
+        self.assertNotIn("no_swift_files", s.review_clear_block_outcomes)
 
 
 class SentryReviewCommentTest(unittest.TestCase):
@@ -918,6 +992,10 @@ class MergePollCiFixTest(unittest.TestCase):
             "gracenotes_dev.sentry.merge_poll.try_fix_ci_with_agent",
             return_value=True,
         )
+        patch_req = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.pr_review_requests",
+            return_value=[],
+        )
 
         with (
             patch_checks,
@@ -930,6 +1008,7 @@ class MergePollCiFixTest(unittest.TestCase):
             patch_should,
             patch_mark,
             patch_try,
+            patch_req,
         ):
             out = merge_poll_once(
                 Path("/tmp"),
@@ -994,6 +1073,10 @@ class MergePollCiFixTest(unittest.TestCase):
             "gracenotes_dev.sentry.merge_poll.try_fix_ci_with_agent",
             return_value=False,
         )
+        patch_req = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.pr_review_requests",
+            return_value=[],
+        )
 
         with (
             patch_checks,
@@ -1006,6 +1089,7 @@ class MergePollCiFixTest(unittest.TestCase):
             patch_should,
             patch_mark,
             patch_try,
+            patch_req,
         ):
             out = merge_poll_once(
                 Path("/tmp"),
@@ -1065,6 +1149,10 @@ class MergePollCiFixTest(unittest.TestCase):
             "gracenotes_dev.sentry.merge_poll.try_fix_ci_with_agent",
             return_value=True,
         )
+        patch_req = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.pr_review_requests",
+            return_value=[],
+        )
 
         with (
             patch_checks,
@@ -1074,6 +1162,7 @@ class MergePollCiFixTest(unittest.TestCase):
             patch_created,
             patch_wait,
             patch_clear,
+            patch_req,
         ):
             with patch_try as mock_try:
                 merge_poll_once(
@@ -1090,8 +1179,8 @@ class MergePollCiFixTest(unittest.TestCase):
 
 
 class MergePollCommentModeTest(unittest.TestCase):
-    def test_comment_mode_without_marker_merges_without_github_threads(self) -> None:
-        """No marker yet: reviewers_clear is True; unresolved Copilot threads do not block."""
+    def test_comment_mode_without_marker_does_not_merge(self) -> None:
+        """No sentry marker yet: reviewers_clear is False; merge waits for narrative comment."""
         from gracenotes_dev.sentry.merge_poll import MergePollOutcome, merge_poll_once
 
         settings = mock.Mock()
@@ -1141,6 +1230,10 @@ class MergePollCommentModeTest(unittest.TestCase):
             "gracenotes_dev.sentry.merge_poll.gh_api.pr_merge_squash",
             return_value=True,
         )
+        patch_req = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.pr_review_requests",
+            return_value=[],
+        )
 
         with (
             patch_checks,
@@ -1151,6 +1244,7 @@ class MergePollCommentModeTest(unittest.TestCase):
             patch_wait,
             patch_auth,
             patch_merge,
+            patch_req,
         ):
             out = merge_poll_once(
                 Path("/tmp"),
@@ -1162,4 +1256,4 @@ class MergePollCommentModeTest(unittest.TestCase):
                 "main",
                 sink=None,
             )
-        self.assertEqual(out, MergePollOutcome.MERGED)
+        self.assertEqual(out, MergePollOutcome.WAIT_FOR_GATES)

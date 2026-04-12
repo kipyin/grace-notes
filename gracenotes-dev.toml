@@ -77,7 +77,7 @@ approval_users = ["kipyin"]
 # How "reviewers cleared" is decided: "comment" (default; marker on your issue comments) or
 # "github" (threads + PR review state). See gracenotes-dev README.
 review_clear_mode = "comment"
-# review_clear_block_outcomes = ["product_decision", "no_change", "ci_failed", "error", "no_swift_files"]
+# review_clear_block_outcomes = ["product_decision", "ci_failed", "error"]
 # review_clear_comment_max_age_seconds = 0
 # [sentry.review_outcome_templates]
 # addressed = "… {pr} …"

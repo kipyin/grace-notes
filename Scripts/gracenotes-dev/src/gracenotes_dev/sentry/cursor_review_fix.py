@@ -109,6 +109,27 @@ def cursor_fix_mark_attempt(repo_root: Path, pr_number: int) -> None:
     path.write_text(json.dumps(data, indent=0) + "\n", encoding="utf-8")
 
 
+def _post_review_outcome_comment(
+    repo_root: Path,
+    pr_number: int,
+    *,
+    visible_summary: str,
+    outcome: str,
+) -> bool:
+    body = merge_gate_marker_body(visible_summary, outcome)
+    if not gh_api.pr_comment(repo_root, pr_number, body):
+        append_event(
+            repo_root,
+            {
+                "kind": "cursor_review_fix_error",
+                "message": "gh pr comment failed (review outcome)",
+                "pr": pr_number,
+            },
+        )
+        return False
+    return True
+
+
 def try_address_cursor_review_with_agent(
     repo_root: Path,
     settings: SentrySettings,
@@ -133,17 +154,7 @@ def try_address_cursor_review_with_agent(
     _ = (owner, repo)  # reserved for future host parsing
     if settings.fix_provider != "cursor_agent":
         return False
-    ft = feedback_text.strip()
-    if not ft:
-        append_event(
-            repo_root,
-            {
-                "kind": "cursor_review_fix_skip",
-                "message": "No review feedback text to apply.",
-                "pr": pr_number,
-            },
-        )
-        return False
+    ft = feedback_text.strip() or "(No review digest text.)"
 
     append_event(
         repo_root,
@@ -202,6 +213,37 @@ def try_address_cursor_review_with_agent(
             {"kind": "cursor_review_fix_error", "message": f"headRefName: {exc}", "pr": pr_number},
         )
         return False
+
+    preview_paths = [
+        p
+        for p in gh_api.pr_changed_file_paths(repo_root, pr_number)
+        if p.endswith(".swift") and p.startswith("GraceNotes/")
+    ]
+    if not preview_paths:
+        visible = (
+            "**Sentry — review feedback**\n\n"
+            "No `GraceNotes/**/*.swift` paths in the PR diff for automated edits; "
+            "review feedback was noted.\n\n"
+            f"Digest (for context):\n\n{ft[:4000]}"
+        )
+        ok = _post_review_outcome_comment(
+            repo_root,
+            pr_number,
+            visible_summary=visible,
+            outcome="no_swift_files",
+        )
+        if ok:
+            append_event(
+                repo_root,
+                {
+                    "kind": "cursor_review_fix_pushed",
+                    "message": f"Posted review outcome (no Swift paths) for PR #{pr_number}",
+                    "pr": pr_number,
+                },
+            )
+            if sink is not None:
+                sink.log(f"PR #{pr_number}: posted no_swift_files review outcome.")
+        return ok
 
     if git_cwd is None:
         try:
@@ -333,15 +375,44 @@ def _try_address_review_in_git_root(
             )
 
         if not changed_any:
-            append_event(
-                repo_root,
-                {
-                    "kind": "cursor_review_fix_skip",
-                    "message": "Agent returned NO_CHANGE for all files.",
-                    "pr": pr_number,
-                },
+            try:
+                summary = review_fix_summary_via_agent(
+                    repo_root=git_root,
+                    agent_bin=settings.agent_bin,
+                    prefix_args=settings.agent_prefix_args,
+                    extra_args=settings.agent_extra_args,
+                    feedback_text=feedback_text,
+                    changed_paths=[],
+                    timeout_sec=settings.agent_timeout_sec,
+                )
+            except (OSError, RuntimeError) as exc:
+                summary = (
+                    f"(Sentry: could not generate a summary: {exc})\n\n"
+                    "Agent returned no substantive edits for the review feedback."
+                )
+            visible = (
+                "**Sentry — review feedback**\n\n"
+                f"{summary.strip()}\n\n"
+                "Outcome: no automated source edits were applied for this review round."
             )
-            return False
+            ok = _post_review_outcome_comment(
+                repo_root,
+                pr_number,
+                visible_summary=visible,
+                outcome="no_change",
+            )
+            if ok:
+                append_event(
+                    repo_root,
+                    {
+                        "kind": "cursor_review_fix_pushed",
+                        "message": f"Posted review outcome (no_change) for PR #{pr_number}",
+                        "pr": pr_number,
+                    },
+                )
+                if sink is not None:
+                    sink.log(f"PR #{pr_number}: posted no_change review outcome.")
+            return ok
 
         commit = subprocess.run(
             ["git", "commit", "-m", "sentry: address PR review feedback"],
