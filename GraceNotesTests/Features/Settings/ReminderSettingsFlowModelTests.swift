@@ -129,6 +129,34 @@ final class ReminderSettingsFlowModelTests: XCTestCase {
         XCTAssertEqual(scheduler.rescheduleCallCount, 0)
     }
 
+    /// When another save is requested while a reschedule is awaiting the system, the in-flight save must run again
+    /// after the first completion (and end-of-save drain must not drop a flag set during the final await).
+    func test_saveEnabledReminderTime_concurrentSaveDuringRescheduleAwait_performsSecondReschedule() async {
+        let scheduler = MockReminderScheduling()
+        scheduler.currentStatus = .enabled
+        scheduler.rescheduleResult = .scheduled
+        let gate = RescheduleTestGate()
+        scheduler.rescheduleAwaitHook = { await gate.waitUntilOpened() }
+
+        let userDefaults = makeUserDefaults()
+        let model = ReminderSettingsFlowModel(reminderScheduler: scheduler, userDefaults: userDefaults)
+        model.reminderNotificationBody = { _ in "body" }
+        await model.refreshStatus()
+
+        async let firstSave: Void = model.saveEnabledReminderTime()
+
+        while scheduler.rescheduleCallCount < 1 {
+            await Task.yield()
+        }
+
+        await model.saveEnabledReminderTime()
+        await gate.open()
+
+        await firstSave
+
+        XCTAssertEqual(scheduler.rescheduleCallCount, 2)
+    }
+
     private func makeUserDefaults() -> UserDefaults {
         let suiteName = "ReminderSettingsFlowModelTests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
@@ -142,6 +170,8 @@ private final class MockReminderScheduling: ReminderScheduling {
     var enableResult: ReminderSyncResult = .scheduled
     var disableResult: ReminderSyncResult = .disabled
     var rescheduleResult: ReminderSyncResult = .scheduled
+    /// Optional hook after `rescheduleCallCount` increments, before the result is returned.
+    var rescheduleAwaitHook: (() async -> Void)?
 
     private(set) var enableCallCount = 0
     private(set) var rescheduleCallCount = 0
@@ -162,7 +192,31 @@ private final class MockReminderScheduling: ReminderScheduling {
 
     func rescheduleEnabledReminder(at time: Date, body: String) async -> ReminderSyncResult {
         rescheduleCallCount += 1
+        if let rescheduleAwaitHook {
+            await rescheduleAwaitHook()
+        }
         _ = body
         return rescheduleResult
+    }
+}
+
+/// Unblocks waiters when `open()` is called (interleaves concurrent reminder save paths).
+private actor RescheduleTestGate {
+    private var isOpen = false
+    private var waiters: [CheckedContinuation<Void, Never>] = []
+
+    func waitUntilOpened() async {
+        if isOpen { return }
+        await withCheckedContinuation { continuation in
+            waiters.append(continuation)
+        }
+    }
+
+    func open() {
+        isOpen = true
+        for continuation in waiters {
+            continuation.resume()
+        }
+        waiters.removeAll()
     }
 }

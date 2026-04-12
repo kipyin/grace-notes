@@ -97,8 +97,6 @@ final class ReminderSettingsFlowModel: ObservableObject {
         }
 
         isWorking = true
-        defer { isWorking = false }
-
         while true {
             pendingRescheduleAfterCurrentSave = false
             transientErrorMessage = nil
@@ -127,6 +125,8 @@ final class ReminderSettingsFlowModel: ObservableObject {
                 break
             }
         }
+        isWorking = false
+        await drainPendingRescheduleIfNeeded()
     }
 
     func clearTransientError() {
@@ -163,12 +163,13 @@ final class ReminderSettingsFlowModel: ObservableObject {
         await drainPendingRescheduleIfNeeded()
     }
 
-    /// Runs a deferred time save after `isWorking` drops (picker updates coalesced during enable).
+    /// Runs a deferred time save after `isWorking` drops (picker updates coalesced during enable or overlapping saves).
     private func drainPendingRescheduleIfNeeded() async {
-        guard pendingRescheduleAfterCurrentSave else { return }
-        pendingRescheduleAfterCurrentSave = false
-        guard liveStatus == .enabled else { return }
-        await saveEnabledReminderTime()
+        while pendingRescheduleAfterCurrentSave {
+            pendingRescheduleAfterCurrentSave = false
+            guard liveStatus == .enabled else { return }
+            await saveEnabledReminderTime()
+        }
     }
 
     private func resolvedReminderBody() -> String {
