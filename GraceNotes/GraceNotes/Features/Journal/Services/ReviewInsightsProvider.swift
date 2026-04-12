@@ -1,7 +1,14 @@
 import Foundation
+import os
+
+private let reviewInsightsProviderLogger = Logger(
+    subsystem: Bundle(for: PersistenceController.self).bundleIdentifier ?? "GraceNotes",
+    category: "ReviewInsightsProvider"
+)
 
 struct ReviewInsightsProvider: Sendable {
-    /// Legacy key from cloud-insight builds; still consulted for install-continuity heuristics.
+    /// Legacy UserDefaults key from cloud-enabled builds;
+    /// ``migrateLegacyAIFeaturesToggleIfNeeded`` removes it for a clean slate.
     static let legacyAIFeaturesUserDefaultsKey = "useAIReviewInsights"
 
     private let deterministicGenerator: any ReviewInsightsGenerating
@@ -38,21 +45,27 @@ struct ReviewInsightsProvider: Sendable {
         calendar: Calendar,
         pastStatisticsInterval: PastStatisticsIntervalSelection
     ) async -> ReviewInsights {
-        if let deterministicInsights = try? await deterministicGenerator.generateInsights(
-            from: entries,
-            referenceDate: referenceDate,
-            calendar: calendar,
-            pastStatisticsInterval: pastStatisticsInterval
-        ) {
-            return deterministicInsights
+        do {
+            return try await deterministicGenerator.generateInsights(
+                from: entries,
+                referenceDate: referenceDate,
+                calendar: calendar,
+                pastStatisticsInterval: pastStatisticsInterval
+            )
+        } catch {
+            if !(error is CancellationError) {
+                let detail = error.localizedDescription
+                reviewInsightsProviderLogger.error(
+                    "Sparse fallback after generator failure. \(detail, privacy: .public)"
+                )
+            }
+            return sparseFallbackInsights(
+                from: entries,
+                referenceDate: referenceDate,
+                calendar: calendar,
+                pastStatisticsInterval: pastStatisticsInterval
+            )
         }
-
-        return sparseFallbackInsights(
-            from: entries,
-            referenceDate: referenceDate,
-            calendar: calendar,
-            pastStatisticsInterval: pastStatisticsInterval
-        )
     }
 
     private func sparseFallbackInsights(
@@ -74,14 +87,13 @@ struct ReviewInsightsProvider: Sendable {
             referenceDate: referenceDate,
             pastStatisticsInterval: pastStatisticsInterval
         )
+        let carryIntoNextWeek = String(localized: "review.prompts.carryIntoNextWeek")
         let fallbackInsight = ReviewWeeklyInsight(
             pattern: .sparseFallback,
             observation: String(
                 localized: "review.insights.starterReflection"
             ),
-            action: String(
-                localized: "review.prompts.carryIntoNextWeek"
-            ),
+            action: carryIntoNextWeek,
             primaryTheme: nil,
             mentionCount: nil,
             dayCount: 0
@@ -97,9 +109,7 @@ struct ReviewInsightsProvider: Sendable {
             recurringNeeds: [],
             recurringPeople: [],
             resurfacingMessage: fallbackInsight.observation,
-            continuityPrompt: fallbackInsight.action ?? String(
-                localized: "review.prompts.carryIntoNextWeek"
-            ),
+            continuityPrompt: carryIntoNextWeek,
             narrativeSummary: nil,
             weekStats: aggregates.stats
         )
