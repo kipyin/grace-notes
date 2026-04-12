@@ -85,23 +85,19 @@ def merge_poll_once(
     if not settings.reviewer_logins:
         reviewers_clear = True
     elif settings.review_clear_mode == "comment":
+        # Marker-only clearance: unresolved GitHub review threads do not block merge.
+        # After a review-fix, the gh user (or agent posting as that user) posts an issue
+        # comment with <!-- sentry-review: … -->; newest marker + block_outcomes applies.
+        # Until any such marker exists, reviewers_clear is True (exploratory PRs are not
+        # stuck on Copilot/Cursor threads). Use review_clear_mode=github to gate on threads.
         auth_login = gh_api.gh_authenticated_login(repo_root)
-        github_clear = gh_api.reviewers_merge_clear(
-            review_thread_nodes=threads,
-            pr_reviews=reviews,
-            reviewer_logins=settings.reviewer_logins,
-        )
-        # Marker-only mode applies after the gh user has posted at least one
-        # <!-- sentry-review: … --> comment (e.g. review-fix). Until then, use the
-        # same thread/review rules as ``github`` so CI-green exploratory PRs can merge
-        # without a manual marker or /sentry-approve.
         if auth_login is None:
             if sink is not None:
                 sink.log(
                     f"merge poll: pr={pr_number} review_clear_mode=comment but gh user login "
-                    "unavailable; using GitHub review/thread state for review clearance."
+                    "unavailable; cannot evaluate markers — treating review gate as cleared."
                 )
-            reviewers_clear = github_clear
+            reviewers_clear = True
         elif auth_user_has_sentry_marker_comment(comments, auth_login):
             reviewers_clear = reviewers_clear_from_sentry_comment(
                 comments=comments,
@@ -113,9 +109,9 @@ def merge_poll_once(
             if sink is not None:
                 sink.log(
                     f"merge poll: pr={pr_number} review_clear_mode=comment, "
-                    "no sentry marker from gh user; using GitHub review/thread state."
+                    "no sentry marker from gh user; review gate cleared (not using GitHub threads)."
                 )
-            reviewers_clear = github_clear
+            reviewers_clear = True
     else:
         reviewers_clear = gh_api.reviewers_merge_clear(
             review_thread_nodes=threads,

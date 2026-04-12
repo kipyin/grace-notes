@@ -130,8 +130,8 @@ def auth_user_has_sentry_marker_comment(
     True if ``authenticated_login`` has at least one issue comment containing a
     ``sentry-review`` marker.
 
-    Used to decide whether ``review_clear_mode=comment`` should apply marker semantics
-    or fall back to GitHub thread/review state (same allowlist as ``github`` mode).
+    Used to decide whether ``review_clear_mode=comment`` applies marker semantics
+    (newest outcome + block list) or treats the review gate as cleared with no marker yet.
     """
     if not authenticated_login:
         return False

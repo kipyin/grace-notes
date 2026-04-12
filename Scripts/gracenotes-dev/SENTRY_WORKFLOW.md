@@ -104,8 +104,8 @@ If **not** mergeable but `wait_ok` and **not** `reviewers_clear` and
 
 | Mode | Source |
 |------|--------|
-| `comment` (default) | If **no** marker comment from `gh` auth user yet: same as
-| | `github` below. After the first marker: latest marker from auth user;
+| `comment` (default) | **No** GitHub thread resolution. Before any marker from `gh`
+| | auth user: cleared. After markers: latest `<!-- sentry-review: X -->` from auth;
 | | `X` not in `review_clear_block_outcomes`. |
 | `github` | GraphQL: no unresolved threads with allowlisted reviewer
 | | comments; REST: latest non-pending review per allowlisted login not
