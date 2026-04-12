@@ -211,6 +211,24 @@ class SentryReviewCommentTest(unittest.TestCase):
         )
         self.assertIsNone(parse_sentry_review_outcome("no marker"))
 
+    def test_auth_user_has_sentry_marker_comment(self) -> None:
+        from gracenotes_dev.sentry.review_comment import auth_user_has_sentry_marker_comment
+
+        self.assertFalse(auth_user_has_sentry_marker_comment([], "alice"))
+        self.assertFalse(auth_user_has_sentry_marker_comment([], None))
+        self.assertFalse(
+            auth_user_has_sentry_marker_comment(
+                [{"user": {"login": "bob"}, "body": "<!-- sentry-review: addressed -->"}],
+                "alice",
+            )
+        )
+        self.assertTrue(
+            auth_user_has_sentry_marker_comment(
+                [{"user": {"login": "alice"}, "body": "hi\n<!-- sentry-review: addressed -->"}],
+                "alice",
+            )
+        )
+
     def test_clear_when_newest_addressed(self) -> None:
         from gracenotes_dev.sentry.review_comment import reviewers_clear_from_sentry_comment
 
@@ -1069,3 +1087,79 @@ class MergePollCiFixTest(unittest.TestCase):
                     sink=None,
                 )
         mock_try.assert_not_called()
+
+
+class MergePollCommentModeTest(unittest.TestCase):
+    def test_comment_mode_without_marker_merges_without_github_threads(self) -> None:
+        """No marker yet: reviewers_clear is True; unresolved Copilot threads do not block."""
+        from gracenotes_dev.sentry.merge_poll import MergePollOutcome, merge_poll_once
+
+        settings = mock.Mock()
+        settings.fix_provider = "http"
+        settings.reviewer_logins = ("copilot-pull-request-reviewer",)
+        settings.approval_phrase = "/sentry-approve"
+        settings.cursor_start_phrases = ()
+        settings.review_silence_timeout_seconds = 900
+        settings.cursor_review_fix_cooldown_seconds = 180
+        settings.ci_fix_cooldown_seconds = 180
+        settings.ci_fix_max_rounds_per_poll = 5
+        settings.review_clear_mode = "comment"
+        settings.review_clear_block_outcomes = frozenset(
+            {"product_decision", "no_change", "ci_failed", "error", "no_swift_files"},
+        )
+        settings.review_clear_comment_max_age_seconds = 0
+
+        patch_checks = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.pr_checks_passed",
+            return_value=True,
+        )
+        patch_threads = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.graphql_review_threads",
+            return_value=[],
+        )
+        patch_comments = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.issue_comments",
+            return_value=[],
+        )
+        patch_reviews = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.pr_reviews",
+            return_value=[],
+        )
+        patch_created = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.pr_created_at_utc",
+            return_value=None,
+        )
+        patch_wait = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.review_wait_satisfied",
+            return_value=True,
+        )
+        patch_auth = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.gh_authenticated_login",
+            return_value="kipyin",
+        )
+        patch_merge = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.pr_merge_squash",
+            return_value=True,
+        )
+
+        with (
+            patch_checks,
+            patch_threads,
+            patch_comments,
+            patch_reviews,
+            patch_created,
+            patch_wait,
+            patch_auth,
+            patch_merge,
+        ):
+            out = merge_poll_once(
+                Path("/tmp"),
+                settings,
+                "o",
+                "r",
+                281,
+                set(),
+                "main",
+                sink=None,
+            )
+        self.assertEqual(out, MergePollOutcome.MERGED)
