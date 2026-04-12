@@ -13,13 +13,22 @@ enum EntryRowTapDebounce {
         lastAcceptedDate: inout Date?,
         interval: TimeInterval
     ) -> Bool {
-        if let priorID = lastAcceptedItemID,
-           let priorDate = lastAcceptedDate,
-           priorID == itemID,
-           date >= priorDate,
-           date.timeIntervalSince(priorDate) < interval {
+        let window = max(0, interval)
+
+        guard let priorID = lastAcceptedItemID,
+              let priorDate = lastAcceptedDate,
+              priorID == itemID,
+              date >= priorDate
+        else {
+            lastAcceptedItemID = itemID
+            lastAcceptedDate = date
+            return true
+        }
+
+        if date.timeIntervalSince(priorDate) < window {
             return false
         }
+
         lastAcceptedItemID = itemID
         lastAcceptedDate = date
         return true
