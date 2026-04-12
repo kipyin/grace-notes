@@ -757,7 +757,8 @@ def reconcile_open_sentry_prs(
 
             if not queue:
                 break
-            time.sleep(min(poll_interval, pr_end - time.monotonic()))
+            remaining = pr_end - time.monotonic()
+            time.sleep(max(0.0, min(poll_interval, remaining)))
 
         if finished:
             continue
