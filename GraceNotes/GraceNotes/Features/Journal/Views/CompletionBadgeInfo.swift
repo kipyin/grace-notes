@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum CompletionBadgeInfo: Equatable {
+enum CompletionBadgeInfo: Equatable, Sendable {
     case empty
     case started
     case growing
