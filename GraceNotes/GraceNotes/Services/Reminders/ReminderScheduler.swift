@@ -137,8 +137,8 @@ struct ReminderScheduler {
     }
 
     private func scheduleReminder(at time: Date, body: String) async -> Bool {
-        removeReminder()
-
+        // Do not remove the existing pending request first. Adding a request with the same
+        // identifier replaces it; removing first would orphan the user if `add` throws.
         let content = UNMutableNotificationContent()
         content.title = String(localized: "app.name")
         content.body = body
