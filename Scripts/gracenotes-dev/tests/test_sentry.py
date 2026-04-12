@@ -740,7 +740,18 @@ class MergePollCiFixTest(unittest.TestCase):
             return_value=True,
         )
 
-        with patch_checks, patch_threads, patch_comments, patch_reviews, patch_created, patch_wait, patch_clear, patch_should, patch_mark, patch_try:
+        with (
+            patch_checks,
+            patch_threads,
+            patch_comments,
+            patch_reviews,
+            patch_created,
+            patch_wait,
+            patch_clear,
+            patch_should,
+            patch_mark,
+            patch_try,
+        ):
             out = merge_poll_once(
                 Path("/tmp"),
                 settings,
@@ -803,7 +814,17 @@ class MergePollCiFixTest(unittest.TestCase):
             return_value=False,
         )
 
-        with patch_checks, patch_threads, patch_comments, patch_reviews, patch_created, patch_wait, patch_clear, patch_should, patch_try:
+        with (
+            patch_checks,
+            patch_threads,
+            patch_comments,
+            patch_reviews,
+            patch_created,
+            patch_wait,
+            patch_clear,
+            patch_should,
+            patch_try,
+        ):
             out = merge_poll_once(
                 Path("/tmp"),
                 settings,
@@ -862,15 +883,24 @@ class MergePollCiFixTest(unittest.TestCase):
             return_value=True,
         )
 
-        with patch_checks, patch_threads, patch_comments, patch_reviews, patch_created, patch_wait, patch_clear, patch_try as mock_try:
-            merge_poll_once(
-                Path("/tmp"),
-                settings,
-                "o",
-                "r",
-                42,
-                set(),
-                "main",
-                sink=None,
-            )
+        with (
+            patch_checks,
+            patch_threads,
+            patch_comments,
+            patch_reviews,
+            patch_created,
+            patch_wait,
+            patch_clear,
+        ):
+            with patch_try as mock_try:
+                merge_poll_once(
+                    Path("/tmp"),
+                    settings,
+                    "o",
+                    "r",
+                    42,
+                    set(),
+                    "main",
+                    sink=None,
+                )
         mock_try.assert_not_called()

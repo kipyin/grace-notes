@@ -170,7 +170,8 @@ def build_ci_failure_prompt(
         f"```text\n{log}\n```\n\n"
         "Reply with ONLY a markdown fenced code block with the full new file contents "
         "(use ```swift for Swift; ```python for Python). "
-        "If this file does not need changes or the failure is elsewhere, reply exactly: NO_CHANGE\n\n"
+        "If this file does not need changes or the failure is elsewhere, "
+        "reply exactly: NO_CHANGE\n\n"
         f"---BEGIN FILE---\n{file_content}\n---END FILE---"
     )
 

@@ -296,9 +296,7 @@ def _try_fix_ci_in_git_root(
     sink: SentryLogSink | None,
 ) -> bool:
     paths = [
-        p
-        for p in gh_api.pr_changed_file_paths(repo_root, pr_number)
-        if _is_ci_fix_candidate(p)
+        p for p in gh_api.pr_changed_file_paths(repo_root, pr_number) if _is_ci_fix_candidate(p)
     ]
     if not paths:
         append_event(
@@ -440,7 +438,9 @@ def _try_fix_ci_in_git_root(
                 repo_root,
                 {
                     "kind": "ci_fix_skip",
-                    "message": "No automated edits produced for CI failure (or agent returned NO_CHANGE).",
+                    "message": (
+                        "No automated edits produced for CI failure (or agent returned NO_CHANGE)."
+                    ),
                     "pr": pr_number,
                 },
             )
@@ -448,7 +448,8 @@ def _try_fix_ci_in_git_root(
                 repo_root,
                 pr_number,
                 "Sentry: could not produce automated edits for the failing CI run from the "
-                "current PR file set (Swift under GraceNotes/ or Python under Scripts/gracenotes-dev/). "
+                "current PR file set (Swift under GraceNotes/ or Python under "
+                "Scripts/gracenotes-dev/). "
                 "Please fix manually or merge when CI is green.",
             )
             subprocess.run(["git", "reset", "--hard", "HEAD"], cwd=git_root, capture_output=True)
@@ -458,7 +459,9 @@ def _try_fix_ci_in_git_root(
         repo_root,
         {
             "kind": "ci_fix_error",
-            "message": f"Exceeded ci_fix_max_rounds_per_poll ({max_rounds}) without a green local ci.",
+            "message": (
+                f"Exceeded ci_fix_max_rounds_per_poll ({max_rounds}) without a green local ci."
+            ),
             "pr": pr_number,
         },
     )
