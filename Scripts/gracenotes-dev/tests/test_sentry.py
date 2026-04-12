@@ -187,6 +187,134 @@ class SentrySettingsTest(unittest.TestCase):
         self.assertEqual(s.cursor_review_fix_cooldown_seconds, 180)
         self.assertEqual(s.ci_fix_cooldown_seconds, 180)
         self.assertEqual(s.ci_fix_max_rounds_per_poll, 5)
+        self.assertEqual(s.review_clear_mode, "comment")
+        self.assertEqual(s.review_clear_comment_max_age_seconds, 0)
+        self.assertIn("addressed", s.review_outcome_templates)
+        self.assertIn("product_decision", s.review_clear_block_outcomes)
+        self.assertNotIn("addressed", s.review_clear_block_outcomes)
+
+
+class SentryReviewCommentTest(unittest.TestCase):
+    def test_merge_gate_marker_body_appends_marker(self) -> None:
+        from gracenotes_dev.sentry.review_comment import merge_gate_marker_body
+
+        body = merge_gate_marker_body("Fixed spacing per review.", "addressed")
+        self.assertTrue(body.endswith("<!-- sentry-review: addressed -->"))
+        self.assertIn("Fixed spacing", body)
+
+    def test_parse_marker(self) -> None:
+        from gracenotes_dev.sentry.review_comment import parse_sentry_review_outcome
+
+        self.assertEqual(
+            parse_sentry_review_outcome("hello\n<!-- sentry-review: addressed -->"),
+            "addressed",
+        )
+        self.assertIsNone(parse_sentry_review_outcome("no marker"))
+
+    def test_clear_when_newest_addressed(self) -> None:
+        from gracenotes_dev.sentry.review_comment import reviewers_clear_from_sentry_comment
+
+        comments = [
+            {
+                "user": {"login": "alice"},
+                "body": "<!-- sentry-review: no_change -->",
+                "created_at": "2025-01-01T00:00:00Z",
+            },
+            {
+                "user": {"login": "alice"},
+                "body": "<!-- sentry-review: addressed -->",
+                "created_at": "2025-01-02T00:00:00Z",
+            },
+        ]
+        self.assertTrue(
+            reviewers_clear_from_sentry_comment(
+                comments=comments,
+                authenticated_login="alice",
+                block_outcomes=frozenset(
+                    {"product_decision", "no_change", "ci_failed", "error", "no_swift_files"},
+                ),
+                max_age_seconds=0,
+            )
+        )
+
+    def test_blocked_when_newest_is_product_decision(self) -> None:
+        from gracenotes_dev.sentry.review_comment import reviewers_clear_from_sentry_comment
+
+        comments = [
+            {
+                "user": {"login": "alice"},
+                "body": "<!-- sentry-review: addressed -->",
+                "created_at": "2025-01-01T00:00:00Z",
+            },
+            {
+                "user": {"login": "alice"},
+                "body": "<!-- sentry-review: product_decision -->",
+                "created_at": "2025-01-02T00:00:00Z",
+            },
+        ]
+        self.assertFalse(
+            reviewers_clear_from_sentry_comment(
+                comments=comments,
+                authenticated_login="alice",
+                block_outcomes=frozenset({"product_decision"}),
+                max_age_seconds=0,
+            )
+        )
+
+    def test_max_age_stale(self) -> None:
+        from datetime import datetime, timedelta, timezone
+
+        from gracenotes_dev.sentry.review_comment import reviewers_clear_from_sentry_comment
+
+        old = (datetime.now(timezone.utc) - timedelta(days=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        comments = [
+            {
+                "user": {"login": "alice"},
+                "body": "<!-- sentry-review: addressed -->",
+                "created_at": old,
+            },
+        ]
+        self.assertFalse(
+            reviewers_clear_from_sentry_comment(
+                comments=comments,
+                authenticated_login="alice",
+                block_outcomes=frozenset(),
+                max_age_seconds=3600,
+            )
+        )
+
+    def test_max_age_false_when_created_at_missing(self) -> None:
+        from gracenotes_dev.sentry.review_comment import reviewers_clear_from_sentry_comment
+
+        comments = [
+            {
+                "user": {"login": "alice"},
+                "body": "<!-- sentry-review: addressed -->",
+                "created_at": None,
+            },
+        ]
+        self.assertFalse(
+            reviewers_clear_from_sentry_comment(
+                comments=comments,
+                authenticated_login="alice",
+                block_outcomes=frozenset(),
+                max_age_seconds=3600,
+            )
+        )
+
+    def test_merge_outcome_templates_normalizes_keys_to_lowercase(self) -> None:
+        from gracenotes_dev.sentry.review_comment import (
+            DEFAULT_REVIEW_OUTCOME_TEMPLATES,
+            format_review_comment_body,
+            merge_outcome_templates,
+        )
+
+        merged = merge_outcome_templates(
+            DEFAULT_REVIEW_OUTCOME_TEMPLATES,
+            {"ADDRESSED": "Custom **addressed** for PR #{pr}."},
+        )
+        body = format_review_comment_body("addressed", pr_number=99, templates=merged)
+        self.assertIn("Custom **addressed**", body)
 
 
 class SentryTomlTest(unittest.TestCase):
@@ -201,6 +329,30 @@ class SentryTomlTest(unittest.TestCase):
             s = SentrySettings.from_repo(root)
             self.assertEqual(s.fix_provider, "cursor_agent")
             self.assertEqual(s.agent_bin, "my-agent")
+
+    def test_review_clear_mode_comment(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "GraceNotes").mkdir()
+            (root / "gracenotes-dev.toml").write_text(
+                '[sentry]\nreview_clear_mode = "comment"\n'
+                'review_clear_block_outcomes = ["product_decision"]\n',
+                encoding="utf-8",
+            )
+            s = SentrySettings.from_repo(root)
+            self.assertEqual(s.review_clear_mode, "comment")
+            self.assertEqual(s.review_clear_block_outcomes, frozenset({"product_decision"}))
+
+    def test_review_clear_mode_github_explicit(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "GraceNotes").mkdir()
+            (root / "gracenotes-dev.toml").write_text(
+                '[sentry]\nreview_clear_mode = "github"\n',
+                encoding="utf-8",
+            )
+            s = SentrySettings.from_repo(root)
+            self.assertEqual(s.review_clear_mode, "github")
 
     def test_load_sentry_table_strips_secret_keys(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -709,6 +861,7 @@ class MergePollCiFixTest(unittest.TestCase):
         settings.cursor_review_fix_cooldown_seconds = 180
         settings.ci_fix_cooldown_seconds = 180
         settings.ci_fix_max_rounds_per_poll = 5
+        settings.review_clear_mode = "github"
 
         patch_checks = mock.patch(
             "gracenotes_dev.sentry.merge_poll.gh_api.pr_checks_passed",
@@ -784,6 +937,7 @@ class MergePollCiFixTest(unittest.TestCase):
         settings.cursor_review_fix_cooldown_seconds = 180
         settings.ci_fix_cooldown_seconds = 180
         settings.ci_fix_max_rounds_per_poll = 5
+        settings.review_clear_mode = "github"
 
         patch_checks = mock.patch(
             "gracenotes_dev.sentry.merge_poll.gh_api.pr_checks_passed",
@@ -859,6 +1013,7 @@ class MergePollCiFixTest(unittest.TestCase):
         settings.cursor_review_fix_cooldown_seconds = 180
         settings.ci_fix_cooldown_seconds = 180
         settings.ci_fix_max_rounds_per_poll = 5
+        settings.review_clear_mode = "github"
 
         patch_checks = mock.patch(
             "gracenotes_dev.sentry.merge_poll.gh_api.pr_checks_passed",

@@ -4,14 +4,18 @@ from __future__ import annotations
 
 import json
 import subprocess
-import sys
 import time
 from pathlib import Path
 
 from gracenotes_dev.sentry import github as gh_api
-from gracenotes_dev.sentry.agent_client import address_cursor_feedback_file_via_agent
+from gracenotes_dev.sentry.agent_client import (
+    address_cursor_feedback_file_via_agent,
+    review_fix_summary_via_agent,
+)
 from gracenotes_dev.sentry.branch_ops import remove_sentry_worktree, sentry_worktrees_dir
+from gracenotes_dev.sentry.ci_fix import run_ci_recovery_loop_in_worktree
 from gracenotes_dev.sentry.log_sink import SentryLogSink
+from gracenotes_dev.sentry.review_comment import merge_gate_marker_body
 from gracenotes_dev.sentry.settings import SentrySettings
 from gracenotes_dev.sentry.state import append_event
 from gracenotes_dev.sentry.text_compare import text_effectively_same
@@ -19,19 +23,6 @@ from gracenotes_dev.sentry.text_compare import text_effectively_same
 
 def _cooldown_path(repo_root: Path) -> Path:
     return repo_root / ".grace" / "sentry" / "cursor_fix_last.json"
-
-
-def _pushback_marker_path(repo_root: Path, pr_number: int) -> Path:
-    return repo_root / ".grace" / "sentry" / f"review_pushback_{pr_number}.txt"
-
-
-def _maybe_post_review_pushback(repo_root: Path, pr_number: int, body: str) -> None:
-    path = _pushback_marker_path(repo_root, pr_number)
-    if path.is_file():
-        return
-    if gh_api.pr_comment(repo_root, pr_number, body):
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text("1\n", encoding="utf-8")
 
 
 def _prepare_review_fix_worktree(
@@ -118,14 +109,6 @@ def cursor_fix_mark_attempt(repo_root: Path, pr_number: int) -> None:
     path.write_text(json.dumps(data, indent=0) + "\n", encoding="utf-8")
 
 
-def _run_grace_ci(work_root: Path, settings: SentrySettings) -> bool:
-    argv = [sys.executable, "-m", "gracenotes_dev", "ci"]
-    if settings.ci_profile:
-        argv.extend(["--profile", settings.ci_profile])
-    proc = subprocess.run(argv, cwd=work_root)
-    return proc.returncode == 0
-
-
 def try_address_cursor_review_with_agent(
     repo_root: Path,
     settings: SentrySettings,
@@ -139,12 +122,15 @@ def try_address_cursor_review_with_agent(
     git_cwd: Path | None = None,
 ) -> bool:
     """
-    Check out the PR head, run ``agent`` on changed ``GraceNotes/**/*.swift`` files, ``grace ci``,
-    commit, push. Returns True if push succeeded so merge gates can be re-checked.
+    Check out the PR head, run ``agent`` on changed ``GraceNotes/**/*.swift`` files, commit,
+    then run the **CI recovery loop** (same subsystem as ``grace sentry`` CI fixes) until local
+    ``grace ci`` passes and pushes. Finally posts a **PR comment** that is only an agent-written
+    summary (what changed and why) plus a merge-gate marker line.
 
     When ``git_cwd`` is ``None``, uses a dedicated worktree under ``.grace/sentry/worktrees/``
     so the primary checkout stays untouched.
     """
+    _ = (owner, repo)  # reserved for future host parsing
     if settings.fix_provider != "cursor_agent":
         return False
     ft = feedback_text.strip()
@@ -311,6 +297,7 @@ def _try_address_review_in_git_root(
 
     max_files = 15
     paths = paths[:max_files]
+    changed_paths: list[str] = []
     changed_any = False
     try:
         for rel in paths:
@@ -335,6 +322,7 @@ def _try_address_review_in_git_root(
             fp.write_text(new_src, encoding="utf-8")
             subprocess.run(["git", "add", rel], cwd=git_root, capture_output=True, text=True)
             changed_any = True
+            changed_paths.append(rel)
             append_event(
                 repo_root,
                 {
@@ -352,35 +340,6 @@ def _try_address_review_in_git_root(
                     "message": "Agent returned NO_CHANGE for all files.",
                     "pr": pr_number,
                 },
-            )
-            _maybe_post_review_pushback(
-                repo_root,
-                pr_number,
-                (
-                    "Sentry: could not apply automated fixes for this review feedback "
-                    "(no substantive source changes produced). Merge may still proceed when CI is "
-                    "green and reviews are addressed, or via the configured approval override."
-                ),
-            )
-            return False
-
-        if not _run_grace_ci(git_root, settings):
-            append_event(
-                repo_root,
-                {
-                    "kind": "cursor_review_fix_error",
-                    "message": "grace ci failed after review feedback edits",
-                    "pr": pr_number,
-                },
-            )
-            if sink is not None:
-                sink.log(f"PR #{pr_number}: grace ci failed after review fixes; not pushing.")
-            subprocess.run(["git", "reset", "--hard", "HEAD"], cwd=git_root, capture_output=True)
-            _maybe_post_review_pushback(
-                repo_root,
-                pr_number,
-                "Sentry: automated edits failed `grace ci` after review feedback; changes were not "
-                "pushed. Please address manually or use the approval override if appropriate.",
             )
             return False
 
@@ -402,33 +361,58 @@ def _try_address_review_in_git_root(
             )
             return False
 
-        push = subprocess.run(
-            ["git", "push", "origin", "HEAD"],
-            cwd=git_root,
-            capture_output=True,
-            text=True,
+        ci_ok = run_ci_recovery_loop_in_worktree(
+            repo_root,
+            settings,
+            pr_number,
+            git_root,
+            sink=sink,
         )
-        if push.returncode != 0:
+        if not ci_ok:
             append_event(
                 repo_root,
                 {
                     "kind": "cursor_review_fix_error",
-                    "message": (push.stderr or push.stdout or "").strip(),
+                    "message": "CI recovery loop did not reach green local grace ci + push",
                     "pr": pr_number,
                 },
             )
             return False
 
+        try:
+            summary = review_fix_summary_via_agent(
+                repo_root=git_root,
+                agent_bin=settings.agent_bin,
+                prefix_args=settings.agent_prefix_args,
+                extra_args=settings.agent_extra_args,
+                feedback_text=feedback_text,
+                changed_paths=changed_paths,
+                timeout_sec=settings.agent_timeout_sec,
+            )
+        except (OSError, RuntimeError) as exc:
+            summary = f"(Sentry: could not generate a summary: {exc})"
+
+        body = merge_gate_marker_body(summary, "addressed")
+        if not gh_api.pr_comment(repo_root, pr_number, body):
+            append_event(
+                repo_root,
+                {
+                    "kind": "cursor_review_fix_error",
+                    "message": "gh pr comment failed after push",
+                    "pr": pr_number,
+                },
+            )
+
         append_event(
             repo_root,
             {
                 "kind": "cursor_review_fix_pushed",
-                "message": f"Pushed review-feedback commit for PR #{pr_number}",
+                "message": f"Pushed review feedback + green CI for PR #{pr_number}",
                 "pr": pr_number,
             },
         )
         if sink is not None:
-            sink.log(f"PR #{pr_number}: review feedback fixes pushed.")
+            sink.log(f"PR #{pr_number}: review feedback pushed; posted summary comment.")
         return True
     except (OSError, RuntimeError, UnicodeError) as exc:
         append_event(

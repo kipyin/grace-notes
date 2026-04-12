@@ -16,10 +16,12 @@ from gracenotes_dev.sentry.llm_client import (
     build_fix_user_prompt,
     build_merge_conflict_prompt,
     build_pr_material_user_prompt,
+    build_review_summary_prompt,
     parse_ci_fix_response,
     parse_fix_response,
     parse_merge_conflict_response,
     parse_pr_material_json,
+    parse_review_summary_text,
 )
 from gracenotes_dev.sentry.pr_template import PrMaterial
 
@@ -82,6 +84,40 @@ def propose_swift_fix_via_agent(
         raise RuntimeError(
             f"{exc} Exit {proc.returncode}. Output (truncated): {combined[:2000]!r}"
         ) from exc
+
+
+def review_fix_summary_via_agent(
+    *,
+    repo_root: Path,
+    agent_bin: str,
+    prefix_args: tuple[str, ...],
+    extra_args: tuple[str, ...],
+    feedback_text: str,
+    changed_paths: list[str],
+    timeout_sec: int,
+) -> str:
+    """Second ``agent`` call: short PR comment text (what was done and why)."""
+    resolved = resolve_agent_path(agent_bin)
+    body = build_review_summary_prompt(feedback_text, changed_paths)
+    prompt = f"{MACOS_XCODE_PREAMBLE}\n\n{body}"
+    argv = [resolved, *prefix_args, *extra_args, prompt]
+    try:
+        proc = subprocess.run(
+            argv,
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            timeout=timeout_sec,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(f"agent command timed out after {timeout_sec}s") from exc
+
+    combined = (proc.stdout or "") + "\n" + (proc.stderr or "")
+    if proc.returncode != 0:
+        raise RuntimeError(
+            f"agent summary exited {proc.returncode}. Output (truncated): {combined[:2000]!r}"
+        )
+    return parse_review_summary_text(proc.stdout or "")
 
 
 def address_cursor_feedback_file_via_agent(

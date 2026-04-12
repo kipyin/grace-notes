@@ -287,6 +287,67 @@ def try_fix_ci_with_agent(
             remove_sentry_worktree(repo_root, worktree_path, worktree_branch)
 
 
+def _push_git_head(
+    repo_root: Path,
+    git_root: Path,
+    pr_number: int,
+    *,
+    sink: SentryLogSink | None,
+) -> bool:
+    """Push ``HEAD`` to ``origin`` (e.g. after local ``grace ci`` passed with a clean tree)."""
+    push = subprocess.run(
+        ["git", "push", "origin", "HEAD"],
+        cwd=git_root,
+        capture_output=True,
+        text=True,
+    )
+    if push.returncode != 0:
+        append_event(
+            repo_root,
+            {
+                "kind": "ci_fix_error",
+                "message": (push.stderr or push.stdout or "").strip(),
+                "pr": pr_number,
+            },
+        )
+        return False
+    append_event(
+        repo_root,
+        {
+            "kind": "ci_fix_pushed",
+            "message": f"Pushed branch for PR #{pr_number} after green local grace ci",
+            "pr": pr_number,
+        },
+    )
+    if sink is not None:
+        sink.log(f"PR #{pr_number}: pushed after green local grace ci.")
+    return True
+
+
+def run_ci_recovery_loop_in_worktree(
+    repo_root: Path,
+    settings: SentrySettings,
+    pr_number: int,
+    git_root: Path,
+    *,
+    sink: SentryLogSink | None,
+) -> bool:
+    """
+    Loop ``grace ci`` + CI agent until local CI passes, then ``git push``.
+
+    Use after a **local commit** exists in ``git_root`` (e.g. review feedback applied) so a
+    green run with a clean tree still pushes that commit.
+    """
+    return _try_fix_ci_in_git_root(
+        repo_root,
+        settings,
+        pr_number,
+        git_root,
+        sink=sink,
+        push_when_ci_green_clean=True,
+    )
+
+
 def _try_fix_ci_in_git_root(
     repo_root: Path,
     settings: SentrySettings,
@@ -294,6 +355,7 @@ def _try_fix_ci_in_git_root(
     git_root: Path,
     *,
     sink: SentryLogSink | None,
+    push_when_ci_green_clean: bool = False,
 ) -> bool:
     paths = [
         p for p in gh_api.pr_changed_file_paths(repo_root, pr_number) if _is_ci_fix_candidate(p)
@@ -421,17 +483,19 @@ def _try_fix_ci_in_git_root(
         )
         ok, ci_log = _run_grace_ci_capture(git_root, settings)
         if ok:
-            if not _git_has_uncommitted_changes(git_root):
-                append_event(
-                    repo_root,
-                    {
-                        "kind": "ci_fix_skip",
-                        "message": "Local grace ci passed with a clean tree; nothing to push.",
-                        "pr": pr_number,
-                    },
-                )
-                return False
-            return _commit_and_push()
+            if _git_has_uncommitted_changes(git_root):
+                return _commit_and_push()
+            if push_when_ci_green_clean:
+                return _push_git_head(repo_root, git_root, pr_number, sink=sink)
+            append_event(
+                repo_root,
+                {
+                    "kind": "ci_fix_skip",
+                    "message": "Local grace ci passed with a clean tree; nothing to push.",
+                    "pr": pr_number,
+                },
+            )
+            return False
 
         if not _apply_agent_for_log(ci_log):
             append_event(

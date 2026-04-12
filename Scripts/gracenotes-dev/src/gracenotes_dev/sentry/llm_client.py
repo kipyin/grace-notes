@@ -135,6 +135,40 @@ def _clip_text(s: str, max_chars: int) -> str:
     return s[:max_chars] + "\n… [truncated]"
 
 
+def build_review_summary_prompt(feedback_text: str, changed_paths: list[str]) -> str:
+    """Prompt for a short public PR comment: what was done and why (after review fixes)."""
+    paths = ", ".join(f"`{p}`" for p in changed_paths) if changed_paths else "(none)"
+    fb = _clip_text(feedback_text.strip(), 12_000)
+    return (
+        "Write a short **public GitHub PR comment** in Markdown (no HTML).\n\n"
+        "## Reviewer feedback (excerpt)\n\n"
+        f"{fb}\n\n"
+        "## Files touched in this pass\n\n"
+        f"{paths}\n\n"
+        "Explain what you changed and why, in plain American English. "
+        "Do not paste large code. Do not use a greeting or sign-off. "
+        "Use 2–6 sentences. Do not wrap the reply in fenced code blocks.\n\n"
+        "Reply with ONLY the comment body."
+    )
+
+
+def parse_review_summary_text(content: str) -> str:
+    """Normalize agent output for a PR comment (strip accidental fences, cap length)."""
+    t = (content or "").strip()
+    if t.startswith("```"):
+        lines = t.splitlines()
+        if lines and lines[0].strip().startswith("```"):
+            lines = lines[1:]
+        while lines and lines[-1].strip() == "":
+            lines.pop()
+        if lines and lines[-1].strip().startswith("```"):
+            lines = lines[:-1]
+        t = "\n".join(lines).strip()
+    if len(t) > 8000:
+        t = t[:7997] + "..."
+    return t
+
+
 def build_cursor_review_fix_prompt(
     relative_path: str,
     file_content: str,

@@ -20,6 +20,7 @@ from gracenotes_dev.sentry.cursor_review_fix import (
 from gracenotes_dev.sentry.log_sink import SentryLogSink
 from gracenotes_dev.sentry.merge_conflict import try_resolve_merge_conflicts_with_agent
 from gracenotes_dev.sentry.merge_logic import can_merge
+from gracenotes_dev.sentry.review_comment import reviewers_clear_from_sentry_comment
 from gracenotes_dev.sentry.review_gates import review_wait_satisfied
 from gracenotes_dev.sentry.settings import SentrySettings
 
@@ -78,17 +79,34 @@ def merge_poll_once(
         reviewer_logins=settings.reviewer_logins,
         start_phrases=settings.cursor_start_phrases,
     )
-    reviewers_clear = gh_api.reviewers_merge_clear(
-        review_thread_nodes=threads,
-        pr_reviews=reviews,
-        reviewer_logins=settings.reviewer_logins,
-    )
+    if not settings.reviewer_logins:
+        reviewers_clear = True
+    elif settings.review_clear_mode == "comment":
+        auth_login = gh_api.gh_authenticated_login(repo_root)
+        if sink is not None and auth_login is None:
+            sink.log(
+                f"merge poll: pr={pr_number} review_clear_mode=comment but gh user login "
+                "unavailable; reviewers_clear=false until `gh auth login` works."
+            )
+        reviewers_clear = reviewers_clear_from_sentry_comment(
+            comments=comments,
+            authenticated_login=auth_login,
+            block_outcomes=settings.review_clear_block_outcomes,
+            max_age_seconds=settings.review_clear_comment_max_age_seconds,
+        )
+    else:
+        reviewers_clear = gh_api.reviewers_merge_clear(
+            review_thread_nodes=threads,
+            pr_reviews=reviews,
+            reviewer_logins=settings.reviewer_logins,
+        )
     reviewers_ok = wait_ok and reviewers_clear
 
     if sink is not None:
         sink.log(
             f"merge poll: pr={pr_number} ci_ok={ci_ok} "
-            f"review_wait_ok={wait_ok} reviewers_clear={reviewers_clear} approve={approve}"
+            f"review_wait_ok={wait_ok} reviewers_clear={reviewers_clear} "
+            f"review_clear_mode={settings.review_clear_mode} approve={approve}"
         )
 
     merge_allowed = can_merge(

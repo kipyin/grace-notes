@@ -74,6 +74,13 @@ approval_users = ["kipyin"]
 # Reviewer merge gate: GitHub `author.login` / `user.login` allowlist. If unset, sentry merges
 # default Copilot bot + `cursor_reviewer_logins`. Set to [] to disable reviewer gates.
 # reviewer_logins = ["cursor[bot]", "copilot-pull-request-reviewer"]
+# How "reviewers cleared" is decided: "comment" (default; marker on your issue comments) or
+# "github" (threads + PR review state). See gracenotes-dev README.
+review_clear_mode = "comment"
+# review_clear_block_outcomes = ["product_decision", "no_change", "ci_failed", "error", "no_swift_files"]
+# review_clear_comment_max_age_seconds = 0
+# [sentry.review_outcome_templates]
+# addressed = "… {pr} …"
 # SENTRY_REVIEWER_LOGINS=comma-separated
 # Silence timeout (seconds) from PR creation when bots never submit a review (see grace sentry README).
 # review_silence_timeout_seconds = 900

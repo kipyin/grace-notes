@@ -9,6 +9,10 @@ from pathlib import Path
 from typing import Any
 
 from gracenotes_dev.config import discover_repo_root, load_sentry_table
+from gracenotes_dev.sentry.review_comment import (
+    DEFAULT_REVIEW_OUTCOME_TEMPLATES,
+    merge_outcome_templates,
+)
 
 
 def _env_int(key: str, default: int) -> int:
@@ -266,6 +270,58 @@ def _merge_cursor_start_phrases(tom: dict[str, Any]) -> tuple[str, ...]:
     return _DEFAULT_CURSOR_START_PHRASES
 
 
+def _normalize_review_clear_mode(raw: str | None) -> str:
+    if not raw:
+        return "comment"
+    n = str(raw).strip().lower()
+    if n == "github":
+        return "github"
+    return "comment"
+
+
+def _merge_review_clear_mode(tom: dict[str, Any]) -> str:
+    if os.environ.get("SENTRY_REVIEW_CLEAR_MODE", "").strip():
+        return _normalize_review_clear_mode(os.environ["SENTRY_REVIEW_CLEAR_MODE"].strip())
+    return _normalize_review_clear_mode(_str_from_toml(tom, "review_clear_mode"))
+
+
+def _merge_review_clear_block_outcomes(tom: dict[str, Any]) -> frozenset[str]:
+    """Outcomes that do *not* clear the reviewer gate in ``comment`` mode (allowlist complement)."""
+    if os.environ.get("SENTRY_REVIEW_CLEAR_BLOCK_OUTCOMES", "").strip():
+        raw = os.environ["SENTRY_REVIEW_CLEAR_BLOCK_OUTCOMES"].strip()
+        parts = [x.strip().lower() for x in raw.split(",") if x.strip()]
+        return frozenset(parts)
+    raw = tom.get("review_clear_block_outcomes")
+    if isinstance(raw, list):
+        return frozenset(str(x).strip().lower() for x in raw if str(x).strip())
+    if isinstance(raw, str) and raw.strip():
+        return frozenset(s.strip().lower() for s in raw.split(",") if s.strip())
+    return frozenset(
+        {
+            "product_decision",
+            "no_change",
+            "ci_failed",
+            "error",
+            "no_swift_files",
+        }
+    )
+
+
+def _merge_review_outcome_templates(tom: dict[str, Any]) -> dict[str, str]:
+    raw = tom.get("review_outcome_templates")
+    overrides: dict[str, str] | None = None
+    if isinstance(raw, dict):
+        overrides = {str(k): str(v) for k, v in raw.items() if str(v).strip()}
+    return merge_outcome_templates(DEFAULT_REVIEW_OUTCOME_TEMPLATES, overrides)
+
+
+def _merge_review_clear_max_age_seconds(tom: dict[str, Any]) -> int:
+    if os.environ.get("SENTRY_REVIEW_CLEAR_MAX_AGE_SEC", "").strip():
+        return max(0, _env_int("SENTRY_REVIEW_CLEAR_MAX_AGE_SEC", 0))
+    v = _opt_int(tom, "review_clear_comment_max_age_seconds")
+    return max(0, v if v is not None else 0)
+
+
 def _merge_fix_provider(tom: dict[str, Any]) -> str:
     if os.environ.get("SENTRY_FIX_PROVIDER", "").strip():
         return _normalize_fix_provider(os.environ["SENTRY_FIX_PROVIDER"])
@@ -321,6 +377,10 @@ class SentrySettings:
     cursor_review_fix_cooldown_seconds: int
     ci_fix_cooldown_seconds: int
     ci_fix_max_rounds_per_poll: int
+    review_clear_mode: str
+    review_outcome_templates: dict[str, str]
+    review_clear_block_outcomes: frozenset[str]
+    review_clear_comment_max_age_seconds: int
 
     @classmethod
     def from_repo(cls, repo_root: Path) -> SentrySettings:
@@ -344,6 +404,10 @@ class SentrySettings:
         fix_cooldown_cursor = _merge_cursor_review_fix_cooldown_seconds(tom, fix_cooldown_base)
         ci_fix_cooldown = _merge_ci_fix_cooldown_seconds(tom, fix_cooldown_cursor)
         ci_fix_max_rounds = _merge_ci_fix_max_rounds_per_poll(tom)
+        review_clear_mode = _merge_review_clear_mode(tom)
+        review_templates = _merge_review_outcome_templates(tom)
+        review_block = _merge_review_clear_block_outcomes(tom)
+        review_max_age = _merge_review_clear_max_age_seconds(tom)
         merge_sweep_per = _merge_int(
             "SENTRY_MERGE_SWEEP_BUDGET_SEC",
             tom,
@@ -437,6 +501,10 @@ class SentrySettings:
             cursor_review_fix_cooldown_seconds=fix_cooldown_cursor,
             ci_fix_cooldown_seconds=ci_fix_cooldown,
             ci_fix_max_rounds_per_poll=ci_fix_max_rounds,
+            review_clear_mode=review_clear_mode,
+            review_outcome_templates=review_templates,
+            review_clear_block_outcomes=review_block,
+            review_clear_comment_max_age_seconds=review_max_age,
         )
 
     @classmethod

@@ -586,6 +586,15 @@ def pr_merge_is_conflicting(repo_root: Path, pr_number: int) -> bool:
     return d.get("mergeable") == "CONFLICTING"
 
 
+def gh_authenticated_login(repo_root: Path) -> str | None:
+    """``login`` for the current ``gh`` auth user (REST ``/user``)."""
+    proc = _run_gh(repo_root, ["api", "user", "-q", ".login"], check=False)
+    if proc.returncode != 0:
+        return None
+    s = (proc.stdout or "").strip().strip('"')
+    return s or None
+
+
 def pr_comment(repo_root: Path, pr_number: int, body: str) -> bool:
     proc = _run_gh(repo_root, ["pr", "comment", str(pr_number), "--body", body], check=False)
     return proc.returncode == 0
