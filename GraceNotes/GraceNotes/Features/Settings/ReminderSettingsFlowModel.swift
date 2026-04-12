@@ -57,25 +57,23 @@ final class ReminderSettingsFlowModel: ObservableObject {
     }
 
     func enableReminders() async {
-        guard !isWorking else { return }
-        isWorking = true
-        defer { isWorking = false }
-
-        transientErrorMessage = nil
-        let result = await reminderScheduler.enableDailyReminder(at: selectedTime, body: resolvedReminderBody())
-        switch result {
-        case .scheduled:
-            persistSelectedTime()
-            await refreshStatus()
-        case .permissionDenied:
-            liveStatus = .denied
-        case .failed:
-            liveStatus = .unavailable
-            transientErrorMessage = String(
-                localized: "notifications.reminder.scheduleFailed"
-            )
-        case .disabled:
-            await refreshStatus()
+        await runWithWorking {
+            transientErrorMessage = nil
+            let result = await reminderScheduler.enableDailyReminder(at: selectedTime, body: resolvedReminderBody())
+            switch result {
+            case .scheduled:
+                persistSelectedTime()
+                await refreshStatus()
+            case .permissionDenied:
+                liveStatus = .denied
+            case .failed:
+                liveStatus = .unavailable
+                transientErrorMessage = String(
+                    localized: "notifications.reminder.scheduleFailed"
+                )
+            case .disabled:
+                await refreshStatus()
+            }
         }
     }
 
@@ -84,6 +82,7 @@ final class ReminderSettingsFlowModel: ObservableObject {
         isWorking = true
         defer { isWorking = false }
         pendingRescheduleTask?.cancel()
+        pendingRescheduleAfterCurrentSave = false
 
         transientErrorMessage = nil
         _ = await reminderScheduler.disableDailyReminder()
@@ -145,7 +144,7 @@ final class ReminderSettingsFlowModel: ObservableObject {
     func handleSelectedTimeChanged() {
         guard hasLoadedLiveStatus, liveStatus == .enabled else { return }
         pendingRescheduleTask?.cancel()
-        pendingRescheduleTask = Task { [weak self] in
+        pendingRescheduleTask = Task { @MainActor [weak self] in
             do {
                 try await Task.sleep(nanoseconds: 400_000_000)
                 guard !Task.isCancelled else { return }
@@ -154,6 +153,22 @@ final class ReminderSettingsFlowModel: ObservableObject {
                 // Ignore cancellation from rapid picker updates.
             }
         }
+    }
+
+    private func runWithWorking(_ work: () async -> Void) async {
+        guard !isWorking else { return }
+        isWorking = true
+        await work()
+        isWorking = false
+        await drainPendingRescheduleIfNeeded()
+    }
+
+    /// Runs a deferred time save after `isWorking` drops (picker updates coalesced during enable).
+    private func drainPendingRescheduleIfNeeded() async {
+        guard pendingRescheduleAfterCurrentSave else { return }
+        pendingRescheduleAfterCurrentSave = false
+        guard liveStatus == .enabled else { return }
+        await saveEnabledReminderTime()
     }
 
     private func resolvedReminderBody() -> String {
