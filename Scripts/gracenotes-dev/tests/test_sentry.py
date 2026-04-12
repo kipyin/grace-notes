@@ -1091,7 +1091,7 @@ class MergePollCiFixTest(unittest.TestCase):
 
 class MergePollCommentModeTest(unittest.TestCase):
     def test_comment_mode_without_marker_uses_github_state_and_merges(self) -> None:
-        """Exploratory PRs never get <!-- sentry-review --> until a review-fix; merge must not stall."""
+        """Without a marker comment, merge must use GitHub state (not stall forever)."""
         from gracenotes_dev.sentry.merge_poll import MergePollOutcome, merge_poll_once
 
         settings = mock.Mock()
