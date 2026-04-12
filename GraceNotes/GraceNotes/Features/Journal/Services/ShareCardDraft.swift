@@ -60,10 +60,14 @@ struct ShareCardDraft: Equatable, Sendable {
     }
 
     /// Bloom forces light app chrome; otherwise use the system interface style (matches share composer sheet).
+    /// `UITraitCollection.current` is main-thread-only; off the main thread we default to the light card.
     private static func defaultShareCardUsesDarkThemeForCurrentAppAppearance() -> Bool {
         let raw = UserDefaults.standard.string(forKey: JournalAppearanceStorageKeys.todayMode)
             ?? JournalAppearanceMode.standard.rawValue
         if JournalAppearanceMode.resolveStored(rawValue: raw) == .bloom {
+            return false
+        }
+        guard Thread.isMainThread else {
             return false
         }
         return UITraitCollection.current.userInterfaceStyle == .dark
@@ -107,35 +111,15 @@ struct ShareCardDraft: Equatable, Sendable {
     mutating func toggleRedaction(for identity: ShareLineIdentity) {
         switch identity {
         case .gratitude(let index):
-            if redactedGratitudeIndices.contains(index) {
-                redactedGratitudeIndices.remove(index)
-            } else {
-                redactedGratitudeIndices.insert(index)
-            }
+            redactedGratitudeIndices.formSymmetricDifference([index])
         case .need(let index):
-            if redactedNeedIndices.contains(index) {
-                redactedNeedIndices.remove(index)
-            } else {
-                redactedNeedIndices.insert(index)
-            }
+            redactedNeedIndices.formSymmetricDifference([index])
         case .person(let index):
-            if redactedPersonIndices.contains(index) {
-                redactedPersonIndices.remove(index)
-            } else {
-                redactedPersonIndices.insert(index)
-            }
+            redactedPersonIndices.formSymmetricDifference([index])
         case .readingLine(let index):
-            if redactedReadingLineIndices.contains(index) {
-                redactedReadingLineIndices.remove(index)
-            } else {
-                redactedReadingLineIndices.insert(index)
-            }
+            redactedReadingLineIndices.formSymmetricDifference([index])
         case .reflectionLine(let index):
-            if redactedReflectionLineIndices.contains(index) {
-                redactedReflectionLineIndices.remove(index)
-            } else {
-                redactedReflectionLineIndices.insert(index)
-            }
+            redactedReflectionLineIndices.formSymmetricDifference([index])
         }
     }
 }
