@@ -15,28 +15,12 @@ enum ScheduledBackupRunner {
             return
         }
 
-        let exportResult = await Task.detached(priority: .utility) {
-            Self.exportToTemporaryFile(modelContainer: modelContainer)
+        let result = await Task.detached(priority: .utility) {
+            Self.performScheduledExport(modelContainer: modelContainer)
         }.value
 
-        let tempFile: URL
-        switch exportResult {
-        case .success(let url):
-            tempFile = url
-        case .failure:
-            await recordScheduledFailure(
-                detail: String(localized: "settings.dataPrivacy.scheduledBackup.failureDetail")
-            )
-            return
-        }
-        defer {
-            try? FileManager.default.removeItem(at: tempFile)
-        }
-
-        do {
-            let fileName = try await Task.detached(priority: .utility) {
-                try Self.copyScheduledExportToFolder(tempFile: tempFile)
-            }.value
+        switch result {
+        case .success(let fileName):
             await MainActor.run {
                 ScheduledBackupPreferences.lastRunAt = Date()
                 ScheduledBackupPreferences.lastFailedAttemptAt = nil
@@ -46,9 +30,40 @@ enum ScheduledBackupRunner {
                     detail: fileName
                 )
             }
-        } catch {
+        case .exportFailed:
+            await recordScheduledFailure(
+                detail: String(localized: "settings.dataPrivacy.scheduledBackup.failureDetail")
+            )
+        case .copyFailed(let error):
             let detail = failureDetail(for: error)
             await recordScheduledFailure(detail: detail)
+        }
+    }
+
+    private enum ScheduledExportResult {
+        case success(String)
+        case exportFailed
+        case copyFailed(Error)
+    }
+
+    /// Export to a temp file, copy into the backup folder, then delete the temp file — all on the same background task.
+    private static func performScheduledExport(modelContainer: ModelContainer) -> ScheduledExportResult {
+        let exportResult = exportToTemporaryFile(modelContainer: modelContainer)
+        let tempFile: URL
+        switch exportResult {
+        case .success(let url):
+            tempFile = url
+        case .failure:
+            return .exportFailed
+        }
+        defer {
+            try? FileManager.default.removeItem(at: tempFile)
+        }
+        do {
+            let fileName = try copyScheduledExportToFolder(tempFile: tempFile)
+            return .success(fileName)
+        } catch {
+            return .copyFailed(error)
         }
     }
 
@@ -64,7 +79,8 @@ enum ScheduledBackupRunner {
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = TimeZone(secondsFromGMT: 0)
         formatter.dateFormat = "yyyyMMdd-HHmmss"
-        let name = "grace-notes-scheduled-\(formatter.string(from: .now)).json"
+        // UUID avoids same-second overwrites (copyTempFile replaces an existing destination name).
+        let name = "grace-notes-scheduled-\(formatter.string(from: .now))-\(UUID().uuidString).json"
         return try BackupFolderJSONExport.copyTempFile(
             tempFile,
             into: folderURL,
@@ -126,7 +142,10 @@ enum BackupFolderLibrary {
                 ?? .distantPast
             let right = (try? rhs.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate)
                 ?? .distantPast
-            return left > right
+            if left != right {
+                return left > right
+            }
+            return lhs.lastPathComponent.localizedStandardCompare(rhs.lastPathComponent) == .orderedDescending
         }
     }
 }
