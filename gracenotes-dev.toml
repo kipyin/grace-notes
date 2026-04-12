@@ -57,8 +57,9 @@ tutorial-reset = ["-reset-journal-tutorial"]
 uitest-reset-store = ["-grace-notes-reset-uitest-store"]
 
 # grace sentry — non-secret only (no API keys). Fix step: local Cursor `agent` CLI.
-# Copilot reviewer login is the GitHub App user (see github.com/copilot-pull-request-reviewer[bot]),
-# not the @copilot mention — needed for review-thread filtering in the API.
+# Default reviewer allowlist (when reviewer_logins unset) includes the GitHub Copilot PR
+# reviewer app (`copilot-pull-request-reviewer`) plus Cursor reviewer logins; use
+# `grace sentry review-thread-authors <PR#>` to confirm `author.login` values.
 [sentry]
 fix_provider = "cursor_agent"
 agent_bin = "agent"
@@ -66,13 +67,12 @@ agent_prefix_args = "chat"
 agent_extra_args = ""
 agent_timeout_sec = 900
 
-copilot_login = "copilot-pull-request-reviewer"
 approval_phrase = "/sentry-approve"
 # GitHub logins allowed to post `approval_phrase` as an emergency merge override. Use [] to disable.
 approval_users = ["kipyin"]
 
 # Reviewer merge gate: GitHub `author.login` / `user.login` allowlist. If unset, sentry merges
-# `copilot_login` + `cursor_reviewer_logins`. Set to [] to disable reviewer gates.
+# default Copilot bot + `cursor_reviewer_logins`. Set to [] to disable reviewer gates.
 # reviewer_logins = ["cursor[bot]", "copilot-pull-request-reviewer"]
 # SENTRY_REVIEWER_LOGINS=comma-separated
 # Silence timeout (seconds) from PR creation when bots never submit a review (see grace sentry README).

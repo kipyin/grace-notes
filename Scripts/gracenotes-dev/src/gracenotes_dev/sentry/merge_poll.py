@@ -41,7 +41,7 @@ def merge_poll_once(
     git_cwd: Path | None = None,
 ) -> MergePollOutcome:
     """
-    One CI / Copilot / allowlisted reviewers (issue comments + PR reviews) / approval check.
+    One CI / allowlisted reviewers (issue comments + PR reviews) / approval check.
 
     ``git_cwd`` is the directory for git commands when the PR head only exists in a sentry
     worktree (otherwise defaults to ``repo_root``).
@@ -50,10 +50,6 @@ def merge_poll_once(
         sink.set_step("merge gates (poll)")
     ci_ok = gh_api.pr_checks_passed(repo_root, pr_number)
     threads = gh_api.graphql_review_threads(repo_root, owner, repo, pr_number)
-    if settings.copilot_login:
-        unresolved = gh_api.unresolved_copilot_threads(threads, settings.copilot_login)
-    else:
-        unresolved = 0
 
     comments = gh_api.issue_comments(repo_root, owner, repo, pr_number)
     reviews = gh_api.pr_reviews(repo_root, owner, repo, pr_number)
@@ -63,7 +59,6 @@ def merge_poll_once(
         allow,
     )
 
-    copilot_ok = unresolved == 0
     created_at = gh_api.pr_created_at_utc(repo_root, pr_number)
     if sink is not None and settings.reviewer_logins and created_at is None:
         sink.log(
@@ -88,26 +83,20 @@ def merge_poll_once(
     if sink is not None:
         sink.log(
             f"merge poll: pr={pr_number} ci_ok={ci_ok} "
-            f"copilot_unresolved={unresolved} review_wait_ok={wait_ok} "
-            f"reviewers_clear={reviewers_clear} approve={approve}"
+            f"review_wait_ok={wait_ok} reviewers_clear={reviewers_clear} approve={approve}"
         )
 
     merge_allowed = can_merge(
         ci_ok=ci_ok,
-        copilot_ok=copilot_ok,
         reviewers_ok=reviewers_ok,
         approve_phrase_present=approve,
     )
 
     if not merge_allowed and wait_ok and not reviewers_clear:
-        if (
-            ci_ok
-            and copilot_ok
-            and cursor_fix_should_attempt(
-                repo_root,
-                pr_number,
-                settings.cursor_review_fix_cooldown_seconds,
-            )
+        if ci_ok and cursor_fix_should_attempt(
+            repo_root,
+            pr_number,
+            settings.cursor_review_fix_cooldown_seconds,
         ):
             feedback = gh_api.reviewers_feedback_digest(
                 review_thread_nodes=threads,

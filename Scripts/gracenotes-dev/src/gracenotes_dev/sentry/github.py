@@ -85,28 +85,6 @@ def review_thread_author_logins(nodes: list[dict[str, Any]]) -> list[str]:
     return sorted(out)
 
 
-def unresolved_copilot_threads(
-    nodes: list[dict[str, Any]],
-    copilot_login: str | None,
-) -> int:
-    """Count unresolved threads that include a comment from ``copilot_login`` (if set)."""
-    if not copilot_login:
-        return 0
-    login_l = copilot_login.strip().lower()
-    count = 0
-    for node in nodes:
-        if node.get("isResolved"):
-            continue
-        comments = (node.get("comments") or {}).get("nodes") or []
-        for c in comments:
-            author = (c or {}).get("author") or {}
-            alogin = (author.get("login") or "").lower()
-            if alogin == login_l:
-                count += 1
-                break
-    return count
-
-
 def unresolved_reviewer_threads(
     nodes: list[dict[str, Any]],
     reviewer_logins: tuple[str, ...],

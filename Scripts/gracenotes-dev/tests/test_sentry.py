@@ -28,11 +28,10 @@ from gracenotes_dev.sentry.state import format_report, read_recent_events
 
 
 class SentryMergeLogicTest(unittest.TestCase):
-    def test_merge_requires_ci_and_copilot_or_approve(self) -> None:
+    def test_merge_requires_ci_and_reviewers_or_approve(self) -> None:
         self.assertTrue(
             can_merge(
                 ci_ok=True,
-                copilot_ok=True,
                 reviewers_ok=True,
                 approve_phrase_present=False,
             )
@@ -40,17 +39,15 @@ class SentryMergeLogicTest(unittest.TestCase):
         self.assertFalse(
             can_merge(
                 ci_ok=True,
-                copilot_ok=False,
-                reviewers_ok=True,
+                reviewers_ok=False,
                 approve_phrase_present=False,
             )
         )
 
-    def test_approve_overrides_copilot_stuck(self) -> None:
+    def test_approve_overrides_reviewers_stuck(self) -> None:
         self.assertTrue(
             can_merge(
                 ci_ok=True,
-                copilot_ok=False,
                 reviewers_ok=False,
                 approve_phrase_present=True,
             )
@@ -60,7 +57,6 @@ class SentryMergeLogicTest(unittest.TestCase):
         self.assertFalse(
             can_merge(
                 ci_ok=True,
-                copilot_ok=True,
                 reviewers_ok=False,
                 approve_phrase_present=False,
             )
@@ -70,7 +66,6 @@ class SentryMergeLogicTest(unittest.TestCase):
         self.assertFalse(
             can_merge(
                 ci_ok=False,
-                copilot_ok=True,
                 reviewers_ok=True,
                 approve_phrase_present=False,
             )
@@ -176,7 +171,12 @@ class SentrySettingsTest(unittest.TestCase):
         )
         self.assertEqual(
             s.reviewer_logins,
-            ("cursor[bot]", "cursor", "cursoragent"),
+            (
+                "copilot-pull-request-reviewer",
+                "cursor[bot]",
+                "cursor",
+                "cursoragent",
+            ),
         )
         self.assertTrue(s.cursor_post_review_trigger)
         self.assertEqual(s.merge_sweep_budget_seconds, 120)
@@ -223,12 +223,12 @@ class SentryTomlTest(unittest.TestCase):
         self.assertEqual(s.cursor_reviewer_logins, ())
         self.assertFalse(s.cursor_post_review_trigger)
 
-    def test_reviewer_logins_explicit_overrides_legacy_union(self) -> None:
+    def test_reviewer_logins_explicit_overrides_default_union(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             (root / "GraceNotes").mkdir()
             (root / "gracenotes-dev.toml").write_text(
-                '[sentry]\nreviewer_logins = ["only-me"]\ncopilot_login = "copilot-bot"\n',
+                '[sentry]\nreviewer_logins = ["only-me"]\n',
                 encoding="utf-8",
             )
             s = SentrySettings.from_repo(root)
@@ -248,19 +248,18 @@ class SentryTomlTest(unittest.TestCase):
         self.assertEqual(s.review_fix_cooldown_seconds, 100)
         self.assertEqual(s.cursor_review_fix_cooldown_seconds, 250)
 
-    def test_reviewer_logins_unions_copilot_and_cursor_when_unset(self) -> None:
+    def test_reviewer_logins_defaults_union_copilot_and_cursor_when_unset(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             (root / "GraceNotes").mkdir()
             (root / "gracenotes-dev.toml").write_text(
-                '[sentry]\ncopilot_login = "copilot-bot"\n'
-                'cursor_reviewer_logins = ["cursor[bot]"]\n',
+                '[sentry]\ncursor_reviewer_logins = ["cursor[bot]"]\n',
                 encoding="utf-8",
             )
             s = SentrySettings.from_repo(root)
         self.assertEqual(
-            set(s.reviewer_logins),
-            {"copilot-bot", "cursor[bot]"},
+            s.reviewer_logins,
+            ("copilot-pull-request-reviewer", "cursor[bot]"),
         )
 
 
@@ -345,7 +344,7 @@ class SentryGithubGraphQLTest(unittest.TestCase):
         ]
         self.assertEqual(gh.review_thread_author_logins(nodes), ["alice", "copilot"])
 
-    def test_unresolved_copilot_threads_counts_matching_login(self) -> None:
+    def test_unresolved_reviewer_threads_counts_allowlisted_logins(self) -> None:
         from gracenotes_dev.sentry import github as gh
 
         nodes = [
@@ -358,9 +357,9 @@ class SentryGithubGraphQLTest(unittest.TestCase):
                 "comments": {"nodes": [{"author": {"login": "copilot"}}]},
             },
         ]
-        self.assertEqual(gh.unresolved_copilot_threads(nodes, "copilot"), 1)
-        self.assertEqual(gh.unresolved_copilot_threads(nodes, "Copilot"), 1)
-        self.assertEqual(gh.unresolved_copilot_threads(nodes, None), 0)
+        self.assertEqual(gh.unresolved_reviewer_threads(nodes, ("copilot",)), 1)
+        self.assertEqual(gh.unresolved_reviewer_threads(nodes, ("Copilot",)), 1)
+        self.assertEqual(gh.unresolved_reviewer_threads(nodes, ()), 0)
 
     def test_unresolved_cursor_threads_counts_matching_login(self) -> None:
         from gracenotes_dev.sentry import github as gh

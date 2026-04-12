@@ -168,6 +168,9 @@ def _merge_approval_users(tom: dict[str, Any]) -> tuple[str, ...]:
 # PR comments use ``cursor[bot]`` (Bugbot). ``cursor`` / ``cursoragent`` are fallbacks.
 _DEFAULT_CURSOR_REVIEWER_LOGINS = ("cursor[bot]", "cursor", "cursoragent")
 
+# GitHub Copilot PR reviewer app (``author.login`` on review threads).
+_DEFAULT_COPILOT_REVIEWER_LOGIN = "copilot-pull-request-reviewer"
+
 _DEFAULT_CURSOR_START_PHRASES = ("Taking a look", "taking a look")
 
 
@@ -192,19 +195,19 @@ def _merge_cursor_reviewer_logins(tom: dict[str, Any]) -> tuple[str, ...]:
 
 
 def _merge_reviewer_logins(tom: dict[str, Any]) -> tuple[str, ...]:
-    """Union of legacy Copilot + Cursor lists when ``reviewer_logins`` is unset."""
+    """Default: Copilot reviewer bot + Cursor logins when ``reviewer_logins`` is unset."""
     if os.environ.get("SENTRY_REVIEWER_LOGINS", "").strip():
         return _comma_list("SENTRY_REVIEWER_LOGINS")
     t = _cursor_list_from_tom(tom, "reviewer_logins")
     if t is not None:
         return t
-    copilot = _merge_opt_str("SENTRY_COPILOT_LOGIN", tom, "copilot_login")
     cursor_list = _merge_cursor_reviewer_logins(tom)
     out: list[str] = []
     seen: set[str] = set()
-    if copilot and copilot.strip():
-        out.append(copilot.strip())
-        seen.add(copilot.strip().lower())
+    copilot = _DEFAULT_COPILOT_REVIEWER_LOGIN.strip()
+    if copilot:
+        out.append(copilot)
+        seen.add(copilot.lower())
     for x in cursor_list:
         if not x.strip():
             continue
@@ -272,7 +275,6 @@ def _merge_split_args(
 class SentrySettings:
     """Resolved configuration: TOML ``[sentry]`` then environment (env overrides)."""
 
-    copilot_login: str | None
     approval_phrase: str
     approval_users: tuple[str, ...]
     copilot_wait_seconds: int
@@ -335,7 +337,6 @@ class SentrySettings:
             0,
         )
         return cls(
-            copilot_login=_merge_opt_str("SENTRY_COPILOT_LOGIN", tom, "copilot_login"),
             approval_phrase=_merge_str(
                 "SENTRY_APPROVAL_PHRASE",
                 tom,

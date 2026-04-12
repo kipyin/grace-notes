@@ -207,8 +207,8 @@ def sentry_review_thread_authors(
     """
     Print sorted unique ``author.login`` values from PR review threads (GraphQL).
 
-    Use this to confirm which login to set as ``copilot_login`` / ``SENTRY_COPILOT_LOGIN``
-    for unresolved-thread filtering.
+    Use this to confirm which ``author.login`` values to include in ``reviewer_logins`` /
+    ``SENTRY_REVIEWER_LOGINS`` for merge-gate thread filtering.
     """
     repo_root = cli_core._repo_root()
     remote = git_remote_owner_repo(repo_root)
