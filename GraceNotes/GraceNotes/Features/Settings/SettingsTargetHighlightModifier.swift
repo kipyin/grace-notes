@@ -5,18 +5,19 @@ struct SettingsTargetHighlightModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .padding(.horizontal, isHighlighted ? AppTheme.spacingTight : 0)
-            .padding(.vertical, isHighlighted ? AppTheme.spacingTight : 0)
+            .padding(isHighlighted ? AppTheme.spacingTight : 0)
             .background {
                 if isHighlighted {
                     RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
                         .fill(AppTheme.journalPaper.opacity(0.82))
+                        .allowsHitTesting(false)
                 }
             }
             .overlay {
                 if isHighlighted {
                     RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
-                        .stroke(AppTheme.accent, lineWidth: 1)
+                        .strokeBorder(AppTheme.accent, lineWidth: 1)
+                        .allowsHitTesting(false)
                 }
             }
     }
