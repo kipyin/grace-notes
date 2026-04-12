@@ -11,9 +11,16 @@ enum AppInstructionLocale: Equatable, Sendable {
         guard let preferred = bundle.preferredLocalizations.first else {
             return .english
         }
-        if preferred == "zh-Hans" || preferred.hasPrefix("zh-Hans") {
+        if isSimplifiedChineseUIIdentifier(preferred) {
             return .simplifiedChinese
         }
         return .english
+    }
+
+    /// BCP 47 tags are case-insensitive; `Bundle` may return `zh-Hans` or `zh-hans`.
+    /// Require `zh-Hans` as a full tag or as the language-script prefix before the next subtag (`zh-Hans-CN`, …), not `zh-Hant`.
+    private static func isSimplifiedChineseUIIdentifier(_ identifier: String) -> Bool {
+        let tag = identifier.lowercased()
+        return tag == "zh-hans" || tag.hasPrefix("zh-hans-")
     }
 }
