@@ -191,6 +191,42 @@ def _merge_cursor_reviewer_logins(tom: dict[str, Any]) -> tuple[str, ...]:
     return _DEFAULT_CURSOR_REVIEWER_LOGINS
 
 
+def _merge_reviewer_logins(tom: dict[str, Any]) -> tuple[str, ...]:
+    """Union of legacy Copilot + Cursor lists when ``reviewer_logins`` is unset."""
+    if os.environ.get("SENTRY_REVIEWER_LOGINS", "").strip():
+        return _comma_list("SENTRY_REVIEWER_LOGINS")
+    t = _cursor_list_from_tom(tom, "reviewer_logins")
+    if t is not None:
+        return t
+    copilot = _merge_opt_str("SENTRY_COPILOT_LOGIN", tom, "copilot_login")
+    cursor_list = _merge_cursor_reviewer_logins(tom)
+    out: list[str] = []
+    seen: set[str] = set()
+    if copilot and copilot.strip():
+        out.append(copilot.strip())
+        seen.add(copilot.strip().lower())
+    for x in cursor_list:
+        if not x.strip():
+            continue
+        k = x.strip().lower()
+        if k not in seen:
+            seen.add(k)
+            out.append(x.strip())
+    return tuple(out)
+
+
+def _merge_review_fix_cooldown_seconds(tom: dict[str, Any]) -> int:
+    if os.environ.get("SENTRY_REVIEW_FIX_COOLDOWN_SEC", "").strip():
+        return _env_int("SENTRY_REVIEW_FIX_COOLDOWN_SEC", 180)
+    if os.environ.get("SENTRY_CURSOR_FIX_COOLDOWN_SEC", "").strip():
+        return _env_int("SENTRY_CURSOR_FIX_COOLDOWN_SEC", 180)
+    v = _opt_int(tom, "review_fix_cooldown_seconds")
+    if v is not None:
+        return v
+    v = _opt_int(tom, "cursor_review_fix_cooldown_seconds")
+    return v if v is not None else 180
+
+
 def _merge_cursor_start_phrases(tom: dict[str, Any]) -> tuple[str, ...]:
     if os.environ.get("SENTRY_CURSOR_START_PHRASES", "").strip():
         return _comma_list("SENTRY_CURSOR_START_PHRASES")
@@ -246,16 +282,33 @@ class SentrySettings:
     yield_on_approval_pending: bool
     sentry_branch_prefix: str
     cursor_reviewer_logins: tuple[str, ...]
+    reviewer_logins: tuple[str, ...]
     cursor_start_phrases: tuple[str, ...]
     cursor_post_review_trigger: bool
     merge_sweep_budget_seconds: int
+    review_silence_timeout_seconds: int
+    review_fix_cooldown_seconds: int
     cursor_review_fix_cooldown_seconds: int
 
     @classmethod
     def from_repo(cls, repo_root: Path) -> SentrySettings:
         tom = load_sentry_table(repo_root=repo_root)
         cursor_reviewer_logins = _merge_cursor_reviewer_logins(tom)
+        reviewer_logins = _merge_reviewer_logins(tom)
         interval_sec = _merge_int("SENTRY_INTERVAL_SEC", tom, "interval_seconds", 30)
+        copilot_wait = _merge_int(
+            "SENTRY_COPILOT_WAIT_SEC",
+            tom,
+            "copilot_wait_seconds",
+            15 * 60,
+        )
+        review_silence = _merge_int(
+            "SENTRY_REVIEW_SILENCE_TIMEOUT_SEC",
+            tom,
+            "review_silence_timeout_seconds",
+            copilot_wait,
+        )
+        fix_cooldown = _merge_review_fix_cooldown_seconds(tom)
         return cls(
             copilot_login=_merge_opt_str("SENTRY_COPILOT_LOGIN", tom, "copilot_login"),
             approval_phrase=_merge_str(
@@ -265,12 +318,7 @@ class SentrySettings:
                 "/sentry-approve",
             ),
             approval_users=_merge_approval_users(tom),
-            copilot_wait_seconds=_merge_int(
-                "SENTRY_COPILOT_WAIT_SEC",
-                tom,
-                "copilot_wait_seconds",
-                15 * 60,
-            ),
+            copilot_wait_seconds=copilot_wait,
             arbitration_stuck_seconds=_merge_int(
                 "SENTRY_ARBITRATION_STUCK_SEC",
                 tom,
@@ -328,6 +376,7 @@ class SentrySettings:
                 "sentry/auto-",
             ),
             cursor_reviewer_logins=cursor_reviewer_logins,
+            reviewer_logins=reviewer_logins,
             cursor_start_phrases=_merge_cursor_start_phrases(tom),
             cursor_post_review_trigger=_merge_bool(
                 "SENTRY_CURSOR_POST_REVIEW",
@@ -341,12 +390,9 @@ class SentrySettings:
                 "merge_sweep_budget_seconds",
                 max(120, interval_sec * 2),
             ),
-            cursor_review_fix_cooldown_seconds=_merge_int(
-                "SENTRY_CURSOR_FIX_COOLDOWN_SEC",
-                tom,
-                "cursor_review_fix_cooldown_seconds",
-                180,
-            ),
+            review_silence_timeout_seconds=review_silence,
+            review_fix_cooldown_seconds=fix_cooldown,
+            cursor_review_fix_cooldown_seconds=fix_cooldown,
         )
 
     @classmethod

@@ -558,7 +558,13 @@ def run_single_iteration(
             },
         )
 
-        if settings.cursor_post_review_trigger and settings.cursor_reviewer_logins:
+        cursor_ids = {x.strip().lower() for x in settings.cursor_reviewer_logins if x.strip()}
+        reviewer_ids = {x.strip().lower() for x in settings.reviewer_logins if x.strip()}
+        post_review = (
+            settings.cursor_post_review_trigger
+            and bool(cursor_ids & reviewer_ids)
+        )
+        if post_review:
             if gh_api.pr_comment(repo_root, pr_number, "/review"):
                 _emit(
                     repo_root,
@@ -664,17 +670,17 @@ def reconcile_open_sentry_prs(
         },
     )
     allow = set(settings.approval_users)
-    deadline = time.monotonic() + float(settings.merge_sweep_budget_seconds)
     poll_interval = 30.0
-    remaining: set[int] = set(pr_numbers)
-    sweep_announced: set[int] = set()
+    queue: list[int] = sorted(pr_numbers)
 
-    while time.monotonic() < deadline and remaining:
-        for pr_number in sorted(remaining):
-            if time.monotonic() >= deadline:
-                break
-            if pr_number not in sweep_announced:
-                sweep_announced.add(pr_number)
+    while queue:
+        pr_number = queue[0]
+        pr_deadline = time.monotonic() + float(settings.merge_sweep_budget_seconds)
+        announced = False
+        finished = False
+        while time.monotonic() < pr_deadline and not finished:
+            if not announced:
+                announced = True
                 paths = gh_api.pr_changed_file_paths(repo_root, pr_number)
                 touch = classify_paths(paths)
                 _emit(
@@ -688,8 +694,6 @@ def reconcile_open_sentry_prs(
                     },
                 )
             while True:
-                if time.monotonic() >= deadline:
-                    break
                 outcome = merge_poll_once(
                     repo_root,
                     settings,
@@ -710,7 +714,8 @@ def reconcile_open_sentry_prs(
                             "pr": pr_number,
                         },
                     )
-                    remaining.discard(pr_number)
+                    queue.pop(0)
+                    finished = True
                     break
                 if outcome == MergePollOutcome.TERMINAL_FAIL:
                     _emit(
@@ -722,10 +727,14 @@ def reconcile_open_sentry_prs(
                             "pr": pr_number,
                         },
                     )
-                    remaining.discard(pr_number)
+                    queue.pop(0)
+                    finished = True
                     break
                 if outcome == MergePollOutcome.CONTINUE_LOOP:
                     continue
+                break
+
+            if finished:
                 break
 
             try:
@@ -733,9 +742,22 @@ def reconcile_open_sentry_prs(
             except subprocess.CalledProcessError:
                 pass
 
-        if not remaining:
-            break
-        left = deadline - time.monotonic()
-        if left <= 0:
-            break
-        time.sleep(min(poll_interval, left))
+            if not queue:
+                break
+            time.sleep(min(poll_interval, pr_deadline - time.monotonic()))
+
+        if finished:
+            continue
+        if queue and queue[0] == pr_number:
+            queue.append(queue.pop(0))
+            _emit(
+                repo_root,
+                sink,
+                {
+                    "kind": "sweep_rotate",
+                    "message": (
+                        f"PR #{pr_number}: merge sweep budget elapsed; rotating to next open PR."
+                    ),
+                    "pr": pr_number,
+                },
+            )

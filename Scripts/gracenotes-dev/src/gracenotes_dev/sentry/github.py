@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -106,12 +107,12 @@ def unresolved_copilot_threads(
     return count
 
 
-def unresolved_cursor_threads(
+def unresolved_reviewer_threads(
     nodes: list[dict[str, Any]],
-    cursor_logins: tuple[str, ...],
+    reviewer_logins: tuple[str, ...],
 ) -> int:
-    """Count unresolved review threads that include a comment from any configured Cursor login."""
-    allowed = {x.strip().lower() for x in cursor_logins if x.strip()}
+    """Count unresolved threads that include a comment from any configured reviewer login."""
+    allowed = {x.strip().lower() for x in reviewer_logins if x.strip()}
     if not allowed:
         return 0
     count = 0
@@ -126,6 +127,14 @@ def unresolved_cursor_threads(
                 count += 1
                 break
     return count
+
+
+def unresolved_cursor_threads(
+    nodes: list[dict[str, Any]],
+    cursor_logins: tuple[str, ...],
+) -> int:
+    """Deprecated alias for :func:`unresolved_reviewer_threads`."""
+    return unresolved_reviewer_threads(nodes, cursor_logins)
 
 
 def _cursor_reviews_newest_first(
@@ -167,18 +176,15 @@ def cursor_merge_clear(
     cursor_logins: tuple[str, ...],
 ) -> bool:
     """
-    Merge-safe Cursor state: no unresolved threads from Cursor and no ``CHANGES_REQUESTED``.
+    Merge-safe Cursor state: same as :func:`reviewers_merge_clear` for ``cursor_logins``.
 
     If ``cursor_logins`` is empty, returns True (nothing to check).
     """
-    allowed = {x.strip().lower() for x in cursor_logins if x.strip()}
-    if not allowed:
-        return True
-    if unresolved_cursor_threads(review_thread_nodes, cursor_logins) > 0:
-        return False
-    if cursor_requests_changes_latest(pr_reviews, cursor_logins):
-        return False
-    return True
+    return reviewers_merge_clear(
+        review_thread_nodes=review_thread_nodes,
+        pr_reviews=pr_reviews,
+        reviewer_logins=cursor_logins,
+    )
 
 
 def cursor_feedback_digest(
@@ -187,8 +193,67 @@ def cursor_feedback_digest(
     pr_reviews: list[dict[str, Any]],
     cursor_logins: tuple[str, ...],
 ) -> str:
-    """Text for the fix agent: unresolved Cursor thread bodies plus latest Cursor review body."""
-    allowed = {x.strip().lower() for x in cursor_logins if x.strip()}
+    """Text for the fix agent; same as :func:`reviewers_feedback_digest` for ``cursor_logins``."""
+    return reviewers_feedback_digest(
+        review_thread_nodes=review_thread_nodes,
+        pr_reviews=pr_reviews,
+        reviewer_logins=cursor_logins,
+    )
+
+
+def latest_non_pending_review_for_login(
+    reviews: list[dict[str, Any]],
+    login: str,
+) -> dict[str, Any] | None:
+    """Newest submitted (non-``PENDING``) PR review for ``login``, by ``submitted_at``."""
+    login_l = login.strip().lower()
+    out: list[dict[str, Any]] = []
+    for r in reviews:
+        user = ((r.get("user") or {}).get("login") or "").strip().lower()
+        if user != login_l:
+            continue
+        state = (r.get("state") or "").strip().upper()
+        if state == "PENDING":
+            continue
+        out.append(r)
+    if not out:
+        return None
+    out.sort(key=lambda x: str(x.get("submitted_at") or ""), reverse=True)
+    return out[0]
+
+
+def reviewers_merge_clear(
+    *,
+    review_thread_nodes: list[dict[str, Any]],
+    pr_reviews: list[dict[str, Any]],
+    reviewer_logins: tuple[str, ...],
+) -> bool:
+    """
+    Merge-safe: no unresolved threads from allowlisted reviewers, and no
+    ``CHANGES_REQUESTED`` on the latest submitted review per reviewer (when they reviewed).
+    """
+    allowed = {x.strip().lower() for x in reviewer_logins if x.strip()}
+    if not allowed:
+        return True
+    if unresolved_reviewer_threads(review_thread_nodes, reviewer_logins) > 0:
+        return False
+    for login in allowed:
+        latest = latest_non_pending_review_for_login(pr_reviews, login)
+        if latest is None:
+            continue
+        if (latest.get("state") or "").strip().upper() == "CHANGES_REQUESTED":
+            return False
+    return True
+
+
+def reviewers_feedback_digest(
+    *,
+    review_thread_nodes: list[dict[str, Any]],
+    pr_reviews: list[dict[str, Any]],
+    reviewer_logins: tuple[str, ...],
+) -> str:
+    """Unresolved thread bodies plus latest submitted review body per allowlisted reviewer."""
+    allowed = {x.strip().lower() for x in reviewer_logins if x.strip()}
     if not allowed:
         return ""
     parts: list[str] = []
@@ -204,13 +269,90 @@ def cursor_feedback_digest(
             body = (c or {}).get("body") or ""
             if body.strip():
                 parts.append(f"Review thread ({login}):\n{body.strip()}")
-    newest = _cursor_reviews_newest_first(pr_reviews, cursor_logins)
-    if newest:
-        body = (newest[0].get("body") or "").strip()
-        state = (newest[0].get("state") or "").strip()
+    for login in sorted(allowed):
+        latest = latest_non_pending_review_for_login(pr_reviews, login)
+        if latest is None:
+            continue
+        body = (latest.get("body") or "").strip()
+        state = (latest.get("state") or "").strip()
         if body:
-            parts.append(f"Latest PR review ({state}):\n{body}")
+            parts.append(f"PR review ({login}, {state}):\n{body}")
     return "\n\n---\n\n".join(parts)
+
+
+def pr_created_at_utc(repo_root: Path, pr_number: int) -> datetime | None:
+    """PR ``createdAt`` from ``gh pr view`` (UTC)."""
+    proc = _run_gh(
+        repo_root,
+        ["pr", "view", str(pr_number), "--json", "createdAt"],
+        check=False,
+    )
+    if proc.returncode != 0:
+        return None
+    try:
+        data = json.loads(proc.stdout)
+        raw = data.get("createdAt")
+        if not raw or not isinstance(raw, str):
+            return None
+        s = raw.replace("Z", "+00:00")
+        return datetime.fromisoformat(s)
+    except (json.JSONDecodeError, ValueError, TypeError):
+        return None
+
+
+def review_pending_from_allowlist(
+    reviews: list[dict[str, Any]],
+    reviewer_logins: tuple[str, ...],
+) -> bool:
+    """True if any allowlisted reviewer has a ``PENDING`` (draft) PR review."""
+    allowed = {x.strip().lower() for x in reviewer_logins if x.strip()}
+    for r in reviews:
+        user = ((r.get("user") or {}).get("login") or "").strip().lower()
+        if user not in allowed:
+            continue
+        if (r.get("state") or "").strip().upper() == "PENDING":
+            return True
+    return False
+
+
+def has_non_pending_review_from_allowlist(
+    reviews: list[dict[str, Any]],
+    reviewer_logins: tuple[str, ...],
+) -> bool:
+    allowed = {x.strip().lower() for x in reviewer_logins if x.strip()}
+    for r in reviews:
+        user = ((r.get("user") or {}).get("login") or "").strip().lower()
+        if user not in allowed:
+            continue
+        if (r.get("state") or "").strip().upper() != "PENDING":
+            return True
+    return False
+
+
+def has_allowlisted_thread_comment(
+    review_thread_nodes: list[dict[str, Any]],
+    reviewer_logins: tuple[str, ...],
+) -> bool:
+    allowed = {x.strip().lower() for x in reviewer_logins if x.strip()}
+    for node in review_thread_nodes:
+        comments = (node.get("comments") or {}).get("nodes") or []
+        for c in comments:
+            author = (c or {}).get("author") or {}
+            if (author.get("login") or "").strip().lower() in allowed:
+                return True
+    return False
+
+
+def has_allowlisted_issue_comment(
+    issue_comments: list[dict[str, Any]],
+    reviewer_logins: tuple[str, ...],
+) -> bool:
+    allowed = {x.strip().lower() for x in reviewer_logins if x.strip()}
+    for c in issue_comments:
+        login = ((c.get("user") or {}).get("login") or "").strip().lower()
+        if login in allowed:
+            return True
+    return False
 
 
 def pr_reviews(repo_root: Path, owner: str, repo: str, pr_number: int) -> list[dict[str, Any]]:
@@ -281,16 +423,16 @@ def _tail_after_first_start_phrase(body: str, start_phrases: tuple[str, ...]) ->
     return ""
 
 
-def cursor_pr_review_finished(
+def reviewer_pr_review_finished(
     reviews: list[dict[str, Any]],
-    cursor_logins: tuple[str, ...],
+    reviewer_logins: tuple[str, ...],
 ) -> bool:
     """
-    True if a configured Cursor account submitted a non-draft PR review.
+    True if a configured reviewer account submitted a non-draft PR review.
 
     ``PENDING`` is GitHub’s draft / not-yet-submitted state; others count as delivered.
     """
-    allowed = {x.strip().lower() for x in cursor_logins if x.strip()}
+    allowed = {x.strip().lower() for x in reviewer_logins if x.strip()}
     if not allowed:
         return False
     for r in reviews:
@@ -305,28 +447,36 @@ def cursor_pr_review_finished(
     return False
 
 
-def cursor_issue_review_ok(
-    comments: list[dict[str, Any]],
+def cursor_pr_review_finished(
+    reviews: list[dict[str, Any]],
     cursor_logins: tuple[str, ...],
+) -> bool:
+    """Deprecated alias for :func:`reviewer_pr_review_finished`."""
+    return reviewer_pr_review_finished(reviews, cursor_logins)
+
+
+def reviewer_issue_review_ok(
+    comments: list[dict[str, Any]],
+    reviewer_logins: tuple[str, ...],
     start_phrases: tuple[str, ...],
 ) -> bool:
     """
-    Issue-comment gate for the Cursor PR reviewer (``/review`` flow).
+    Issue-comment gate for allowlisted reviewers (``/review`` flow).
 
-    If ``cursor_logins`` is empty, returns True (gate disabled).
+    If ``reviewer_logins`` is empty, returns True (gate disabled).
 
     If there is no comment from a configured login that looks like a “started” message
     (e.g. “Taking a look”), returns True — nothing to wait on.
 
-    If Cursor posted a start phrase, returns True when either:
+    If a reviewer posted a start phrase, returns True when either:
 
-    * a later issue comment from Cursor exists, or
+    * a later issue comment from that reviewer exists, or
     * the same comment contains substantive text after the start phrase (review in one comment).
 
     For PR reviews (inline or summary) and deleted starters, use
-    :func:`cursor_merge_gate_ok` which also consults :func:`pr_reviews`.
+    :func:`reviewer_merge_gate_ok` which also consults :func:`pr_reviews`.
     """
-    allowed = {x.strip().lower() for x in cursor_logins if x.strip()}
+    allowed = {x.strip().lower() for x in reviewer_logins if x.strip()}
     if not allowed:
         return True
 
@@ -361,6 +511,33 @@ def cursor_issue_review_ok(
     return False
 
 
+def cursor_issue_review_ok(
+    comments: list[dict[str, Any]],
+    cursor_logins: tuple[str, ...],
+    start_phrases: tuple[str, ...],
+) -> bool:
+    """Deprecated alias for :func:`reviewer_issue_review_ok`."""
+    return reviewer_issue_review_ok(comments, cursor_logins, start_phrases)
+
+
+def reviewer_merge_gate_ok(
+    *,
+    comments: list[dict[str, Any]],
+    pr_reviews: list[dict[str, Any]],
+    reviewer_logins: tuple[str, ...],
+    start_phrases: tuple[str, ...],
+) -> bool:
+    """
+    Reviewer merge gate: issue comments and/or submitted PR reviews.
+
+    If issue-comment logic alone is satisfied, returns True. Otherwise, if a
+    configured reviewer submitted a **PR review** (not ``PENDING``), returns True.
+    """
+    if reviewer_issue_review_ok(comments, reviewer_logins, start_phrases):
+        return True
+    return reviewer_pr_review_finished(pr_reviews, reviewer_logins)
+
+
 def cursor_merge_gate_ok(
     *,
     comments: list[dict[str, Any]],
@@ -368,17 +545,13 @@ def cursor_merge_gate_ok(
     cursor_logins: tuple[str, ...],
     start_phrases: tuple[str, ...],
 ) -> bool:
-    """
-    Cursor merge gate: issue comments and/or submitted PR reviews.
-
-    If issue-comment logic alone is satisfied, returns True. Otherwise, if Cursor
-    submitted a **PR review** (not ``PENDING``), returns True — covers quick reviews
-    where the starter issue comment was deleted, or the review exists only as a
-    GitHub review (not duplicated in issue comments).
-    """
-    if cursor_issue_review_ok(comments, cursor_logins, start_phrases):
-        return True
-    return cursor_pr_review_finished(pr_reviews, cursor_logins)
+    """Deprecated alias for :func:`reviewer_merge_gate_ok`."""
+    return reviewer_merge_gate_ok(
+        comments=comments,
+        pr_reviews=pr_reviews,
+        reviewer_logins=cursor_logins,
+        start_phrases=start_phrases,
+    )
 
 
 def has_approval_phrase(

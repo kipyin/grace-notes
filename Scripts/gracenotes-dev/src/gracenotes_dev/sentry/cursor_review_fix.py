@@ -10,6 +10,7 @@ from pathlib import Path
 
 from gracenotes_dev.sentry import github as gh_api
 from gracenotes_dev.sentry.agent_client import address_cursor_feedback_file_via_agent
+from gracenotes_dev.sentry.branch_ops import remove_sentry_worktree, sentry_worktrees_dir
 from gracenotes_dev.sentry.log_sink import SentryLogSink
 from gracenotes_dev.sentry.settings import SentrySettings
 from gracenotes_dev.sentry.state import append_event
@@ -17,6 +18,55 @@ from gracenotes_dev.sentry.state import append_event
 
 def _cooldown_path(repo_root: Path) -> Path:
     return repo_root / ".grace" / "sentry" / "cursor_fix_last.json"
+
+
+def _pushback_marker_path(repo_root: Path, pr_number: int) -> Path:
+    return repo_root / ".grace" / "sentry" / f"review_pushback_{pr_number}.txt"
+
+
+def _maybe_post_review_pushback(repo_root: Path, pr_number: int, body: str) -> None:
+    path = _pushback_marker_path(repo_root, pr_number)
+    if path.is_file():
+        return
+    if gh_api.pr_comment(repo_root, pr_number, body):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("1\n", encoding="utf-8")
+
+
+def _prepare_review_fix_worktree(
+    repo_root: Path,
+    pr_number: int,
+    head_ref: str,
+) -> tuple[Path, str]:
+    worktree_path = sentry_worktrees_dir(repo_root) / f"review-fix-{pr_number}"
+    if worktree_path.is_dir():
+        remove_sentry_worktree(repo_root, worktree_path, None)
+    local_branch = f"sentry-review-fix-{pr_number}"
+    fetch = subprocess.run(
+        ["git", "fetch", "origin", head_ref],
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+    )
+    if fetch.returncode != 0:
+        raise RuntimeError((fetch.stderr or fetch.stdout or "git fetch failed").strip())
+    wt = subprocess.run(
+        [
+            "git",
+            "worktree",
+            "add",
+            str(worktree_path),
+            "-b",
+            local_branch,
+            f"origin/{head_ref}",
+        ],
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+    )
+    if wt.returncode != 0:
+        raise RuntimeError((wt.stderr or wt.stdout or "git worktree add failed").strip())
+    return worktree_path, local_branch
 
 
 def cursor_fix_should_attempt(
@@ -90,6 +140,9 @@ def try_address_cursor_review_with_agent(
     """
     Check out the PR head, run ``agent`` on changed ``GraceNotes/**/*.swift`` files, ``grace ci``,
     commit, push. Returns True if push succeeded so merge gates can be re-checked.
+
+    When ``git_cwd`` is ``None``, uses a dedicated worktree under ``.grace/sentry/worktrees/``
+    so the primary checkout stays untouched.
     """
     if settings.fix_provider != "cursor_agent":
         return False
@@ -99,37 +152,40 @@ def try_address_cursor_review_with_agent(
             repo_root,
             {
                 "kind": "cursor_review_fix_skip",
-                "message": "No Cursor feedback text to apply.",
+                "message": "No review feedback text to apply.",
                 "pr": pr_number,
             },
         )
         return False
 
-    git_root = git_cwd or repo_root
     append_event(
         repo_root,
         {
             "kind": "cursor_review_fix_attempt",
-            "message": f"Addressing Cursor review on PR #{pr_number}",
+            "message": f"Addressing PR review feedback on PR #{pr_number}",
             "pr": pr_number,
         },
     )
     if sink is not None:
-        sink.set_step("address Cursor review (agent)")
-        sink.log(f"PR #{pr_number}: applying Cursor feedback via agent …")
+        sink.set_step("address PR review (agent)")
+        sink.log(f"PR #{pr_number}: applying review feedback via agent …")
 
-    fetch = subprocess.run(
+    worktree_path: Path | None = None
+    worktree_branch: str | None = None
+    git_root = git_cwd or repo_root
+
+    fetch_main = subprocess.run(
         ["git", "fetch", "origin", main_branch],
-        cwd=git_root,
+        cwd=repo_root,
         capture_output=True,
         text=True,
     )
-    if fetch.returncode != 0:
+    if fetch_main.returncode != 0:
         append_event(
             repo_root,
             {
                 "kind": "cursor_review_fix_error",
-                "message": (fetch.stderr or fetch.stdout or "").strip(),
+                "message": (fetch_main.stderr or fetch_main.stdout or "").strip(),
                 "pr": pr_number,
             },
         )
@@ -137,7 +193,7 @@ def try_address_cursor_review_with_agent(
 
     pr_view = subprocess.run(
         ["gh", "pr", "view", str(pr_number), "--json", "headRefName"],
-        cwd=git_root,
+        cwd=repo_root,
         capture_output=True,
         text=True,
     )
@@ -160,23 +216,82 @@ def try_address_cursor_review_with_agent(
         )
         return False
 
-    co = subprocess.run(
-        ["git", "checkout", head_ref],
-        cwd=git_root,
-        capture_output=True,
-        text=True,
-    )
-    if co.returncode != 0:
-        append_event(
-            repo_root,
-            {
-                "kind": "cursor_review_fix_error",
-                "message": (co.stderr or co.stdout or "").strip(),
-                "pr": pr_number,
-            },
+    if git_cwd is None:
+        try:
+            worktree_path, worktree_branch = _prepare_review_fix_worktree(
+                repo_root,
+                pr_number,
+                str(head_ref),
+            )
+            git_root = worktree_path
+        except RuntimeError as exc:
+            append_event(
+                repo_root,
+                {
+                    "kind": "cursor_review_fix_error",
+                    "message": str(exc),
+                    "pr": pr_number,
+                },
+            )
+            return False
+    else:
+        fetch = subprocess.run(
+            ["git", "fetch", "origin", main_branch],
+            cwd=git_root,
+            capture_output=True,
+            text=True,
         )
-        return False
+        if fetch.returncode != 0:
+            append_event(
+                repo_root,
+                {
+                    "kind": "cursor_review_fix_error",
+                    "message": (fetch.stderr or fetch.stdout or "").strip(),
+                    "pr": pr_number,
+                },
+            )
+            return False
 
+        co = subprocess.run(
+            ["git", "checkout", head_ref],
+            cwd=git_root,
+            capture_output=True,
+            text=True,
+        )
+        if co.returncode != 0:
+            append_event(
+                repo_root,
+                {
+                    "kind": "cursor_review_fix_error",
+                    "message": (co.stderr or co.stdout or "").strip(),
+                    "pr": pr_number,
+                },
+            )
+            return False
+
+    try:
+        return _try_address_review_in_git_root(
+            repo_root=repo_root,
+            settings=settings,
+            pr_number=pr_number,
+            git_root=git_root,
+            feedback_text=ft,
+            sink=sink,
+        )
+    finally:
+        if worktree_path is not None:
+            remove_sentry_worktree(repo_root, worktree_path, worktree_branch)
+
+
+def _try_address_review_in_git_root(
+    repo_root: Path,
+    settings: SentrySettings,
+    pr_number: int,
+    git_root: Path,
+    *,
+    feedback_text: str,
+    sink: SentryLogSink | None,
+) -> bool:
     paths = [
         p
         for p in gh_api.pr_changed_file_paths(repo_root, pr_number)
@@ -209,10 +324,12 @@ def try_address_cursor_review_with_agent(
                 extra_args=settings.agent_extra_args,
                 relative_path=rel,
                 file_content=raw,
-                feedback_text=ft,
+                feedback_text=feedback_text,
                 timeout_sec=settings.agent_timeout_sec,
             )
             if not new_src.strip():
+                continue
+            if new_src == raw:
                 continue
             fp.write_text(new_src, encoding="utf-8")
             subprocess.run(["git", "add", rel], cwd=git_root, capture_output=True, text=True)
@@ -235,6 +352,15 @@ def try_address_cursor_review_with_agent(
                     "pr": pr_number,
                 },
             )
+            _maybe_post_review_pushback(
+                repo_root,
+                pr_number,
+                (
+                    "Sentry: could not apply automated fixes for this review feedback "
+                    "(no substantive source changes produced). Merge may still proceed when CI is "
+                    "green and reviews are addressed, or via the configured approval override."
+                ),
+            )
             return False
 
         if not _run_grace_ci(git_root, settings):
@@ -242,17 +368,23 @@ def try_address_cursor_review_with_agent(
                 repo_root,
                 {
                     "kind": "cursor_review_fix_error",
-                    "message": "grace ci failed after Cursor review edits",
+                    "message": "grace ci failed after review feedback edits",
                     "pr": pr_number,
                 },
             )
             if sink is not None:
                 sink.log(f"PR #{pr_number}: grace ci failed after review fixes; not pushing.")
             subprocess.run(["git", "reset", "--hard", "HEAD"], cwd=git_root, capture_output=True)
+            _maybe_post_review_pushback(
+                repo_root,
+                pr_number,
+                "Sentry: automated edits failed `grace ci` after review feedback; changes were not "
+                "pushed. Please address manually or use the approval override if appropriate.",
+            )
             return False
 
         commit = subprocess.run(
-            ["git", "commit", "-m", "sentry: address Cursor review feedback"],
+            ["git", "commit", "-m", "sentry: address PR review feedback"],
             cwd=git_root,
             capture_output=True,
             text=True,
@@ -295,7 +427,7 @@ def try_address_cursor_review_with_agent(
             },
         )
         if sink is not None:
-            sink.log(f"PR #{pr_number}: Cursor review fixes pushed.")
+            sink.log(f"PR #{pr_number}: review feedback fixes pushed.")
         return True
     except (OSError, RuntimeError, UnicodeError) as exc:
         append_event(
@@ -307,5 +439,5 @@ def try_address_cursor_review_with_agent(
             },
         )
         if sink is not None:
-            sink.log(f"PR #{pr_number}: Cursor review fix failed: {exc}")
+            sink.log(f"PR #{pr_number}: review feedback fix failed: {exc}")
         return False

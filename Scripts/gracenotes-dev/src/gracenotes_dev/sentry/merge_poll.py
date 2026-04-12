@@ -15,6 +15,7 @@ from gracenotes_dev.sentry.cursor_review_fix import (
 from gracenotes_dev.sentry.log_sink import SentryLogSink
 from gracenotes_dev.sentry.merge_conflict import try_resolve_merge_conflicts_with_agent
 from gracenotes_dev.sentry.merge_logic import can_merge
+from gracenotes_dev.sentry.review_gates import review_wait_satisfied
 from gracenotes_dev.sentry.settings import SentrySettings
 
 
@@ -40,7 +41,7 @@ def merge_poll_once(
     git_cwd: Path | None = None,
 ) -> MergePollOutcome:
     """
-    One CI / Copilot / Cursor (issue comments + PR reviews) / approval check and optional squash.
+    One CI / Copilot / allowlisted reviewers (issue comments + PR reviews) / approval check.
 
     ``git_cwd`` is the directory for git commands when the PR head only exists in a sentry
     worktree (otherwise defaults to ``repo_root``).
@@ -63,47 +64,50 @@ def merge_poll_once(
     )
 
     copilot_ok = unresolved == 0
-    cursor_review_done = gh_api.cursor_merge_gate_ok(
+    created_at = gh_api.pr_created_at_utc(repo_root, pr_number)
+    wait_ok = review_wait_satisfied(
+        pr_created_at=created_at,
+        review_silence_timeout_seconds=settings.review_silence_timeout_seconds,
         comments=comments,
         pr_reviews=reviews,
-        cursor_logins=settings.cursor_reviewer_logins,
+        reviewer_logins=settings.reviewer_logins,
         start_phrases=settings.cursor_start_phrases,
     )
-    cursor_clear = gh_api.cursor_merge_clear(
+    reviewers_clear = gh_api.reviewers_merge_clear(
         review_thread_nodes=threads,
         pr_reviews=reviews,
-        cursor_logins=settings.cursor_reviewer_logins,
+        reviewer_logins=settings.reviewer_logins,
     )
-    cursor_ok = cursor_review_done and cursor_clear
+    reviewers_ok = wait_ok and reviewers_clear
 
     if sink is not None:
         sink.log(
             f"merge poll: pr={pr_number} ci_ok={ci_ok} "
-            f"copilot_unresolved={unresolved} cursor_review_done={cursor_review_done} "
-            f"cursor_clear={cursor_clear} approve={approve}"
+            f"copilot_unresolved={unresolved} review_wait_ok={wait_ok} "
+            f"reviewers_clear={reviewers_clear} approve={approve}"
         )
 
     merge_allowed = can_merge(
         ci_ok=ci_ok,
         copilot_ok=copilot_ok,
-        cursor_ok=cursor_ok,
+        reviewers_ok=reviewers_ok,
         approve_phrase_present=approve,
     )
 
-    if not merge_allowed and cursor_review_done and not cursor_clear:
+    if not merge_allowed and wait_ok and not reviewers_clear:
         if (
             ci_ok
             and copilot_ok
             and cursor_fix_should_attempt(
                 repo_root,
                 pr_number,
-                settings.cursor_review_fix_cooldown_seconds,
+                settings.review_fix_cooldown_seconds,
             )
         ):
-            feedback = gh_api.cursor_feedback_digest(
+            feedback = gh_api.reviewers_feedback_digest(
                 review_thread_nodes=threads,
                 pr_reviews=reviews,
-                cursor_logins=settings.cursor_reviewer_logins,
+                reviewer_logins=settings.reviewer_logins,
             )
             if feedback.strip() and settings.fix_provider == "cursor_agent":
                 cursor_fix_mark_attempt(repo_root, pr_number)
