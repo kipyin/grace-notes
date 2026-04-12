@@ -111,15 +111,27 @@ struct ShareCardDraft: Equatable, Sendable {
     mutating func toggleRedaction(for identity: ShareLineIdentity) {
         switch identity {
         case .gratitude(let index):
-            redactedGratitudeIndices.formSymmetricDifference([index])
+            redactedGratitudeIndices.toggleMembership(index)
         case .need(let index):
-            redactedNeedIndices.formSymmetricDifference([index])
+            redactedNeedIndices.toggleMembership(index)
         case .person(let index):
-            redactedPersonIndices.formSymmetricDifference([index])
+            redactedPersonIndices.toggleMembership(index)
         case .readingLine(let index):
-            redactedReadingLineIndices.formSymmetricDifference([index])
+            redactedReadingLineIndices.toggleMembership(index)
         case .reflectionLine(let index):
-            redactedReflectionLineIndices.formSymmetricDifference([index])
+            redactedReflectionLineIndices.toggleMembership(index)
+        }
+    }
+}
+
+// MARK: - Set helpers
+
+private extension Set where Element == Int {
+    mutating func toggleMembership(_ index: Int) {
+        if contains(index) {
+            remove(index)
+        } else {
+            insert(index)
         }
     }
 }
