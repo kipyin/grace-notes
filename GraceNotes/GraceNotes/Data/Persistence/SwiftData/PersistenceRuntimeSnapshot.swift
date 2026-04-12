@@ -29,10 +29,14 @@ struct PersistenceRuntimeSnapshot: Equatable, Sendable {
         storeUsesCloudKit: Bool,
         startupUsedCloudKitFallback: Bool
     ) -> PersistenceRuntimeSnapshot {
-        PersistenceRuntimeSnapshot(
+        // A CloudKit-backed store and a startup fallback cannot both be true; callers (or tests) can
+        // accidentally pass both, which would confuse settings copy and `isJournalOnCloudKitStore`.
+        let effectiveStoreUsesCloudKit = startupUsedCloudKitFallback ? false : storeUsesCloudKit
+        let effectiveFallback = effectiveStoreUsesCloudKit ? false : startupUsedCloudKitFallback
+        return PersistenceRuntimeSnapshot(
             userRequestedCloudSync: userRequestedCloudSync,
-            storeUsesCloudKit: storeUsesCloudKit,
-            startupUsedCloudKitFallback: startupUsedCloudKitFallback
+            storeUsesCloudKit: effectiveStoreUsesCloudKit,
+            startupUsedCloudKitFallback: effectiveFallback
         )
     }
 }
