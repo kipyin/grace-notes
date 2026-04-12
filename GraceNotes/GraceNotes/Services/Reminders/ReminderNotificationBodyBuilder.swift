@@ -10,7 +10,6 @@ enum ReminderNotificationBodyBuilder {
         calendar: Calendar = .current
     ) throws -> String {
         let repository = JournalRepository(calendar: calendar)
-        let calculator = StreakCalculator(calendar: calendar)
         let todayStart = calendar.startOfDay(for: now)
         let entries = try repository.fetchAllEntries(context: modelContext)
         let gapDays = ReminderNotificationBodySelector.calendarDayGapSinceLastMeaningfulEntry(
@@ -20,6 +19,23 @@ enum ReminderNotificationBodyBuilder {
         )
         let isLapse = ReminderNotificationBodySelector.isLapse(gapDays: gapDays)
 
+        let timeBucket = ReminderNotificationBodySelector.timeBucket(
+            forReminderTime: reminderTime,
+            calendar: calendar
+        )
+
+        if isLapse {
+            // `completion` / `streakBucket` are unused when `isLapse` is true (`localizationKey` returns early).
+            let key = ReminderNotificationBodySelector.localizationKey(
+                isLapse: true,
+                completion: .empty,
+                timeBucket: timeBucket,
+                streakBucket: .none
+            )
+            return String(localized: String.LocalizationValue(key))
+        }
+
+        let calculator = StreakCalculator(calendar: calendar)
         let todayEntry = try repository.fetchEntry(for: now, context: modelContext)
         let completion = ReminderNotificationBodySelector.completionFamily(for: todayEntry)
 
@@ -40,12 +56,8 @@ enum ReminderNotificationBodyBuilder {
             )
         }
 
-        let timeBucket = ReminderNotificationBodySelector.timeBucket(
-            forReminderTime: reminderTime,
-            calendar: calendar
-        )
         let key = ReminderNotificationBodySelector.localizationKey(
-            isLapse: isLapse,
+            isLapse: false,
             completion: completion,
             timeBucket: timeBucket,
             streakBucket: streakBucket
