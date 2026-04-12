@@ -245,16 +245,17 @@ enum ReviewSectionDistributionStripLayout {
         let total = counts.reduce(0, +)
         guard total > 0 else { return [0, 0, 0] }
 
-        let totalDouble = Double(total)
-        let exactShares = counts.map { Double($0) / totalDouble * 100 }
-        var floors = exactShares.map { Int($0.rounded(.down)) }
+        // Integer Hamilton (largest remainder): `floor(count * 100 / total)` per bucket, then assign the leftover
+        // points (0…2 for three buckets) by largest fractional remainder `(count * 100) % total`.
+        // A floating-point floor can make `100 - sum(floors)` exceed 3 and trap when indexing
+        // `indicesByLargestFraction`.
+        var floors = counts.map { ($0 * 100) / total }
         let remainder = 100 - floors.reduce(0, +)
-        guard remainder > 0 else { return floors }
-
+        let remainderNumerators = counts.map { ($0 * 100) % total }
         let indicesByLargestFraction = (0..<counts.count).sorted { lhs, rhs in
-            let leftFraction = exactShares[lhs] - Double(floors[lhs])
-            let rightFraction = exactShares[rhs] - Double(floors[rhs])
-            if leftFraction != rightFraction { return leftFraction > rightFraction }
+            let left = remainderNumerators[lhs]
+            let right = remainderNumerators[rhs]
+            if left != right { return left > right }
             return lhs < rhs
         }
         for offset in 0..<remainder {

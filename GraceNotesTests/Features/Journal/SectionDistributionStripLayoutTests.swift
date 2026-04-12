@@ -106,4 +106,25 @@ final class SectionDistributionStripLayoutTests: XCTestCase {
         XCTAssertEqual(percents, [34, 33, 33])
         XCTAssertEqual(percents.reduce(0, +), 100)
     }
+
+    /// Regression: percents must always sum to 100 for any non-empty totals without trapping (integer method only).
+    func test_integerDisplayPercents_manySamples_sumTo100() {
+        for gratitude in 0...8 {
+            for needs in 0...8 {
+                for people in 0...8 where gratitude + needs + people > 0 {
+                    let percents = ReviewSectionDistributionStripLayout.integerDisplayPercents(
+                        gratitudeMentions: gratitude,
+                        needMentions: needs,
+                        peopleMentions: people
+                    )
+                    XCTAssertEqual(percents.count, 3)
+                    XCTAssertEqual(
+                        percents.reduce(0, +),
+                        100,
+                        "failed for (\(gratitude), \(needs), \(people))"
+                    )
+                }
+            }
+        }
+    }
 }
