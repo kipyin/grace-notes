@@ -11,6 +11,7 @@ struct JournalShareComposerView: View {
     private var journalTodayAppearanceRaw = JournalAppearanceMode.standard.rawValue
     @State private var draft: ShareCardDraft
     @State private var showRenderError = false
+    @State private var isShareCommitInProgress = false
 
     /// Bloom matches main tab chrome (forced light); otherwise inherit system light/dark like the rest of the app.
     private var appPreferredColorScheme: ColorScheme? {
@@ -57,6 +58,7 @@ struct JournalShareComposerView: View {
                         commitShare()
                     }
                     .fontWeight(.semibold)
+                    .disabled(isShareCommitInProgress)
                     .accessibilityIdentifier("ShareComposerConfirm")
                 }
             }
@@ -198,6 +200,10 @@ struct JournalShareComposerView: View {
     }
 
     private func commitShare() {
+        guard !isShareCommitInProgress else { return }
+        isShareCommitInProgress = true
+        defer { isShareCommitInProgress = false }
+
         let built = ShareRenderPayloadBuilder.build(
             full: basePayload,
             draft: draft,
