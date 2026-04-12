@@ -163,8 +163,9 @@ struct ReviewMostRecurringCard: View {
                 }
             }
             .modifier(InsightsCalmLoadingBreath(active: !reduceMotion))
-            // Keep the panel title in the accessibility tree (and visible to UI tests) while hiding inert bars.
-            .accessibilityHidden(true)
+            // Match ReviewTrendingCard: one “loading” node under the title instead of silent placeholder chrome.
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(String(localized: "review.insights.loading"))
         }
     }
 }
