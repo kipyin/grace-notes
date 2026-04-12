@@ -215,8 +215,7 @@ class SentryTomlTest(unittest.TestCase):
             root = Path(tmp)
             (root / "GraceNotes").mkdir()
             (root / "gracenotes-dev.toml").write_text(
-                '[sentry]\nreviewer_logins = ["only-me"]\n'
-                'copilot_login = "copilot-bot"\n',
+                '[sentry]\nreviewer_logins = ["only-me"]\ncopilot_login = "copilot-bot"\n',
                 encoding="utf-8",
             )
             s = SentrySettings.from_repo(root)

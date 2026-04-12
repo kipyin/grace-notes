@@ -560,10 +560,7 @@ def run_single_iteration(
 
         cursor_ids = {x.strip().lower() for x in settings.cursor_reviewer_logins if x.strip()}
         reviewer_ids = {x.strip().lower() for x in settings.reviewer_logins if x.strip()}
-        post_review = (
-            settings.cursor_post_review_trigger
-            and bool(cursor_ids & reviewer_ids)
-        )
+        post_review = settings.cursor_post_review_trigger and bool(cursor_ids & reviewer_ids)
         if post_review:
             if gh_api.pr_comment(repo_root, pr_number, "/review"):
                 _emit(
