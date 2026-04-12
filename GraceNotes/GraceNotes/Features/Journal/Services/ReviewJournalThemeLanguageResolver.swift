@@ -14,8 +14,12 @@ struct ReviewJournalThemeLanguageResolver: ReviewJournalThemeLanguageResolving {
     private let confidenceThreshold: Double
 
     init(minimumMeaningfulGraphemes: Int = 24, confidenceThreshold: Double = 0.55) {
-        self.minimumMeaningfulGraphemes = minimumMeaningfulGraphemes
-        self.confidenceThreshold = confidenceThreshold
+        self.minimumMeaningfulGraphemes = max(0, minimumMeaningfulGraphemes)
+        if confidenceThreshold.isNaN {
+            self.confidenceThreshold = 0.55
+        } else {
+            self.confidenceThreshold = min(max(confidenceThreshold, 0), 1)
+        }
     }
 
     func resolvedDisplayLocale(forJournalCorpus corpus: String) -> Locale {
@@ -55,6 +59,7 @@ struct ReviewJournalThemeLanguageResolver: ReviewJournalThemeLanguageResolving {
     }
 
     /// When hypotheses are ambiguous, count Han vs Latin letters and pick a side. Equal counts → English.
+    /// Latin includes common accented letters (Latin-1 + Extended-A) so tie-break matches mixed European text.
     private static func scriptTieBreakLocale(trimmed: String) -> Locale {
         var han = 0
         var latin = 0
@@ -70,7 +75,9 @@ struct ReviewJournalThemeLanguageResolver: ReviewJournalThemeLanguageResolving {
                  0x2CEB0...0x2EBEF,
                  0x2F800...0x2FA1F:
                 han += 1
-            case 0x41...0x5A, 0x61...0x7A:
+            case 0x41...0x5A, 0x61...0x7A,
+                 0x00C0...0x00D6, 0x00D8...0x00F6, 0x00F8...0x00FF,
+                 0x0100...0x017F:
                 latin += 1
             default:
                 break
