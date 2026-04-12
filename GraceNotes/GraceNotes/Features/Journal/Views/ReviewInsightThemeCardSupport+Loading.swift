@@ -10,7 +10,10 @@ struct InsightsPlaceholderBar: View {
     var body: some View {
         GeometryReader { geo in
             let fraction = min(1, max(0, widthFraction))
-            let lineWidth = max(geo.size.width * fraction, height * 2)
+            let availableWidth = max(0, geo.size.width)
+            let desiredWidth = availableWidth * fraction
+            // Keep a minimum visual width when there is room, but never exceed the container (narrow layouts).
+            let lineWidth = min(max(desiredWidth, height * 2), availableWidth)
             RoundedRectangle(cornerRadius: height * 0.42, style: .continuous)
                 .fill(AppTheme.reviewTextMuted.opacity(0.10))
                 .frame(width: lineWidth, height: height, alignment: .leading)
