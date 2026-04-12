@@ -261,17 +261,17 @@ struct AppTourPathStrip: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            ForEach(Array(Self.orderedLevels.enumerated()), id: \.offset) { index, level in
+            ForEach(Array(Self.orderedLevels.enumerated()), id: \.element) { pair in
                 AppTourPathStepRow(
-                    index: index,
+                    index: pair.offset,
                     stepCount: Self.orderedLevels.count,
-                    title: displayName(for: level),
+                    title: displayName(for: pair.element),
                     titleSystemImage: "",
-                    criterionText: criterion(for: level),
-                    isHighlighted: level == highlightedLevel,
-                    dotFill: dotFill(for: level),
-                    dotBorder: dotBorder(for: level),
-                    dotStrokeWidth: level == highlightedLevel ? 2 : 1,
+                    criterionText: criterion(for: pair.element),
+                    isHighlighted: pair.element == highlightedLevel,
+                    dotFill: dotFill(for: pair.element),
+                    dotBorder: dotBorder(for: pair.element),
+                    dotStrokeWidth: pair.element == highlightedLevel ? 2 : 1,
                     pathSpineStroke: pathSpineStroke
                 )
             }
