@@ -122,6 +122,29 @@ def format_review_comment_body(
     return f"{text.rstrip()}\n\n{marker}"
 
 
+def auth_user_has_sentry_marker_comment(
+    comments: list[dict[str, Any]],
+    authenticated_login: str | None,
+) -> bool:
+    """
+    True if ``authenticated_login`` has at least one issue comment containing a
+    ``sentry-review`` marker.
+
+    Used to decide whether ``review_clear_mode=comment`` should apply marker semantics
+    or fall back to GitHub thread/review state (same allowlist as ``github`` mode).
+    """
+    if not authenticated_login:
+        return False
+    auth_l = authenticated_login.strip().lower()
+    for c in comments:
+        user = ((c.get("user") or {}).get("login") or "").strip().lower()
+        if user != auth_l:
+            continue
+        if parse_sentry_review_outcome(str(c.get("body") or "")) is not None:
+            return True
+    return False
+
+
 def reviewers_clear_from_sentry_comment(
     *,
     comments: list[dict[str, Any]],

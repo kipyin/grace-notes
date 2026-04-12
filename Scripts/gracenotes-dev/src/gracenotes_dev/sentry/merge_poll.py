@@ -20,7 +20,10 @@ from gracenotes_dev.sentry.cursor_review_fix import (
 from gracenotes_dev.sentry.log_sink import SentryLogSink
 from gracenotes_dev.sentry.merge_conflict import try_resolve_merge_conflicts_with_agent
 from gracenotes_dev.sentry.merge_logic import can_merge
-from gracenotes_dev.sentry.review_comment import reviewers_clear_from_sentry_comment
+from gracenotes_dev.sentry.review_comment import (
+    auth_user_has_sentry_marker_comment,
+    reviewers_clear_from_sentry_comment,
+)
 from gracenotes_dev.sentry.review_gates import review_wait_satisfied
 from gracenotes_dev.sentry.settings import SentrySettings
 
@@ -83,17 +86,36 @@ def merge_poll_once(
         reviewers_clear = True
     elif settings.review_clear_mode == "comment":
         auth_login = gh_api.gh_authenticated_login(repo_root)
-        if sink is not None and auth_login is None:
-            sink.log(
-                f"merge poll: pr={pr_number} review_clear_mode=comment but gh user login "
-                "unavailable; reviewers_clear=false until `gh auth login` works."
-            )
-        reviewers_clear = reviewers_clear_from_sentry_comment(
-            comments=comments,
-            authenticated_login=auth_login,
-            block_outcomes=settings.review_clear_block_outcomes,
-            max_age_seconds=settings.review_clear_comment_max_age_seconds,
+        github_clear = gh_api.reviewers_merge_clear(
+            review_thread_nodes=threads,
+            pr_reviews=reviews,
+            reviewer_logins=settings.reviewer_logins,
         )
+        # Marker-only mode applies after the gh user has posted at least one
+        # <!-- sentry-review: … --> comment (e.g. review-fix). Until then, use the
+        # same thread/review rules as ``github`` so CI-green exploratory PRs can merge
+        # without a manual marker or /sentry-approve.
+        if auth_login is None:
+            if sink is not None:
+                sink.log(
+                    f"merge poll: pr={pr_number} review_clear_mode=comment but gh user login "
+                    "unavailable; using GitHub review/thread state for review clearance."
+                )
+            reviewers_clear = github_clear
+        elif auth_user_has_sentry_marker_comment(comments, auth_login):
+            reviewers_clear = reviewers_clear_from_sentry_comment(
+                comments=comments,
+                authenticated_login=auth_login,
+                block_outcomes=settings.review_clear_block_outcomes,
+                max_age_seconds=settings.review_clear_comment_max_age_seconds,
+            )
+        else:
+            if sink is not None:
+                sink.log(
+                    f"merge poll: pr={pr_number} review_clear_mode=comment, "
+                    "no sentry marker from gh user; using GitHub review/thread state."
+                )
+            reviewers_clear = github_clear
     else:
         reviewers_clear = gh_api.reviewers_merge_clear(
             review_thread_nodes=threads,
