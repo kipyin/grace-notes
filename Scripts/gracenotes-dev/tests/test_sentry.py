@@ -16,6 +16,7 @@ from gracenotes_dev.sentry import github as gh_sentry
 from gracenotes_dev.sentry import runner as sentry_runner
 from gracenotes_dev.sentry.classify import TouchClass, classify_paths
 from gracenotes_dev.sentry.llm_client import (
+    parse_ci_fix_response,
     parse_fix_response,
     parse_merge_conflict_response,
     parse_pr_material_json,
@@ -184,6 +185,8 @@ class SentrySettingsTest(unittest.TestCase):
         self.assertEqual(s.review_silence_timeout_seconds, 15 * 60)
         self.assertEqual(s.review_fix_cooldown_seconds, 180)
         self.assertEqual(s.cursor_review_fix_cooldown_seconds, 180)
+        self.assertEqual(s.ci_fix_cooldown_seconds, 180)
+        self.assertEqual(s.ci_fix_max_rounds_per_poll, 5)
 
 
 class SentryTomlTest(unittest.TestCase):
@@ -247,6 +250,21 @@ class SentryTomlTest(unittest.TestCase):
             s = SentrySettings.from_repo(root)
         self.assertEqual(s.review_fix_cooldown_seconds, 100)
         self.assertEqual(s.cursor_review_fix_cooldown_seconds, 250)
+        self.assertEqual(s.ci_fix_cooldown_seconds, 250)
+
+    def test_ci_fix_cooldown_can_override_cursor_default(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "GraceNotes").mkdir()
+            (root / "gracenotes-dev.toml").write_text(
+                "[sentry]\n"
+                "cursor_review_fix_cooldown_seconds = 200\n"
+                "ci_fix_cooldown_seconds = 400\n",
+                encoding="utf-8",
+            )
+            s = SentrySettings.from_repo(root)
+        self.assertEqual(s.cursor_review_fix_cooldown_seconds, 200)
+        self.assertEqual(s.ci_fix_cooldown_seconds, 400)
 
     def test_reviewer_logins_defaults_union_copilot_and_cursor_when_unset(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -312,6 +330,16 @@ class SentryParseMergeConflictTest(unittest.TestCase):
     def test_swift_fence(self) -> None:
         out = parse_merge_conflict_response("```swift\nfinal class X {}\n```")
         self.assertIn("final class X", out)
+
+
+class SentryParseCiFixTest(unittest.TestCase):
+    def test_swift_path_uses_swift_fence(self) -> None:
+        out = parse_ci_fix_response("```swift\nlet a = 1\n```\n", "GraceNotes/Foo.swift")
+        self.assertIn("let a = 1", out)
+
+    def test_python_path_uses_any_fence(self) -> None:
+        out = parse_ci_fix_response("```python\nx = 2\n```\n", "Scripts/gracenotes-dev/pkg/x.py")
+        self.assertIn("x = 2", out)
 
 
 class SentryFixProviderEnvTest(unittest.TestCase):
@@ -658,3 +686,191 @@ class SentryCLISurfaceTest(unittest.TestCase):
         self.assertEqual(start_help.exit_code, 0)
         for token in ["--once", "--dry-run", "--no-merge", "--tui", "--no-tui"]:
             self.assertIn(token, start_help.output)
+
+
+class MergePollCiFixTest(unittest.TestCase):
+    def test_red_ci_runs_agent_fix_and_continues_loop(self) -> None:
+        from gracenotes_dev.sentry.merge_poll import MergePollOutcome, merge_poll_once
+
+        settings = mock.Mock()
+        settings.fix_provider = "cursor_agent"
+        settings.reviewer_logins = ()
+        settings.approval_phrase = "/sentry-approve"
+        settings.cursor_start_phrases = ()
+        settings.review_silence_timeout_seconds = 900
+        settings.cursor_review_fix_cooldown_seconds = 180
+        settings.ci_fix_cooldown_seconds = 180
+        settings.ci_fix_max_rounds_per_poll = 5
+
+        patch_checks = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.pr_checks_passed",
+            return_value=False,
+        )
+        patch_threads = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.graphql_review_threads",
+            return_value=[],
+        )
+        patch_comments = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.issue_comments",
+            return_value=[],
+        )
+        patch_reviews = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.pr_reviews",
+            return_value=[],
+        )
+        patch_created = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.pr_created_at_utc",
+            return_value=None,
+        )
+        patch_wait = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.review_wait_satisfied",
+            return_value=True,
+        )
+        patch_clear = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.reviewers_merge_clear",
+            return_value=True,
+        )
+        patch_should = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.ci_fix_should_attempt",
+            return_value=True,
+        )
+        patch_mark = mock.patch("gracenotes_dev.sentry.merge_poll.ci_fix_mark_attempt")
+        patch_try = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.try_fix_ci_with_agent",
+            return_value=True,
+        )
+
+        with patch_checks, patch_threads, patch_comments, patch_reviews, patch_created, patch_wait, patch_clear, patch_should, patch_mark, patch_try:
+            out = merge_poll_once(
+                Path("/tmp"),
+                settings,
+                "o",
+                "r",
+                42,
+                set(),
+                "main",
+                sink=None,
+            )
+        self.assertEqual(out, MergePollOutcome.CONTINUE_LOOP)
+
+    def test_red_ci_wait_for_gates_when_fix_returns_false(self) -> None:
+        from gracenotes_dev.sentry.merge_poll import MergePollOutcome, merge_poll_once
+
+        settings = mock.Mock()
+        settings.fix_provider = "cursor_agent"
+        settings.reviewer_logins = ()
+        settings.approval_phrase = "/sentry-approve"
+        settings.cursor_start_phrases = ()
+        settings.review_silence_timeout_seconds = 900
+        settings.cursor_review_fix_cooldown_seconds = 180
+        settings.ci_fix_cooldown_seconds = 180
+        settings.ci_fix_max_rounds_per_poll = 5
+
+        patch_checks = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.pr_checks_passed",
+            return_value=False,
+        )
+        patch_threads = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.graphql_review_threads",
+            return_value=[],
+        )
+        patch_comments = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.issue_comments",
+            return_value=[],
+        )
+        patch_reviews = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.pr_reviews",
+            return_value=[],
+        )
+        patch_created = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.pr_created_at_utc",
+            return_value=None,
+        )
+        patch_wait = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.review_wait_satisfied",
+            return_value=True,
+        )
+        patch_clear = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.reviewers_merge_clear",
+            return_value=True,
+        )
+        patch_should = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.ci_fix_should_attempt",
+            return_value=True,
+        )
+        patch_try = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.try_fix_ci_with_agent",
+            return_value=False,
+        )
+
+        with patch_checks, patch_threads, patch_comments, patch_reviews, patch_created, patch_wait, patch_clear, patch_should, patch_try:
+            out = merge_poll_once(
+                Path("/tmp"),
+                settings,
+                "o",
+                "r",
+                42,
+                set(),
+                "main",
+                sink=None,
+            )
+        self.assertEqual(out, MergePollOutcome.WAIT_FOR_GATES)
+
+    def test_red_ci_skips_ci_fix_when_http_provider(self) -> None:
+        from gracenotes_dev.sentry.merge_poll import merge_poll_once
+
+        settings = mock.Mock()
+        settings.fix_provider = "http"
+        settings.reviewer_logins = ()
+        settings.approval_phrase = "/sentry-approve"
+        settings.cursor_start_phrases = ()
+        settings.review_silence_timeout_seconds = 900
+        settings.cursor_review_fix_cooldown_seconds = 180
+        settings.ci_fix_cooldown_seconds = 180
+        settings.ci_fix_max_rounds_per_poll = 5
+
+        patch_checks = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.pr_checks_passed",
+            return_value=False,
+        )
+        patch_threads = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.graphql_review_threads",
+            return_value=[],
+        )
+        patch_comments = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.issue_comments",
+            return_value=[],
+        )
+        patch_reviews = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.pr_reviews",
+            return_value=[],
+        )
+        patch_created = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.pr_created_at_utc",
+            return_value=None,
+        )
+        patch_wait = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.review_wait_satisfied",
+            return_value=True,
+        )
+        patch_clear = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.gh_api.reviewers_merge_clear",
+            return_value=True,
+        )
+        patch_try = mock.patch(
+            "gracenotes_dev.sentry.merge_poll.try_fix_ci_with_agent",
+            return_value=True,
+        )
+
+        with patch_checks, patch_threads, patch_comments, patch_reviews, patch_created, patch_wait, patch_clear, patch_try as mock_try:
+            merge_poll_once(
+                Path("/tmp"),
+                settings,
+                "o",
+                "r",
+                42,
+                set(),
+                "main",
+                sink=None,
+            )
+        mock_try.assert_not_called()

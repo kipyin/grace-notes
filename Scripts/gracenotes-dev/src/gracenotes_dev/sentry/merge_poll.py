@@ -7,6 +7,11 @@ from enum import Enum
 from pathlib import Path
 
 from gracenotes_dev.sentry import github as gh_api
+from gracenotes_dev.sentry.ci_fix import (
+    ci_fix_mark_attempt,
+    ci_fix_should_attempt,
+    try_fix_ci_with_agent,
+)
 from gracenotes_dev.sentry.cursor_review_fix import (
     cursor_fix_mark_attempt,
     cursor_fix_should_attempt,
@@ -91,6 +96,24 @@ def merge_poll_once(
         reviewers_ok=reviewers_ok,
         approve_phrase_present=approve,
     )
+
+    if not merge_allowed and not ci_ok and settings.fix_provider == "cursor_agent":
+        if ci_fix_should_attempt(
+            repo_root,
+            pr_number,
+            settings.ci_fix_cooldown_seconds,
+        ):
+            ci_fix_mark_attempt(repo_root, pr_number)
+            if try_fix_ci_with_agent(
+                repo_root,
+                settings,
+                pr_number,
+                main_branch,
+                sink=sink,
+                git_cwd=git_cwd,
+            ):
+                time.sleep(5.0)
+                return MergePollOutcome.CONTINUE_LOOP
 
     if not merge_allowed and wait_ok and not reviewers_clear:
         if ci_ok and cursor_fix_should_attempt(

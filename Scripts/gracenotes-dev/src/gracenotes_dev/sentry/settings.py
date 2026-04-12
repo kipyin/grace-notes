@@ -241,6 +241,22 @@ def _merge_cursor_review_fix_cooldown_seconds(tom: dict[str, Any], base: int) ->
     return v if v is not None else base
 
 
+def _merge_ci_fix_cooldown_seconds(tom: dict[str, Any], default_from_cursor: int) -> int:
+    """Cooldown between local ``grace ci`` + agent fix attempts for red PR checks."""
+    if os.environ.get("SENTRY_CI_FIX_COOLDOWN_SEC", "").strip():
+        return _env_int("SENTRY_CI_FIX_COOLDOWN_SEC", default_from_cursor)
+    v = _opt_int(tom, "ci_fix_cooldown_seconds")
+    return v if v is not None else default_from_cursor
+
+
+def _merge_ci_fix_max_rounds_per_poll(tom: dict[str, Any]) -> int:
+    """Max inner rounds (grace ci → agent passes) per merge poll for CI recovery."""
+    if os.environ.get("SENTRY_CI_FIX_MAX_ROUNDS", "").strip():
+        return max(1, _env_int("SENTRY_CI_FIX_MAX_ROUNDS", 5))
+    v = _opt_int(tom, "ci_fix_max_rounds_per_poll")
+    return max(1, v if v is not None else 5)
+
+
 def _merge_cursor_start_phrases(tom: dict[str, Any]) -> tuple[str, ...]:
     if os.environ.get("SENTRY_CURSOR_START_PHRASES", "").strip():
         return _comma_list("SENTRY_CURSOR_START_PHRASES")
@@ -303,6 +319,8 @@ class SentrySettings:
     review_silence_timeout_seconds: int
     review_fix_cooldown_seconds: int
     cursor_review_fix_cooldown_seconds: int
+    ci_fix_cooldown_seconds: int
+    ci_fix_max_rounds_per_poll: int
 
     @classmethod
     def from_repo(cls, repo_root: Path) -> SentrySettings:
@@ -324,6 +342,8 @@ class SentrySettings:
         )
         fix_cooldown_base = _merge_review_fix_cooldown_base(tom)
         fix_cooldown_cursor = _merge_cursor_review_fix_cooldown_seconds(tom, fix_cooldown_base)
+        ci_fix_cooldown = _merge_ci_fix_cooldown_seconds(tom, fix_cooldown_cursor)
+        ci_fix_max_rounds = _merge_ci_fix_max_rounds_per_poll(tom)
         merge_sweep_per = _merge_int(
             "SENTRY_MERGE_SWEEP_BUDGET_SEC",
             tom,
@@ -415,6 +435,8 @@ class SentrySettings:
             review_silence_timeout_seconds=review_silence,
             review_fix_cooldown_seconds=fix_cooldown_base,
             cursor_review_fix_cooldown_seconds=fix_cooldown_cursor,
+            ci_fix_cooldown_seconds=ci_fix_cooldown,
+            ci_fix_max_rounds_per_poll=ci_fix_max_rounds,
         )
 
     @classmethod

@@ -155,6 +155,33 @@ def build_cursor_review_fix_prompt(
     )
 
 
+def build_ci_failure_prompt(
+    relative_path: str,
+    file_content: str,
+    ci_log_excerpt: str,
+) -> str:
+    """Instruction block for fixing a file so ``grace ci`` passes (local Mac run)."""
+    log = _clip_text(ci_log_excerpt.strip(), 24_000)
+    return (
+        f"File: `{relative_path}`\n\n"
+        "The project's `grace ci` command failed on macOS. Use the CI output below to fix "
+        "this file so the project passes CI. Preserve unrelated behavior.\n\n"
+        "## CI output\n\n"
+        f"```text\n{log}\n```\n\n"
+        "Reply with ONLY a markdown fenced code block with the full new file contents "
+        "(use ```swift for Swift; ```python for Python). "
+        "If this file does not need changes or the failure is elsewhere, reply exactly: NO_CHANGE\n\n"
+        f"---BEGIN FILE---\n{file_content}\n---END FILE---"
+    )
+
+
+def parse_ci_fix_response(content: str, relative_path: str) -> str:
+    """Parse agent output for CI recovery: Swift uses a swift fenced block; else any fence."""
+    if relative_path.endswith(".swift"):
+        return parse_fix_response(content)
+    return parse_merge_conflict_response(content)
+
+
 def _unified_diff_excerpt(old: str, new: str, path: str, *, max_lines: int = 120) -> str:
     lines = list(
         difflib.unified_diff(
