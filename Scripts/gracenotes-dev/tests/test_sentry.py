@@ -118,6 +118,8 @@ class SentrySettingsTest(unittest.TestCase):
             ("cursor[bot]", "cursor", "cursoragent"),
         )
         self.assertTrue(s.cursor_post_review_trigger)
+        self.assertEqual(s.merge_sweep_budget_seconds, 120)
+        self.assertEqual(s.cursor_review_fix_cooldown_seconds, 180)
 
 
 class SentryTomlTest(unittest.TestCase):
@@ -183,7 +185,7 @@ class SentryPrMaterialParseTest(unittest.TestCase):
         self.assertIn("## User impact", body)
         self.assertIn("## What changed", body)
         self.assertIn("## Verification", body)
-        self.assertIn("Copilot review threads", body)
+        self.assertIn("emergency override", body)
 
 
 class SentryParseFixTest(unittest.TestCase):
@@ -255,6 +257,22 @@ class SentryGithubGraphQLTest(unittest.TestCase):
         self.assertEqual(gh.unresolved_copilot_threads(nodes, "copilot"), 1)
         self.assertEqual(gh.unresolved_copilot_threads(nodes, "Copilot"), 1)
         self.assertEqual(gh.unresolved_copilot_threads(nodes, None), 0)
+
+    def test_unresolved_cursor_threads_counts_matching_login(self) -> None:
+        from gracenotes_dev.sentry import github as gh
+
+        nodes = [
+            {
+                "isResolved": False,
+                "comments": {"nodes": [{"author": {"login": "cursor"}, "body": "a"}]},
+            },
+            {
+                "isResolved": False,
+                "comments": {"nodes": [{"author": {"login": "human"}, "body": "b"}]},
+            },
+        ]
+        self.assertEqual(gh.unresolved_cursor_threads(nodes, ("cursor",)), 1)
+        self.assertEqual(gh.unresolved_cursor_threads(nodes, ()), 0)
 
 
 class SentryGithubListPrsTest(unittest.TestCase):
@@ -412,13 +430,93 @@ class SentryCursorPrReviewGateTest(unittest.TestCase):
             )
         )
 
-    def test_merge_gate_ok_changes_requested_counts(self) -> None:
+    def test_merge_gate_ok_changes_requested_counts_as_review_done(self) -> None:
+        """``CHANGES_REQUESTED`` still satisfies ``cursor_merge_gate_ok`` (review submitted)."""
         self.assertTrue(
             gh_sentry.cursor_merge_gate_ok(
                 comments=[{"user": {"login": "cursor"}, "body": "Taking a look"}],
                 pr_reviews=[{"user": {"login": "cursor"}, "state": "CHANGES_REQUESTED"}],
                 cursor_logins=("cursor",),
                 start_phrases=("Taking a look",),
+            )
+        )
+
+
+class SentryCursorMergeClearTest(unittest.TestCase):
+    def test_empty_logins_always_clear(self) -> None:
+        self.assertTrue(
+            gh_sentry.cursor_merge_clear(
+                review_thread_nodes=[],
+                pr_reviews=[{"user": {"login": "cursor"}, "state": "CHANGES_REQUESTED"}],
+                cursor_logins=(),
+            )
+        )
+
+    def test_changes_requested_blocks_merge_clear(self) -> None:
+        self.assertFalse(
+            gh_sentry.cursor_merge_clear(
+                review_thread_nodes=[],
+                pr_reviews=[
+                    {
+                        "user": {"login": "cursor"},
+                        "state": "CHANGES_REQUESTED",
+                        "submitted_at": "2020-01-02T00:00:00Z",
+                    },
+                ],
+                cursor_logins=("cursor",),
+            )
+        )
+
+    def test_approved_is_clear(self) -> None:
+        self.assertTrue(
+            gh_sentry.cursor_merge_clear(
+                review_thread_nodes=[],
+                pr_reviews=[
+                    {
+                        "user": {"login": "cursor"},
+                        "state": "APPROVED",
+                        "submitted_at": "2020-01-02T00:00:00Z",
+                    },
+                ],
+                cursor_logins=("cursor",),
+            )
+        )
+
+    def test_latest_review_wins_over_older_changes_requested(self) -> None:
+        self.assertTrue(
+            gh_sentry.cursor_merge_clear(
+                review_thread_nodes=[],
+                pr_reviews=[
+                    {
+                        "user": {"login": "cursor"},
+                        "state": "CHANGES_REQUESTED",
+                        "submitted_at": "2020-01-01T00:00:00Z",
+                    },
+                    {
+                        "user": {"login": "cursor"},
+                        "state": "APPROVED",
+                        "submitted_at": "2020-01-02T00:00:00Z",
+                    },
+                ],
+                cursor_logins=("cursor",),
+            )
+        )
+
+    def test_unresolved_cursor_thread_blocks(self) -> None:
+        self.assertFalse(
+            gh_sentry.cursor_merge_clear(
+                review_thread_nodes=[
+                    {
+                        "isResolved": False,
+                        "comments": {
+                            "nodes": [
+                                {"author": {"login": "cursor"}, "body": "fix this"},
+                            ],
+                        },
+                    },
+                ],
+                pr_reviews=[],
+                cursor_logins=("cursor",),
             )
         )
 

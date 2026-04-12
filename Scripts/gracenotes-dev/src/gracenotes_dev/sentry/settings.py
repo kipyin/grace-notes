@@ -248,11 +248,14 @@ class SentrySettings:
     cursor_reviewer_logins: tuple[str, ...]
     cursor_start_phrases: tuple[str, ...]
     cursor_post_review_trigger: bool
+    merge_sweep_budget_seconds: int
+    cursor_review_fix_cooldown_seconds: int
 
     @classmethod
     def from_repo(cls, repo_root: Path) -> SentrySettings:
         tom = load_sentry_table(repo_root=repo_root)
         cursor_reviewer_logins = _merge_cursor_reviewer_logins(tom)
+        interval_sec = _merge_int("SENTRY_INTERVAL_SEC", tom, "interval_seconds", 30)
         return cls(
             copilot_login=_merge_opt_str("SENTRY_COPILOT_LOGIN", tom, "copilot_login"),
             approval_phrase=_merge_str(
@@ -282,7 +285,7 @@ class SentrySettings:
                 "llm_api_key_env",
                 "OPENAI_API_KEY",
             ),
-            interval_seconds=_merge_int("SENTRY_INTERVAL_SEC", tom, "interval_seconds", 30),
+            interval_seconds=interval_sec,
             max_retries=_merge_int("SENTRY_MAX_RETRIES", tom, "max_retries", 8),
             retry_base_seconds=_merge_float(
                 "SENTRY_RETRY_BASE_SEC",
@@ -331,6 +334,18 @@ class SentrySettings:
                 tom,
                 "cursor_post_review_trigger",
                 bool(cursor_reviewer_logins),
+            ),
+            merge_sweep_budget_seconds=_merge_int(
+                "SENTRY_MERGE_SWEEP_BUDGET_SEC",
+                tom,
+                "merge_sweep_budget_seconds",
+                max(120, interval_sec * 2),
+            ),
+            cursor_review_fix_cooldown_seconds=_merge_int(
+                "SENTRY_CURSOR_FIX_COOLDOWN_SEC",
+                tom,
+                "cursor_review_fix_cooldown_seconds",
+                180,
             ),
         )
 

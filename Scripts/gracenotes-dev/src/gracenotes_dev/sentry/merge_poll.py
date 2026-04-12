@@ -7,6 +7,11 @@ from enum import Enum
 from pathlib import Path
 
 from gracenotes_dev.sentry import github as gh_api
+from gracenotes_dev.sentry.cursor_review_fix import (
+    cursor_fix_mark_attempt,
+    cursor_fix_should_attempt,
+    try_address_cursor_review_with_agent,
+)
 from gracenotes_dev.sentry.log_sink import SentryLogSink
 from gracenotes_dev.sentry.merge_conflict import try_resolve_merge_conflicts_with_agent
 from gracenotes_dev.sentry.merge_logic import can_merge
@@ -58,25 +63,65 @@ def merge_poll_once(
     )
 
     copilot_ok = unresolved == 0
-    cursor_ok = gh_api.cursor_merge_gate_ok(
+    cursor_review_done = gh_api.cursor_merge_gate_ok(
         comments=comments,
         pr_reviews=reviews,
         cursor_logins=settings.cursor_reviewer_logins,
         start_phrases=settings.cursor_start_phrases,
     )
+    cursor_clear = gh_api.cursor_merge_clear(
+        review_thread_nodes=threads,
+        pr_reviews=reviews,
+        cursor_logins=settings.cursor_reviewer_logins,
+    )
+    cursor_ok = cursor_review_done and cursor_clear
 
     if sink is not None:
         sink.log(
             f"merge poll: pr={pr_number} ci_ok={ci_ok} "
-            f"copilot_unresolved={unresolved} cursor_ok={cursor_ok} approve={approve}"
+            f"copilot_unresolved={unresolved} cursor_review_done={cursor_review_done} "
+            f"cursor_clear={cursor_clear} approve={approve}"
         )
 
-    if can_merge(
+    merge_allowed = can_merge(
         ci_ok=ci_ok,
         copilot_ok=copilot_ok,
         cursor_ok=cursor_ok,
         approve_phrase_present=approve,
-    ):
+    )
+
+    if not merge_allowed and cursor_review_done and not cursor_clear:
+        if (
+            ci_ok
+            and copilot_ok
+            and cursor_fix_should_attempt(
+                repo_root,
+                pr_number,
+                settings.cursor_review_fix_cooldown_seconds,
+            )
+        ):
+            feedback = gh_api.cursor_feedback_digest(
+                review_thread_nodes=threads,
+                pr_reviews=reviews,
+                cursor_logins=settings.cursor_reviewer_logins,
+            )
+            if feedback.strip() and settings.fix_provider == "cursor_agent":
+                cursor_fix_mark_attempt(repo_root, pr_number)
+                if try_address_cursor_review_with_agent(
+                    repo_root,
+                    settings,
+                    owner,
+                    repo,
+                    pr_number,
+                    main_branch,
+                    feedback_text=feedback,
+                    sink=sink,
+                    git_cwd=git_cwd,
+                ):
+                    time.sleep(5.0)
+                    return MergePollOutcome.CONTINUE_LOOP
+
+    if merge_allowed:
         if sink is not None:
             sink.set_step("squash merge")
         merged = gh_api.pr_merge_squash(repo_root, pr_number)

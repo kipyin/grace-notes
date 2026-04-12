@@ -595,7 +595,7 @@ def run_single_iteration(
 
         owner, repo = remote
         allow = set(settings.approval_users)
-        merge_ok = _poll_until_merge(
+        outcome = merge_poll_once(
             repo_root,
             settings,
             owner,
@@ -606,13 +606,19 @@ def run_single_iteration(
             sink=sink,
             git_cwd=work_root,
         )
-        if merge_ok:
+        if outcome == MergePollOutcome.MERGED:
             _emit(repo_root, sink, {"kind": "merged", "message": f"PR #{pr_number} squash-merged"})
         else:
             _emit(
                 repo_root,
                 sink,
-                {"kind": "note", "message": f"Stopped waiting on PR #{pr_number}"},
+                {
+                    "kind": "note",
+                    "message": (
+                        f"Merge gates not ready for PR #{pr_number} (or will retry in sweep); "
+                        "not blocking sentry."
+                    ),
+                },
             )
 
         try:
@@ -658,102 +664,78 @@ def reconcile_open_sentry_prs(
         },
     )
     allow = set(settings.approval_users)
-    for pr_number in pr_numbers:
-        paths = gh_api.pr_changed_file_paths(repo_root, pr_number)
-        touch = classify_paths(paths)
-        _emit(
-            repo_root,
-            sink,
-            {
-                "kind": "sweep_pr",
-                "message": f"Sweep PR #{pr_number}",
-                "pr": pr_number,
-                "touch": touch.value,
-            },
-        )
-        while True:
-            outcome = merge_poll_once(
-                repo_root,
-                settings,
-                owner,
-                gh_repo,
-                pr_number,
-                allow,
-                main_branch,
-                sink=sink,
-            )
-            if outcome == MergePollOutcome.MERGED:
+    deadline = time.monotonic() + float(settings.merge_sweep_budget_seconds)
+    poll_interval = 30.0
+    remaining: set[int] = set(pr_numbers)
+    sweep_announced: set[int] = set()
+
+    while time.monotonic() < deadline and remaining:
+        for pr_number in sorted(remaining):
+            if time.monotonic() >= deadline:
+                break
+            if pr_number not in sweep_announced:
+                sweep_announced.add(pr_number)
+                paths = gh_api.pr_changed_file_paths(repo_root, pr_number)
+                touch = classify_paths(paths)
                 _emit(
                     repo_root,
                     sink,
                     {
-                        "kind": "sweep_merged",
-                        "message": f"PR #{pr_number} squash-merged",
+                        "kind": "sweep_pr",
+                        "message": f"Sweep PR #{pr_number}",
                         "pr": pr_number,
+                        "touch": touch.value,
                     },
                 )
-                break
-            if outcome == MergePollOutcome.TERMINAL_FAIL:
-                _emit(
+            while True:
+                if time.monotonic() >= deadline:
+                    break
+                outcome = merge_poll_once(
                     repo_root,
-                    sink,
-                    {
-                        "kind": "sweep_merge_fail",
-                        "message": f"PR #{pr_number}: merge attempt failed",
-                        "pr": pr_number,
-                    },
+                    settings,
+                    owner,
+                    gh_repo,
+                    pr_number,
+                    allow,
+                    main_branch,
+                    sink=sink,
                 )
+                if outcome == MergePollOutcome.MERGED:
+                    _emit(
+                        repo_root,
+                        sink,
+                        {
+                            "kind": "sweep_merged",
+                            "message": f"PR #{pr_number} squash-merged",
+                            "pr": pr_number,
+                        },
+                    )
+                    remaining.discard(pr_number)
+                    break
+                if outcome == MergePollOutcome.TERMINAL_FAIL:
+                    _emit(
+                        repo_root,
+                        sink,
+                        {
+                            "kind": "sweep_merge_fail",
+                            "message": f"PR #{pr_number}: merge attempt failed",
+                            "pr": pr_number,
+                        },
+                    )
+                    remaining.discard(pr_number)
+                    break
+                if outcome == MergePollOutcome.CONTINUE_LOOP:
+                    continue
                 break
-            if outcome == MergePollOutcome.CONTINUE_LOOP:
-                continue
+
+            try:
+                _git_output(repo_root, "fetch", "origin", main_branch)
+            except subprocess.CalledProcessError:
+                pass
+
+        if not remaining:
             break
-
-        try:
-            _git_output(repo_root, "fetch", "origin", main_branch)
-        except subprocess.CalledProcessError:
-            pass
-
-
-def _poll_until_merge(
-    repo_root: Path,
-    settings: SentrySettings,
-    owner: str,
-    repo: str,
-    pr_number: int,
-    allow: set[str],
-    main_branch: str,
-    *,
-    sink: SentryLogSink | None = None,
-    git_cwd: Path | None = None,
-) -> bool:
-    """Return True if merged."""
-    deadline = time.monotonic() + float(settings.arbitration_stuck_seconds)
-    poll = 30.0
-
-    while time.monotonic() < deadline:
-        outcome = merge_poll_once(
-            repo_root,
-            settings,
-            owner,
-            repo,
-            pr_number,
-            allow,
-            main_branch,
-            sink=sink,
-            git_cwd=git_cwd,
-        )
-        if outcome == MergePollOutcome.MERGED:
-            return True
-        if outcome == MergePollOutcome.TERMINAL_FAIL:
-            return False
-        if outcome == MergePollOutcome.CONTINUE_LOOP:
-            continue
-        time.sleep(poll)
-
-    gh_api.pr_comment(
-        repo_root,
-        pr_number,
-        "Sentry: timed out waiting for merge gates. "
-        f"Resolve Copilot / Cursor review or post `{settings.approval_phrase}` (allowlisted user).",
-    )
-    return False
+        left = deadline - time.monotonic()
+        if left <= 0:
+            break
+        time.sleep(min(poll_interval, left))

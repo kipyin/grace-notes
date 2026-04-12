@@ -1,4 +1,4 @@
-"""Merge gate: CI + Copilot threads + Cursor issue comments + optional ``/sentry-approve``."""
+"""Merge gate: CI + Copilot threads + Cursor review state + optional ``/sentry-approve``."""
 
 from __future__ import annotations
 
@@ -13,7 +13,10 @@ def can_merge(
     """
     merge_ok = ci && (approve || (copilot_ok && cursor_ok)).
 
-    Approve overrides stuck Copilot threads and pending Cursor review (same as Copilot).
+    ``cursor_ok`` means Cursor’s review cycle is done **and** merge-safe (no
+    ``CHANGES_REQUESTED``, no unresolved Cursor threads) when Cursor is configured.
+
+    Approve overrides stuck Copilot threads and Cursor gates (emergency escape hatch).
     """
     if not ci_ok:
         return False

@@ -54,8 +54,8 @@ def build_pr_body(
         f"{human_section}"
         "---\n"
         "*Automated by `grace sentry`.* "
-        f"If Copilot review threads block merge, post `{approval_phrase}` "
-        "from an allowlisted account.\n"
+        f"Merge is normally unblocked by CI and review resolution; if stuck, an allowlisted "
+        f"account may post `{approval_phrase}` as an emergency override.\n"
     )
 
 
@@ -84,8 +84,8 @@ def build_pr_body_from_material(
         f"{human_section}"
         "---\n"
         "*Automated by `grace sentry`.* "
-        f"If Copilot review threads block merge, post `{approval_phrase}` "
-        "from an allowlisted account.\n"
+        f"Merge is normally unblocked by CI and review resolution; if stuck, an allowlisted "
+        f"account may post `{approval_phrase}` as an emergency override.\n"
     )
 
 

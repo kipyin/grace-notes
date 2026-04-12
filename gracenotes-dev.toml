@@ -68,6 +68,7 @@ agent_timeout_sec = 900
 
 copilot_login = "copilot-pull-request-reviewer"
 approval_phrase = "/sentry-approve"
+# GitHub logins allowed to post `approval_phrase` as an emergency merge override. Use [] to disable.
 approval_users = ["kipyin"]
 
 # Cursor merge gate: default logins match common app accounts; use
@@ -77,6 +78,8 @@ approval_users = ["kipyin"]
 
 ci_profile = "lint-build"
 copilot_wait_seconds = 900
+# merge_sweep_budget_seconds = 120
+# cursor_review_fix_cooldown_seconds = 180
 arbitration_stuck_seconds = 172800
 interval_seconds = 30
 max_retries = 8

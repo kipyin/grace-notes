@@ -135,6 +135,26 @@ def _clip_text(s: str, max_chars: int) -> str:
     return s[:max_chars] + "\n… [truncated]"
 
 
+def build_cursor_review_fix_prompt(
+    relative_path: str,
+    file_content: str,
+    feedback_text: str,
+) -> str:
+    """Instruction block for applying a reviewer's feedback to a single file."""
+    fb = _clip_text(feedback_text.strip(), 24_000)
+    return (
+        f"File: `{relative_path}`\n\n"
+        "A reviewer left feedback on this pull request. Apply the requested changes to the "
+        "Swift file below. Preserve existing behavior except where the feedback requires a "
+        "change. If the feedback does not apply to this file, reply exactly: NO_CHANGE\n\n"
+        "## Reviewer feedback\n\n"
+        f"{fb}\n\n"
+        "Reply with ONLY a single markdown fenced code block ```swift ... ``` containing the "
+        "complete new file contents (entire file, not a diff).\n\n"
+        f"---BEGIN FILE---\n{file_content}\n---END FILE---"
+    )
+
+
 def _unified_diff_excerpt(old: str, new: str, path: str, *, max_lines: int = 120) -> str:
     lines = list(
         difflib.unified_diff(

@@ -106,6 +106,113 @@ def unresolved_copilot_threads(
     return count
 
 
+def unresolved_cursor_threads(
+    nodes: list[dict[str, Any]],
+    cursor_logins: tuple[str, ...],
+) -> int:
+    """Count unresolved review threads that include a comment from any configured Cursor login."""
+    allowed = {x.strip().lower() for x in cursor_logins if x.strip()}
+    if not allowed:
+        return 0
+    count = 0
+    for node in nodes:
+        if node.get("isResolved"):
+            continue
+        comments = (node.get("comments") or {}).get("nodes") or []
+        for c in comments:
+            author = (c or {}).get("author") or {}
+            alogin = (author.get("login") or "").lower()
+            if alogin in allowed:
+                count += 1
+                break
+    return count
+
+
+def _cursor_reviews_newest_first(
+    reviews: list[dict[str, Any]],
+    cursor_logins: tuple[str, ...],
+) -> list[dict[str, Any]]:
+    """Non-``PENDING`` Cursor PR reviews, newest ``submitted_at`` first."""
+    allowed = {x.strip().lower() for x in cursor_logins if x.strip()}
+    if not allowed:
+        return []
+    out: list[dict[str, Any]] = []
+    for r in reviews:
+        user = ((r.get("user") or {}).get("login") or "").strip().lower()
+        if user not in allowed:
+            continue
+        state = (r.get("state") or "").strip().upper()
+        if state == "PENDING":
+            continue
+        out.append(r)
+    out.sort(key=lambda x: str(x.get("submitted_at") or ""), reverse=True)
+    return out
+
+
+def cursor_requests_changes_latest(
+    reviews: list[dict[str, Any]],
+    cursor_logins: tuple[str, ...],
+) -> bool:
+    """True if the newest Cursor PR review is ``CHANGES_REQUESTED``."""
+    newest = _cursor_reviews_newest_first(reviews, cursor_logins)
+    if not newest:
+        return False
+    return (newest[0].get("state") or "").strip().upper() == "CHANGES_REQUESTED"
+
+
+def cursor_merge_clear(
+    *,
+    review_thread_nodes: list[dict[str, Any]],
+    pr_reviews: list[dict[str, Any]],
+    cursor_logins: tuple[str, ...],
+) -> bool:
+    """
+    Merge-safe Cursor state: no unresolved threads from Cursor and no ``CHANGES_REQUESTED``.
+
+    If ``cursor_logins`` is empty, returns True (nothing to check).
+    """
+    allowed = {x.strip().lower() for x in cursor_logins if x.strip()}
+    if not allowed:
+        return True
+    if unresolved_cursor_threads(review_thread_nodes, cursor_logins) > 0:
+        return False
+    if cursor_requests_changes_latest(pr_reviews, cursor_logins):
+        return False
+    return True
+
+
+def cursor_feedback_digest(
+    *,
+    review_thread_nodes: list[dict[str, Any]],
+    pr_reviews: list[dict[str, Any]],
+    cursor_logins: tuple[str, ...],
+) -> str:
+    """Text for the fix agent: unresolved Cursor thread bodies plus latest Cursor review body."""
+    allowed = {x.strip().lower() for x in cursor_logins if x.strip()}
+    if not allowed:
+        return ""
+    parts: list[str] = []
+    for node in review_thread_nodes:
+        if node.get("isResolved"):
+            continue
+        comments = (node.get("comments") or {}).get("nodes") or []
+        for c in comments:
+            author = (c or {}).get("author") or {}
+            login = (author.get("login") or "").strip()
+            if login.lower() not in allowed:
+                continue
+            body = (c or {}).get("body") or ""
+            if body.strip():
+                parts.append(f"Review thread ({login}):\n{body.strip()}")
+    newest = _cursor_reviews_newest_first(pr_reviews, cursor_logins)
+    if newest:
+        body = (newest[0].get("body") or "").strip()
+        state = (newest[0].get("state") or "").strip()
+        if body:
+            parts.append(f"Latest PR review ({state}):\n{body}")
+    return "\n\n---\n\n".join(parts)
+
+
 def pr_reviews(repo_root: Path, owner: str, repo: str, pr_number: int) -> list[dict[str, Any]]:
     """Submitted PR reviews (REST). Used with issue comments for Cursor merge gating."""
     proc = _run_gh(
