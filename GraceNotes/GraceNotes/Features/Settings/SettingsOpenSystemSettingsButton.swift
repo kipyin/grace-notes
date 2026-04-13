@@ -15,9 +15,11 @@ struct SettingsOpenSystemSettingsButton: View {
     var body: some View {
         Button(action: action) {
             Text(String(localized: "settings.openSettings"))
+                .font(AppTheme.warmPaperBody)
+                .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity, minHeight: 44)
+                .contentShape(Rectangle())
         }
-        .font(AppTheme.warmPaperBody)
         .accessibilityHint(accessibilityHint)
         .modifier(OpenSystemSettingsButtonStyle(emphasis: emphasis))
     }
