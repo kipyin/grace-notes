@@ -132,7 +132,9 @@ final class ReminderSchedulerTests: XCTestCase {
 
         XCTAssertEqual(result, .failed)
         XCTAssertNil(center.lastAddedRequest)
-        XCTAssertEqual(center.removedIdentifiers, [ReminderSettings.notificationIdentifier])
+        // `scheduleReminder` does not call `removeReminder` when `add` fails (see implementation comment:
+        // avoid clearing a prior pending request if replacement fails).
+        XCTAssertNil(center.removedIdentifiers)
     }
 
     private func date(components: DateComponents, calendar: Calendar) -> Date {

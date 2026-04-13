@@ -58,6 +58,11 @@ struct BackupFolderImportFileListView: View {
 
     @State private var files: [URL] = []
     @State private var listError: String?
+    @State private var isSelecting = false
+    @State private var selection = Set<String>()
+    @State private var showDeleteConfirm = false
+    @State private var deleteErrorMessage: String?
+    @State private var showDeleteError = false
 
     var body: some View {
         Group {
@@ -71,6 +76,19 @@ struct BackupFolderImportFileListView: View {
                     .font(AppTheme.warmPaperBody)
                     .foregroundStyle(AppTheme.settingsTextMuted)
                     .padding()
+            } else if isSelecting {
+                List(selection: $selection) {
+                    ForEach(files, id: \.path) { url in
+                        Text(url.lastPathComponent)
+                            .font(AppTheme.settingsTechnicalBody)
+                            .foregroundStyle(AppTheme.settingsTextPrimary)
+                            .tag(url.path)
+                    }
+                }
+                .environment(\.editMode, .constant(.active))
+                .listRowBackground(AppTheme.settingsPaper.opacity(0.9))
+                .scrollContentBackground(.hidden)
+                .background(AppTheme.settingsBackground)
             } else {
                 List(files, id: \.path) { url in
                     Button {
@@ -90,9 +108,79 @@ struct BackupFolderImportFileListView: View {
         }
         .navigationTitle(String(localized: "settings.dataPrivacy.importExport.backupFolder.title"))
         .background(AppTheme.settingsBackground)
+        .toolbar {
+            if !files.isEmpty, listError == nil {
+                if isSelecting {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button(String(localized: "common.cancel")) {
+                            isSelecting = false
+                            selection.removeAll()
+                        }
+                    }
+                    ToolbarItem(placement: .primaryAction) {
+                        Button(String(localized: "common.delete"), role: .destructive) {
+                            showDeleteConfirm = true
+                        }
+                        .disabled(selection.isEmpty)
+                    }
+                } else {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button(String(localized: "settings.dataPrivacy.importExport.backupFolder.select")) {
+                            isSelecting = true
+                        }
+                    }
+                }
+            }
+        }
+        .confirmationDialog(
+            String(localized: "settings.dataPrivacy.importExport.backupFolder.deleteConfirm.title"),
+            isPresented: $showDeleteConfirm,
+            titleVisibility: .visible
+        ) {
+            Button(String(localized: "common.delete"), role: .destructive) {
+                performDelete()
+            }
+            Button(String(localized: "common.cancel"), role: .cancel) {}
+        } message: {
+            Text(String.localizedStringWithFormat(
+                String(localized: "settings.dataPrivacy.importExport.backupFolder.deleteConfirm.messageFormat"),
+                selection.count
+            ))
+        }
+        .alert(
+            String(localized: "settings.dataPrivacy.importExport.backupFolder.deleteError.title"),
+            isPresented: $showDeleteError
+        ) {
+            Button(String(localized: "common.ok"), role: .cancel) {}
+        } message: {
+            Text(deleteErrorMessage ?? String(localized: "common.tryAgainGeneric"))
+        }
         .task {
             load()
         }
+        .onChange(of: files) { _, newFiles in
+            if newFiles.isEmpty {
+                isSelecting = false
+                selection.removeAll()
+            }
+        }
+    }
+
+    private func performDelete() {
+        let urls = files.filter { selection.contains($0.path) }
+        guard !urls.isEmpty else { return }
+        do {
+            try ScheduledBackupPreferences.withFolderSecurityScopedAccess { _ in
+                try BackupFolderLibrary.deleteFiles(at: urls)
+            }
+        } catch {
+            deleteErrorMessage = String(localized: "settings.dataPrivacy.importExport.backupFolder.deleteError.message")
+            showDeleteError = true
+            return
+        }
+        selection.removeAll()
+        isSelecting = false
+        load()
     }
 
     private func load() {

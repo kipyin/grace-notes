@@ -25,6 +25,8 @@ struct ImportExportSettingsScreen: View {
     @State private var showMergeConflictResolution = false
     @State private var exportHistory: [BackupExportHistoryEntry] = []
     @State private var scheduledInterval: ScheduledBackupInterval = ScheduledBackupPreferences.interval
+    @State private var backupRetention: BackupRetentionPeriod = ScheduledBackupPreferences.backupRetentionPeriod
+    @State private var backupSizeCap: BackupFolderSizeCap = ScheduledBackupPreferences.backupFolderSizeCap
     @State private var showScheduledFolderPicker = false
     @State private var scheduledFolderError: String?
     @State private var showScheduledFolderError = false
@@ -57,11 +59,59 @@ struct ImportExportSettingsScreen: View {
         }
     }
 
+    @ViewBuilder
+    private var scheduledBackupRetentionPicker: some View {
+        let title = String(localized: "settings.dataPrivacy.scheduledBackup.retention.title")
+        Picker(title, selection: $backupRetention) {
+            Text(String(localized: "settings.dataPrivacy.scheduledBackup.retention.days7"))
+                .tag(BackupRetentionPeriod.days7)
+            Text(String(localized: "settings.dataPrivacy.scheduledBackup.retention.days30"))
+                .tag(BackupRetentionPeriod.days30)
+            Text(String(localized: "settings.dataPrivacy.scheduledBackup.retention.days90"))
+                .tag(BackupRetentionPeriod.days90)
+            Text(String(localized: "settings.dataPrivacy.scheduledBackup.retention.days365"))
+                .tag(BackupRetentionPeriod.days365)
+            Text(String(localized: "settings.dataPrivacy.scheduledBackup.retention.forever"))
+                .tag(BackupRetentionPeriod.forever)
+        }
+        .font(AppTheme.warmPaperBody)
+        .foregroundStyle(AppTheme.settingsTextPrimary)
+        .onChange(of: backupRetention) { _, newValue in
+            ScheduledBackupPreferences.backupRetentionPeriod = newValue
+        }
+    }
+
+    @ViewBuilder
+    private var scheduledBackupSizeCapPicker: some View {
+        let title = String(localized: "settings.dataPrivacy.scheduledBackup.sizeCap.title")
+        Picker(title, selection: $backupSizeCap) {
+            Text(String(localized: "settings.dataPrivacy.scheduledBackup.sizeCap.mb25"))
+                .tag(BackupFolderSizeCap.mb25)
+            Text(String(localized: "settings.dataPrivacy.scheduledBackup.sizeCap.mb100"))
+                .tag(BackupFolderSizeCap.mb100)
+            Text(String(localized: "settings.dataPrivacy.scheduledBackup.sizeCap.mb500"))
+                .tag(BackupFolderSizeCap.mb500)
+            Text(String(localized: "settings.dataPrivacy.scheduledBackup.sizeCap.gb2"))
+                .tag(BackupFolderSizeCap.gb2)
+            Text(String(localized: "settings.dataPrivacy.scheduledBackup.sizeCap.unlimited"))
+                .tag(BackupFolderSizeCap.unlimited)
+        }
+        .font(AppTheme.warmPaperBody)
+        .foregroundStyle(AppTheme.settingsTextPrimary)
+        .onChange(of: backupSizeCap) { _, newValue in
+            ScheduledBackupPreferences.backupFolderSizeCap = newValue
+        }
+    }
+
     var body: some View {
         ZStack {
             List {
             Section {
                 scheduledBackupIntervalPicker
+
+                scheduledBackupRetentionPicker
+
+                scheduledBackupSizeCapPicker
 
                 Button {
                     showScheduledFolderPicker = true
@@ -80,10 +130,13 @@ struct ImportExportSettingsScreen: View {
                     .foregroundStyle(AppTheme.settingsTextMuted)
                     .textCase(nil)
             } footer: {
-                Text(String(localized: "settings.dataPrivacy.scheduledBackup.footer"))
-                    .font(AppTheme.warmPaperMeta)
-                    .foregroundStyle(AppTheme.settingsTextMuted)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                VStack(alignment: .leading, spacing: AppTheme.spacingTight) {
+                    Text(String(localized: "settings.dataPrivacy.scheduledBackup.footer"))
+                    Text(String(localized: "settings.dataPrivacy.scheduledBackup.retentionPolicy.footer"))
+                }
+                .font(AppTheme.warmPaperMeta)
+                .foregroundStyle(AppTheme.settingsTextMuted)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
 
             Section {
@@ -220,6 +273,8 @@ struct ImportExportSettingsScreen: View {
         .onAppear {
             refreshHistory()
             scheduledInterval = ScheduledBackupPreferences.interval
+            backupRetention = ScheduledBackupPreferences.backupRetentionPeriod
+            backupSizeCap = ScheduledBackupPreferences.backupFolderSizeCap
         }
         .sheet(isPresented: $showImportReview) {
             importReviewSheet

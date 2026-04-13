@@ -10,6 +10,8 @@ final class ScheduledBackupPreferencesTests: XCTestCase {
         defaults.removeObject(forKey: "ScheduledBackup.intervalRaw")
         defaults.removeObject(forKey: "ScheduledBackup.lastRunAt")
         defaults.removeObject(forKey: "ScheduledBackup.lastFailedAttemptAt")
+        defaults.removeObject(forKey: "ScheduledBackup.retentionRaw")
+        defaults.removeObject(forKey: "ScheduledBackup.sizeCapRaw")
         super.tearDown()
     }
 
@@ -23,6 +25,13 @@ final class ScheduledBackupPreferencesTests: XCTestCase {
         let pastFailure = Date().addingTimeInterval(-ScheduledBackupPreferences.failureBackoff - 1)
         ScheduledBackupPreferences.lastFailedAttemptAt = pastFailure
         XCTAssertTrue(ScheduledBackupPreferences.isDue(now: Date()))
+    }
+
+    func test_backupRetentionAndSizeCap_roundTrip() {
+        ScheduledBackupPreferences.backupRetentionPeriod = .days90
+        ScheduledBackupPreferences.backupFolderSizeCap = .mb100
+        XCTAssertEqual(ScheduledBackupPreferences.backupRetentionPeriod, .days90)
+        XCTAssertEqual(ScheduledBackupPreferences.backupFolderSizeCap, .mb100)
     }
 
     func test_storeFolderBookmark_persistsDisplayName() throws {

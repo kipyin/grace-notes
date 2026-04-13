@@ -1458,6 +1458,214 @@
         }
       }
     },
+    "settings.dataPrivacy.scheduledBackup.retention.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep backups"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留备份"
+          }
+        }
+      }
+    },
+    "settings.dataPrivacy.scheduledBackup.retention.days7": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7 days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7 天"
+          }
+        }
+      }
+    },
+    "settings.dataPrivacy.scheduledBackup.retention.days30": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 天"
+          }
+        }
+      }
+    },
+    "settings.dataPrivacy.scheduledBackup.retention.days90": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90 days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90 天"
+          }
+        }
+      }
+    },
+    "settings.dataPrivacy.scheduledBackup.retention.days365": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 year"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 年"
+          }
+        }
+      }
+    },
+    "settings.dataPrivacy.scheduledBackup.retention.forever": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forever"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "永久"
+          }
+        }
+      }
+    },
+    "settings.dataPrivacy.scheduledBackup.sizeCap.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Max backup folder size"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备份文件夹上限"
+          }
+        }
+      }
+    },
+    "settings.dataPrivacy.scheduledBackup.sizeCap.mb25": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "25 MB"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "25 MB"
+          }
+        }
+      }
+    },
+    "settings.dataPrivacy.scheduledBackup.sizeCap.mb100": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "100 MB"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "100 MB"
+          }
+        }
+      }
+    },
+    "settings.dataPrivacy.scheduledBackup.sizeCap.mb500": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "500 MB"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "500 MB"
+          }
+        }
+      }
+    },
+    "settings.dataPrivacy.scheduledBackup.sizeCap.gb2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 GB"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 GB"
+          }
+        }
+      }
+    },
+    "settings.dataPrivacy.scheduledBackup.sizeCap.unlimited": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlimited"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不限制"
+          }
+        }
+      }
+    },
+    "settings.dataPrivacy.scheduledBackup.retentionPolicy.footer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After each successful scheduled backup, the app removes backups older than the time you chose, then trims oldest files if the folder is still over the size limit."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每次自动备份成功后，会先按你设置的时间删除旧备份；若仍超过大小上限，再按从最旧到最新的顺序删除，直到低于上限。"
+          }
+        }
+      }
+    },
     "settings.dataPrivacy.scheduledBackup.failureDetail": {
       "localizations": {
         "en": {
@@ -1534,6 +1742,86 @@
           "stringUnit": {
             "state": "translated",
             "value": "备份文件"
+          }
+        }
+      }
+    },
+    "settings.dataPrivacy.importExport.backupFolder.select": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择"
+          }
+        }
+      }
+    },
+    "settings.dataPrivacy.importExport.backupFolder.deleteConfirm.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete backups?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除备份？"
+          }
+        }
+      }
+    },
+    "settings.dataPrivacy.importExport.backupFolder.deleteConfirm.messageFormat": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete %lld backup files? This cannot be undone."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除 %lld 个备份文件？此操作无法撤销。"
+          }
+        }
+      }
+    },
+    "settings.dataPrivacy.importExport.backupFolder.deleteError.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not delete"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法删除"
+          }
+        }
+      }
+    },
+    "settings.dataPrivacy.importExport.backupFolder.deleteError.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The files could not be removed. Try again in Files."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法删除这些文件。请在「文件」中重试。"
           }
         }
       }

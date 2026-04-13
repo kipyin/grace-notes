@@ -69,7 +69,14 @@ enum ScheduledBackupRunner {
 
     private static func copyScheduledExportToFolder(tempFile: URL) throws -> String {
         try ScheduledBackupPreferences.withFolderSecurityScopedAccess { folderURL in
-            try copyTempExport(at: tempFile, to: folderURL)
+            let name = try copyTempExport(at: tempFile, to: folderURL)
+            try BackupFolderLibrary.prune(
+                folderURL: folderURL,
+                now: Date(),
+                retention: ScheduledBackupPreferences.backupRetentionPeriod,
+                maxTotalBytes: ScheduledBackupPreferences.backupFolderSizeCap.maxBytes
+            )
+            return name
         }
     }
 
@@ -129,23 +136,92 @@ enum ScheduledBackupRunner {
     }
 }
 
+struct BackupFolderFileMetadata: Equatable {
+    let url: URL
+    let modificationDate: Date
+    let fileSize: Int64
+}
+
 enum BackupFolderLibrary {
-    static func listExportFiles(in folder: URL) throws -> [URL] {
-        let urls = try FileManager.default.contentsOfDirectory(
+    static func listExportFiles(in folder: URL, fileManager: FileManager = .default) throws -> [URL] {
+        try listJSONMetadata(in: folder, fileManager: fileManager)
+            .sorted { lhs, rhs in
+                if lhs.modificationDate != rhs.modificationDate {
+                    return lhs.modificationDate > rhs.modificationDate
+                }
+                let order = lhs.url.lastPathComponent.localizedStandardCompare(rhs.url.lastPathComponent)
+                return order == .orderedDescending
+            }
+            .map(\.url)
+    }
+
+    /// Oldest files first (tie-breaker: path) for pruning and oldest-first deletion.
+    static func listJSONMetadataOldestFirst(
+        in folder: URL,
+        fileManager: FileManager = .default
+    ) throws -> [BackupFolderFileMetadata] {
+        try listJSONMetadata(in: folder, fileManager: fileManager)
+            .sorted { lhs, rhs in
+                if lhs.modificationDate != rhs.modificationDate {
+                    return lhs.modificationDate < rhs.modificationDate
+                }
+                let order = lhs.url.lastPathComponent.localizedStandardCompare(rhs.url.lastPathComponent)
+                return order == .orderedAscending
+            }
+    }
+
+    private static func listJSONMetadata(
+        in folder: URL,
+        fileManager: FileManager
+    ) throws -> [BackupFolderFileMetadata] {
+        let urls = try fileManager.contentsOfDirectory(
             at: folder,
-            includingPropertiesForKeys: [.contentModificationDateKey],
+            includingPropertiesForKeys: [.contentModificationDateKey, .fileSizeKey],
             options: [.skipsHiddenFiles]
         )
-        let json = urls.filter { $0.pathExtension.lowercased() == "json" }
-        return json.sorted { lhs, rhs in
-            let left = (try? lhs.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate)
-                ?? .distantPast
-            let right = (try? rhs.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate)
-                ?? .distantPast
-            if left != right {
-                return left > right
+        let jsonURLs = urls.filter { $0.pathExtension.lowercased() == "json" }
+        var result: [BackupFolderFileMetadata] = []
+        result.reserveCapacity(jsonURLs.count)
+        for url in jsonURLs {
+            let values = try url.resourceValues(forKeys: [.contentModificationDateKey, .fileSizeKey])
+            let date = values.contentModificationDate ?? .distantPast
+            let size = Int64(values.fileSize ?? 0)
+            result.append(BackupFolderFileMetadata(url: url, modificationDate: date, fileSize: size))
+        }
+        return result
+    }
+
+    static func deleteFiles(at urls: [URL], fileManager: FileManager = .default) throws {
+        for url in urls {
+            try fileManager.removeItem(at: url)
+        }
+    }
+
+    /// Removes JSON backups outside the retention window (oldest first),
+    /// then trims by total size (oldest first) if a cap is set.
+    static func prune(
+        folderURL: URL,
+        now: Date,
+        retention: BackupRetentionPeriod,
+        maxTotalBytes: Int64?,
+        calendar: Calendar = .current,
+        fileManager: FileManager = .default
+    ) throws {
+        if let cutoff = retention.ageCutoff(from: now, calendar: calendar) {
+            let meta = try listJSONMetadataOldestFirst(in: folderURL, fileManager: fileManager)
+            for file in meta where file.modificationDate < cutoff {
+                try fileManager.removeItem(at: file.url)
             }
-            return lhs.lastPathComponent.localizedStandardCompare(rhs.lastPathComponent) == .orderedDescending
+        }
+
+        guard let maxBytes = maxTotalBytes else { return }
+
+        var remaining = try listJSONMetadataOldestFirst(in: folderURL, fileManager: fileManager)
+        var total = remaining.reduce(Int64(0)) { $0 + $1.fileSize }
+        while total > maxBytes, let oldest = remaining.first {
+            try fileManager.removeItem(at: oldest.url)
+            total -= oldest.fileSize
+            remaining.removeFirst()
         }
     }
 }
