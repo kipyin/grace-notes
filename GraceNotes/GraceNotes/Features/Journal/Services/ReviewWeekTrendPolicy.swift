@@ -18,6 +18,9 @@ enum ReviewWeekTrendPolicy {
 
     /// Raw week-over-week direction from mention counts (before confidence / floors).
     static func rawTrend(current: Int, previous: Int) -> ReviewThemeTrend {
+        guard current >= 0, previous >= 0 else {
+            return .stable
+        }
         if previous == 0, current > 0 {
             return .new
         }
