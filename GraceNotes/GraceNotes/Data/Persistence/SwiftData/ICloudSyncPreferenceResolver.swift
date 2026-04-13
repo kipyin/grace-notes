@@ -20,6 +20,20 @@ enum ICloudSyncPreferenceResolver {
         JournalOnboardingStorageKeys.openedICloudSuggestion
     ]
 
+    /// Keys that ``JournalOnboardingProgress`` migrations copy into `onboardingKeys` / `completedGuidedJournal`
+    /// after launch. `GraceNotesApp` resolves iCloud sync first; without these, upgrades from older builds can
+    /// miss continuity and default CloudKit off incorrectly.
+    private static let legacyOnboardingKeysPendingMigration = [
+        JournalOnboardingStorageKeys.legacyHasSeenPostSeedJourney,
+        LegacyJournalOnboardingContinuityKeys.pending051UpgradeOrientation
+    ]
+
+    private enum LegacyJournalOnboardingContinuityKeys {
+        /// Matches ``LegacyJournalOnboardingStorageKeys.pending051UpgradeOrientation`` in
+        /// ``JournalOnboardingProgress``.
+        static let pending051UpgradeOrientation = "journalOnboarding.pending051UpgradeOrientation"
+    }
+
     static func resolvedCloudSyncEnabled(using defaults: UserDefaults = .standard) -> Bool {
         if let storedPreference = defaults.object(forKey: PersistenceController.iCloudSyncEnabledKey) as? Bool {
             return storedPreference
@@ -43,7 +57,7 @@ enum ICloudSyncPreferenceResolver {
             return true
         }
 
-        let continuityKeys = tutorialContinuityKeys + onboardingKeys
+        let continuityKeys = tutorialContinuityKeys + onboardingKeys + legacyOnboardingKeysPendingMigration
         return continuityKeys.contains { defaults.object(forKey: $0) != nil }
     }
 }
