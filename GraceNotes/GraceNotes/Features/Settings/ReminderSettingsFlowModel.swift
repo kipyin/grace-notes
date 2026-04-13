@@ -97,6 +97,13 @@ final class ReminderSettingsFlowModel: ObservableObject {
         }
 
         isWorking = true
+        await runRescheduleLoopWhileEnabled()
+        isWorking = false
+        await drainPendingRescheduleIfNeeded()
+    }
+
+    /// One “session” of reschedule attempts: repeats while another save is coalesced during an in-flight `await`.
+    private func runRescheduleLoopWhileEnabled() async {
         while true {
             pendingRescheduleAfterCurrentSave = false
             transientErrorMessage = nil
@@ -125,8 +132,6 @@ final class ReminderSettingsFlowModel: ObservableObject {
                 break
             }
         }
-        isWorking = false
-        await drainPendingRescheduleIfNeeded()
     }
 
     func clearTransientError() {
@@ -168,7 +173,9 @@ final class ReminderSettingsFlowModel: ObservableObject {
         while pendingRescheduleAfterCurrentSave {
             pendingRescheduleAfterCurrentSave = false
             guard liveStatus == .enabled else { return }
-            await saveEnabledReminderTime()
+            isWorking = true
+            await runRescheduleLoopWhileEnabled()
+            isWorking = false
         }
     }
 

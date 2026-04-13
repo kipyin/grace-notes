@@ -145,7 +145,14 @@ final class ReminderSettingsFlowModelTests: XCTestCase {
 
         async let firstSave: Void = model.saveEnabledReminderTime()
 
+        let deadline = Date().addingTimeInterval(2)
         while scheduler.rescheduleCallCount < 1 {
+            if Date() > deadline {
+                XCTFail("Timed out waiting for the first reschedule call")
+                await gate.open()
+                await firstSave
+                return
+            }
             await Task.yield()
         }
 
@@ -165,6 +172,7 @@ final class ReminderSettingsFlowModelTests: XCTestCase {
     }
 }
 
+@MainActor
 private final class MockReminderScheduling: ReminderScheduling {
     var currentStatus: ReminderLiveStatus = .off
     var enableResult: ReminderSyncResult = .scheduled
