@@ -76,8 +76,9 @@ Inputs: `ci_ok`, `wait_ok`, `reviewers_clear`, optional `/sentry-approve`.
     |                     |
     v                     v
 wait_ok              reviewers_clear
-(from silence /       (see below)
- issue+PR gate)
+(issue start phrases +  (see below)
+ bot quiescence *or*
+ silence timeout)
     |                     |
     +---------+-----------+
               |
@@ -100,20 +101,33 @@ If **not** mergeable but `wait_ok` and **not** `reviewers_clear` and
 
 ---
 
+## `wait_ok` (review wait)
+
+Satisfied when **both** hold (or **`review_silence_timeout_seconds`** has elapsed
+since PR creation, or that timeout is ``<= 0``):
+
+* **Issue + PR reviews:** ``reviewer_merge_gate_ok`` (``/review`` start phrases
+  must finish in issue comments **or** via a submitted PR review from an allowlisted login).
+* **Bot quiescence (A2):** no ``PENDING`` PR review from an allowlisted login,
+  and no **requested** reviewers left on the PR whose login is allowlisted
+  (``gh pr view --json reviewRequests``). Inactive bots that never appear do
+  not block.
+
 ## `reviewers_clear` (two modes)
 
 | Mode | Source |
 |------|--------|
-| `comment` (default) | **No** GitHub thread resolution. Before any marker from `gh`
-| | auth user: cleared. After markers: latest `<!-- sentry-review: X -->` from auth;
-| | `X` not in `review_clear_block_outcomes`. |
+| `comment` (default) | **No** GitHub thread resolution. Merge requires a PR **issue**
+| | comment from the authenticated ``gh`` user whose **newest** body contains
+| | `<!-- sentry-review: X -->` with ``X`` **not** in ``review_clear_block_outcomes``.
+| | If ``gh`` auth login is unavailable, the gate does **not** clear (fail closed). |
 | `github` | GraphQL: no unresolved threads with allowlisted reviewer
 | | comments; REST: latest non-pending review per allowlisted login not
 | | `CHANGES_REQUESTED`. |
 
-Default block list includes `product_decision`, `no_change`, `ci_failed`,
-`error`, `no_swift_files`. **`addressed`**, **`pushback`**, **`caveat`**
-clear when not blocked.
+Default block list includes `product_decision`, `ci_failed`, and `error`.
+**`addressed`**, **`pushback`**, **`caveat`**, **`no_change`**, and **`no_swift_files`**
+clear when not blocked (override via TOML / env).
 
 Emergency: allowlisted users post `approval_phrase` (e.g. `/sentry-approve`)
 → merge if CI green, bypassing `reviewers_ok`.
@@ -162,6 +176,10 @@ Emergency: allowlisted users post `approval_phrase` (e.g. `/sentry-approve`)
 
 If the CI loop never goes green, JSONL / logs record failure; **no** templated
 review-outcome PR comment for that path.
+
+If there are **no** ``GraceNotes/**/*.swift`` paths in the PR diff, or the agent
+makes **no** edits, sentry still posts a narrative PR comment with a
+``sentry-review`` marker (**no** local ``grace ci`` / push for that path).
 
 ---
 

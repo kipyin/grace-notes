@@ -278,6 +278,56 @@ def pr_created_at_utc(repo_root: Path, pr_number: int) -> datetime | None:
         return None
 
 
+def review_bots_quiescent(
+    pr_reviews: list[dict[str, Any]],
+    reviewer_logins: tuple[str, ...],
+    requested_allowlisted_logins: list[str],
+) -> bool:
+    """
+    True when no allowlisted bot has a draft ``PENDING`` PR review and GitHub has no
+    outstanding **requested** reviewers that match the allowlist (A2: inactive bots do not block).
+
+    ``requested_allowlisted_logins`` should be logins from ``gh pr view --json reviewRequests``
+    filtered to ``reviewer_logins``.
+    """
+    if review_pending_from_allowlist(pr_reviews, reviewer_logins):
+        return False
+    if requested_allowlisted_logins:
+        return False
+    return True
+
+
+def pr_review_requests(repo_root: Path, pr_number: int) -> list[str]:
+    """
+    Logins still requested to review the PR (``gh pr view --json reviewRequests``).
+
+    Includes only **User** request targets; team review requests are skipped (no stable login).
+    """
+    proc = _run_gh(
+        repo_root,
+        ["pr", "view", str(pr_number), "--json", "reviewRequests"],
+        check=False,
+    )
+    if proc.returncode != 0:
+        return []
+    try:
+        data = json.loads(proc.stdout or "{}")
+    except json.JSONDecodeError:
+        return []
+    raw = data.get("reviewRequests")
+    if not isinstance(raw, list):
+        return []
+    out: list[str] = []
+    for node in raw:
+        if not isinstance(node, dict):
+            continue
+        if (node.get("__typename") or "").strip() == "User":
+            login = (node.get("login") or "").strip()
+            if login:
+                out.append(login)
+    return out
+
+
 def review_pending_from_allowlist(
     reviews: list[dict[str, Any]],
     reviewer_logins: tuple[str, ...],

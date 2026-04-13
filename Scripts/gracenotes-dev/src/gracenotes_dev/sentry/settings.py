@@ -299,10 +299,8 @@ def _merge_review_clear_block_outcomes(tom: dict[str, Any]) -> frozenset[str]:
     return frozenset(
         {
             "product_decision",
-            "no_change",
             "ci_failed",
             "error",
-            "no_swift_files",
         }
     )
 

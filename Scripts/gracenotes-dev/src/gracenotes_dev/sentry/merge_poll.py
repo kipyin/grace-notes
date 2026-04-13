@@ -62,6 +62,9 @@ def merge_poll_once(
 
     comments = gh_api.issue_comments(repo_root, owner, repo, pr_number)
     reviews = gh_api.pr_reviews(repo_root, owner, repo, pr_number)
+    requested = gh_api.pr_review_requests(repo_root, pr_number)
+    allow_l = {x.strip().lower() for x in settings.reviewer_logins if x.strip()}
+    requested_allowlisted = [r for r in requested if r.strip().lower() in allow_l]
     approve = gh_api.has_approval_phrase(
         comments,
         settings.approval_phrase,
@@ -81,23 +84,22 @@ def merge_poll_once(
         pr_reviews=reviews,
         reviewer_logins=settings.reviewer_logins,
         start_phrases=settings.cursor_start_phrases,
+        review_requested_allowlisted_logins=requested_allowlisted,
     )
     if not settings.reviewer_logins:
         reviewers_clear = True
     elif settings.review_clear_mode == "comment":
-        # Marker-only clearance: unresolved GitHub review threads do not block merge.
-        # After a review-fix, the gh user (or agent posting as that user) posts an issue
-        # comment with <!-- sentry-review: … -->; newest marker + block_outcomes applies.
-        # Until any such marker exists, reviewers_clear is True (exploratory PRs are not
-        # stuck on Copilot/Cursor threads). Use review_clear_mode=github to gate on threads.
+        # Narrative marker clearance: the authenticated gh user posts a PR comment with
+        # <!-- sentry-review: … --> after sentry reviews the review round. Unresolved
+        # GitHub review threads do not block merge.
         auth_login = gh_api.gh_authenticated_login(repo_root)
         if auth_login is None:
             if sink is not None:
                 sink.log(
                     f"merge poll: pr={pr_number} review_clear_mode=comment but gh user login "
-                    "unavailable; cannot evaluate markers — treating review gate as cleared."
+                    "unavailable; cannot evaluate markers — review gate not cleared."
                 )
-            reviewers_clear = True
+            reviewers_clear = False
         elif auth_user_has_sentry_marker_comment(comments, auth_login):
             reviewers_clear = reviewers_clear_from_sentry_comment(
                 comments=comments,
@@ -109,9 +111,9 @@ def merge_poll_once(
             if sink is not None:
                 sink.log(
                     f"merge poll: pr={pr_number} review_clear_mode=comment, "
-                    "no sentry marker from gh user; review gate cleared (not using GitHub threads)."
+                    "no sentry marker from gh user; review gate not cleared."
                 )
-            reviewers_clear = True
+            reviewers_clear = False
     else:
         reviewers_clear = gh_api.reviewers_merge_clear(
             review_thread_nodes=threads,
@@ -162,7 +164,8 @@ def merge_poll_once(
                 pr_reviews=reviews,
                 reviewer_logins=settings.reviewer_logins,
             )
-            if feedback.strip() and settings.fix_provider == "cursor_agent":
+            feedback_text = feedback.strip() or "(No review digest text.)"
+            if settings.fix_provider == "cursor_agent":
                 cursor_fix_mark_attempt(repo_root, pr_number)
                 if try_address_cursor_review_with_agent(
                     repo_root,
@@ -171,7 +174,7 @@ def merge_poll_once(
                     repo,
                     pr_number,
                     main_branch,
-                    feedback_text=feedback,
+                    feedback_text=feedback_text,
                     sink=sink,
                     git_cwd=git_cwd,
                 ):

@@ -14,6 +14,7 @@
 
 ## Entries
 
+- 2026-04-12 | **Sentry:** `parse_fix_response` must treat `NO_CHANGE` as valid when Cursor prints prose, markdown, or a standalone line—not only when the entire output starts with `NO_CHANGE`; when multiple fenced blocks exist, prefer the swift-fenced block.
 - 2026-04-10 | **GitHub text /gh:** Never add tool-attribution footers to issues or PRs. If a client auto-appends lines like “Made with Cursor”, remove them via `gh pr edit` so descriptions match repo rules.
 - 2026-04-10 | **Scope:** “Writing-plans” means produce the plan artifact first; **do not** implement and open a full code PR unless the user clearly asked to execute the plan in the same request (confirm when both appear).
 - 2026-04-10 | **Environment:** Treat **`user_info` OS as authoritative** (e.g. `darwin` ⇒ macOS, Xcode/iOS SDK may be available). **AGENTS.md** “Linux VM cannot compile SwiftUI” is for Cursor Cloud defaults, not a reason to skip `grace ci` when the session is on macOS.

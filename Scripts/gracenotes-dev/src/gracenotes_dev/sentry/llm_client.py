@@ -13,8 +13,39 @@ from dataclasses import dataclass
 from gracenotes_dev.sentry.pr_template import PrMaterial
 
 _SWIFT_BLOCK = re.compile(r"```(?:swift)?\s*([\s\S]*?)```", re.MULTILINE)
+_SWIFT_FENCE = re.compile(r"```swift\s*([\s\S]*?)```", re.MULTILINE | re.IGNORECASE)
 _JSON_FENCE = re.compile(r"```(?:json)?\s*([\s\S]*?)```", re.MULTILINE)
 _ANY_FENCE_BLOCK = re.compile(r"```(?:[a-zA-Z0-9]+)?\s*([\s\S]*?)```", re.MULTILINE)
+
+# Token the agent is instructed to use; Cursor often wraps it in prose or markdown.
+_NO_CHANGE_TOKEN = re.compile(r"(?<![A-Za-z0-9_])NO_CHANGE(?![A-Za-z0-9_])", re.IGNORECASE)
+
+
+def _line_is_no_change(line: str) -> bool:
+    s = line.strip()
+    if not s:
+        return False
+    for _ in range(4):
+        t = s.strip("*_` \t")
+        if t == s:
+            break
+        s = t
+    return s.upper().rstrip(".!") == "NO_CHANGE"
+
+
+def _signals_no_change(content: str) -> bool:
+    """True when the model declined to edit (Cursor often ignores 'reply exactly NO_CHANGE')."""
+    t = content.strip()
+    if not t:
+        return False
+    if t.upper().startswith("NO_CHANGE"):
+        return True
+    for line in t.splitlines():
+        if _line_is_no_change(line):
+            return True
+    if _NO_CHANGE_TOKEN.search(t):
+        return True
+    return False
 
 
 @dataclass(frozen=True)
@@ -85,22 +116,29 @@ def propose_swift_fix(
 
 def parse_fix_response(content: str) -> str:
     """Extract full Swift file from model output, or empty string if NO_CHANGE."""
-    if content.strip().upper().startswith("NO_CHANGE"):
+    # Prefer ```swift ...``` when multiple fences exist (explanation block first).
+    m = _SWIFT_FENCE.search(content) or _SWIFT_BLOCK.search(content)
+    if m:
+        inner = m.group(1).strip()
+        if not inner or inner.upper() == "NO_CHANGE":
+            return ""
+        return inner + "\n"
+    if _signals_no_change(content):
         return ""
-    m = _SWIFT_BLOCK.search(content)
-    if not m:
-        raise RuntimeError("Model did not return a ```swift``` block and did not say NO_CHANGE.")
-    return m.group(1).strip() + "\n"
+    raise RuntimeError("Model did not return a ```swift``` block and did not say NO_CHANGE.")
 
 
 def parse_merge_conflict_response(content: str) -> str:
     """Extract resolved file from agent output (any fenced block), or empty if NO_CHANGE."""
-    if content.strip().upper().startswith("NO_CHANGE"):
-        return ""
     m = _ANY_FENCE_BLOCK.search(content)
-    if not m:
-        raise RuntimeError("Model did not return a fenced code block and did not say NO_CHANGE.")
-    return m.group(1).strip() + "\n"
+    if m:
+        inner = m.group(1).strip()
+        if not inner or inner.upper() == "NO_CHANGE":
+            return ""
+        return inner + "\n"
+    if _signals_no_change(content):
+        return ""
+    raise RuntimeError("Model did not return a fenced code block and did not say NO_CHANGE.")
 
 
 def build_merge_conflict_prompt(relative_path: str, file_content: str) -> str:
