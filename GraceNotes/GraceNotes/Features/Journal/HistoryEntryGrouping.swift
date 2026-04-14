@@ -13,7 +13,7 @@ enum HistoryEntryGrouping {
                 if $0.entryDate != $1.entryDate {
                     return $0.entryDate > $1.entryDate
                 }
-                return $0.id.uuidString < $1.id.uuidString
+                return $0.id < $1.id
             }
             return (month, groupedEntries)
         }
