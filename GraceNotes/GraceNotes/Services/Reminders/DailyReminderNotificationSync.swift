@@ -13,11 +13,7 @@ enum DailyReminderNotificationSync {
         let status = await reminderScheduler.currentReminderStatus()
         guard status == .enabled else { return }
 
-        let stored = userDefaults.object(forKey: ReminderSettings.timeIntervalKey) as? TimeInterval
-        var interval = stored ?? ReminderSettings.defaultTimeInterval
-        if !interval.isFinite {
-            interval = ReminderSettings.defaultTimeInterval
-        }
+        let interval = storedReminderTimeInterval(from: userDefaults)
         let reminderTime = ReminderSettings.date(from: interval)
         let body: String
         do {
@@ -30,5 +26,26 @@ enum DailyReminderNotificationSync {
             body = String(localized: String.LocalizationValue("notifications.reminder.body.fallback"))
         }
         _ = await reminderScheduler.rescheduleEnabledReminder(at: reminderTime, body: body)
+    }
+
+    /// Reads the saved clock time. `UserDefaults` is untyped; accept `NSNumber` and reject non-finite values.
+    private static func storedReminderTimeInterval(from userDefaults: UserDefaults) -> TimeInterval {
+        guard let raw = userDefaults.object(forKey: ReminderSettings.timeIntervalKey) else {
+            return ReminderSettings.defaultTimeInterval
+        }
+
+        let interval: TimeInterval
+        if let number = raw as? NSNumber {
+            interval = number.doubleValue
+        } else if let value = raw as? TimeInterval {
+            interval = value
+        } else {
+            return ReminderSettings.defaultTimeInterval
+        }
+
+        if !interval.isFinite {
+            return ReminderSettings.defaultTimeInterval
+        }
+        return interval
     }
 }
