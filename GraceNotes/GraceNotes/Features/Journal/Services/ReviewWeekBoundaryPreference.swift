@@ -29,8 +29,12 @@ enum ReviewWeekBoundaryPreference: String, CaseIterable, Equatable, Sendable {
         ReviewWeekBoundaryPreference(rawValue: rawValue) ?? defaultValue
     }
 
+    /// Uses Gregorian weekday numbering (1 = Sunday … 7 = Saturday) regardless of the user’s primary
+    /// calendar, while keeping their time zone and locale for local day boundaries and formatting.
     func configuredCalendar(base: Calendar = .current) -> Calendar {
-        var calendar = base
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = base.timeZone
+        calendar.locale = base.locale
         calendar.firstWeekday = firstWeekday
         return calendar
     }
