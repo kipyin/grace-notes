@@ -172,7 +172,8 @@ enum JournalScreenEntryHandling {
                     canSwitch = false
                 }
             } else {
-                // At capacity with no row being edited: draft text cannot be saved before switching strips.
+                // At capacity with no row being edited: the draft cannot be saved, and switching strips would
+                // discard it.
                 canSwitch = false
             }
         }
