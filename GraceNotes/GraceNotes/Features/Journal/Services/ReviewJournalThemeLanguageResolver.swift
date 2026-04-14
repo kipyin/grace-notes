@@ -53,18 +53,26 @@ struct ReviewJournalThemeLanguageResolver: ReviewJournalThemeLanguageResolving {
     /// Upper bound on text fed to `NLLanguageRecognizer` and script tie-break (prefix by extended grapheme cluster).
     private static let maximumAnalysisGraphemes = 50_000
 
+    /// Counts non-whitespace graphemes only in the same prefix we analyze, so the threshold matches
+    /// `normalizedAnalysisSample` and pathological corpora cannot spend unbounded time here.
     private static func hasEnoughMeaningfulGraphemes(_ text: String, minimum: Int) -> Bool {
+        if minimum <= 0 {
+            return true
+        }
+
+        let prefix = text.prefix(maximumAnalysisGraphemes)
         var count = 0
-        for character in text where !character.isWhitespace {
+        for character in prefix where !character.isWhitespace {
             count += 1
             if count >= minimum {
                 return true
             }
         }
-        return count >= minimum
+        return false
     }
 
-    /// Collapses whitespace runs only inside the analysis prefix so pathological corpora never run a full-string regex replace.
+    /// Collapses whitespace runs only inside the analysis prefix so pathological corpora never run a full-string
+    /// regex replace.
     private static func normalizedAnalysisSample(from trimmed: String) -> String {
         let head = String(trimmed.prefix(maximumAnalysisGraphemes))
         return collapseWhitespaceRuns(head)
