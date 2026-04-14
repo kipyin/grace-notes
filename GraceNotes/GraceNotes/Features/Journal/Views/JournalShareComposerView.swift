@@ -42,6 +42,7 @@ struct JournalShareComposerView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
+                .disabled(isShareCommitInProgress)
             }
             .scrollContentBackground(.hidden)
             .background(AppTheme.settingsBackground.ignoresSafeArea())
@@ -201,10 +202,10 @@ struct JournalShareComposerView: View {
         .buttonStyle(.plain)
     }
 
+    @MainActor
     private func commitShare() {
         guard !isShareCommitInProgress else { return }
         isShareCommitInProgress = true
-        defer { isShareCommitInProgress = false }
 
         let built = ShareRenderPayloadBuilder.build(
             full: basePayload,
@@ -212,6 +213,7 @@ struct JournalShareComposerView: View {
             includePreviewStubs: false
         )
         guard let image = JournalShareRenderer.renderImage(from: built) else {
+            isShareCommitInProgress = false
             showRenderError = true
             return
         }
