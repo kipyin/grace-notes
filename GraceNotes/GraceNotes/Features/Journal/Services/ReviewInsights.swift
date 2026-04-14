@@ -123,7 +123,9 @@ struct ReviewMostRecurringTheme: Equatable, Hashable, Sendable, Codable, Identif
             evidence = structuredEvidence
         } else if let legacyEvidence = try container.decodeIfPresent([ReviewThemeEvidence].self, forKey: .evidence) {
             evidence = legacyEvidence.flatMap { row in
-                row.sources.map { source in
+                var seenInRow = Set<ReviewThemeSourceCategory>()
+                let uniqueSources = row.sources.filter { seenInRow.insert($0).inserted }
+                return uniqueSources.map { source in
                     ReviewThemeSurfaceEvidence(entryDate: row.date, source: source, content: "")
                 }
             }
@@ -363,7 +365,8 @@ struct ReviewWeekStats: Equatable, Sendable, Codable {
     let historyCompletionMix: ReviewWeekCompletionMix
     let mostRecurringThemes: [ReviewMostRecurringTheme]
     let movementThemes: [ReviewMovementTheme]
-    /// Grouped trending rows (same models as ``movementThemes``, which is ``trendingBuckets.flattened``).
+    /// Grouped trending rows (new / rising / down). ``movementThemes`` is usually the same set, reordered.
+    /// If both fields exist in JSON, prefer non-empty ``movementThemes`` so stable rows are not dropped on decode.
     let trendingBuckets: ReviewTrendingBuckets
 
     init(
@@ -400,7 +403,7 @@ struct ReviewWeekStats: Equatable, Sendable, Codable {
         self.mostRecurringThemes = mostRecurringThemes
         if let buckets = trendingBuckets {
             self.trendingBuckets = buckets
-            self.movementThemes = buckets.flattened
+            self.movementThemes = movementThemes.isEmpty ? buckets.flattened : movementThemes
         } else {
             self.movementThemes = movementThemes
             self.trendingBuckets = ReviewTrendingBuckets(bucketing: movementThemes)
@@ -451,7 +454,7 @@ struct ReviewWeekStats: Equatable, Sendable, Codable {
             try container.decodeIfPresent([ReviewMovementTheme].self, forKey: .movementThemes) ?? []
         if let buckets = try container.decodeIfPresent(ReviewTrendingBuckets.self, forKey: .trendingBuckets) {
             trendingBuckets = buckets
-            movementThemes = buckets.flattened
+            movementThemes = decodedMovement.isEmpty ? buckets.flattened : decodedMovement
         } else {
             movementThemes = decodedMovement
             trendingBuckets = ReviewTrendingBuckets(bucketing: decodedMovement)
