@@ -16,9 +16,17 @@ struct AdvancedSettingsScreen: View {
     @AppStorage(JournalAppearanceStorageKeys.todayMode)
     private var journalTodayAppearanceRaw = JournalAppearanceMode.standard.rawValue
 
-    @State private var intervalMode: PastStatisticsIntervalPickerMode = .all
-    @State private var customQuantity: Int = 4
-    @State private var customUnit: PastStatisticsIntervalUnit = .week
+    @State private var intervalMode: PastStatisticsIntervalPickerMode
+    @State private var customQuantity: Int
+    @State private var customUnit: PastStatisticsIntervalUnit
+
+    init() {
+        let encoded = UserDefaults.standard.string(forKey: PastStatisticsIntervalPreference.appStorageKey) ?? ""
+        let selection = PastStatisticsIntervalPreference.selection(fromAppStorage: encoded).validated
+        _intervalMode = State(initialValue: selection.mode == .all ? .all : .custom)
+        _customQuantity = State(initialValue: selection.quantity)
+        _customUnit = State(initialValue: selection.unit)
+    }
 
     var body: some View {
         List {
