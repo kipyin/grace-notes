@@ -338,7 +338,7 @@ struct WarmPaperPressStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.98 : 1.0)
             .opacity(configuration.isPressed ? 0.86 : 1.0)
             .animation(
                 reduceMotion ? nil : .easeOut(duration: 0.12),
