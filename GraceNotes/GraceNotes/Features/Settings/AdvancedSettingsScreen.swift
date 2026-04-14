@@ -24,7 +24,7 @@ struct AdvancedSettingsScreen: View {
         let encoded = UserDefaults.standard.string(forKey: PastStatisticsIntervalPreference.appStorageKey) ?? ""
         let selection = PastStatisticsIntervalPreference.selection(fromAppStorage: encoded).validated
         _intervalMode = State(initialValue: selection.mode == .all ? .all : .custom)
-        _customQuantity = State(initialValue: selection.quantity)
+        _customQuantity = State(initialValue: Self.clampedPickerQuantity(selection.quantity))
         _customUnit = State(initialValue: selection.unit)
     }
 
@@ -147,6 +147,10 @@ struct AdvancedSettingsScreen: View {
         )
     }
 
+    private static func clampedPickerQuantity(_ quantity: Int) -> Int {
+        min(max(quantity, 1), 999)
+    }
+
     private func localizedUnitLabel(_ unit: PastStatisticsIntervalUnit) -> String {
         switch unit {
         case .week:
@@ -160,7 +164,7 @@ struct AdvancedSettingsScreen: View {
 
     private func loadIntervalState() {
         let selection = PastStatisticsIntervalPreference.selection(fromAppStorage: intervalEncoded).validated
-        customQuantity = selection.quantity
+        customQuantity = Self.clampedPickerQuantity(selection.quantity)
         customUnit = selection.unit
         intervalMode = selection.mode == .all ? .all : .custom
     }
