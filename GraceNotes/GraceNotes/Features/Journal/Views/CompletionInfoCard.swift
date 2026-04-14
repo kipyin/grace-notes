@@ -30,14 +30,30 @@ struct CompletionInfoCard: View {
         )
         .shadow(color: cardTintColor.opacity(reduceTransparency ? 0.18 : 0.24), radius: 8, x: 0, y: 4)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel(Text(badgeInfo.description))
         .onAppear {
             animateEntry()
         }
     }
 
-    private var cardSurface: AnyView {
-        let base = RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
+    private var cardSurface: some View {
+        Group {
+            if showMorph && !reduceMotion {
+                roundedRectangleSurface
+                    .matchedGeometryEffect(
+                        id: "completionInfoMorphSurface",
+                        in: morphNamespace,
+                        properties: .frame,
+                        anchor: .topLeading,
+                        isSource: false
+                    )
+            } else {
+                roundedRectangleSurface
+            }
+        }
+    }
+
+    private var roundedRectangleSurface: some View {
+        RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
             .fill(
                 palette.paper.opacity(reduceTransparency ? 1.0 : 0.94 * palette.sectionPaperOpacity)
             )
@@ -46,20 +62,6 @@ struct CompletionInfoCard: View {
                     .stroke(cardTintColor.opacity(0.24 * bloomProgress), lineWidth: 1.4)
                     .scaleEffect(1.0 + (0.02 * (1 - bloomProgress)))
             )
-
-        guard showMorph, !reduceMotion else {
-            return AnyView(base)
-        }
-
-        return AnyView(
-            base.matchedGeometryEffect(
-                id: "completionInfoMorphSurface",
-                in: morphNamespace,
-                properties: .frame,
-                anchor: .topLeading,
-                isSource: false
-            )
-        )
     }
 
     private func animateEntry() {
