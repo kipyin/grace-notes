@@ -48,7 +48,7 @@ struct WeeklyInsightRuleEngine {
 
         let narrativeSummary = candidateBuilder.narrativeSummary(from: selectedInsights)
         let starterReflection = String(localized: "review.insights.starterReflection")
-        let trimmedHeadline = Self.firstNonEmptyTrimmedObservation(in: selectedInsights)
+        let trimmedHeadline = Self.firstNonEmptyTrimmedHeadline(in: selectedInsights)
         let resurfacingMessage = trimmedHeadline ?? starterReflection
 
         let continuityPrompt = selectedInsights.compactMap(\.action).map {
@@ -69,13 +69,18 @@ struct WeeklyInsightRuleEngine {
         )
     }
 
-    /// Prefer the first non-empty observation line across selected insights. The first card can be
-    /// blank in pathological cases while a second selected insight still carries the visible headline.
-    private static func firstNonEmptyTrimmedObservation(in insights: [ReviewWeeklyInsight]) -> String? {
+    /// Prefer the first non-empty trimmed `observation` across selected insights. If an observation is blank
+    /// but `primaryTheme` is present (e.g. failed template substitution), use the trimmed theme so the
+    /// resurfacing line still matches visible card context instead of the generic starter copy.
+    private static func firstNonEmptyTrimmedHeadline(in insights: [ReviewWeeklyInsight]) -> String? {
         for insight in insights {
-            let trimmed = insight.observation.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !trimmed.isEmpty {
-                return trimmed
+            let trimmedObservation = insight.observation.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmedObservation.isEmpty {
+                return trimmedObservation
+            }
+            if let theme = insight.primaryTheme?.trimmingCharacters(in: .whitespacesAndNewlines),
+               !theme.isEmpty {
+                return theme
             }
         }
         return nil
