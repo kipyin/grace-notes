@@ -13,25 +13,45 @@ struct JournalOnboardingGuidanceView: View {
         self.messageSecondary = messageSecondary
     }
 
+    private var trimmedTitle: String {
+        title.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var trimmedMessage: String {
+        message.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var trimmedSecondaryLine: String? {
+        guard let messageSecondary else { return nil }
+        let trimmed = messageSecondary.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
+    private var hasMeaningfulContent: Bool {
+        !trimmedTitle.isEmpty || !trimmedMessage.isEmpty || trimmedSecondaryLine != nil
+    }
+
     var body: some View {
-        if message.isEmpty {
+        if !hasMeaningfulContent {
             EmptyView()
         } else {
             VStack(alignment: .leading, spacing: AppTheme.spacingTight) {
-                if !title.isEmpty {
-                    Text(title)
+                if !trimmedTitle.isEmpty {
+                    Text(trimmedTitle)
                         .font(AppTheme.warmPaperMetaEmphasis)
                         .foregroundStyle(AppTheme.accentText)
                         .accessibilityAddTraits(.isHeader)
                 }
 
-                Text(message)
-                    .font(AppTheme.warmPaperBody)
-                    .foregroundStyle(palette.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
+                if !trimmedMessage.isEmpty {
+                    Text(trimmedMessage)
+                        .font(AppTheme.warmPaperBody)
+                        .foregroundStyle(palette.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
 
-                if let messageSecondary {
-                    Text(messageSecondary)
+                if let trimmedSecondaryLine {
+                    Text(trimmedSecondaryLine)
                         .font(AppTheme.warmPaperBody)
                         .foregroundStyle(palette.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
