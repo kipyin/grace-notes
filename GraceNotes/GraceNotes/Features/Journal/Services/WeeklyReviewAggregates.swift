@@ -224,6 +224,9 @@ private extension WeeklyReviewAggregatesBuilder {
                 if $0.dayCount != $1.dayCount {
                     return $0.dayCount > $1.dayCount
                 }
+                if $0.firstSeenOrder != $1.firstSeenOrder {
+                    return $0.firstSeenOrder < $1.firstSeenOrder
+                }
                 return $0.displayLabel.localizedCaseInsensitiveCompare($1.displayLabel) == .orderedAscending
             }
             .prefix(maxThemesPerSection)
@@ -247,7 +250,12 @@ private extension WeeklyReviewAggregatesBuilder {
         let normalized = textNormalizer.normalizeThemeLabel(trimmedLabel)
         guard !normalized.isEmpty else { return }
 
-        if map[normalized] == nil {
+        if var existing = map[normalized] {
+            existing.mentionCount += 1
+            existing.weightedScore += weight
+            existing.days.insert(day)
+            map[normalized] = existing
+        } else {
             map[normalized] = ThemeAccumulator(
                 normalizedLabel: normalized,
                 displayLabel: trimmedLabel,
@@ -256,12 +264,7 @@ private extension WeeklyReviewAggregatesBuilder {
                 days: [day],
                 firstSeenOrder: sequence
             )
-            return
         }
-
-        map[normalized]?.mentionCount += 1
-        map[normalized]?.weightedScore += weight
-        map[normalized]?.days.insert(day)
     }
 
     func sortedThemeSummaries(from map: [String: ThemeAccumulator]) -> [ThemeSummary] {
