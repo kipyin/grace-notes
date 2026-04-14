@@ -39,7 +39,7 @@ final class JournalOnboardingProgress {
     }
 
     var hasCompletedGuidedJournal: Bool {
-        get { defaults.bool(forKey: JournalOnboardingStorageKeys.completedGuidedJournal) }
+        get { Self.resolvedHasCompletedGuidedJournal(using: defaults) }
         set { defaults.set(newValue, forKey: JournalOnboardingStorageKeys.completedGuidedJournal) }
     }
 
