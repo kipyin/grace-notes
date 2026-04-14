@@ -71,7 +71,7 @@ struct AdvancedSettingsScreen: View {
                             String(localized: "settings.advanced.pastStatsInterval.quantity.a11y"),
                             selection: $customQuantity
                         ) {
-                            ForEach(1...999, id: \.self) { value in
+                            ForEach(Self.pickerQuantityRange, id: \.self) { value in
                                 Text("\(value)").tag(value)
                             }
                         }
@@ -147,8 +147,13 @@ struct AdvancedSettingsScreen: View {
         )
     }
 
+    private static let pickerQuantityRange = 1...999
+
     private static func clampedPickerQuantity(_ quantity: Int) -> Int {
-        min(max(quantity, 1), 999)
+        min(
+            max(quantity, Self.pickerQuantityRange.lowerBound),
+            Self.pickerQuantityRange.upperBound
+        )
     }
 
     private func localizedUnitLabel(_ unit: PastStatisticsIntervalUnit) -> String {
