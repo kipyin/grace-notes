@@ -35,6 +35,16 @@ struct JournalShareCardView: View {
     }
 }
 
+private enum ShareLineRowID: Hashable {
+    case line(ShareLineIdentity)
+    case previewStub(section: ShareSectionKind, index: Int)
+}
+
+private struct IdentifiedShareLineRow: Identifiable {
+    let id: ShareLineRowID
+    let item: ShareLineDisplayItem
+}
+
 private extension JournalShareCardView {
     var surface: ShareCardSurface { payload.cardSurface }
 
@@ -73,7 +83,7 @@ private extension JournalShareCardView {
                 .padding(.bottom, 32)
 
             VStack(alignment: .leading, spacing: 24) {
-                ForEach(Array(payload.sections.enumerated()), id: \.offset) { index, section in
+                ForEach(Array(payload.sections.enumerated()), id: \.element.kind) { index, section in
                     if payload.style.showsSectionDividers, index > 0 {
                         Rectangle()
                             .fill(surface.sectionDividerColor)
@@ -125,9 +135,31 @@ private extension JournalShareCardView {
     func sectionBlock(_ section: ShareSectionRenderModel) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             sectionHeader(section)
-            ForEach(Array(section.lines.enumerated()), id: \.offset) { _, item in
-                lineRow(item)
+            ForEach(identifiedLines(for: section)) { row in
+                lineRow(row.item)
             }
+        }
+    }
+
+    func identifiedLines(for section: ShareSectionRenderModel) -> [IdentifiedShareLineRow] {
+        section.lines.enumerated().map { index, item in
+            IdentifiedShareLineRow(
+                id: shareLineRowID(section: section, item: item, index: index),
+                item: item
+            )
+        }
+    }
+
+    func shareLineRowID(
+        section: ShareSectionRenderModel,
+        item: ShareLineDisplayItem,
+        index: Int
+    ) -> ShareLineRowID {
+        switch item {
+        case .visible(_, let identity), .redacted(let identity):
+            return .line(identity)
+        case .previewStub:
+            return .previewStub(section: section.kind, index: index)
         }
     }
 
@@ -164,6 +196,7 @@ private extension JournalShareCardView {
                 .font(style.sectionTitleFont(for: script))
                 .foregroundStyle(surface.sectionTitleInk)
                 .textCase(titleCase)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -202,6 +235,7 @@ private extension JournalShareCardView {
                 .lineSpacing(3)
                 .foregroundStyle(ink)
                 .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
