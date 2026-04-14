@@ -1,5 +1,4 @@
 import Foundation
-import SwiftData
 
 enum HistoryEntryGrouping {
     static func groupedByMonth(
@@ -10,7 +9,9 @@ enum HistoryEntryGrouping {
             monthKey(for: entry.entryDate, calendar: calendar)
         }
         return grouped.keys.sorted(by: >).map { month in
-            let groupedEntries = grouped[month] ?? []
+            let groupedEntries = (grouped[month] ?? []).sorted {
+                $0.entryDate > $1.entryDate
+            }
             return (month, groupedEntries)
         }
     }
@@ -21,6 +22,24 @@ enum HistoryEntryGrouping {
         if let intervalStart = calendar.dateInterval(of: .month, for: date)?.start {
             return intervalStart
         }
+        var components = calendar.dateComponents([.year, .month], from: date)
+        components.day = 1
+        components.hour = 0
+        components.minute = 0
+        components.second = 0
+        components.nanosecond = 0
+        if let normalized = calendar.date(from: components) {
+            return normalized
+        }
+        return gregorianUTCMonthStart(for: date)
+    }
+
+    /// When the active calendar cannot form a month start, anchor by Gregorian UTC year/month
+    /// so entries in the same month are not split by day. `startOfDay` is only used if even
+    /// this normalization fails.
+    private static func gregorianUTCMonthStart(for date: Date) -> Date {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
         var components = calendar.dateComponents([.year, .month], from: date)
         components.day = 1
         components.hour = 0
