@@ -63,11 +63,13 @@ final class JournalViewModel {
 
     func loadTodayIfNeeded(using context: ModelContext) {
         guard !hasLoadedToday else { return }
-        hasLoadedToday = true
-        loadEntry(for: nowProvider(), using: context)
+        if loadEntry(for: nowProvider(), using: context) {
+            hasLoadedToday = true
+        }
     }
 
-    func loadEntry(for date: Date, using context: ModelContext) {
+    @discardableResult
+    func loadEntry(for date: Date, using context: ModelContext) -> Bool {
         let loadTrace = PerformanceTrace.begin("JournalViewModel.loadEntry")
         modelContext = context
         let dayStart = calendar.startOfDay(for: date)
@@ -83,14 +85,14 @@ final class JournalViewModel {
                 refreshStreakSummary()
                 PerformanceTrace.end("JournalViewModel.loadEntry.streakRefresh", startedAt: streakTrace)
                 PerformanceTrace.end("JournalViewModel.loadEntry.existing", startedAt: loadTrace)
-                return
+                return true
             }
             PerformanceTrace.end("JournalViewModel.loadEntry.fetchEntry.miss", startedAt: fetchTrace)
         } catch {
             PerformanceTrace.end("JournalViewModel.loadEntry.fetchEntry.failed", startedAt: fetchTrace)
             saveErrorMessage = String(localized: "journal.error.loadToday")
             PerformanceTrace.end("JournalViewModel.loadEntry.failed", startedAt: loadTrace)
-            return
+            return false
         }
 
         let now = nowProvider()
@@ -107,6 +109,7 @@ final class JournalViewModel {
         refreshStreakSummary()
         PerformanceTrace.end("JournalViewModel.loadEntry.streakRefresh", startedAt: streakTrace)
         PerformanceTrace.end("JournalViewModel.loadEntry.newUnsaved", startedAt: loadTrace)
+        return true
     }
 
     private func hydrate(from entry: Journal) {

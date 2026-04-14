@@ -61,6 +61,15 @@ struct ReviewInsightInsetPanel<Content: View>: View {
         }
     }
 
+    /// Title in the side-by-side row: wrap and shrink so long copy does not crowd out trailing meta text.
+    private var titlePrimaryForHorizontalPair: some View {
+        titlePrimary
+            .lineLimit(2)
+            .minimumScaleFactor(0.85)
+            .multilineTextAlignment(.leading)
+            .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+    }
+
     @ViewBuilder
     private var titleRow: some View {
         if let trailing = titleTrailingText, !trailing.isEmpty {
@@ -75,8 +84,7 @@ struct ReviewInsightInsetPanel<Content: View>: View {
             } else {
                 ViewThatFits(in: .horizontal) {
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
-                        titlePrimary
-                        Spacer(minLength: 8)
+                        titlePrimaryForHorizontalPair
                         Text(trailing)
                             .font(AppTheme.warmPaperMeta)
                             .foregroundStyle(AppTheme.reviewTextMuted)

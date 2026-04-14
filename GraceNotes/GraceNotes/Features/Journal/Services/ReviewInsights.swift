@@ -123,7 +123,9 @@ struct ReviewMostRecurringTheme: Equatable, Hashable, Sendable, Codable, Identif
             evidence = structuredEvidence
         } else if let legacyEvidence = try container.decodeIfPresent([ReviewThemeEvidence].self, forKey: .evidence) {
             evidence = legacyEvidence.flatMap { row in
-                row.sources.map { source in
+                var seenInRow = Set<ReviewThemeSourceCategory>()
+                let uniqueSources = row.sources.filter { seenInRow.insert($0).inserted }
+                return uniqueSources.map { source in
                     ReviewThemeSurfaceEvidence(entryDate: row.date, source: source, content: "")
                 }
             }
@@ -364,7 +366,8 @@ struct ReviewWeekStats: Equatable, Sendable, Codable {
     let mostRecurringThemes: [ReviewMostRecurringTheme]
     /// Surfacing movement rows only (excludes stable trends), matching ``trendingBuckets``.
     let movementThemes: [ReviewMovementTheme]
-    /// Grouped trending rows; ``movementThemes`` is ``trendingBuckets.flattened``.
+    /// Grouped trending rows (new / rising / down).
+    /// ``movementThemes`` is always ``trendingBuckets.flattened`` (same order as grouped UI).
     let trendingBuckets: ReviewTrendingBuckets
 
     init(

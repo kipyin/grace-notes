@@ -32,6 +32,19 @@ final class SaveToPhotosActivity: UIActivity {
     }
 
     override func perform() {
+        PHPhotoLibrary.requestAuthorization(for: .addOnly) { [weak self] status in
+            DispatchQueue.main.async {
+                guard let self else { return }
+                guard status == .authorized else {
+                    self.activityDidFinish(false)
+                    return
+                }
+                self.saveImageToPhotoLibrary()
+            }
+        }
+    }
+
+    private func saveImageToPhotoLibrary() {
         PHPhotoLibrary.shared().performChanges {
             PHAssetChangeRequest.creationRequestForAsset(from: self.image)
         } completionHandler: { [weak self] success, _ in

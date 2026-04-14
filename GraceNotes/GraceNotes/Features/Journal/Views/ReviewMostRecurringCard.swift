@@ -77,7 +77,7 @@ struct ReviewMostRecurringCard: View {
         ) {
             VStack(alignment: .leading, spacing: 10) {
                 VStack(alignment: .leading, spacing: 8) {
-                    ForEach(Array(themes.prefix(3).enumerated()), id: \.offset) { _, theme in
+                    ForEach(Array(themes.prefix(3))) { theme in
                         mostRecurringThemeRow(theme)
                     }
                 }

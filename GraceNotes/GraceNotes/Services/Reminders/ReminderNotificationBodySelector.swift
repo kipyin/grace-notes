@@ -93,12 +93,16 @@ enum ReminderNotificationBodySelector {
     }
 
     /// True when we should use welcoming-back copy (requires a prior meaningful day and
-    /// a gap of at least ``minimumGapDays``).
+    /// a gap of at least ``minimumGapDays`` calendar days).
+    ///
+    /// Non-positive ``minimumGapDays`` is invalid configuration and never yields a lapse
+    /// (avoids treating `gapDays == 0` as a lapse when the threshold is zero).
     static func isLapse(
         gapDays: Int?,
         minimumGapDays: Int = 3
     ) -> Bool {
         guard let gapDays else { return false }
+        guard minimumGapDays > 0 else { return false }
         return gapDays >= minimumGapDays
     }
 

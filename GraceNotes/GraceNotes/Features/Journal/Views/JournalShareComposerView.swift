@@ -42,6 +42,7 @@ struct JournalShareComposerView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
+                .disabled(isShareCommitInProgress)
             }
             .scrollContentBackground(.hidden)
             .background(AppTheme.settingsBackground.ignoresSafeArea())
@@ -52,6 +53,7 @@ struct JournalShareComposerView: View {
                     Button(String(localized: "common.cancel"), role: .cancel) {
                         onDismiss()
                     }
+                    .disabled(isShareCommitInProgress)
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(String(localized: "sharing.composer.share")) {
@@ -66,6 +68,7 @@ struct JournalShareComposerView: View {
         .toolbarBackground(AppTheme.settingsBackground, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .presentationBackground(AppTheme.settingsBackground)
+        .interactiveDismissDisabled(isShareCommitInProgress)
         .preferredColorScheme(appPreferredColorScheme)
         .alert(String(localized: "sharing.error.unable"), isPresented: $showRenderError) {
             Button(String(localized: "common.dismiss")) {
@@ -199,10 +202,10 @@ struct JournalShareComposerView: View {
         .buttonStyle(.plain)
     }
 
+    @MainActor
     private func commitShare() {
         guard !isShareCommitInProgress else { return }
         isShareCommitInProgress = true
-        defer { isShareCommitInProgress = false }
 
         let built = ShareRenderPayloadBuilder.build(
             full: basePayload,
@@ -210,6 +213,7 @@ struct JournalShareComposerView: View {
             includePreviewStubs: false
         )
         guard let image = JournalShareRenderer.renderImage(from: built) else {
+            isShareCommitInProgress = false
             showRenderError = true
             return
         }

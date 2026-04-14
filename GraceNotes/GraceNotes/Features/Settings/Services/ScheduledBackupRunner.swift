@@ -7,6 +7,29 @@ private let scheduledBackupLogger = Logger(
     category: "ScheduledBackup"
 )
 
+/// Prevents overlapping scheduled backup runs when the app becomes active repeatedly before
+/// `lastRunAt` is updated (each transition spawns a new `Task` in ``GraceNotesApp``).
+private final class ScheduledBackupSingleFlight: @unchecked Sendable {
+    private let lock = NSLock()
+    private var inFlight = false
+
+    func tryBegin() -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !inFlight else { return false }
+        inFlight = true
+        return true
+    }
+
+    func end() {
+        lock.lock()
+        inFlight = false
+        lock.unlock()
+    }
+}
+
+private let scheduledBackupSingleFlight = ScheduledBackupSingleFlight()
+
 enum ScheduledBackupRunner {
     /// Writes a JSON export into the user’s appointed folder when the schedule says it is time.
     static func runIfDue(modelContainer: ModelContainer) async {
@@ -20,6 +43,9 @@ enum ScheduledBackupRunner {
             await recordScheduledFailure(detail: String(localized: "settings.dataPrivacy.scheduledBackup.folderError"))
             return
         }
+
+        guard scheduledBackupSingleFlight.tryBegin() else { return }
+        defer { scheduledBackupSingleFlight.end() }
 
         let result = await Task.detached(priority: .utility) {
             Self.performScheduledExport(modelContainer: modelContainer)
@@ -54,7 +80,8 @@ enum ScheduledBackupRunner {
 
     /// Export to a temp file, copy into the backup folder, then delete the temp file — all on the same background task.
     private static func performScheduledExport(modelContainer: ModelContainer) -> ScheduledExportResult {
-        let exportResult = exportToTemporaryFile(modelContainer: modelContainer)
+        let exportDate = Date()
+        let exportResult = exportToTemporaryFile(modelContainer: modelContainer, exportDate: exportDate)
         let tempFile: URL
         switch exportResult {
         case .success(let url):
@@ -66,20 +93,20 @@ enum ScheduledBackupRunner {
             try? FileManager.default.removeItem(at: tempFile)
         }
         do {
-            let fileName = try copyScheduledExportToFolder(tempFile: tempFile)
+            let fileName = try copyScheduledExportToFolder(tempFile: tempFile, exportDate: exportDate)
             return .success(fileName)
         } catch {
             return .copyFailed(error)
         }
     }
 
-    private static func copyScheduledExportToFolder(tempFile: URL) throws -> String {
+    private static func copyScheduledExportToFolder(tempFile: URL, exportDate: Date) throws -> String {
         try ScheduledBackupPreferences.withFolderSecurityScopedAccess { folderURL in
-            let name = try copyTempExport(at: tempFile, to: folderURL)
+            let name = try copyTempExport(at: tempFile, to: folderURL, exportDate: exportDate)
             do {
                 try BackupFolderLibrary.prune(
                     folderURL: folderURL,
-                    now: Date(),
+                    now: exportDate,
                     retention: ScheduledBackupPreferences.backupRetentionPeriod,
                     maxTotalBytes: ScheduledBackupPreferences.backupFolderSizeCap.maxBytes
                 )
@@ -94,14 +121,14 @@ enum ScheduledBackupRunner {
         }
     }
 
-    private static func copyTempExport(at tempFile: URL, to folderURL: URL) throws -> String {
+    private static func copyTempExport(at tempFile: URL, to folderURL: URL, exportDate: Date) throws -> String {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .gregorian)
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = TimeZone(secondsFromGMT: 0)
         formatter.dateFormat = "yyyyMMdd-HHmmss"
         // UUID avoids same-second overwrites (copyTempFile replaces an existing destination name).
-        let name = "grace-notes-scheduled-\(formatter.string(from: .now))-\(UUID().uuidString).json"
+        let name = "grace-notes-scheduled-\(formatter.string(from: exportDate))-\(UUID().uuidString).json"
         return try BackupFolderJSONExport.copyTempFile(
             tempFile,
             into: folderURL,
@@ -127,13 +154,17 @@ enum ScheduledBackupRunner {
         case failure
     }
 
-    private static func exportToTemporaryFile(modelContainer: ModelContainer) -> ExportToTempResult {
+    private static func exportToTemporaryFile(modelContainer: ModelContainer, exportDate: Date) -> ExportToTempResult {
         do {
             let exportService = JournalDataExportService()
             let backgroundContext = ModelContext(modelContainer)
-            let tempFile = try exportService.exportArchiveFile(context: backgroundContext)
+            let tempFile = try exportService.exportArchiveFile(context: backgroundContext, now: exportDate)
             return .success(tempFile)
         } catch {
+            let detail = String(describing: error)
+            scheduledBackupLogger.error(
+                "Scheduled backup export to temp file failed. \(detail, privacy: .public)"
+            )
             return .failure
         }
     }

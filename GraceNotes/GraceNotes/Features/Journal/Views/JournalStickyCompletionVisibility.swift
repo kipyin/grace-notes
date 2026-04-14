@@ -16,7 +16,7 @@ enum JournalStickyCompletionVisibility {
 
     /// Reveal the toolbar chip when the user has scrolled the journal body down past `scrollRevealThreshold`.
     ///
-    /// Uses the scroll view's ``ScrollGeometryProxy/contentOffset`` ``y`` (larger when content moves up).
+    /// Uses the scroll view's ``ScrollGeometry/contentOffset`` ``y`` (larger when content moves up).
     ///
     /// - Parameter currentlyRevealed: Pass the **current** sticky state so hysteresis can apply.
     static func shouldShowBarIndicator(
@@ -24,6 +24,9 @@ enum JournalStickyCompletionVisibility {
         scrollRevealThreshold: CGFloat,
         currentlyRevealed: Bool
     ) -> Bool {
+        guard scrollContentOffsetY.isFinite, scrollRevealThreshold.isFinite else {
+            return currentlyRevealed
+        }
         if currentlyRevealed {
             return scrollContentOffsetY > scrollRevealThreshold + releasePadding
         }
@@ -46,6 +49,9 @@ enum JournalStickyCompletionVisibility {
         scrollRevealThreshold: CGFloat,
         currentlyRevealed: Bool
     ) -> Bool {
+        guard headerMinYInScrollSpace.isFinite, scrollRevealThreshold.isFinite else {
+            return currentlyRevealed
+        }
         if currentlyRevealed {
             return headerMinYInScrollSpace < -(scrollRevealThreshold + releasePadding)
         }

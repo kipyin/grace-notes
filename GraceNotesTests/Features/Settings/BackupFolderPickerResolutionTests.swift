@@ -36,4 +36,20 @@ final class BackupFolderPickerResolutionTests: XCTestCase {
         )
         XCTAssertEqual(resolved.path, existing.path)
     }
+
+    func test_throwsWhenReservedNameIsAFile() throws {
+        let blockingFile = tempRoot.appendingPathComponent(
+            BackupFolderPickerResolution.subfolderName,
+            isDirectory: false
+        )
+        FileManager.default.createFile(atPath: blockingFile.path, contents: Data("x".utf8))
+        XCTAssertThrowsError(
+            try BackupFolderPickerResolution.resolvedFolderURL(userPicked: tempRoot, fileManager: .default)
+        ) { error in
+            guard case BackupFolderPickerResolution.ResolutionError.pathComponentIsNotDirectory(let url) = error else {
+                return XCTFail("expected pathComponentIsNotDirectory, got \(error)")
+            }
+            XCTAssertEqual(url.path, blockingFile.path)
+        }
+    }
 }

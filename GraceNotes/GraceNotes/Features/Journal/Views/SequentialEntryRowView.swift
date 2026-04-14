@@ -60,10 +60,15 @@ struct SequentialEntryRowView: View {
         self.onDelete = onDelete
     }
 
+    /// Matches when the show-more / show-less control is actually present (see `body`).
+    private var showsExpansionControls: Bool {
+        isExpandable && onToggleExpanded != nil
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             rowButton
-            if isExpandable, let onToggleExpanded {
+            if showsExpansionControls, let onToggleExpanded {
                 Button(action: onToggleExpanded) {
                     HStack(spacing: 4) {
                         Text(isExpanded ? String(localized: "common.showLess") : String(localized: "common.showMore"))
@@ -148,7 +153,7 @@ struct SequentialEntryRowView: View {
     }
 
     private var rowAccessibilityHint: String {
-        if isExpandable {
+        if showsExpansionControls {
             return String(localized: "accessibility.tapToEditSentenceShowMore")
         }
         return String(localized: "accessibility.tapToEditSentence")

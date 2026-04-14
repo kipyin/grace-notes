@@ -86,12 +86,18 @@ private struct LoopingVideoPlayerView: UIViewRepresentable {
 
     func updateUIView(_ uiView: LeavesVideoHostView, context: Context) {
         context.coordinator.updateBounds(uiView.bounds)
-        if scenePhase == .active {
+        switch scenePhase {
+        case .active:
             context.coordinator.resumePlaybackIfAttached()
+        case .inactive, .background:
+            context.coordinator.pausePlaybackIfAttached()
+        @unknown default:
+            context.coordinator.pausePlaybackIfAttached()
         }
     }
 
     static func dismantleUIView(_ uiView: LeavesVideoHostView, coordinator: Coordinator) {
+        uiView.onBoundsChange = nil
         coordinator.teardown()
     }
 
@@ -131,6 +137,10 @@ private struct LoopingVideoPlayerView: UIViewRepresentable {
 
         func resumePlaybackIfAttached() {
             player?.play()
+        }
+
+        func pausePlaybackIfAttached() {
+            player?.pause()
         }
 
         func teardown() {

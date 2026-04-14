@@ -91,6 +91,13 @@ struct ReminderScheduler {
 
     /// Reschedules only when authorization is already available.
     func rescheduleEnabledReminder(at time: Date, body: String) async -> ReminderSyncResult {
+        // `notDetermined` is not a denial. This path does not prompt, so treat it as “cannot
+        // reconcile now” and keep any existing pending request (maps to the same UI result as
+        // before, without clearing a still-valid schedule).
+        if await notificationCenter.authorizationStatus() == .notDetermined {
+            return .permissionDenied
+        }
+
         switch await notificationPermissionOutcome(allowPermissionPrompt: false) {
         case .granted:
             let wasScheduled = await scheduleReminder(at: time, body: body)
@@ -137,15 +144,28 @@ struct ReminderScheduler {
     }
 
     private func scheduleReminder(at time: Date, body: String) async -> Bool {
+        guard time.timeIntervalSinceReferenceDate.isFinite else { return false }
+
         // Do not remove the existing pending request first. Adding a request with the same
         // identifier replaces it; removing first would orphan the user if `add` throws.
         let content = UNMutableNotificationContent()
         content.title = String(localized: "app.name")
-        content.body = body
+        let trimmedBody = body.trimmingCharacters(in: .whitespacesAndNewlines)
+        content.body = trimmedBody.isEmpty
+            ? String(localized: String.LocalizationValue("notifications.reminder.body.fallback"))
+            : trimmedBody
         content.sound = .default
 
-        let timeComponents = ReminderSettings.timeComponents(from: time, calendar: calendar)
-        let trigger = UNCalendarNotificationTrigger(dateMatching: timeComponents, repeats: true)
+        let extracted = ReminderSettings.timeComponents(from: time, calendar: calendar)
+        guard let hour = extracted.hour, let minute = extracted.minute else { return false }
+
+        var triggerComponents = DateComponents()
+        triggerComponents.calendar = calendar
+        triggerComponents.timeZone = calendar.timeZone
+        triggerComponents.hour = hour
+        triggerComponents.minute = minute
+
+        let trigger = UNCalendarNotificationTrigger(dateMatching: triggerComponents, repeats: true)
         let request = UNNotificationRequest(
             identifier: ReminderSettings.notificationIdentifier,
             content: content,

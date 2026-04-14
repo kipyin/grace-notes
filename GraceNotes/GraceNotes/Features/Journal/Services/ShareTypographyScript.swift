@@ -9,8 +9,8 @@ enum ShareTypographyScript: Equatable, Sendable {
 
 extension ShareTypographyScript {
     static func current() -> ShareTypographyScript {
-        switch Locale.current.language.languageCode?.identifier {
-        case "zh", "ja", "ko":
+        switch Locale.current.language.languageCode {
+        case .some(.chinese), .some(.japanese), .some(.korean):
             return .chinese
         default:
             return .latin

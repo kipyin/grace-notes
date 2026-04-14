@@ -190,6 +190,63 @@ extension ReviewInsightsCacheTests {
 }
 
 extension ReviewInsightsCacheTests {
+    private enum ReviewWeekStatsDecodeFixtures {
+        static let movementThemesOnlyLegacyJSON = """
+        {
+          "reflectionDays": 1,
+          "meaningfulEntryCount": 1,
+          "completionMix": {
+            "emptyDays": 0,
+            "startedDays": 1,
+            "growingDays": 0,
+            "balancedDays": 0,
+            "fullDays": 0
+          },
+          "activity": [],
+          "sectionTotals": {
+            "gratitudeMentions": 1,
+            "needMentions": 0,
+            "peopleMentions": 0
+          },
+          "mostRecurringThemes": [],
+          "movementThemes": [
+            {
+              "label": "Stable",
+              "currentWeekCount": 2,
+              "previousWeekCount": 2,
+              "trend": "stable",
+              "totalCount": 4,
+              "evidence": []
+            },
+            {
+              "label": "RiseB",
+              "currentWeekCount": 4,
+              "previousWeekCount": 1,
+              "trend": "rising",
+              "totalCount": 5,
+              "evidence": []
+            },
+            {
+              "label": "NewT",
+              "currentWeekCount": 2,
+              "previousWeekCount": 0,
+              "trend": "new",
+              "totalCount": 2,
+              "evidence": []
+            },
+            {
+              "label": "RiseA",
+              "currentWeekCount": 5,
+              "previousWeekCount": 2,
+              "trend": "rising",
+              "totalCount": 6,
+              "evidence": []
+            }
+          ]
+        }
+        """
+    }
+
     func test_ReviewWeekStats_decodesOmittedHistoryRollupsAsZeros() throws {
         let json = """
         {
@@ -222,6 +279,17 @@ extension ReviewInsightsCacheTests {
         XCTAssertEqual(stats.historyCompletionMix.twigDayCount, 0)
         XCTAssertEqual(stats.historyCompletionMix.leafDayCount, 0)
         XCTAssertEqual(stats.historyCompletionMix.bloomDayCount, 0)
+    }
+
+    /// Legacy payloads omit ``trendingBuckets``; rebucketing is the single source of truth for the flat list.
+    func test_ReviewWeekStats_decode_movementThemesOnly_rebucketsAndMatchesFlattenedBuckets() throws {
+        let data = try XCTUnwrap(ReviewWeekStatsDecodeFixtures.movementThemesOnlyLegacyJSON.data(using: .utf8))
+        let stats = try JSONDecoder().decode(ReviewWeekStats.self, from: data)
+        XCTAssertTrue(stats.movementThemes.allSatisfy { $0.trend != .stable })
+        XCTAssertEqual(stats.movementThemes, stats.trendingBuckets.flattened)
+        XCTAssertEqual(stats.trendingBuckets.newThemes.map(\.label), ["NewT"])
+        XCTAssertEqual(stats.trendingBuckets.upThemes.map(\.label), ["RiseA", "RiseB"])
+        XCTAssertTrue(stats.trendingBuckets.downThemes.isEmpty)
     }
 
     func test_ReviewWeekCompletionMix_totalDaysRepresented_sumsBuckets() {

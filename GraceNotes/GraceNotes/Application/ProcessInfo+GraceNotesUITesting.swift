@@ -12,7 +12,9 @@ extension ProcessInfo {
         return isUITestBundle || hasUITestLaunchArgument
     }
 
+    /// True when UI tests request the wide Review rhythm seed (ignored unless `graceNotesIsRunningUITests` is also true).
     static var graceNotesUITestWideReviewRhythmSeed: Bool {
-        processInfo.arguments.contains(Self.graceNotesUITestWideReviewRhythmArgument)
+        guard graceNotesIsRunningUITests else { return false }
+        return Self.processInfo.arguments.contains(Self.graceNotesUITestWideReviewRhythmArgument)
     }
 }

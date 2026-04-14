@@ -13,7 +13,7 @@ struct JournalDataExportService {
         let entries = try context.fetch(descriptor)
         let data = try makeArchiveData(from: entries, exportedAt: now)
 
-        let filename = "grace-notes-export-\(timestampString(from: now)).json"
+        let filename = "grace-notes-export-\(timestampString(from: now))-\(UUID().uuidString).json"
         let fileURL = fileManager.temporaryDirectory.appendingPathComponent(filename, isDirectory: false)
         try data.write(to: fileURL, options: .atomic)
         return fileURL

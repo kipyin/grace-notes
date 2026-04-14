@@ -60,7 +60,7 @@ final class JournalOnboardingProgress {
     }
 
     static func resolvedHasCompletedGuidedJournal(using defaults: UserDefaults = .standard) -> Bool {
-        if let storedValue = defaults.object(forKey: JournalOnboardingStorageKeys.completedGuidedJournal) as? Bool {
+        if let storedValue = optionalBool(forKey: JournalOnboardingStorageKeys.completedGuidedJournal, in: defaults) {
             return storedValue
         }
 
@@ -90,7 +90,7 @@ final class JournalOnboardingProgress {
         }
 
         if defaults.bool(forKey: branchKey),
-           defaults.object(forKey: JournalOnboardingStorageKeys.completedGuidedJournal) as? Bool == nil {
+           optionalBool(forKey: JournalOnboardingStorageKeys.completedGuidedJournal, in: defaults) == nil {
             defaults.set(false, forKey: JournalOnboardingStorageKeys.completedGuidedJournal)
         }
 
@@ -144,8 +144,21 @@ final class JournalOnboardingProgress {
         AppLaunchVersionTracker.resetLaunchTracking(in: defaults)
     }
 
+    /// Interprets stored booleans whether `UserDefaults` returns `Bool` or `NSNumber` (plist / sync).
+    private static func optionalBool(forKey key: String, in defaults: UserDefaults) -> Bool? {
+        guard let object = defaults.object(forKey: key) else { return nil }
+        switch object {
+        case let value as Bool:
+            return value
+        case let number as NSNumber:
+            return number.boolValue
+        default:
+            return nil
+        }
+    }
+
     private static func shouldTreatInstallAsPreviouslyOnboarded(using defaults: UserDefaults) -> Bool {
-        if defaults.object(forKey: FirstRunOnboardingStorageKeys.completed) as? Bool == true {
+        if optionalBool(forKey: FirstRunOnboardingStorageKeys.completed, in: defaults) == true {
             return true
         }
 

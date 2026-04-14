@@ -9,6 +9,7 @@ struct JSONImportFileImporterAnchor: View {
     var body: some View {
         Color.clear
             .frame(width: 0, height: 0)
+            .accessibilityHidden(true)
             .fileImporter(
                 isPresented: $isPresented,
                 allowedContentTypes: [.json],
@@ -25,6 +26,7 @@ struct ScheduledFolderFileImporterAnchor: View {
     var body: some View {
         Color.clear
             .frame(width: 0, height: 0)
+            .accessibilityHidden(true)
             .fileImporter(
                 isPresented: $isPresented,
                 allowedContentTypes: [.folder],
@@ -47,11 +49,17 @@ struct BackupFolderLinkHint: ViewModifier {
 }
 
 struct ShareableFile: Identifiable {
+    /// Unique per presentation so `.sheet(item:)` can represent again when the export path matches a prior share.
+    let id = UUID()
     let url: URL
-    var id: String { url.absoluteString }
 }
 
 // MARK: - Backup folder file list
+
+private struct BackupFolderListRow: Identifiable {
+    let url: URL
+    var id: String { url.standardizedFileURL.path }
+}
 
 struct BackupFolderImportFileListView: View {
     let onSelect: (URL) -> Void
@@ -63,6 +71,10 @@ struct BackupFolderImportFileListView: View {
     @State private var showDeleteConfirm = false
     @State private var deleteErrorMessage: String?
     @State private var showDeleteError = false
+
+    private var rows: [BackupFolderListRow] {
+        files.map { BackupFolderListRow(url: $0) }
+    }
 
     var body: some View {
         Group {
@@ -78,11 +90,11 @@ struct BackupFolderImportFileListView: View {
                     .padding()
             } else if isSelecting {
                 List(selection: $selection) {
-                    ForEach(files, id: \.path) { url in
-                        Text(url.lastPathComponent)
+                    ForEach(rows) { row in
+                        Text(row.url.lastPathComponent)
                             .font(AppTheme.settingsTechnicalBody)
                             .foregroundStyle(AppTheme.settingsTextPrimary)
-                            .tag(url.path)
+                            .tag(row.id)
                     }
                 }
                 .environment(\.editMode, .constant(.active))
@@ -90,11 +102,11 @@ struct BackupFolderImportFileListView: View {
                 .scrollContentBackground(.hidden)
                 .background(AppTheme.settingsBackground)
             } else {
-                List(files, id: \.path) { url in
+                List(rows) { row in
                     Button {
-                        onSelect(url)
+                        onSelect(row.url)
                     } label: {
-                        Text(url.lastPathComponent)
+                        Text(row.url.lastPathComponent)
                             .font(AppTheme.settingsTechnicalBody)
                             .foregroundStyle(AppTheme.settingsTextPrimary)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -159,15 +171,16 @@ struct BackupFolderImportFileListView: View {
             load()
         }
         .onChange(of: files) { _, newFiles in
+            let validPaths = Set(newFiles.map { $0.standardizedFileURL.path })
+            selection = selection.intersection(validPaths)
             if newFiles.isEmpty {
                 isSelecting = false
-                selection.removeAll()
             }
         }
     }
 
     private func performDelete() {
-        let urls = files.filter { selection.contains($0.path) }
+        let urls = files.filter { selection.contains($0.standardizedFileURL.path) }
         guard !urls.isEmpty else { return }
         do {
             try ScheduledBackupPreferences.withFolderSecurityScopedAccess { _ in
@@ -184,22 +197,11 @@ struct BackupFolderImportFileListView: View {
     }
 
     private func load() {
-        let folderURL: URL
         do {
-            folderURL = try ScheduledBackupPreferences.resolveFolderURL()
-        } catch {
-            listError = String(localized: "settings.dataPrivacy.importExport.backupFolder.unreachable")
-            return
-        }
-        guard folderURL.startAccessingSecurityScopedResource() else {
-            listError = String(localized: "settings.dataPrivacy.importExport.backupFolder.unreachable")
-            return
-        }
-        defer {
-            folderURL.stopAccessingSecurityScopedResource()
-        }
-        do {
-            files = try BackupFolderLibrary.listExportFiles(in: folderURL)
+            files = try ScheduledBackupPreferences.withFolderSecurityScopedAccess { folderURL in
+                try BackupFolderLibrary.listExportFiles(in: folderURL)
+            }
+            listError = nil
         } catch {
             listError = String(localized: "settings.dataPrivacy.importExport.backupFolder.unreachable")
         }

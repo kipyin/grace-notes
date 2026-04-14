@@ -124,23 +124,21 @@ actor ReviewInsightsCache {
         weeks: [String: ReviewInsights],
         keepingMostRecent: Int
     ) -> [String: ReviewInsights] {
-        guard weeks.count > keepingMostRecent else {
+        guard keepingMostRecent > 0, weeks.count > keepingMostRecent else {
             return weeks
         }
         // Evict by the decoded `weekStart` in each entry, not by re-parsing the composite key string.
         // That avoids mis-ordering when a key prefix is malformed (e.g. `Double` parse → 0) or the key
         // format diverges from the payload.
-        let sortedKeys = weeks.keys
-            .sorted { key1, key2 in
-                let lhsWeekStart = weeks[key1]!.weekStart
-                let rhsWeekStart = weeks[key2]!.weekStart
-                if lhsWeekStart != rhsWeekStart {
-                    return lhsWeekStart > rhsWeekStart
-                }
-                return key1 < key2
+        let sortedEntries = weeks.sorted { lhs, rhs in
+            let lhsWeekStart = lhs.value.weekStart
+            let rhsWeekStart = rhs.value.weekStart
+            if lhsWeekStart != rhsWeekStart {
+                return lhsWeekStart > rhsWeekStart
             }
-            .prefix(keepingMostRecent)
-        let keysToKeep = Set(sortedKeys)
+            return lhs.key < rhs.key
+        }
+        let keysToKeep = Set(sortedEntries.prefix(keepingMostRecent).map(\.key))
         return weeks.filter { keysToKeep.contains($0.key) }
     }
 }

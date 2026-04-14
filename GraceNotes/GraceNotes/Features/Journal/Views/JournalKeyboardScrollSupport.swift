@@ -2,9 +2,16 @@ import SwiftUI
 import UIKit
 
 enum JournalKeyWindowReader {
+    /// Prefer the foreground-active scene so Stage Manager / multi-window iPad does not pair keyboard or caret
+    /// geometry with another scene's window (`connectedScenes` order is undefined).
     static func keyWindow() -> UIWindow? {
-        UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        if let foreground = scenes.first(where: { $0.activationState == .foregroundActive }) {
+            if let key = foreground.keyWindow ?? foreground.windows.first(where: \.isKeyWindow) {
+                return key
+            }
+        }
+        return scenes
             .flatMap(\.windows)
             .first(where: \.isKeyWindow)
     }
@@ -116,6 +123,9 @@ enum JournalCaretVisibilityReader {
         }
         let verticalPad = max(8, JournalKeyboardScrollMetrics.comfortMarginAboveKeyboard() * 0.4)
         rect = rect.insetBy(dx: -4, dy: -verticalPad)
+        guard rect.origin.x.isFinite, rect.origin.y.isFinite,
+              rect.size.width.isFinite, rect.size.height.isFinite,
+              !rect.isNull, !rect.isInfinite else { return }
         textView.scrollRectToVisible(rect, animated: false)
     }
 

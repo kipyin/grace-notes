@@ -15,6 +15,11 @@ struct JournalCompletionPill: View {
     var morphAccentColor: Color = .clear
     var morphBloomProgress: CGFloat = 0
 
+    /// Defensive clamp so morph bloom visuals stay stable if progress is driven past 0…1.
+    private var clampedMorphBloomProgress: CGFloat {
+        min(max(morphBloomProgress, 0), 1)
+    }
+
     var body: some View {
         pillLabel
             .fixedSize(horizontal: false, vertical: true)
@@ -25,6 +30,7 @@ struct JournalCompletionPill: View {
             .overlay(
                 RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
                     .stroke(borderColor(for: completionLevel), lineWidth: 1)
+                    .allowsHitTesting(false)
             )
             .scaleEffect(scaleFactor(for: completionLevel, isCelebrating: isCelebrating))
             .shadow(
@@ -41,10 +47,11 @@ struct JournalCompletionPill: View {
                 if morphSource {
                     RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
                         .stroke(
-                            morphAccentColor.opacity(0.32 * morphBloomProgress),
+                            morphAccentColor.opacity(0.32 * clampedMorphBloomProgress),
                             lineWidth: 1.6
                         )
-                        .scaleEffect(1.02 + (0.08 * (1 - morphBloomProgress)))
+                        .scaleEffect(morphBloomScale)
+                        .allowsHitTesting(false)
                 }
             }
             .opacity(morphSource && !reduceMotion ? 0.92 : 1)
@@ -53,6 +60,14 @@ struct JournalCompletionPill: View {
 
     private var isCelebrating: Bool {
         celebratingLevel == completionLevel && completionLevel != .soil
+    }
+
+    /// Matches background morph: skip frame-driven scale when Reduce Motion is on (settled outline only).
+    private var morphBloomScale: CGFloat {
+        if reduceMotion {
+            return 1.02
+        }
+        return 1.02 + (0.08 * (1 - clampedMorphBloomProgress))
     }
 
     private var pillLabel: some View {

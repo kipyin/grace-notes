@@ -76,13 +76,18 @@ struct EditableTextSection: View {
             textEditor
                 .onChange(of: text) { _, newValue in
                     let newCount = newValue.filter { $0 == "\n" }.count
-                    if let onMultilineLineAdded, newCount > storedNewlineCount {
+                    // `nudgeFirstResponderUITextViewCaretIntoVisibleContent` affects whichever UITextView is first
+                    // responder; only react when this section owns focus (or no focus binding is provided).
+                    let isThisFieldFocused = inputFocus?.wrappedValue ?? true
+                    if let onMultilineLineAdded, isThisFieldFocused, newCount > storedNewlineCount {
                         onMultilineLineAdded()
                     }
                     storedNewlineCount = newCount
-                    Task { @MainActor in
-                        await Task.yield()
-                        JournalCaretVisibilityReader.nudgeFirstResponderUITextViewCaretIntoVisibleContent()
+                    if isThisFieldFocused {
+                        Task { @MainActor in
+                            await Task.yield()
+                            JournalCaretVisibilityReader.nudgeFirstResponderUITextViewCaretIntoVisibleContent()
+                        }
                     }
                 }
         }
