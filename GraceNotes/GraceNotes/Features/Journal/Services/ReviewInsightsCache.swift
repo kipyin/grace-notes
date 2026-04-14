@@ -32,17 +32,24 @@ actor ReviewInsightsCache {
         self.userDefaults = userDefaults
     }
 
+    // swiftlint:disable function_parameter_count
     func insights(
         forWeekStart weekStart: Date,
         calendar: Calendar,
         weekBoundaryPreferenceRawValue: String,
-        pastStatisticsIntervalToken: String
+        pastStatisticsIntervalToken: String,
+        themeOverrideRevision: UInt64,
+        surfaceThemeAdjustmentRevision: UInt64,
+        themeSubstitutionRulesRevision: UInt64
     ) -> ReviewInsights? {
         let key = Self.compositeCacheKey(
             weekStart: weekStart,
             calendar: calendar,
             weekBoundaryPreferenceRawValue: weekBoundaryPreferenceRawValue,
-            pastStatisticsIntervalToken: pastStatisticsIntervalToken
+            pastStatisticsIntervalToken: pastStatisticsIntervalToken,
+            themeOverrideRevision: themeOverrideRevision,
+            surfaceThemeAdjustmentRevision: surfaceThemeAdjustmentRevision,
+            themeSubstitutionRulesRevision: themeSubstitutionRulesRevision
         )
         guard let payload = loadPayload() else {
             return nil
@@ -54,7 +61,10 @@ actor ReviewInsightsCache {
         _ insights: ReviewInsights,
         calendar: Calendar,
         weekBoundaryPreferenceRawValue: String,
-        pastStatisticsIntervalToken: String
+        pastStatisticsIntervalToken: String,
+        themeOverrideRevision: UInt64,
+        surfaceThemeAdjustmentRevision: UInt64,
+        themeSubstitutionRulesRevision: UInt64
     ) {
         guard !ReviewInsightsRefreshPolicy.isSparseProviderFallback(insights) else {
             return
@@ -63,7 +73,10 @@ actor ReviewInsightsCache {
             weekStart: insights.weekStart,
             calendar: calendar,
             weekBoundaryPreferenceRawValue: weekBoundaryPreferenceRawValue,
-            pastStatisticsIntervalToken: pastStatisticsIntervalToken
+            pastStatisticsIntervalToken: pastStatisticsIntervalToken,
+            themeOverrideRevision: themeOverrideRevision,
+            surfaceThemeAdjustmentRevision: surfaceThemeAdjustmentRevision,
+            themeSubstitutionRulesRevision: themeSubstitutionRulesRevision
         )
         var payload = loadPayload() ?? Payload(weeks: [:])
         payload.weeks[key] = insights
@@ -114,11 +127,17 @@ actor ReviewInsightsCache {
         weekStart: Date,
         calendar: Calendar,
         weekBoundaryPreferenceRawValue: String,
-        pastStatisticsIntervalToken: String
+        pastStatisticsIntervalToken: String,
+        themeOverrideRevision: UInt64,
+        surfaceThemeAdjustmentRevision: UInt64,
+        themeSubstitutionRulesRevision: UInt64
     ) -> String {
         let interval = normalizedWeekStartInterval(weekStart, calendar: calendar)
         return "\(interval)#\(weekBoundaryPreferenceRawValue)#\(pastStatisticsIntervalToken)"
+            + "#\(themeOverrideRevision)#\(surfaceThemeAdjustmentRevision)#\(themeSubstitutionRulesRevision)"
     }
+
+    // swiftlint:enable function_parameter_count
 
     private static func prune(
         weeks: [String: ReviewInsights],

@@ -133,11 +133,13 @@ struct ReviewMostRecurringCard: View {
         let selection = PastStatisticsIntervalPreference.selection(fromAppStorage: pastStatisticsIntervalEncoded)
             .validated
         return ReviewThemeDrilldownPayload(
+            canonicalConcept: theme.canonicalConcept,
             label: theme.label,
             sectionTitle: String(localized: "review.labels.mostRecurring"),
             subtitle: selection.mostRecurringDrilldownSubtitle(mentionCount: theme.totalCount),
             trend: nil,
-            evidence: theme.evidence
+            evidence: theme.evidence,
+            journalThemeDisplayLocale: ThemeDrilldownAlternativesBuilder.resolvedLocale(for: theme.evidence)
         )
     }
 

@@ -1,5 +1,6 @@
 import Foundation
 
+// swiftlint:disable file_length
 enum ReviewInsightSource: String, Sendable, Codable {
     case deterministic
 
@@ -68,13 +69,69 @@ struct ReviewThemeSurfaceEvidence: Equatable, Hashable, Sendable, Codable, Ident
     let entryDate: Date
     let source: ReviewThemeSourceCategory
     let content: String
+    /// Journal day record; enables stable per-line theme adjustments.
+    let journalId: UUID?
+    /// Chip line identity for structured sections; `nil` for legacy rows and for notes blocks.
+    let entryLineId: UUID?
 
     var id: String {
-        "\(entryDate.timeIntervalSince1970)|\(source.rawValue)|\(content)"
+        if let journalId {
+            switch source {
+            case .readingNotes, .reflections:
+                return "\(journalId.uuidString)|\(source.rawValue)|noteBlock"
+            case .gratitudes, .needs, .people:
+                if let entryLineId {
+                    return "\(journalId.uuidString)|\(entryLineId.uuidString)|\(source.rawValue)"
+                }
+            }
+        }
+        return "\(entryDate.timeIntervalSince1970)|\(source.rawValue)|\(content)"
+    }
+
+    init(
+        entryDate: Date,
+        source: ReviewThemeSourceCategory,
+        content: String,
+        journalId: UUID? = nil,
+        entryLineId: UUID? = nil
+    ) {
+        self.entryDate = entryDate
+        self.source = source
+        self.content = content
+        self.journalId = journalId
+        self.entryLineId = entryLineId
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case entryDate
+        case source
+        case content
+        case journalId
+        case entryLineId
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        entryDate = try container.decode(Date.self, forKey: .entryDate)
+        source = try container.decode(ReviewThemeSourceCategory.self, forKey: .source)
+        content = try container.decode(String.self, forKey: .content)
+        journalId = try container.decodeIfPresent(UUID.self, forKey: .journalId)
+        entryLineId = try container.decodeIfPresent(UUID.self, forKey: .entryLineId)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(entryDate, forKey: .entryDate)
+        try container.encode(source, forKey: .source)
+        try container.encode(content, forKey: .content)
+        try container.encodeIfPresent(journalId, forKey: .journalId)
+        try container.encodeIfPresent(entryLineId, forKey: .entryLineId)
     }
 }
 
 struct ReviewMostRecurringTheme: Equatable, Hashable, Sendable, Codable, Identifiable {
+    /// Stable distilled key for overrides and analytics; may differ from visible ``label``.
+    let canonicalConcept: String
     let label: String
     let totalCount: Int
     let dayCount: Int
@@ -82,9 +139,10 @@ struct ReviewMostRecurringTheme: Equatable, Hashable, Sendable, Codable, Identif
     let previousWeekCount: Int
     let evidence: [ReviewThemeSurfaceEvidence]
 
-    var id: String { label }
+    var id: String { canonicalConcept }
 
     private enum CodingKeys: String, CodingKey {
+        case canonicalConcept
         case label
         case totalCount
         case dayCount
@@ -94,6 +152,7 @@ struct ReviewMostRecurringTheme: Equatable, Hashable, Sendable, Codable, Identif
     }
 
     init(
+        canonicalConcept: String,
         label: String,
         totalCount: Int,
         dayCount: Int,
@@ -101,6 +160,7 @@ struct ReviewMostRecurringTheme: Equatable, Hashable, Sendable, Codable, Identif
         previousWeekCount: Int,
         evidence: [ReviewThemeSurfaceEvidence]
     ) {
+        self.canonicalConcept = canonicalConcept
         self.label = label
         self.totalCount = totalCount
         self.dayCount = dayCount
@@ -112,6 +172,7 @@ struct ReviewMostRecurringTheme: Equatable, Hashable, Sendable, Codable, Identif
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         label = try container.decode(String.self, forKey: .label)
+        canonicalConcept = try container.decodeIfPresent(String.self, forKey: .canonicalConcept) ?? label
         totalCount = try container.decode(Int.self, forKey: .totalCount)
         dayCount = try container.decode(Int.self, forKey: .dayCount)
         currentWeekCount = try container.decode(Int.self, forKey: .currentWeekCount)
@@ -124,7 +185,13 @@ struct ReviewMostRecurringTheme: Equatable, Hashable, Sendable, Codable, Identif
         } else if let legacyEvidence = try container.decodeIfPresent([ReviewThemeEvidence].self, forKey: .evidence) {
             evidence = legacyEvidence.flatMap { row in
                 row.sources.map { source in
-                    ReviewThemeSurfaceEvidence(entryDate: row.date, source: source, content: "")
+                    ReviewThemeSurfaceEvidence(
+                        entryDate: row.date,
+                        source: source,
+                        content: "",
+                        journalId: nil,
+                        entryLineId: nil
+                    )
                 }
             }
         } else {
@@ -134,6 +201,7 @@ struct ReviewMostRecurringTheme: Equatable, Hashable, Sendable, Codable, Identif
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(canonicalConcept, forKey: .canonicalConcept)
         try container.encode(label, forKey: .label)
         try container.encode(totalCount, forKey: .totalCount)
         try container.encode(dayCount, forKey: .dayCount)
@@ -144,6 +212,7 @@ struct ReviewMostRecurringTheme: Equatable, Hashable, Sendable, Codable, Identif
 }
 
 struct ReviewMovementTheme: Equatable, Hashable, Sendable, Codable, Identifiable {
+    let canonicalConcept: String
     let label: String
     let currentWeekCount: Int
     let previousWeekCount: Int
@@ -151,7 +220,57 @@ struct ReviewMovementTheme: Equatable, Hashable, Sendable, Codable, Identifiable
     let totalCount: Int
     let evidence: [ReviewThemeSurfaceEvidence]
 
-    var id: String { label }
+    var id: String { canonicalConcept }
+
+    private enum CodingKeys: String, CodingKey {
+        case canonicalConcept
+        case label
+        case currentWeekCount
+        case previousWeekCount
+        case trend
+        case totalCount
+        case evidence
+    }
+
+    init(
+        canonicalConcept: String,
+        label: String,
+        currentWeekCount: Int,
+        previousWeekCount: Int,
+        trend: ReviewThemeTrend,
+        totalCount: Int,
+        evidence: [ReviewThemeSurfaceEvidence]
+    ) {
+        self.canonicalConcept = canonicalConcept
+        self.label = label
+        self.currentWeekCount = currentWeekCount
+        self.previousWeekCount = previousWeekCount
+        self.trend = trend
+        self.totalCount = totalCount
+        self.evidence = evidence
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        label = try container.decode(String.self, forKey: .label)
+        canonicalConcept = try container.decodeIfPresent(String.self, forKey: .canonicalConcept) ?? label
+        currentWeekCount = try container.decode(Int.self, forKey: .currentWeekCount)
+        previousWeekCount = try container.decode(Int.self, forKey: .previousWeekCount)
+        trend = try container.decode(ReviewThemeTrend.self, forKey: .trend)
+        totalCount = try container.decode(Int.self, forKey: .totalCount)
+        evidence = try container.decode([ReviewThemeSurfaceEvidence].self, forKey: .evidence)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(canonicalConcept, forKey: .canonicalConcept)
+        try container.encode(label, forKey: .label)
+        try container.encode(currentWeekCount, forKey: .currentWeekCount)
+        try container.encode(previousWeekCount, forKey: .previousWeekCount)
+        try container.encode(trend, forKey: .trend)
+        try container.encode(totalCount, forKey: .totalCount)
+        try container.encode(evidence, forKey: .evidence)
+    }
 
     /// Ordering for trending rows: largest week-over-week change first, then current count and label.
     static func trendingSort(lhs: ReviewMovementTheme, rhs: ReviewMovementTheme) -> Bool {

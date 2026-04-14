@@ -93,6 +93,45 @@ struct AdvancedSettingsScreen: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
+            Section {
+                Button(String(localized: "settings.advanced.resetThemeOverrides")) {
+                    ThemeOverrideStore.shared.clearAll()
+                }
+                .font(AppTheme.warmPaperBody)
+                .foregroundStyle(AppTheme.settingsTextPrimary)
+                .accessibilityIdentifier("SettingsResetThemeOverrides")
+            } footer: {
+                Text(String(localized: "settings.advanced.resetThemeOverrides.detail"))
+                    .font(AppTheme.warmPaperMeta)
+                    .foregroundStyle(AppTheme.settingsTextMuted)
+            }
+
+            Section {
+                NavigationLink {
+                    ThemeSubstitutionRulesSheet(
+                        store: ThemeSubstitutionRulesStore.shared,
+                        suggestedFromCanonical: nil,
+                        presentationStyle: .pushedInSettings
+                    )
+                } label: {
+                    Text(String(localized: "settings.advanced.themeSubstitutionRules.link"))
+                }
+                .font(AppTheme.warmPaperBody)
+                .foregroundStyle(AppTheme.settingsTextPrimary)
+                .accessibilityIdentifier("SettingsAdvancedThemeSubstitutionRulesLink")
+
+                Button(String(localized: "settings.advanced.themeSubstitutionRules.clear")) {
+                    ThemeSubstitutionRulesStore.shared.clearAll()
+                }
+                .font(AppTheme.warmPaperBody)
+                .foregroundStyle(AppTheme.settingsTextPrimary)
+                .accessibilityIdentifier("SettingsAdvancedThemeSubstitutionRulesClear")
+            } footer: {
+                Text(String(localized: "settings.advanced.themeSubstitutionRules.detail"))
+                    .font(AppTheme.warmPaperMeta)
+                    .foregroundStyle(AppTheme.settingsTextMuted)
+            }
+
             if hasCelebratedFirstBloom {
                 Section {
                     Toggle(isOn: bloomModeBinding) {

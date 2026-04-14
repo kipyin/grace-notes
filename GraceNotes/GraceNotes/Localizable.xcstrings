@@ -4627,6 +4627,502 @@
         }
       }
     },
+    "review.themeDrilldown.applyMerge": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merge into that theme"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合并到该主题"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.mergeAlsoSavesRuleFooter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merging also saves a conditional rule using a short phrase from your example lines so similar sentences map the same way."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合并时也会根据示例句中的短语保存一条条件规则，让类似句子同样映射。"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.applyRelabel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save label"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存名称"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.customLabel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom label"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自定义名称"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.hideTheme": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide this theme from Past"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在“过去”中隐藏此主题"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.adjustThemesTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adjust themes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "调整主题"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.adjustThemesToolbar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adjust…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "调整…"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.excludeFromThisLine": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove from this line"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从此行移除"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.addThemeToLineA11y": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a theme to this line"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为此行添加主题"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.tokenRuleButtonA11y": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a conditional theme rule for this line"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为此行添加条件主题规则"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.tokenRuleSheetTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link a phrase to a theme"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将短语指认为主题"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.tokenRuleLinePreviewHeader": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This line"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本行原文"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.tokenFieldLabel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phrase in this line"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本行中的短语"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.tokenFieldPlaceholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exact text from the line"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从本行中摘录的原文"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.countAsFieldLabel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Count as"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "计作"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.countAsFieldPlaceholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Word or short phrase"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "词语或短短语"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.tokenRuleFooter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When this line contains the phrase and Past infers a theme for that phrase, it counts as the theme you choose here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当该行包含该短语，且「过去」为该短语推断出主题时，会按你在此选择的主题计数。"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.tokenRuleConfirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save rule"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存规则"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.tokenRuleCouldNotResolve": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not build that rule. Check the phrase appears exactly in the line, and try a different word or phrase for “Count as”."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法保存该规则。请确认短语与本行原文一致，并为「计作」换一个能匹配主题的词语或短短语。"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.addLineThemeSheetTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add theme"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加主题"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.addLineThemePlaceholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Word or short phrase"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "词语或短短语"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.addLineThemeFooter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grace Notes picks a Past theme label from what you type. It applies only to this line."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用会根据你输入的内容匹配“过去”主题标签，且仅作用于这一行。"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.addLineThemeSheetAdd": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.addLineThemeCouldNotResolve": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No theme matched that text. Try a different word or phrase."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能匹配到主题，请换一个词或短短语再试。"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.removeAddedThemeFromLine": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove added tag"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除已添加的标签"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.mergeInto": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merge into another theme"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合并到另一主题"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.mergePlaceholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canonical theme key (e.g. sleep)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题键（如 sleep）"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.relabelPlaceholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How this theme should read"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "希望显示的名称"
+          }
+        }
+      }
+    },
+    "review.themeDrilldown.somethingLooksOff": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Something look off?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "看起来不太对？"
+          }
+        }
+      }
+    },
+    "settings.advanced.resetThemeOverrides": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset Past theme corrections"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重置“过去”主题调整"
+          }
+        }
+      }
+    },
+    "settings.advanced.resetThemeOverrides.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clears local hide, relabel, and merge choices for weekly themes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除本地对每周主题的隐藏、重命名与合并设置。"
+          }
+        }
+      }
+    },
     "review.theme.boundaries": {
       "localizations": {
         "en": {
@@ -7034,6 +7530,294 @@
           "stringUnit": {
             "state": "translated",
             "value": "今天的记录完成了，明天见。"
+          }
+        }
+      }
+    },
+    "review.themeSubstitutionRules.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conditional theme rules"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "条件性主题规则"
+          }
+        }
+      }
+    },
+    "review.themeSubstitutionRules.footer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlike Adjust themes, these rules only apply when the line text contains your trigger and the distilled theme matches “from.” Other lines are unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "与“调整主题”不同：仅当该行文字包含触发词且提炼主题为“来源”时才替换；其他行不受影响。"
+          }
+        }
+      }
+    },
+    "review.themeSubstitutionRules.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No rules yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚无规则"
+          }
+        }
+      }
+    },
+    "review.themeSubstitutionRules.addRule": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add rule"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加规则"
+          }
+        }
+      }
+    },
+    "review.themeSubstitutionRules.fieldTrigger": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Line must contain"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "行内须包含"
+          }
+        }
+      }
+    },
+    "review.themeSubstitutionRules.fieldFrom": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When theme is"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当主题为"
+          }
+        }
+      }
+    },
+    "review.themeSubstitutionRules.fieldTo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Count as"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "计作"
+          }
+        }
+      }
+    },
+    "review.themeSubstitutionRules.enabledToggle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enabled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启用"
+          }
+        }
+      }
+    },
+    "review.themeSubstitutionRules.editorFooter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canonical theme names are normalized to lowercase. The trigger is matched against the full line text."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "规范主题名会转成小写。触发词会匹配整行文字。"
+          }
+        }
+      }
+    },
+    "review.themeSubstitutionRules.newTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New rule"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新规则"
+          }
+        }
+      }
+    },
+    "review.themeSubstitutionRules.editTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit rule"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑规则"
+          }
+        }
+      }
+    },
+    "review.themeSubstitutionRules.saveButton": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存"
+          }
+        }
+      }
+    },
+    "review.themeSubstitutionRules.disabledTag": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disabled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已关闭"
+          }
+        }
+      }
+    },
+    "review.themeSubstitutionRules.lineContainsPrefix": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Line must contain:"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "行内须包含："
+          }
+        }
+      }
+    },
+    "settings.advanced.themeSubstitutionRules.link": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conditional theme rules"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "条件性主题规则"
+          }
+        }
+      }
+    },
+    "settings.advanced.themeSubstitutionRules.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When a line contains your phrase and the app’s distilled theme matches “from,” Past counts it as “to.” Use sparingly; clearing theme overrides above does not remove these."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当一行包含你设定的短语且提炼主题匹配“来源”时，Past 会按“目标”计数。请谨慎使用；上方的“重置主题调整”不会清除这些规则。"
+          }
+        }
+      }
+    },
+    "settings.advanced.themeSubstitutionRules.footer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advanced: same behavior as Past theme adjustments, but conditional on line text. Edit or delete rules here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高级选项：与 Past 主题调整类似，但依赖行内文字条件。可在此编辑或删除规则。"
+          }
+        }
+      }
+    },
+    "settings.advanced.themeSubstitutionRules.clear": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear all conditional rules"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除全部条件规则"
           }
         }
       }

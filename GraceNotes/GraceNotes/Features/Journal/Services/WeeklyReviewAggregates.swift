@@ -467,6 +467,8 @@ struct ThemeAccumulator {
 struct ThemeSurface {
     let source: ReviewThemeSourceCategory
     let content: String
+    let journalId: UUID
+    let lineKey: SurfaceLineKey
 }
 
 struct DistilledThemeAccumulator {

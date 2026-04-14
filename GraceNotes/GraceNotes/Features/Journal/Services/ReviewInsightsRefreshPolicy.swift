@@ -5,17 +5,26 @@ struct ReviewInsightsRefreshKey: Hashable {
     let entrySnapshots: [ReviewEntrySnapshot]
     let weekBoundaryPreferenceRawValue: String
     let pastStatisticsIntervalToken: String
+    let themeOverrideRevision: UInt64
+    let surfaceThemeAdjustmentRevision: UInt64
+    let themeSubstitutionRulesRevision: UInt64
 
     init(
         weekStart: Date,
         entrySnapshots: [ReviewEntrySnapshot],
         weekBoundaryPreferenceRawValue: String = ReviewWeekBoundaryPreference.defaultValue.rawValue,
-        pastStatisticsIntervalToken: String = PastStatisticsIntervalSelection.default.cacheKeyToken
+        pastStatisticsIntervalToken: String = PastStatisticsIntervalSelection.default.cacheKeyToken,
+        themeOverrideRevision: UInt64 = ThemeOverridePersistence.currentRevision(),
+        surfaceThemeAdjustmentRevision: UInt64 = SurfaceThemeAdjustmentPersistence.currentRevision(),
+        themeSubstitutionRulesRevision: UInt64 = ThemeSubstitutionRulesPersistence.currentRevision()
     ) {
         self.weekStart = weekStart
         self.entrySnapshots = entrySnapshots
         self.weekBoundaryPreferenceRawValue = weekBoundaryPreferenceRawValue
         self.pastStatisticsIntervalToken = pastStatisticsIntervalToken
+        self.themeOverrideRevision = themeOverrideRevision
+        self.surfaceThemeAdjustmentRevision = surfaceThemeAdjustmentRevision
+        self.themeSubstitutionRulesRevision = themeSubstitutionRulesRevision
     }
 
     /// Snapshots for every loaded entry that can change Past-tab insights: the resolved past-statistics

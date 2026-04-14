@@ -36,13 +36,19 @@ extension ReviewInsightsCacheTests {
             insights,
             calendar: calendar,
             weekBoundaryPreferenceRawValue: defaultWeekBoundaryRaw,
-            pastStatisticsIntervalToken: defaultPastStatsToken
+            pastStatisticsIntervalToken: defaultPastStatsToken,
+            themeOverrideRevision: 0,
+            surfaceThemeAdjustmentRevision: 0,
+            themeSubstitutionRulesRevision: 0
         )
         let loaded = await cache.insights(
             forWeekStart: weekStart,
             calendar: calendar,
             weekBoundaryPreferenceRawValue: defaultWeekBoundaryRaw,
-            pastStatisticsIntervalToken: defaultPastStatsToken
+            pastStatisticsIntervalToken: defaultPastStatsToken,
+            themeOverrideRevision: 0,
+            surfaceThemeAdjustmentRevision: 0,
+            themeSubstitutionRulesRevision: 0
         )
 
         XCTAssertEqual(loaded, insights)
@@ -56,13 +62,19 @@ extension ReviewInsightsCacheTests {
             sparse,
             calendar: calendar,
             weekBoundaryPreferenceRawValue: defaultWeekBoundaryRaw,
-            pastStatisticsIntervalToken: defaultPastStatsToken
+            pastStatisticsIntervalToken: defaultPastStatsToken,
+            themeOverrideRevision: 0,
+            surfaceThemeAdjustmentRevision: 0,
+            themeSubstitutionRulesRevision: 0
         )
         let loaded = await cache.insights(
             forWeekStart: weekStart,
             calendar: calendar,
             weekBoundaryPreferenceRawValue: defaultWeekBoundaryRaw,
-            pastStatisticsIntervalToken: defaultPastStatsToken
+            pastStatisticsIntervalToken: defaultPastStatsToken,
+            themeOverrideRevision: 0,
+            surfaceThemeAdjustmentRevision: 0,
+            themeSubstitutionRulesRevision: 0
         )
 
         XCTAssertNil(loaded)
@@ -98,7 +110,10 @@ extension ReviewInsightsCacheTests {
                 insights,
                 calendar: calendar,
                 weekBoundaryPreferenceRawValue: defaultWeekBoundaryRaw,
-                pastStatisticsIntervalToken: defaultPastStatsToken
+                pastStatisticsIntervalToken: defaultPastStatsToken,
+                themeOverrideRevision: 0,
+                surfaceThemeAdjustmentRevision: 0,
+            themeSubstitutionRulesRevision: 0
             )
         }
 
@@ -109,7 +124,10 @@ extension ReviewInsightsCacheTests {
             forWeekStart: oldest,
             calendar: calendar,
             weekBoundaryPreferenceRawValue: defaultWeekBoundaryRaw,
-            pastStatisticsIntervalToken: defaultPastStatsToken
+            pastStatisticsIntervalToken: defaultPastStatsToken,
+            themeOverrideRevision: 0,
+            surfaceThemeAdjustmentRevision: 0,
+            themeSubstitutionRulesRevision: 0
         )
         XCTAssertNil(oldestLoaded)
         for weekStart in newestEight {
@@ -117,7 +135,10 @@ extension ReviewInsightsCacheTests {
                 forWeekStart: weekStart,
                 calendar: calendar,
                 weekBoundaryPreferenceRawValue: defaultWeekBoundaryRaw,
-                pastStatisticsIntervalToken: defaultPastStatsToken
+                pastStatisticsIntervalToken: defaultPastStatsToken,
+                themeOverrideRevision: 0,
+                surfaceThemeAdjustmentRevision: 0,
+            themeSubstitutionRulesRevision: 0
             )
             XCTAssertNotNil(loaded)
         }
@@ -131,13 +152,19 @@ extension ReviewInsightsCacheTests {
             insights,
             calendar: calendar,
             weekBoundaryPreferenceRawValue: ReviewWeekBoundaryPreference.sundayStart.rawValue,
-            pastStatisticsIntervalToken: defaultPastStatsToken
+            pastStatisticsIntervalToken: defaultPastStatsToken,
+            themeOverrideRevision: 0,
+            surfaceThemeAdjustmentRevision: 0,
+            themeSubstitutionRulesRevision: 0
         )
         let loadedOtherBoundary = await cache.insights(
             forWeekStart: weekStart,
             calendar: calendar,
             weekBoundaryPreferenceRawValue: ReviewWeekBoundaryPreference.mondayStart.rawValue,
-            pastStatisticsIntervalToken: defaultPastStatsToken
+            pastStatisticsIntervalToken: defaultPastStatsToken,
+            themeOverrideRevision: 0,
+            surfaceThemeAdjustmentRevision: 0,
+            themeSubstitutionRulesRevision: 0
         )
         XCTAssertNil(loadedOtherBoundary)
 
@@ -145,7 +172,10 @@ extension ReviewInsightsCacheTests {
             forWeekStart: weekStart,
             calendar: calendar,
             weekBoundaryPreferenceRawValue: ReviewWeekBoundaryPreference.sundayStart.rawValue,
-            pastStatisticsIntervalToken: defaultPastStatsToken
+            pastStatisticsIntervalToken: defaultPastStatsToken,
+            themeOverrideRevision: 0,
+            surfaceThemeAdjustmentRevision: 0,
+            themeSubstitutionRulesRevision: 0
         )
         XCTAssertEqual(loadedSameBoundary, insights)
     }
@@ -175,13 +205,19 @@ extension ReviewInsightsCacheTests {
             insights,
             calendar: calendar,
             weekBoundaryPreferenceRawValue: defaultWeekBoundaryRaw,
-            pastStatisticsIntervalToken: defaultPastStatsToken
+            pastStatisticsIntervalToken: defaultPastStatsToken,
+            themeOverrideRevision: 0,
+            surfaceThemeAdjustmentRevision: 0,
+            themeSubstitutionRulesRevision: 0
         )
         let loaded = await cache.insights(
             forWeekStart: weekStart,
             calendar: calendar,
             weekBoundaryPreferenceRawValue: defaultWeekBoundaryRaw,
-            pastStatisticsIntervalToken: defaultPastStatsToken
+            pastStatisticsIntervalToken: defaultPastStatsToken,
+            themeOverrideRevision: 0,
+            surfaceThemeAdjustmentRevision: 0,
+            themeSubstitutionRulesRevision: 0
         )
 
         XCTAssertEqual(loaded?.weekStats.historySectionTotals, insights.weekStats.historySectionTotals)
@@ -263,6 +299,7 @@ extension ReviewInsightsCacheTests {
         let data = try XCTUnwrap(json.data(using: .utf8))
         let theme = try JSONDecoder().decode(ReviewMostRecurringTheme.self, from: data)
         XCTAssertEqual(theme.label, "Rest")
+        XCTAssertEqual(theme.canonicalConcept, "Rest")
         XCTAssertEqual(theme.totalCount, 4)
         XCTAssertEqual(theme.currentWeekCount, 3)
         XCTAssertEqual(theme.previousWeekCount, 1)
@@ -279,7 +316,10 @@ extension ReviewInsightsCacheTests {
             forWeekStart: weekStart,
             calendar: calendar,
             weekBoundaryPreferenceRawValue: defaultWeekBoundaryRaw,
-            pastStatisticsIntervalToken: defaultPastStatsToken
+            pastStatisticsIntervalToken: defaultPastStatsToken,
+            themeOverrideRevision: 0,
+            surfaceThemeAdjustmentRevision: 0,
+            themeSubstitutionRulesRevision: 0
         )
         XCTAssertNil(beforeHeal)
 
@@ -288,13 +328,19 @@ extension ReviewInsightsCacheTests {
             insights,
             calendar: calendar,
             weekBoundaryPreferenceRawValue: defaultWeekBoundaryRaw,
-            pastStatisticsIntervalToken: defaultPastStatsToken
+            pastStatisticsIntervalToken: defaultPastStatsToken,
+            themeOverrideRevision: 0,
+            surfaceThemeAdjustmentRevision: 0,
+            themeSubstitutionRulesRevision: 0
         )
         let afterStore = await cache.insights(
             forWeekStart: weekStart,
             calendar: calendar,
             weekBoundaryPreferenceRawValue: defaultWeekBoundaryRaw,
-            pastStatisticsIntervalToken: defaultPastStatsToken
+            pastStatisticsIntervalToken: defaultPastStatsToken,
+            themeOverrideRevision: 0,
+            surfaceThemeAdjustmentRevision: 0,
+            themeSubstitutionRulesRevision: 0
         )
         XCTAssertEqual(afterStore, insights)
     }

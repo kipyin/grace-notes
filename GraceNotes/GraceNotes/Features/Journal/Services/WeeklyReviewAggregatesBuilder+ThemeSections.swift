@@ -27,6 +27,9 @@ extension WeeklyReviewAggregatesBuilder {
         let journalThemeDisplayLocale = themeJournalLanguageResolver.resolvedDisplayLocale(
             forJournalCorpus: journalCorpus
         )
+        let themeOverridePolicy = ThemeOverridePersistence.loadPolicy()
+        let surfaceThemePolicy = SurfaceThemeAdjustmentPersistence.loadPolicy()
+        let substitutionRules = ThemeSubstitutionRulesPersistence.loadRules()
         var map: [String: DistilledThemeAccumulator] = [:]
         var sequence = 0
 
@@ -50,11 +53,47 @@ extension WeeklyReviewAggregatesBuilder {
                 )
                 let uniqueConcepts = Dictionary(grouping: concepts, by: \.canonicalConcept)
                     .compactMap { _, candidates in candidates.max(by: { $0.score < $1.score }) }
+                let substituted = uniqueConcepts.map {
+                    ThemeSubstitutionRulesApplier.apply(
+                        to: $0,
+                        surfaceText: surface.content,
+                        rules: substitutionRules,
+                        textNormalizer: textNormalizer,
+                        source: surface.source,
+                        journalThemeDisplayLocale: journalThemeDisplayLocale
+                    )
+                }
+                let mergedAfterSubstitution = Dictionary(grouping: substituted, by: \.canonicalConcept)
+                    .compactMap { _, candidates in candidates.max(by: { $0.score < $1.score }) }
 
-                for concept in uniqueConcepts {
-                    var accumulator = map[concept.canonicalConcept] ?? DistilledThemeAccumulator(
-                        canonicalConcept: concept.canonicalConcept,
-                        displayLabel: concept.displayLabel,
+                let surfaceKey = surface.lineKey.storageKey
+                let filteredUnique = mergedAfterSubstitution.filter {
+                    !surfaceThemePolicy.shouldDropConcept(surfaceKey: surfaceKey, canonicalConcept: $0.canonicalConcept)
+                }
+                var mergedConcepts = filteredUnique
+                for added in surfaceThemePolicy.addedConcepts(for: surfaceKey) {
+                    let normalized = added.lowercased()
+                    guard !mergedConcepts.contains(where: { $0.canonicalConcept.lowercased() == normalized }) else {
+                        continue
+                    }
+                    mergedConcepts.append(
+                        ReviewDistilledConcept(
+                            canonicalConcept: normalized,
+                            displayLabel: textNormalizer.displayLabel(
+                                for: normalized,
+                                source: surface.source,
+                                journalThemeDisplayLocale: journalThemeDisplayLocale
+                            ),
+                            score: 5
+                        )
+                    )
+                }
+
+                for concept in mergedConcepts {
+                    guard let resolved = themeOverridePolicy.apply(concept) else { continue }
+                    var accumulator = map[resolved.canonicalConcept] ?? DistilledThemeAccumulator(
+                        canonicalConcept: resolved.canonicalConcept,
+                        displayLabel: resolved.displayLabel,
                         totalCount: 0,
                         days: [],
                         evidence: [],
@@ -72,14 +111,8 @@ extension WeeklyReviewAggregatesBuilder {
                     } else if trendRanges.previous.contains(day) {
                         accumulator.previousWeekCount += 1
                     }
-                    accumulator.addEvidence(
-                        ReviewThemeSurfaceEvidence(
-                            entryDate: day,
-                            source: surface.source,
-                            content: surface.content
-                        )
-                    )
-                    map[concept.canonicalConcept] = accumulator
+                    accumulator.addEvidence(surface.surfaceEvidence(entryDate: day))
+                    map[resolved.canonicalConcept] = accumulator
                 }
                 sequence += 1
             }
@@ -90,17 +123,23 @@ extension WeeklyReviewAggregatesBuilder {
             entries: entries,
             mostRecurringWindow: mostRecurringWindow,
             calendar: calendar,
-            journalThemeDisplayLocale: journalThemeDisplayLocale
+            journalThemeDisplayLocale: journalThemeDisplayLocale,
+            themeOverridePolicy: themeOverridePolicy,
+            substitutionRules: substitutionRules
         )
 
         for canonical in Array(map.keys) {
             guard var accumulator = map[canonical] else { continue }
             let source: ReviewThemeSourceCategory =
                 canonical == "mom" || canonical == "dad" ? .people : .gratitudes
-            accumulator.displayLabel = textNormalizer.displayLabel(
+            let resolvedLabel = textNormalizer.displayLabel(
                 for: accumulator.canonicalConcept,
                 source: source,
                 journalThemeDisplayLocale: journalThemeDisplayLocale
+            )
+            accumulator.displayLabel = themeOverridePolicy.displayLabel(
+                for: accumulator.canonicalConcept,
+                default: resolvedLabel
             )
             map[canonical] = accumulator
         }
@@ -121,6 +160,7 @@ extension WeeklyReviewAggregatesBuilder {
             }
         let mostRecurring = mostRecurringSorted.map { value in
             ReviewMostRecurringTheme(
+                canonicalConcept: value.canonicalConcept,
                 label: value.displayLabel,
                 totalCount: value.totalCount,
                 dayCount: value.days.count,
@@ -140,6 +180,7 @@ extension WeeklyReviewAggregatesBuilder {
                 guard trend != .stable else { return nil }
                 guard value.currentWeekCount > 0 || value.previousWeekCount > 0 else { return nil }
                 return ReviewMovementTheme(
+                    canonicalConcept: value.canonicalConcept,
                     label: value.displayLabel,
                     currentWeekCount: value.currentWeekCount,
                     previousWeekCount: value.previousWeekCount,
@@ -157,12 +198,15 @@ extension WeeklyReviewAggregatesBuilder {
         return (mostRecurring, trending)
     }
 
+    // swiftlint:disable:next function_parameter_count
     func appendSupportingEvidence(
         into map: inout [String: DistilledThemeAccumulator],
         entries: [Journal],
         mostRecurringWindow: Range<Date>,
         calendar: Calendar,
-        journalThemeDisplayLocale: Locale
+        journalThemeDisplayLocale: Locale,
+        themeOverridePolicy: ThemeOverridePolicy,
+        substitutionRules: [ThemeSubstitutionRule]
     ) {
         let topLevelThemes = Array(map.keys)
         guard !topLevelThemes.isEmpty else { return }
@@ -172,14 +216,31 @@ extension WeeklyReviewAggregatesBuilder {
             guard mostRecurringWindow.contains(day) else { continue }
 
             for surface in supportSurfaces(for: entry) {
-                let supportConcepts = Set(
-                    textNormalizer.distillConcepts(
-                        from: surface.content,
+                let rawConcepts = textNormalizer.distillConcepts(
+                    from: surface.content,
+                    source: surface.source,
+                    maximumCount: 4,
+                    highConfidenceOnly: false,
+                    journalThemeDisplayLocale: journalThemeDisplayLocale
+                )
+                let uniqueConcepts = Dictionary(grouping: rawConcepts, by: \.canonicalConcept)
+                    .compactMap { _, candidates in candidates.max(by: { $0.score < $1.score }) }
+                let substituted = uniqueConcepts.map {
+                    ThemeSubstitutionRulesApplier.apply(
+                        to: $0,
+                        surfaceText: surface.content,
+                        rules: substitutionRules,
+                        textNormalizer: textNormalizer,
                         source: surface.source,
-                        maximumCount: 4,
-                        highConfidenceOnly: false,
                         journalThemeDisplayLocale: journalThemeDisplayLocale
-                    ).map(\.canonicalConcept)
+                    )
+                }
+                let mergedAfterSubstitution = Dictionary(grouping: substituted, by: \.canonicalConcept)
+                    .compactMap { _, candidates in candidates.max(by: { $0.score < $1.score }) }
+                let supportConcepts = Set(
+                    mergedAfterSubstitution
+                        .compactMap { themeOverridePolicy.apply($0) }
+                        .map(\.canonicalConcept)
                 )
                 guard !supportConcepts.isEmpty else { continue }
 
@@ -189,13 +250,7 @@ extension WeeklyReviewAggregatesBuilder {
                         || textNormalizer.themesMatch(theme, against: supportConcepts)
                         || moderateSurfaceSemanticMatch(themeConcept: theme, supportText: surface.content)
                     guard matches else { continue }
-                    accumulator.addEvidence(
-                        ReviewThemeSurfaceEvidence(
-                            entryDate: day,
-                            source: surface.source,
-                            content: surface.content
-                        )
-                    )
+                    accumulator.addEvidence(surface.surfaceEvidence(entryDate: day))
                     map[theme] = accumulator
                 }
             }
@@ -241,19 +296,40 @@ extension WeeklyReviewAggregatesBuilder {
         for item in entry.gratitudes ?? [] {
             let content = textNormalizer.trimmed(item.fullText)
             if !content.isEmpty {
-                surfaces.append(ThemeSurface(source: .gratitudes, content: content))
+                surfaces.append(
+                    ThemeSurface(
+                        source: .gratitudes,
+                        content: content,
+                        journalId: entry.id,
+                        lineKey: .chip(journalId: entry.id, source: .gratitudes, entryLineId: item.id)
+                    )
+                )
             }
         }
         for item in entry.needs ?? [] {
             let content = textNormalizer.trimmed(item.fullText)
             if !content.isEmpty {
-                surfaces.append(ThemeSurface(source: .needs, content: content))
+                surfaces.append(
+                    ThemeSurface(
+                        source: .needs,
+                        content: content,
+                        journalId: entry.id,
+                        lineKey: .chip(journalId: entry.id, source: .needs, entryLineId: item.id)
+                    )
+                )
             }
         }
         for item in entry.people ?? [] {
             let content = textNormalizer.trimmed(item.fullText)
             if !content.isEmpty {
-                surfaces.append(ThemeSurface(source: .people, content: content))
+                surfaces.append(
+                    ThemeSurface(
+                        source: .people,
+                        content: content,
+                        journalId: entry.id,
+                        lineKey: .chip(journalId: entry.id, source: .people, entryLineId: item.id)
+                    )
+                )
             }
         }
 
@@ -264,11 +340,25 @@ extension WeeklyReviewAggregatesBuilder {
         var surfaces: [ThemeSurface] = []
         let notes = textNormalizer.trimmed(entry.readingNotes)
         if !notes.isEmpty {
-            surfaces.append(ThemeSurface(source: .readingNotes, content: notes))
+            surfaces.append(
+                ThemeSurface(
+                    source: .readingNotes,
+                    content: notes,
+                    journalId: entry.id,
+                    lineKey: .noteBlock(journalId: entry.id, source: .readingNotes)
+                )
+            )
         }
         let reflections = textNormalizer.trimmed(entry.reflections)
         if !reflections.isEmpty {
-            surfaces.append(ThemeSurface(source: .reflections, content: reflections))
+            surfaces.append(
+                ThemeSurface(
+                    source: .reflections,
+                    content: reflections,
+                    journalId: entry.id,
+                    lineKey: .noteBlock(journalId: entry.id, source: .reflections)
+                )
+            )
         }
         return surfaces
     }
@@ -317,7 +407,36 @@ extension WeeklyReviewAggregatesBuilder {
             if lhs.source != rhs.source {
                 return lhs.source.rawValue < rhs.source.rawValue
             }
+            if lhs.journalId?.uuidString != rhs.journalId?.uuidString {
+                return (lhs.journalId?.uuidString ?? "") < (rhs.journalId?.uuidString ?? "")
+            }
+            if lhs.entryLineId?.uuidString != rhs.entryLineId?.uuidString {
+                return (lhs.entryLineId?.uuidString ?? "") < (rhs.entryLineId?.uuidString ?? "")
+            }
             return lhs.content.localizedCaseInsensitiveCompare(rhs.content) == .orderedAscending
+        }
+    }
+}
+
+private extension ThemeSurface {
+    func surfaceEvidence(entryDate: Date) -> ReviewThemeSurfaceEvidence {
+        switch lineKey {
+        case .chip(let journalId, let source, let entryLineId):
+            return ReviewThemeSurfaceEvidence(
+                entryDate: entryDate,
+                source: source,
+                content: content,
+                journalId: journalId,
+                entryLineId: entryLineId
+            )
+        case .noteBlock(let journalId, let source):
+            return ReviewThemeSurfaceEvidence(
+                entryDate: entryDate,
+                source: source,
+                content: content,
+                journalId: journalId,
+                entryLineId: nil
+            )
         }
     }
 }

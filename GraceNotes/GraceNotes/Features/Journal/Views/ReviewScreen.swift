@@ -52,6 +52,9 @@ struct ReviewScreen: View {
     @State private var journalSearchMatches: [JournalSearchMatch] = []
     @FocusState private var isPastSearchFieldFocused: Bool
     @EnvironmentObject private var appNavigation: AppNavigationModel
+    @ObservedObject private var themeOverrideStore = ThemeOverrideStore.shared
+    @ObservedObject private var surfaceThemeAdjustmentStore = SurfaceThemeAdjustmentStore.shared
+    @ObservedObject private var themeSubstitutionRulesStore = ThemeSubstitutionRulesStore.shared
 
     private let reviewInsightsProvider = ReviewInsightsProvider.shared
     private let reviewInsightsCache = ReviewInsightsCache.shared
@@ -94,7 +97,10 @@ extension ReviewScreen {
                 currentReviewPeriod: period
             ),
             weekBoundaryPreferenceRawValue: reviewWeekBoundaryRawValue,
-            pastStatisticsIntervalToken: pastStatisticsInterval.cacheKeyToken
+            pastStatisticsIntervalToken: pastStatisticsInterval.cacheKeyToken,
+            themeOverrideRevision: themeOverrideStore.revision,
+            surfaceThemeAdjustmentRevision: surfaceThemeAdjustmentStore.revision,
+            themeSubstitutionRulesRevision: themeSubstitutionRulesStore.revision
         )
     }
 
@@ -452,7 +458,10 @@ extension ReviewScreen {
             generatedInsights,
             calendar: calendar,
             weekBoundaryPreferenceRawValue: reviewWeekBoundaryRawValue,
-            pastStatisticsIntervalToken: pastStatisticsInterval.cacheKeyToken
+            pastStatisticsIntervalToken: pastStatisticsInterval.cacheKeyToken,
+            themeOverrideRevision: themeOverrideStore.revision,
+            surfaceThemeAdjustmentRevision: surfaceThemeAdjustmentStore.revision,
+            themeSubstitutionRulesRevision: themeSubstitutionRulesStore.revision
         )
         lastInsightsRefreshKey = refreshKey
         isLoadingInsights = false
@@ -465,7 +474,10 @@ extension ReviewScreen {
             forWeekStart: currentReviewPeriod.lowerBound,
             calendar: calendar,
             weekBoundaryPreferenceRawValue: reviewWeekBoundaryRawValue,
-            pastStatisticsIntervalToken: pastStatisticsInterval.cacheKeyToken
+            pastStatisticsIntervalToken: pastStatisticsInterval.cacheKeyToken,
+            themeOverrideRevision: themeOverrideStore.revision,
+            surfaceThemeAdjustmentRevision: surfaceThemeAdjustmentStore.revision,
+            themeSubstitutionRulesRevision: themeSubstitutionRulesStore.revision
         )
     }
 }

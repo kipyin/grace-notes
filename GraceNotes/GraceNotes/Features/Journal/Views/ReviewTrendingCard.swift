@@ -122,11 +122,13 @@ struct ReviewTrendingCard: View {
             Int64(theme.previousWeekCount)
         )
         return ReviewThemeDrilldownPayload(
+            canonicalConcept: theme.canonicalConcept,
             label: theme.label,
             sectionTitle: String(localized: "review.labels.trending"),
             subtitle: "\(trendText). \(subtitle)",
             trend: theme.trend,
-            evidence: theme.evidence
+            evidence: theme.evidence,
+            journalThemeDisplayLocale: ThemeDrilldownAlternativesBuilder.resolvedLocale(for: theme.evidence)
         )
     }
 

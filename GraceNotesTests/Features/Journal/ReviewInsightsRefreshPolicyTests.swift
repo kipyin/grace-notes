@@ -65,6 +65,17 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
         XCTAssertTrue(result)
     }
 
+    func test_shouldRefresh_whenThemeSubstitutionRulesRevisionChanges_returnsTrue() {
+        let previous = makeKey(themeSubstitutionRulesRevision: 0)
+        let current = makeKey(themeSubstitutionRulesRevision: 1)
+        let result = ReviewInsightsRefreshPolicy.shouldRefresh(
+            hasInsights: true,
+            previousKey: previous,
+            currentKey: current
+        )
+        XCTAssertTrue(result)
+    }
+
     /// Past-tab insights read older days inside the past-statistics window; refresh fingerprints must
     /// include those rows, not only the current review week (PR #166 review feedback).
     func test_entrySnapshotsAffectingInsights_includesHistoryWindowEntryOutsideCurrentWeek() {
@@ -132,13 +143,17 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
             weekStart: ctx.currentPeriod.lowerBound,
             entrySnapshots: snapshotsBefore,
             weekBoundaryPreferenceRawValue: weekBoundary,
-            pastStatisticsIntervalToken: token
+            pastStatisticsIntervalToken: token,
+            themeOverrideRevision: 0,
+            surfaceThemeAdjustmentRevision: 0
         )
         let keyAfter = ReviewInsightsRefreshKey(
             weekStart: ctx.currentPeriod.lowerBound,
             entrySnapshots: snapshotsAfter,
             weekBoundaryPreferenceRawValue: weekBoundary,
-            pastStatisticsIntervalToken: token
+            pastStatisticsIntervalToken: token,
+            themeOverrideRevision: 0,
+            surfaceThemeAdjustmentRevision: 0
         )
         XCTAssertTrue(
             ReviewInsightsRefreshPolicy.shouldRefresh(hasInsights: true, previousKey: keyBefore, currentKey: keyAfter)
@@ -205,13 +220,19 @@ final class ReviewInsightsRefreshPolicyTests: XCTestCase {
         weekStart: Date = Date(timeIntervalSince1970: 0),
         snapshots: [ReviewEntrySnapshot] = [],
         weekBoundaryPreferenceRawValue: String = ReviewWeekBoundaryPreference.defaultValue.rawValue,
-        pastStatisticsIntervalToken: String = PastStatisticsIntervalSelection.default.cacheKeyToken
+        pastStatisticsIntervalToken: String = PastStatisticsIntervalSelection.default.cacheKeyToken,
+        themeOverrideRevision: UInt64 = 0,
+        surfaceThemeAdjustmentRevision: UInt64 = 0,
+        themeSubstitutionRulesRevision: UInt64 = 0
     ) -> ReviewInsightsRefreshKey {
         ReviewInsightsRefreshKey(
             weekStart: weekStart,
             entrySnapshots: snapshots,
             weekBoundaryPreferenceRawValue: weekBoundaryPreferenceRawValue,
-            pastStatisticsIntervalToken: pastStatisticsIntervalToken
+            pastStatisticsIntervalToken: pastStatisticsIntervalToken,
+            themeOverrideRevision: themeOverrideRevision,
+            surfaceThemeAdjustmentRevision: surfaceThemeAdjustmentRevision,
+            themeSubstitutionRulesRevision: themeSubstitutionRulesRevision
         )
     }
 

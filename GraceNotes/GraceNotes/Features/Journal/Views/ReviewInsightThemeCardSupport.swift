@@ -159,14 +159,16 @@ struct ReviewCountBadge: View {
 // MARK: - Drilldown & browse
 
 struct ReviewThemeDrilldownPayload: Identifiable {
+    let canonicalConcept: String
     let label: String
     let sectionTitle: String
     let subtitle: String
     let trend: ReviewThemeTrend?
     let evidence: [ReviewThemeSurfaceEvidence]
+    let journalThemeDisplayLocale: Locale
 
     var id: String {
-        "\(sectionTitle)|\(label)"
+        "\(sectionTitle)|\(canonicalConcept)"
     }
 }
 
@@ -358,11 +360,13 @@ struct MostRecurringThemesBrowseView: View {
 
     private func drilldownPayload(for row: MostRecurringBrowseRowModel) -> ReviewThemeDrilldownPayload {
         ReviewThemeDrilldownPayload(
+            canonicalConcept: row.themeId,
             label: row.label,
             sectionTitle: String(localized: "review.labels.mostRecurring"),
             subtitle: pastStatisticsSelection.mostRecurringDrilldownSubtitle(mentionCount: row.mentionCount),
             trend: nil,
-            evidence: row.evidence
+            evidence: row.evidence,
+            journalThemeDisplayLocale: ThemeDrilldownAlternativesBuilder.resolvedLocale(for: row.evidence)
         )
     }
 }
@@ -469,6 +473,7 @@ struct TrendingThemesBrowseView: View {
 
     private func drilldownPayload(for theme: ReviewMovementTheme) -> ReviewThemeDrilldownPayload {
         ReviewThemeDrilldownPayload(
+            canonicalConcept: theme.canonicalConcept,
             label: theme.label,
             sectionTitle: String(localized: "review.labels.trending"),
             subtitle: String(
@@ -477,7 +482,8 @@ struct TrendingThemesBrowseView: View {
                 Int64(theme.previousWeekCount)
             ),
             trend: theme.trend,
-            evidence: theme.evidence
+            evidence: theme.evidence,
+            journalThemeDisplayLocale: ThemeDrilldownAlternativesBuilder.resolvedLocale(for: theme.evidence)
         )
     }
 }
@@ -500,6 +506,10 @@ struct ThemeDrilldownView: View {
     let includeDoneButton: Bool
     let onOpenJournalDay: (Date) -> Void
     @Environment(\.dismiss) private var dismiss
+    @ObservedObject private var themeOverrideStore = ThemeOverrideStore.shared
+    @State private var relabelDraft: String = ""
+    @State private var mergeDraft: String = ""
+    @State private var showAdjustThemesSheet = false
     @AppStorage(ReviewWeekBoundaryPreference.userDefaultsKey)
     private var reviewWeekBoundaryRawValue = ReviewWeekBoundaryPreference.defaultValue.rawValue
 
@@ -507,17 +517,25 @@ struct ThemeDrilldownView: View {
         ReviewWeekBoundaryPreference.resolve(from: reviewWeekBoundaryRawValue).configuredCalendar()
     }
 
-    private var evidenceGroupedByDay: [(day: Date, rows: [ReviewThemeSurfaceEvidence])] {
+    private var evidenceGroupedForDayCards: [(
+        day: Date,
+        sections: [(source: ReviewThemeSourceCategory, rows: [ReviewThemeSurfaceEvidence])]
+    )] {
         let cal = groupingCalendar
-        let grouped = Dictionary(grouping: payload.evidence) { cal.startOfDay(for: $0.entryDate) }
-        return grouped.keys.sorted(by: >).map { day in
-            let rows = (grouped[day] ?? []).sorted { lhs, rhs in
-                if lhs.source != rhs.source {
-                    return lhs.source.rawValue < rhs.source.rawValue
+        let byDay = Dictionary(grouping: payload.evidence) { cal.startOfDay(for: $0.entryDate) }
+        let sourceOrder: [ReviewThemeSourceCategory] = [.gratitudes, .needs, .people, .readingNotes, .reflections]
+        return byDay.keys.sorted(by: >).map { day in
+            let rows = byDay[day] ?? []
+            let bySource = Dictionary(grouping: rows, by: \.source)
+            let sections: [(ReviewThemeSourceCategory, [ReviewThemeSurfaceEvidence])] =
+                sourceOrder.compactMap { source in
+                guard let sectionRows = bySource[source], !sectionRows.isEmpty else { return nil }
+                let sorted = sectionRows.sorted { lhs, rhs in
+                    lhs.content.localizedCaseInsensitiveCompare(rhs.content) == .orderedAscending
                 }
-                return lhs.content.localizedCaseInsensitiveCompare(rhs.content) == .orderedAscending
+                return (source, sorted)
             }
-            return (day, rows)
+            return (day, sections)
         }
     }
 
@@ -546,70 +564,45 @@ struct ThemeDrilldownView: View {
                 }
 
                 if !payload.evidence.isEmpty {
-                    Section {
-                        ForEach(evidenceGroupedByDay, id: \.day) { group in
-                            Section {
-                                ForEach(group.rows) { evidence in
-                                    Button {
-                                        onOpenJournalDay(groupingCalendar.startOfDay(for: evidence.entryDate))
-                                    } label: {
-                                        VStack(alignment: .leading, spacing: 8) {
-                                            Text(evidence.source.localizedJournalSurfaceTitle)
-                                                .font(AppTheme.warmPaperMetaEmphasis.weight(.semibold))
-                                                .foregroundStyle(AppTheme.reviewTextPrimary)
-                                            Text(evidence.content)
-                                                .font(AppTheme.warmPaperBody)
-                                                .foregroundStyle(AppTheme.reviewTextPrimary)
-                                                .fixedSize(horizontal: false, vertical: true)
-                                        }
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                        .padding(.vertical, 2)
-                                    }
-                                    .buttonStyle(PastTappablePressStyle())
-                                    .accessibilityElement(children: .combine)
-                                    .accessibilityLabel(
-                                        themeDrilldownRowAccessibilityLabel(day: group.day, evidence: evidence)
-                                    )
-                                    .accessibilityHint(String(localized: "review.themeDrilldown.openEntry.a11yHint"))
-                                }
-                            } header: {
-                                Text(group.day.formatted(date: .abbreviated, time: .omitted))
-                                    .font(AppTheme.warmPaperMeta)
-                                    .foregroundStyle(AppTheme.reviewTextMuted)
-                                    .textCase(nil)
-                            }
-                        }
-                    } header: {
-                        Text(String(localized: "review.labels.matchingSurfaces"))
-                            .font(AppTheme.warmPaperMeta)
-                            .foregroundStyle(AppTheme.reviewTextMuted)
-                            .textCase(nil)
-                    }
+                    ThemeDrilldownSurfaceRecordsSection(
+                        evidenceGroupedByDay: evidenceGroupedForDayCards,
+                        calendar: groupingCalendar,
+                        journalThemeDisplayLocale: payload.journalThemeDisplayLocale,
+                        drilldownCanonicalConcept: payload.canonicalConcept,
+                        drilldownThemeLabel: payload.label,
+                        onOpenJournalDay: onOpenJournalDay
+                    )
                 }
             }
             .scrollContentBackground(.hidden)
             .background(AppTheme.reviewBackground)
             .navigationTitle(String(localized: "review.labels.themeDetails"))
             .toolbar {
-                if includeDoneButton {
-                    ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button(String(localized: "review.themeDrilldown.adjustThemesToolbar")) {
+                        showAdjustThemesSheet = true
+                    }
+                    .accessibilityIdentifier("ThemeDrilldownAdjustThemes")
+                    if includeDoneButton {
                         PastToolbarDoneButton(action: { dismiss() })
                     }
                 }
             }
+            .sheet(isPresented: $showAdjustThemesSheet) {
+                ThemeDrilldownAdjustThemeSheet(
+                    canonicalConcept: payload.canonicalConcept,
+                    lineSampleForSubstitution: payload.evidence.first?.content,
+                    relabelDraft: $relabelDraft,
+                    mergeDraft: $mergeDraft,
+                    themeOverrideStore: themeOverrideStore,
+                    onFinished: { showAdjustThemesSheet = false }
+                )
+            }
+            .task(id: payload.id) {
+                relabelDraft = payload.label
+                mergeDraft = ""
+            }
         }
-    }
-
-    private func themeDrilldownRowAccessibilityLabel(
-        day: Date,
-        evidence: ReviewThemeSurfaceEvidence
-    ) -> String {
-        let dayText = day.formatted(date: .abbreviated, time: .omitted)
-        return [
-            dayText,
-            evidence.source.localizedJournalSurfaceTitle,
-            evidence.content
-        ].joined(separator: ", ")
     }
 
 }

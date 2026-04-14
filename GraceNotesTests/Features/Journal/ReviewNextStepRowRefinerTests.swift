@@ -86,6 +86,7 @@ final class ReviewNextStepRowRefinerTests: XCTestCase {
             ],
             mostRecurring: [
                 ReviewMostRecurringTheme(
+                    canonicalConcept: "rest",
                     label: "Rest",
                     totalCount: 4,
                     dayCount: 3,
@@ -118,6 +119,7 @@ final class ReviewNextStepRowRefinerTests: XCTestCase {
             ],
             mostRecurring: [
                 ReviewMostRecurringTheme(
+                    canonicalConcept: "rest",
                     label: "Rest",
                     totalCount: 4,
                     dayCount: 3,

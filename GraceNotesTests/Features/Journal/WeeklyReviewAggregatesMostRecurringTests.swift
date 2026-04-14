@@ -500,6 +500,102 @@ extension WeeklyReviewAggregatesMostRecurringTests {
         XCTAssertFalse(recurring.contains(where: { $0.label == "Exercise" || $0.label == "Movement" }))
     }
 
+    func test_buildThemeSections_hidesUserOverrideCanonical() throws {
+        ThemeOverridePersistence.save(
+            ThemeOverridePayload(
+                schemaVersion: 1,
+                hiddenCanonicalConcepts: ["rest"],
+                canonicalRemap: [:],
+                displayLabelOverrides: [:]
+            ),
+            defaults: .standard
+        )
+        defer { ThemeOverridePersistence.clearAll(defaults: .standard) }
+
+        let referenceDate = date(year: 2026, month: 3, day: 18)
+        let period = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
+        let previous = ReviewInsightsPeriod.previousPeriod(before: period, calendar: calendar)
+
+        let entries = [
+            makeEntry(on: date(year: 2026, month: 3, day: 16), needs: ["Rest"]),
+            makeEntry(on: date(year: 2026, month: 3, day: 17), needs: ["Rest"])
+        ]
+        let aggregates = builder.build(
+            currentPeriod: period,
+            currentWeekEntries: entries.filter { period.contains($0.entryDate) },
+            previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
+            allEntries: entries,
+            calendar: calendar,
+            referenceDate: referenceDate
+        )
+
+        XCTAssertTrue(
+            aggregates.stats.mostRecurringThemes.isEmpty,
+            "Hidden canonical `rest` should remove the theme from Most recurring."
+        )
+    }
+
+    func test_buildThemeSections_surfaceExclusionDropsCanonicalForOneLineOnly() throws {
+        let journalA = UUID(uuidString: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEE0001")!
+        let journalB = UUID(uuidString: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEE0002")!
+        let journalC = UUID(uuidString: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEE0003")!
+        let excludedLineId = UUID(uuidString: "BBBBBBBB-BBBB-CCCC-DDDD-EEEEEEEE0001")!
+
+        let surfaceKey = SurfaceLineKey.chip(
+            journalId: journalA,
+            source: .needs,
+            entryLineId: excludedLineId
+        ).storageKey
+
+        SurfaceThemeAdjustmentPersistence.save(
+            SurfaceThemeAdjustmentPayload(
+                schemaVersion: 1,
+                excludedCanonicalsBySurface: [surfaceKey: ["rest"]],
+                addedCanonicalsBySurface: [:]
+            ),
+            defaults: .standard
+        )
+        defer { SurfaceThemeAdjustmentPersistence.clearAll(defaults: .standard) }
+
+        let referenceDate = date(year: 2026, month: 3, day: 18)
+        let period = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
+        let previous = ReviewInsightsPeriod.previousPeriod(before: period, calendar: calendar)
+
+        let entries = [
+            Journal(
+                id: journalA,
+                entryDate: date(year: 2026, month: 3, day: 16),
+                needs: [Entry(fullText: "Rest", id: excludedLineId)]
+            ),
+            Journal(
+                id: journalB,
+                entryDate: date(year: 2026, month: 3, day: 17),
+                needs: [Entry(fullText: "Rest")]
+            ),
+            Journal(
+                id: journalC,
+                entryDate: date(year: 2026, month: 3, day: 18),
+                needs: [Entry(fullText: "Rest")]
+            )
+        ]
+
+        let recurring = builder.build(
+            currentPeriod: period,
+            currentWeekEntries: entries.filter { period.contains($0.entryDate) },
+            previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
+            allEntries: entries,
+            calendar: calendar,
+            referenceDate: referenceDate
+        ).stats.mostRecurringThemes
+
+        let rest = try XCTUnwrap(recurring.first(where: { $0.label == "Rest" }))
+        XCTAssertEqual(
+            rest.totalCount,
+            2,
+            "Excluding `rest` on one chip line should leave the other two need lines counted."
+        )
+    }
+
     /// Mirrors `PersistenceController.seedUITestDataIfNeeded` default seed + Monday reference (issue #140 UI test).
     func test_uitestSeed_onePriorDayEntry_hasNoTrendingMovementThemes() throws {
         let referenceDate = date(year: 2026, month: 3, day: 30)
