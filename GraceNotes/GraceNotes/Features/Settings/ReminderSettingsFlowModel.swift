@@ -15,6 +15,8 @@ final class ReminderSettingsFlowModel: ObservableObject {
     private let userDefaults: UserDefaults
     private var pendingRescheduleTask: Task<Void, Never>?
     private var pendingRescheduleAfterCurrentSave = false
+    /// User turned reminders off while another reminder operation held `isWorking`.
+    private var pendingDisableAfterCurrentWork = false
     private var hasLoadedLiveStatus = false
 
     init(
@@ -78,12 +80,16 @@ final class ReminderSettingsFlowModel: ObservableObject {
     }
 
     func disableReminders() async {
-        guard !isWorking else { return }
-        isWorking = true
-        defer { isWorking = false }
         pendingRescheduleTask?.cancel()
         pendingRescheduleAfterCurrentSave = false
 
+        if isWorking {
+            pendingDisableAfterCurrentWork = true
+            return
+        }
+
+        isWorking = true
+        defer { isWorking = false }
         transientErrorMessage = nil
         _ = await reminderScheduler.disableDailyReminder()
         await refreshStatus()
@@ -99,6 +105,7 @@ final class ReminderSettingsFlowModel: ObservableObject {
         isWorking = true
         await runRescheduleLoopWhileEnabled()
         isWorking = false
+        await drainPendingDisableIfNeeded()
         await drainPendingRescheduleIfNeeded()
     }
 
@@ -165,7 +172,22 @@ final class ReminderSettingsFlowModel: ObservableObject {
         isWorking = true
         await work()
         isWorking = false
+        await drainPendingDisableIfNeeded()
         await drainPendingRescheduleIfNeeded()
+    }
+
+    /// Runs a deferred disable after `isWorking` drops (e.g. user turned reminders off during reschedule).
+    private func drainPendingDisableIfNeeded() async {
+        guard pendingDisableAfterCurrentWork else { return }
+        pendingDisableAfterCurrentWork = false
+        pendingRescheduleAfterCurrentSave = false
+
+        isWorking = true
+        defer { isWorking = false }
+        pendingRescheduleTask?.cancel()
+        transientErrorMessage = nil
+        _ = await reminderScheduler.disableDailyReminder()
+        await refreshStatus()
     }
 
     /// Runs a deferred time save after `isWorking` drops (picker updates coalesced during enable or overlapping saves).
@@ -176,6 +198,7 @@ final class ReminderSettingsFlowModel: ObservableObject {
             isWorking = true
             await runRescheduleLoopWhileEnabled()
             isWorking = false
+            await drainPendingDisableIfNeeded()
         }
     }
 
