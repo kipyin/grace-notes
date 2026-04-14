@@ -14,9 +14,8 @@ enum JournalShareRenderer {
         renderer.scale = Self.recommendedPixelScale()
         guard let image = renderer.uiImage else { return nil }
         guard image.size.width > 0, image.size.height > 0 else { return nil }
-        if let cgImage = image.cgImage {
-            guard cgImage.width > 0, cgImage.height > 0 else { return nil }
-        }
+        guard let cgImage = image.cgImage else { return nil }
+        guard cgImage.width > 0, cgImage.height > 0 else { return nil }
         return image
     }
 
@@ -24,8 +23,9 @@ enum JournalShareRenderer {
     private static let proposedLayoutWidth: CGFloat = 448 + 24 * 2
 
     /// `ImageRenderer` runs without hosting in a window; `UITraitCollection.current.displayScale` can be
-    /// unset or 1× while the device screen is Retina. Prefer an active window scene scale, then trait, then
-    /// screen, then a safe default.
+    /// unset or 1× while the device screen is Retina. Use the highest positive scale reported by the current
+    /// trait collection, any connected window scene's screen, or the main screen, then fall back to a safe
+    /// default.
     @MainActor
     private static func recommendedPixelScale() -> CGFloat {
         let traitScale = UITraitCollection.current.displayScale
