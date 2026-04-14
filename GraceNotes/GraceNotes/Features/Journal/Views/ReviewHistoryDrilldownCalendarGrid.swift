@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftData
 
 // MARK: - Section strip (read-only)
 
@@ -184,7 +183,7 @@ struct ReviewHistoryDrilldownCalendarGrid: View {
                 }
                 .buttonStyle(PastTappablePressStyle())
                 .accessibilityLabel(dayCellAccessibilityLabel(dateSpeech: dateSpeech, disposition: disposition))
-                .accessibilityHint(String(localized: "review.themeDrilldown.openEntry.a11yHint"))
+                .accessibilityHint(dayCellButtonAccessibilityHint(disposition: disposition))
             }
         } else {
             Color.clear
@@ -358,6 +357,18 @@ struct ReviewHistoryDrilldownCalendarGrid: View {
         case .outsideHistoryWindow:
             return String(localized: "past.drilldown.calendarDay.a11yHint.outsideStatisticsRange")
         case .matched:
+            return ""
+        }
+    }
+
+    /// VoiceOver hint for tappable in-range days (empty days are not “open existing entry”).
+    private func dayCellButtonAccessibilityHint(disposition: ReviewHistoryDrilldownDayDisposition) -> String {
+        switch disposition {
+        case .emptyHistoryDay:
+            return String(localized: "past.accessibility.openDayToWrite")
+        case .matched, .journalDayNotMatched:
+            return String(localized: "past.accessibility.openEntryThatDay")
+        case .outsideHistoryWindow:
             return ""
         }
     }
