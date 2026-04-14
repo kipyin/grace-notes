@@ -38,11 +38,15 @@ enum HistoryEntryGrouping {
     }
 
     /// When the active calendar cannot form a month start, anchor by Gregorian UTC year/month
-    /// so entries in the same month are not split by day. `startOfDay` is only used if even
-    /// this normalization fails.
+    /// so entries in the same month are not split by day. If direct month normalization fails
+    /// but year and month are known, derive the month from January 1; only then fall back to
+    /// `startOfDay(for:)` (which can still split one month across buckets when all else fails).
     private static func gregorianUTCMonthStart(for date: Date) -> Date {
         var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)
+            ?? TimeZone(identifier: "UTC")
+            ?? TimeZone(abbreviation: "GMT")
+            ?? .current
         var components = calendar.dateComponents([.year, .month], from: date)
         components.day = 1
         components.hour = 0
@@ -52,6 +56,23 @@ enum HistoryEntryGrouping {
         if let normalized = calendar.date(from: components) {
             return normalized
         }
-        return calendar.startOfDay(for: date)
+        guard let year = components.year, let month = components.month else {
+            return calendar.startOfDay(for: date)
+        }
+        let clampedMonth = min(max(month, 1), 12)
+        var yearStartComponents = DateComponents()
+        yearStartComponents.timeZone = calendar.timeZone
+        yearStartComponents.year = year
+        yearStartComponents.month = 1
+        yearStartComponents.day = 1
+        yearStartComponents.hour = 0
+        yearStartComponents.minute = 0
+        yearStartComponents.second = 0
+        yearStartComponents.nanosecond = 0
+        guard let januaryFirst = calendar.date(from: yearStartComponents) else {
+            return calendar.startOfDay(for: date)
+        }
+        return calendar.date(byAdding: .month, value: clampedMonth - 1, to: januaryFirst)
+            ?? calendar.startOfDay(for: date)
     }
 }
