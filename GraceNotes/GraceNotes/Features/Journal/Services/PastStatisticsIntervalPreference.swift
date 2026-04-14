@@ -46,11 +46,12 @@ struct PastStatisticsIntervalSelection: Codable, Equatable, Hashable, Sendable {
         calendar: Calendar,
         allEntries: [Journal]
     ) -> Range<Date> {
+        let selection = validated
         let refStart = calendar.startOfDay(for: referenceDate)
         guard let endExclusive = calendar.date(byAdding: .day, value: 1, to: refStart) else {
             return refStart..<refStart
         }
-        switch mode {
+        switch selection.mode {
         case .all:
             let days = allEntries.map { calendar.startOfDay(for: $0.entryDate) }
             let earliest = days.min() ?? refStart
@@ -59,10 +60,10 @@ struct PastStatisticsIntervalSelection: Codable, Equatable, Hashable, Sendable {
             let lower = min(earliest, refStart)
             return lower..<endExclusive
         case .custom:
-            let quantityValue = min(max(quantity, 1), 999)
+            let quantityValue = selection.quantity
             let anchor = refStart
             let startCandidate: Date?
-            switch unit {
+            switch selection.unit {
             case .week:
                 startCandidate = calendar.date(byAdding: .weekOfYear, value: -quantityValue, to: anchor)
             case .month:
@@ -71,7 +72,9 @@ struct PastStatisticsIntervalSelection: Codable, Equatable, Hashable, Sendable {
                 startCandidate = calendar.date(byAdding: .year, value: -quantityValue, to: anchor)
             }
             let startDay = calendar.startOfDay(for: startCandidate ?? anchor)
-            return startDay..<endExclusive
+            // Mirror `.all`: if the computed start is after the reference day, cap so the half-open range stays valid.
+            let lower = min(startDay, refStart)
+            return lower..<endExclusive
         }
     }
 
