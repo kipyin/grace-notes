@@ -1,6 +1,22 @@
 import SwiftUI
 import UIKit
 
+/// Shared generators so taps avoid per-press allocation; `prepare()` keeps latency predictable (UIKit guidance).
+private enum PastTappableHaptics {
+    private static let mediumImpact = UIImpactFeedbackGenerator(style: .medium)
+    private static let lightImpact = UIImpactFeedbackGenerator(style: .light)
+
+    static func playMediumImpact() {
+        mediumImpact.prepare()
+        mediumImpact.impactOccurred()
+    }
+
+    static func playLightImpact() {
+        lightImpact.prepare()
+        lightImpact.impactOccurred()
+    }
+}
+
 /// Scale, opacity, and haptic feedback for tappable controls on Past and related drilldowns / theme flows.
 struct PastTappablePressStyle: ButtonStyle {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -12,7 +28,7 @@ struct PastTappablePressStyle: ButtonStyle {
             .animation(reduceMotion ? .none : .easeInOut(duration: 0.16), value: configuration.isPressed)
             .onChange(of: configuration.isPressed) { wasPressed, isPressed in
                 guard isPressed, !wasPressed, !reduceMotion else { return }
-                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                PastTappableHaptics.playMediumImpact()
             }
     }
 }
@@ -43,7 +59,7 @@ struct PastToolbarDoneButtonStyle: ButtonStyle {
             .animation(reduceMotion ? .none : .easeInOut(duration: 0.14), value: configuration.isPressed)
             .onChange(of: configuration.isPressed) { wasPressed, isPressed in
                 guard isPressed, !wasPressed, !reduceMotion else { return }
-                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                PastTappableHaptics.playLightImpact()
             }
     }
 }
