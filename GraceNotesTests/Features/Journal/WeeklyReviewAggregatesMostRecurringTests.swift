@@ -286,6 +286,61 @@ extension WeeklyReviewAggregatesMostRecurringTests {
         )
     }
 
+    /// When two themes first appear on the same structured surface in one pass and later tie on recurring
+    /// counts and day counts, ordering must follow per-theme debut order (`firstSeenOrder`), not arbitrary
+    /// `Dictionary` key order.
+    func test_buildThemeSections_mostRecurringTieBreakUsesSameSurfaceDebutOrder() throws {
+        let surfacePhrase = "walking and rest"
+        let normalizer = WeeklyInsightTextNormalizer()
+        let distilled = normalizer.distillConcepts(
+            from: surfacePhrase,
+            source: .gratitudes,
+            maximumCount: 3,
+            highConfidenceOnly: false,
+            journalThemeDisplayLocale: Locale(identifier: "en")
+        )
+        let restIndex = distilled.firstIndex { $0.canonicalConcept == "rest" }
+        let walkingIndex = distilled.firstIndex { $0.canonicalConcept == "walking" }
+        guard let restIndex, let walkingIndex else {
+            XCTFail(
+                "Test setup requires distillConcepts to surface both rest and walking from \"\(surfacePhrase)\"."
+            )
+            return
+        }
+        let walkingShouldRankAboveRest = walkingIndex < restIndex
+
+        let referenceDate = date(year: 2026, month: 3, day: 18)
+        let period = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
+        let previous = ReviewInsightsPeriod.previousPeriod(before: period, calendar: calendar)
+
+        let entries = [
+            makeEntry(on: date(year: 2026, month: 3, day: 16), gratitudes: [surfacePhrase]),
+            makeEntry(on: date(year: 2026, month: 3, day: 17), gratitudes: [surfacePhrase])
+        ]
+        let aggregates = builder.build(
+            currentPeriod: period,
+            currentWeekEntries: entries.filter { period.contains($0.entryDate) },
+            previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
+            allEntries: entries,
+            calendar: calendar,
+            referenceDate: referenceDate
+        )
+
+        let recurring = aggregates.stats.mostRecurringThemes
+        let walking = try XCTUnwrap(recurring.first(where: { $0.label == "Walking" }))
+        let rest = try XCTUnwrap(recurring.first(where: { $0.label == "Rest" }))
+        XCTAssertEqual(walking.totalCount, rest.totalCount)
+        XCTAssertEqual(walking.dayCount, rest.dayCount)
+
+        let walkingRank = try XCTUnwrap(recurring.firstIndex(where: { $0.label == "Walking" }))
+        let restRank = try XCTUnwrap(recurring.firstIndex(where: { $0.label == "Rest" }))
+        if walkingShouldRankAboveRest {
+            XCTAssertLessThan(walkingRank, restRank)
+        } else {
+            XCTAssertLessThan(restRank, walkingRank)
+        }
+    }
+
     func test_buildThemeSections_hardBannedConceptsNeverSurface() {
         let referenceDate = date(year: 2026, month: 3, day: 18)
         let period = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)

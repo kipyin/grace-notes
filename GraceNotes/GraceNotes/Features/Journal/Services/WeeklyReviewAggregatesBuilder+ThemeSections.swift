@@ -50,8 +50,7 @@ extension WeeklyReviewAggregatesBuilder {
                     highConfidenceOnly: false,
                     journalThemeDisplayLocale: journalThemeDisplayLocale
                 )
-                let uniqueConcepts = Dictionary(grouping: concepts, by: \.canonicalConcept)
-                    .compactMap { _, candidates in candidates.max(by: { $0.score < $1.score }) }
+                let uniqueConcepts = Self.bestUniqueDistilledConceptsPreservingConceptOrder(concepts)
 
                 for concept in uniqueConcepts {
                     if let existing = displaySourceByCanonical[concept.canonicalConcept] {
@@ -172,6 +171,27 @@ extension WeeklyReviewAggregatesBuilder {
         )
 
         return (mostRecurring, trending)
+    }
+
+    /// Picks the highest-scoring `ReviewDistilledConcept` per canonical label while preserving the order of
+    /// first encounter in `concepts` (the extractor’s emitted order), avoiding nondeterministic `Dictionary` key
+    /// iteration when assigning `firstSeenOrder` for themes that debut on the same structured surface.
+    private static func bestUniqueDistilledConceptsPreservingConceptOrder(
+        _ concepts: [ReviewDistilledConcept]
+    ) -> [ReviewDistilledConcept] {
+        var bestByCanonical: [String: ReviewDistilledConcept] = [:]
+        var firstSeenCanonicals: [String] = []
+        for concept in concepts {
+            if let existing = bestByCanonical[concept.canonicalConcept] {
+                if concept.score > existing.score {
+                    bestByCanonical[concept.canonicalConcept] = concept
+                }
+            } else {
+                bestByCanonical[concept.canonicalConcept] = concept
+                firstSeenCanonicals.append(concept.canonicalConcept)
+            }
+        }
+        return firstSeenCanonicals.compactMap { bestByCanonical[$0] }
     }
 
     func appendSupportingEvidence(
