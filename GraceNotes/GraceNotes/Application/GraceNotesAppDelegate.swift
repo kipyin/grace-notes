@@ -9,8 +9,7 @@ final class GraceNotesAppDelegate: NSObject, UIApplicationDelegate {
     ) -> Bool {
         // Keep this aligned with `GraceNotesApp.init`: hosted unit tests use a blank root and should not
         // mutate global `UIAppearance`; UI tests and normal launches still get chrome.
-        let isXCTestSession = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
-        if isXCTestSession, !ProcessInfo.graceNotesIsRunningUITests {
+        if ProcessInfo.graceNotesIsRunningHostedUnitTests {
             return true
         }
         AppInterfaceAppearance.configure()
