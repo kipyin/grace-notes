@@ -131,7 +131,7 @@ final class JournalEntry {
             return .soil
         }
 
-        if gratitudesCount == slotCount && needsCount == slotCount && peopleCount == slotCount {
+        if gratitudesCount >= slotCount && needsCount >= slotCount && peopleCount >= slotCount {
             return .bloom
         }
 
