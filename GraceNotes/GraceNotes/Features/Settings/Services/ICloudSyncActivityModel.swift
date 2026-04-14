@@ -10,6 +10,8 @@ final class ICloudSyncActivityModel: ObservableObject {
     @Published private(set) var lastRemoteChangeAt: Date?
 
     private var observerToken: NSObjectProtocol?
+    /// Limits disk writes when many remote-change notifications arrive in a short burst (e.g. sync).
+    private var pendingUserDefaultsPersist = false
 
     init() {
         let raw = UserDefaults.standard.double(forKey: Self.persistedTimestampKey)
@@ -36,8 +38,17 @@ final class ICloudSyncActivityModel: ObservableObject {
     }
 
     private func recordRemoteChange() {
-        let now = Date()
-        lastRemoteChangeAt = now
-        UserDefaults.standard.set(now.timeIntervalSince1970, forKey: Self.persistedTimestampKey)
+        lastRemoteChangeAt = Date()
+        if pendingUserDefaultsPersist {
+            return
+        }
+        pendingUserDefaultsPersist = true
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.pendingUserDefaultsPersist = false
+            if let stamp = self.lastRemoteChangeAt {
+                UserDefaults.standard.set(stamp.timeIntervalSince1970, forKey: Self.persistedTimestampKey)
+            }
+        }
     }
 }
