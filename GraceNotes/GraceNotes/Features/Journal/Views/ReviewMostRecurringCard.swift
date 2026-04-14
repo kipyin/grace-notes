@@ -44,7 +44,12 @@ struct ReviewMostRecurringCard: View {
         if isLoading, insights == nil {
             loadingSkeleton
         } else if let insights {
-            contentForInsights(insights)
+            // Avoid an empty panel under the title when a refresh still has a cached empty snapshot.
+            if isLoading, insights.weekStats.mostRecurringThemes.isEmpty {
+                loadingSkeleton
+            } else {
+                contentForInsights(insights)
+            }
         }
     }
 
