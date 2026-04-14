@@ -410,6 +410,7 @@ private struct ReviewHistorySectionStrip: View {
                             .frame(width: segmentWidths[index], height: stripHeight)
                         }
                         .buttonStyle(PastTappablePressStyle())
+                        .disabled(item.count == 0)
                         .accessibilityLabel(
                             sectionMixAccessibilityLabel(
                                 kind: item.kind,
@@ -418,6 +419,7 @@ private struct ReviewHistorySectionStrip: View {
                             )
                         )
                         .accessibilityHint(segmentAccessibilityHint(forCount: item.count))
+                        .accessibilityAddTraits(item.count == 0 ? [] : .isButton)
                     }
                 }
                 .frame(width: width, height: stripHeight)
@@ -454,6 +456,7 @@ private struct ReviewHistorySectionStrip: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .buttonStyle(PastTappablePressStyle())
+                    .disabled(item.count == 0)
                     .accessibilityLabel(
                         sectionMixAccessibilityLabel(
                             kind: item.kind,
@@ -462,6 +465,7 @@ private struct ReviewHistorySectionStrip: View {
                         )
                     )
                     .accessibilityHint(segmentAccessibilityHint(forCount: item.count))
+                    .accessibilityAddTraits(item.count == 0 ? [] : .isButton)
                 }
             }
         }
