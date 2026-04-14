@@ -150,13 +150,17 @@ struct ReminderScheduler {
         // identifier replaces it; removing first would orphan the user if `add` throws.
         let content = UNMutableNotificationContent()
         content.title = String(localized: "app.name")
-        content.body = body
+        let trimmedBody = body.trimmingCharacters(in: .whitespacesAndNewlines)
+        content.body = trimmedBody.isEmpty
+            ? String(localized: String.LocalizationValue("notifications.reminder.body.fallback"))
+            : trimmedBody
         content.sound = .default
 
         let extracted = ReminderSettings.timeComponents(from: time, calendar: calendar)
         guard let hour = extracted.hour, let minute = extracted.minute else { return false }
 
         var triggerComponents = DateComponents()
+        triggerComponents.calendar = calendar
         triggerComponents.timeZone = calendar.timeZone
         triggerComponents.hour = hour
         triggerComponents.minute = minute
