@@ -23,7 +23,10 @@ enum ScheduledBackupInterval: String, CaseIterable, Codable {
         case .biweekly:
             return dayDelta >= 14
         case .monthly:
-            return dayDelta >= 30
+            guard let nextEligibleDay = calendar.date(byAdding: .month, value: 1, to: startLast) else {
+                return false
+            }
+            return startNow >= calendar.startOfDay(for: nextEligibleDay)
         }
     }
 }
