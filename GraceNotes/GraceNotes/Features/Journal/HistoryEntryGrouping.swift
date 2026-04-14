@@ -3,10 +3,17 @@ import Foundation
 enum HistoryEntryGrouping {
     static func groupedByMonth(
         entries: [Journal],
-        calendar: Calendar
+        calendar: Calendar,
+        monthKeyResolver: ((Date, Calendar) -> Date)? = nil
     ) -> [(key: Date, entries: [Journal])] {
+        let resolveMonthKey: (Date) -> Date = { date in
+            if let monthKeyResolver {
+                return monthKeyResolver(date, calendar)
+            }
+            return monthKey(for: date, calendar: calendar)
+        }
         let grouped = Dictionary(grouping: entries) { entry -> Date in
-            monthKey(for: entry.entryDate, calendar: calendar)
+            resolveMonthKey(entry.entryDate)
         }
         return grouped.keys.sorted(by: >).map { month in
             let groupedEntries = (grouped[month] ?? []).sorted {
@@ -19,8 +26,9 @@ enum HistoryEntryGrouping {
         }
     }
 
-    /// Start of the calendar month containing `date`. Used so a failed `date(from:)`
-    /// does not fall back to the raw entry timestamp (which would split one month into many buckets).
+    /// Returns the start of the calendar month containing `date` when possible.
+    /// If month normalization fails, falls back to the start of the day rather than the raw
+    /// entry timestamp, which still avoids splitting a single day into many buckets.
     private static func monthKey(for date: Date, calendar: Calendar) -> Date {
         if let intervalStart = calendar.dateInterval(of: .month, for: date)?.start {
             return intervalStart
