@@ -52,6 +52,7 @@ extension WeeklyReviewAggregatesBuilder {
                     .compactMap { _, candidates in candidates.max(by: { $0.score < $1.score }) }
 
                 for concept in uniqueConcepts {
+                    let isFirstAppearance = map[concept.canonicalConcept] == nil
                     var accumulator = map[concept.canonicalConcept] ?? DistilledThemeAccumulator(
                         canonicalConcept: concept.canonicalConcept,
                         displayLabel: concept.displayLabel,
@@ -80,8 +81,10 @@ extension WeeklyReviewAggregatesBuilder {
                         )
                     )
                     map[concept.canonicalConcept] = accumulator
+                    if isFirstAppearance {
+                        sequence += 1
+                    }
                 }
-                sequence += 1
             }
         }
 
