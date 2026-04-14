@@ -101,7 +101,7 @@ struct WeeklyInsightCandidateBuilder {
             let first = insights[0].observation
             let second = insights[1].observation
             if !observationsAreEffectivelyDuplicate(first, second) {
-                return second
+                return nonEmptyTrimmed(second) ?? nonEmptyTrimmed(first)
             }
             let themeA = insights[0].primaryTheme
             let themeB = insights[1].primaryTheme
@@ -111,13 +111,14 @@ struct WeeklyInsightCandidateBuilder {
                    textNormalizer.normalizeThemeLabel(firstTheme),
                    against: [textNormalizer.normalizeThemeLabel(secondTheme)]
                ) {
-                return String(
+                let combined = String(
                     format: String(localized: "review.insights.bothThemesMultiple"),
                     firstTheme,
                     secondTheme
                 )
+                return nonEmptyTrimmed(combined)
             }
-            return second
+            return nonEmptyTrimmed(second) ?? nonEmptyTrimmed(first)
         }
         if let theme = insights[0].primaryTheme, !theme.isEmpty {
             return String(
@@ -129,8 +130,7 @@ struct WeeklyInsightCandidateBuilder {
         if first.pattern == .sparseFallback, first.dayCount == 0 {
             return nil
         }
-        let observation = first.observation.trimmingCharacters(in: .whitespacesAndNewlines)
-        return observation.isEmpty ? nil : observation
+        return nonEmptyTrimmed(first.observation)
     }
 
     private func observationsAreEffectivelyDuplicate(_ lhs: String, _ rhs: String) -> Bool {
@@ -142,6 +142,11 @@ struct WeeklyInsightCandidateBuilder {
             .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
             .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
             .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func nonEmptyTrimmed(_ text: String) -> String? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 }
 
