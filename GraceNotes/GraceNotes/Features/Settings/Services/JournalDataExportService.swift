@@ -8,7 +8,11 @@ struct JournalDataExportService {
         fileManager: FileManager = .default
     ) throws -> URL {
         let descriptor = FetchDescriptor<Journal>(
-            sortBy: [SortDescriptor(\.entryDate, order: .forward)]
+            sortBy: [
+                SortDescriptor(\.entryDate, order: .forward),
+                SortDescriptor(\.createdAt, order: .forward),
+                SortDescriptor(\.id, order: .forward)
+            ]
         )
         let entries = try context.fetch(descriptor)
         let data = try makeArchiveData(from: entries, exportedAt: now)
@@ -28,7 +32,15 @@ struct JournalDataExportService {
     }
 
     func makeArchive(from entries: [Journal], exportedAt: Date) -> JournalDataExportArchive {
-        let sortedEntries = entries.sorted { $0.entryDate < $1.entryDate }
+        let sortedEntries = entries.sorted { lhs, rhs in
+            if lhs.entryDate != rhs.entryDate {
+                return lhs.entryDate < rhs.entryDate
+            }
+            if lhs.createdAt != rhs.createdAt {
+                return lhs.createdAt < rhs.createdAt
+            }
+            return lhs.id.uuidString < rhs.id.uuidString
+        }
         return JournalDataExportArchive(
             schemaVersion: JournalDataExportArchive.currentSchemaVersion,
             exportedAt: exportedAt,
