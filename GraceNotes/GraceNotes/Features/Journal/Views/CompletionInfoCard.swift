@@ -4,6 +4,7 @@ struct CompletionInfoCard: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.todayJournalPalette) private var palette
     @State private var contentVisible = false
+    @State private var didPlayEntryAnimation = false
 
     let badgeInfo: CompletionBadgeInfo
     let cardTintColor: Color
@@ -69,6 +70,12 @@ struct CompletionInfoCard: View {
             contentVisible = true
             return
         }
+
+        if didPlayEntryAnimation {
+            contentVisible = true
+            return
+        }
+        didPlayEntryAnimation = true
 
         contentVisible = false
 
