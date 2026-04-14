@@ -36,10 +36,27 @@ enum JournalTutorialStorageKeys {
         }
     }
 
+    /// Interprets stored booleans whether `UserDefaults` returns `Bool` or `NSNumber` (plist / sync).
+    private static func optionalBool(forKey key: String, in defaults: UserDefaults) -> Bool? {
+        guard let object = defaults.object(forKey: key) else { return nil }
+        switch object {
+        case let value as Bool:
+            return value
+        case let number as NSNumber:
+            return number.boolValue
+        default:
+            return nil
+        }
+    }
+
     private static func migrateBool(from legacyKey: String, to key: String, defaults: UserDefaults) {
         guard defaults.object(forKey: legacyKey) != nil else { return }
-        if defaults.object(forKey: key) == nil {
-            defaults.set(defaults.bool(forKey: legacyKey), forKey: key)
+
+        // Prefer well-formed booleans only: `object(forKey:) != nil` is true for corrupted types,
+        // but `bool(forKey:)` can mis-read them; skipping migration would delete legacy without fixing the new key.
+        let newValue = optionalBool(forKey: key, in: defaults)
+        if newValue == nil, let legacyValue = optionalBool(forKey: legacyKey, in: defaults) {
+            defaults.set(legacyValue, forKey: key)
         }
         defaults.removeObject(forKey: legacyKey)
     }
