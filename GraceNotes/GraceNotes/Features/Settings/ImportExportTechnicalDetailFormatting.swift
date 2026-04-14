@@ -3,7 +3,7 @@ import Foundation
 struct ExportHistoryLineParts {
     let kindLabel: String
     let statusLabel: String
-    /// Non-nil when `entry.detail` is non-empty (same rule as on-screen history).
+    /// Non-nil when `entry.detail` has visible content after normalization (trim; line breaks flattened).
     let detail: String?
 }
 
@@ -34,12 +34,7 @@ enum ImportExportTechnicalDetailFormatting {
         } else {
             statusLabel = String(localized: "settings.dataPrivacy.importExport.history.status.failed")
         }
-        let detail: String?
-        if let raw = entry.detail, !raw.isEmpty {
-            detail = raw
-        } else {
-            detail = nil
-        }
+        let detail = entry.detail.flatMap { Self.normalizedExportHistoryDetail($0) }
         return ExportHistoryLineParts(kindLabel: kindLabel, statusLabel: statusLabel, detail: detail)
     }
 
@@ -50,5 +45,13 @@ enum ImportExportTechnicalDetailFormatting {
             return "\(parts.kindLabel) · \(parts.statusLabel) · \(detail)"
         }
         return "\(parts.kindLabel) · \(parts.statusLabel)"
+    }
+
+    /// Trims surrounding whitespace, treats whitespace-only as absent, and flattens line breaks so
+    /// history rows and accessibility labels stay single-line.
+    private static func normalizedExportHistoryDetail(_ raw: String) -> String? {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        return trimmed.split { $0.isNewline }.joined(separator: " ")
     }
 }
