@@ -362,6 +362,7 @@ struct ReviewHistoryDrilldownCalendarGrid: View {
     }
 
     /// VoiceOver hint for tappable in-range days (empty days are not “open existing entry”).
+    /// Only used from the `Button` branch in `dayCell`; outside-window days take the non-button path.
     private func dayCellButtonAccessibilityHint(disposition: ReviewHistoryDrilldownDayDisposition) -> String {
         switch disposition {
         case .emptyHistoryDay:
@@ -369,7 +370,7 @@ struct ReviewHistoryDrilldownCalendarGrid: View {
         case .matched, .journalDayNotMatched:
             return String(localized: "past.accessibility.openEntryThatDay")
         case .outsideHistoryWindow:
-            return ""
+            fatalError("dayCellButtonAccessibilityHint: outside-window cells use the non-button path in dayCell.")
         }
     }
 }
