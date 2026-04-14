@@ -159,9 +159,10 @@ struct BackupFolderImportFileListView: View {
             load()
         }
         .onChange(of: files) { _, newFiles in
+            let validPaths = Set(newFiles.map(\.path))
+            selection = selection.intersection(validPaths)
             if newFiles.isEmpty {
                 isSelecting = false
-                selection.removeAll()
             }
         }
     }
@@ -184,22 +185,10 @@ struct BackupFolderImportFileListView: View {
     }
 
     private func load() {
-        let folderURL: URL
         do {
-            folderURL = try ScheduledBackupPreferences.resolveFolderURL()
-        } catch {
-            listError = String(localized: "settings.dataPrivacy.importExport.backupFolder.unreachable")
-            return
-        }
-        guard folderURL.startAccessingSecurityScopedResource() else {
-            listError = String(localized: "settings.dataPrivacy.importExport.backupFolder.unreachable")
-            return
-        }
-        defer {
-            folderURL.stopAccessingSecurityScopedResource()
-        }
-        do {
-            files = try BackupFolderLibrary.listExportFiles(in: folderURL)
+            files = try ScheduledBackupPreferences.withFolderSecurityScopedAccess { folderURL in
+                try BackupFolderLibrary.listExportFiles(in: folderURL)
+            }
             listError = nil
         } catch {
             listError = String(localized: "settings.dataPrivacy.importExport.backupFolder.unreachable")
