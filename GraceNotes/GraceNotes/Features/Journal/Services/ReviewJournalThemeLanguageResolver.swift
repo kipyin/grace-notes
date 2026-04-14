@@ -23,8 +23,7 @@ struct ReviewJournalThemeLanguageResolver: ReviewJournalThemeLanguageResolving {
     }
 
     func resolvedDisplayLocale(forJournalCorpus corpus: String) -> Locale {
-        let collapsed = corpus.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
-        let trimmed = collapsed.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmed = corpus.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
             return Self.englishCatalogLocale
         }
@@ -33,7 +32,7 @@ struct ReviewJournalThemeLanguageResolver: ReviewJournalThemeLanguageResolving {
             return Self.englishCatalogLocale
         }
 
-        let analysisText = Self.analysisSample(from: trimmed)
+        let analysisText = Self.normalizedAnalysisSample(from: trimmed)
 
         let recognizer = NLLanguageRecognizer()
         recognizer.processString(analysisText)
@@ -41,12 +40,12 @@ struct ReviewJournalThemeLanguageResolver: ReviewJournalThemeLanguageResolving {
         if let dominant = recognizer.dominantLanguage {
             let hypotheses = recognizer.languageHypotheses(withMaximum: 5)
             let confidence = hypotheses[dominant] ?? 0
-            if confidence >= confidenceThreshold {
+            if confidence.isFinite && confidence >= confidenceThreshold {
                 return Self.catalogLocale(for: dominant)
             }
         }
 
-        return Self.scriptTieBreakLocale(trimmed: analysisText)
+        return Self.scriptTieBreakLocale(analysisText: analysisText)
     }
 
     private static let englishCatalogLocale = Locale(identifier: "en")
@@ -65,9 +64,14 @@ struct ReviewJournalThemeLanguageResolver: ReviewJournalThemeLanguageResolving {
         return count >= minimum
     }
 
-    /// Keeps language detection and script scanning bounded on pathologically long corpora without scanning `count`.
-    private static func analysisSample(from trimmed: String) -> String {
-        String(trimmed.prefix(maximumAnalysisGraphemes))
+    /// Collapses whitespace runs only inside the analysis prefix so pathological corpora never run a full-string regex replace.
+    private static func normalizedAnalysisSample(from trimmed: String) -> String {
+        let head = String(trimmed.prefix(maximumAnalysisGraphemes))
+        return collapseWhitespaceRuns(head)
+    }
+
+    private static func collapseWhitespaceRuns(_ text: String) -> String {
+        text.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
     }
 
     /// Maps recognizer output to a locale that exists in `Localizable.xcstrings` (we ship `en` + `zh-Hans`).
@@ -80,10 +84,10 @@ struct ReviewJournalThemeLanguageResolver: ReviewJournalThemeLanguageResolving {
 
     /// When hypotheses are ambiguous, count Han vs Latin letters and pick a side. Equal counts → English.
     /// Latin includes common accented letters (Latin-1 + Extended-A) so tie-break matches mixed European text.
-    private static func scriptTieBreakLocale(trimmed: String) -> Locale {
+    private static func scriptTieBreakLocale(analysisText: String) -> Locale {
         var han = 0
         var latin = 0
-        for scalar in trimmed.unicodeScalars {
+        for scalar in analysisText.unicodeScalars {
             switch scalar.value {
             case 0x3400...0x4DBF,
                  0x4E00...0x9FFF,
