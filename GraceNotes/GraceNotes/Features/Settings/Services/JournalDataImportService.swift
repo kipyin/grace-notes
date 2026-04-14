@@ -167,14 +167,14 @@ struct JournalDataImportService {
         return (inserted, updated)
     }
 
-    /// Day starts (start-of-day) where merge mode would need a conflict decision.
+    /// Unique calendar day starts (start-of-day) where merge mode would need a conflict decision.
     func mergeConflictDayStarts(
         entries: [JournalDataExportEntry],
         context: ModelContext,
         calendar: Calendar
     ) throws -> [Date] {
         let repository = JournalRepository(calendar: calendar)
-        var conflicts: [Date] = []
+        var conflicts: Set<Date> = []
         for export in entries {
             let dayStart = calendar.startOfDay(for: export.entryDate)
             guard let existing = try repository.fetchEntry(dayStart: dayStart, context: context) else {
@@ -183,7 +183,7 @@ struct JournalDataImportService {
             let filePayload = comparisonPayload(for: export)
             let diskPayload = comparisonPayload(for: exportMapper.makeExportEntry(from: existing))
             if filePayload != diskPayload {
-                conflicts.append(dayStart)
+                conflicts.insert(dayStart)
             }
         }
         return conflicts.sorted()
