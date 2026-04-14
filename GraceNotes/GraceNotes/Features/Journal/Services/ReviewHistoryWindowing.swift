@@ -98,11 +98,20 @@ enum ReviewHistoryWindowing {
         contributingEntriesNewestFirst: [Journal],
         calendar: Calendar
     ) -> [Date: Int] {
+        // One pass: first row per calendar day matches `first(where:)` (see drill-down tests).
+        var firstContributingByDay: [Date: Journal] = [:]
+        firstContributingByDay.reserveCapacity(contributingEntriesNewestFirst.count)
+        for entry in contributingEntriesNewestFirst {
+            let day = calendar.startOfDay(for: entry.entryDate)
+            if firstContributingByDay[day] == nil {
+                firstContributingByDay[day] = entry
+            }
+        }
+
         var result: [Date: Int] = [:]
+        result.reserveCapacity(matchingDayStarts.count)
         for day in matchingDayStarts {
-            guard let journal = contributingEntriesNewestFirst.first(where: {
-                calendar.startOfDay(for: $0.entryDate) == day
-            }) else {
+            guard let journal = firstContributingByDay[day] else {
                 continue
             }
             let raw: Int
