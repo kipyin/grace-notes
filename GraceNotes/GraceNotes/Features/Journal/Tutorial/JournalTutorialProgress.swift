@@ -11,6 +11,14 @@ enum JournalTutorialStorageKeys {
     /// First time all fifteen Entries were filled (Bloom).
     static let celebratedFirstBloom = "journalTutorial.celebratedFirstBloom"
 
+    private static let currentKeys: [String] = [
+        dismissedSproutGuidance,
+        dismissedBloomGuidance,
+        celebratedFirstSprout,
+        celebratedFirstLeaf,
+        celebratedFirstBloom
+    ]
+
     /// Copies legacy keys into the keys above, then removes legacy entries.
     /// Call early at launch before CloudKit continuity checks.
     static func migrateLegacyKeysIfNeeded(using defaults: UserDefaults = .standard) {
@@ -19,6 +27,13 @@ enum JournalTutorialStorageKeys {
         migrateBool(from: Legacy.celebratedFirstSeed, to: celebratedFirstSprout, defaults: defaults)
         migrateBool(from: Legacy.celebratedFirstBalanced, to: celebratedFirstLeaf, defaults: defaults)
         migrateBool(from: Legacy.celebratedFirstHarvest, to: celebratedFirstBloom, defaults: defaults)
+    }
+
+    /// Removes current and legacy tutorial keys (e.g. UI test reset, debug tooling).
+    static func removeAllStoredKeys(in defaults: UserDefaults) {
+        for key in currentKeys + Legacy.allKeyStrings {
+            defaults.removeObject(forKey: key)
+        }
     }
 
     private static func migrateBool(from legacyKey: String, to key: String, defaults: UserDefaults) {
@@ -35,6 +50,14 @@ enum JournalTutorialStorageKeys {
         static let celebratedFirstSeed = "journalTutorial.celebratedFirstSeed"
         static let celebratedFirstBalanced = "journalTutorial.celebratedFirstBalanced"
         static let celebratedFirstHarvest = "journalTutorial.celebratedFirstHarvest"
+
+        static let allKeyStrings: [String] = [
+            dismissedSeedGuidance,
+            dismissedHarvestGuidance,
+            celebratedFirstSeed,
+            celebratedFirstBalanced,
+            celebratedFirstHarvest
+        ]
     }
 }
 
@@ -86,24 +109,6 @@ final class JournalTutorialProgress {
     }
 
     static func resetAll(in defaults: UserDefaults = .standard) {
-        let keys = [
-            JournalTutorialStorageKeys.dismissedSproutGuidance,
-            JournalTutorialStorageKeys.dismissedBloomGuidance,
-            JournalTutorialStorageKeys.celebratedFirstSprout,
-            JournalTutorialStorageKeys.celebratedFirstLeaf,
-            JournalTutorialStorageKeys.celebratedFirstBloom
-        ]
-        for key in keys {
-            defaults.removeObject(forKey: key)
-        }
-        for legacy in [
-            "journalTutorial.dismissedSeedGuidance",
-            "journalTutorial.dismissedHarvestGuidance",
-            "journalTutorial.celebratedFirstSeed",
-            "journalTutorial.celebratedFirstBalanced",
-            "journalTutorial.celebratedFirstHarvest"
-        ] {
-            defaults.removeObject(forKey: legacy)
-        }
+        JournalTutorialStorageKeys.removeAllStoredKeys(in: defaults)
     }
 }
