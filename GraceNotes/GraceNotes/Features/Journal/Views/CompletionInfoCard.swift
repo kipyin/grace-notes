@@ -83,7 +83,11 @@ struct CompletionInfoCard: View {
         }
         didPlayEntryAnimation = true
 
-        contentVisible = false
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            contentVisible = false
+        }
 
         withAnimation(.easeOut(duration: 0.24)) {
             contentVisible = true
