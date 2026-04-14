@@ -50,21 +50,18 @@ struct ReviewMostRecurringCard: View {
 
     private func contentForInsights(_ insights: ReviewInsights) -> some View {
         let themes = insights.weekStats.mostRecurringThemes
+        let panel = themesPanel(
+            themes: themes,
+            referenceDate: insights.generatedAt,
+            calendar: reviewCalendar
+        )
         return Group {
             if isLoading {
-                themesPanel(
-                    themes: themes,
-                    referenceDate: insights.generatedAt,
-                    calendar: reviewCalendar
-                )
-                .accessibilityHint(String(localized: "review.insights.updatedWhenReady"))
-                .accessibilityAddTraits(.updatesFrequently)
+                panel
+                    .accessibilityHint(String(localized: "review.insights.updatedWhenReady"))
+                    .accessibilityAddTraits(.updatesFrequently)
             } else {
-                themesPanel(
-                    themes: themes,
-                    referenceDate: insights.generatedAt,
-                    calendar: reviewCalendar
-                )
+                panel
             }
         }
     }
@@ -80,7 +77,7 @@ struct ReviewMostRecurringCard: View {
         ) {
             VStack(alignment: .leading, spacing: 10) {
                 VStack(alignment: .leading, spacing: 8) {
-                    ForEach(Array(themes.prefix(3))) { theme in
+                    ForEach(Array(themes.prefix(3).enumerated()), id: \.offset) { _, theme in
                         mostRecurringThemeRow(theme)
                     }
                 }
