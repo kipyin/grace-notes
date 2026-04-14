@@ -107,6 +107,12 @@ extension ReviewScreen {
             .configuredCalendar()
     }
 
+    /// Week start for the current review period (`makeInsightsRefreshKey(referenceDate: Date()).weekStart`),
+    /// without iterating entries for `entrySnapshotsAffectingInsights` (cache hydration only needs the week key).
+    private var currentReviewWeekStart: Date {
+        ReviewInsightsPeriod.currentPeriod(containing: Date(), calendar: calendar).lowerBound
+    }
+
     /// Same instant used when the visible `reviewInsights` were built (Copilot PR #176 follow-up).
     private var insightsReferenceDate: Date {
         reviewInsights?.generatedAt ?? Date()
@@ -463,7 +469,7 @@ extension ReviewScreen {
         guard !entries.isEmpty else { return }
         guard reviewInsights == nil else { return }
         reviewInsights = await reviewInsightsCache.insights(
-            forWeekStart: currentInsightsRefreshKey.weekStart,
+            forWeekStart: currentReviewWeekStart,
             calendar: calendar,
             weekBoundaryPreferenceRawValue: reviewWeekBoundaryRawValue,
             pastStatisticsIntervalToken: pastStatisticsInterval.cacheKeyToken
