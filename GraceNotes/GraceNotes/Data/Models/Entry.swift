@@ -15,10 +15,10 @@ struct JournalItem: Codable {
         id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
         let entryLabel = try container.decodeIfPresent(String.self, forKey: .entryLabel)
         let chipLabel = try container.decodeIfPresent(String.self, forKey: .chipLabel)
-        if let full = try container.decodeIfPresent(String.self, forKey: .fullText) {
+        if let full = try container.decodeIfPresent(String.self, forKey: .fullText), !full.isEmpty {
             fullText = full
         } else {
-            // Legacy rows may omit `fullText` but still carry `entryLabel` / `chipLabel` (see export import).
+            // Legacy rows may omit `fullText`, use empty `fullText`, or only carry legacy labels (see export import).
             fullText = entryLabel ?? chipLabel ?? ""
         }
         _ = try container.decodeIfPresent(Bool.self, forKey: .isTruncated)
