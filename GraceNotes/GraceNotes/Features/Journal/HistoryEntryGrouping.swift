@@ -10,7 +10,10 @@ enum HistoryEntryGrouping {
         }
         return grouped.keys.sorted(by: >).map { month in
             let groupedEntries = (grouped[month] ?? []).sorted {
-                $0.entryDate > $1.entryDate
+                if $0.entryDate != $1.entryDate {
+                    return $0.entryDate > $1.entryDate
+                }
+                return $0.id.uuidString < $1.id.uuidString
             }
             return (month, groupedEntries)
         }
