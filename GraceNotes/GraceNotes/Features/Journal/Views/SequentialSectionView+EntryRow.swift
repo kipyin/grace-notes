@@ -75,8 +75,8 @@ enum SequentialSectionEntryRow {
                     .font(AppTheme.outfitRegularTitle3)
                     .foregroundStyle(AppTheme.accentText)
                 Text(title)
-                .font(AppTheme.warmPaperMetaEmphasis)
-                .foregroundStyle(palette.textPrimary)
+                    .font(AppTheme.warmPaperMetaEmphasis)
+                    .foregroundStyle(palette.textPrimary)
                 if showsTrailingChevron {
                     Image(systemName: "chevron.right")
                         .font(AppTheme.outfitSemiboldCaption)
@@ -125,6 +125,7 @@ enum SequentialSectionEntryRow {
         let isInteractionEnabled: Bool
 
         @State private var morphingFromAddTap = false
+        @State private var morphResetTask: Task<Void, Never>?
 
         var body: some View {
             Group {
@@ -170,12 +171,25 @@ enum SequentialSectionEntryRow {
             }
             .animation(reduceMotion ? nil : .snappy(duration: 0.22), value: isComposing)
             .onChange(of: isComposing) { wasComposing, isComposing in
+                morphResetTask?.cancel()
+                morphResetTask = nil
+
+                if wasComposing, !isComposing {
+                    morphingFromAddTap = false
+                    return
+                }
+
                 guard !wasComposing, isComposing else { return }
                 morphingFromAddTap = true
-                Task { @MainActor in
+                morphResetTask = Task { @MainActor in
                     try? await Task.sleep(nanoseconds: 220_000_000)
+                    guard !Task.isCancelled else { return }
                     morphingFromAddTap = false
                 }
+            }
+            .onDisappear {
+                morphResetTask?.cancel()
+                morphResetTask = nil
             }
         }
     }
