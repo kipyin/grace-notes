@@ -70,6 +70,39 @@ final class ReviewWeekTrendPolicyTests: XCTestCase {
         )
     }
 
+    /// Inverted `currentPeriod` (lowerBound > upperBound) must fail closed to non–warm-up.
+    func test_isWarmUpPhase_invalidInvertedRange_returnsFalse() {
+        calendar.firstWeekday = 1
+        let dayStart = date(year: 2026, month: 3, day: 15)
+        let nextDayStart = calendar.date(byAdding: .day, value: 1, to: dayStart)!
+        let invertedPeriod = Range<Date>(uncheckedBounds: (nextDayStart, dayStart))
+        let reference = calendar.date(byAdding: .hour, value: 14, to: dayStart)!
+
+        XCTAssertFalse(
+            ReviewWeekTrendPolicy.isWarmUpPhase(
+                currentPeriod: invertedPeriod,
+                referenceDate: reference,
+                calendar: calendar
+            )
+        )
+    }
+
+    /// Empty half-open range (`lowerBound == upperBound`) must not be treated as warm-up.
+    func test_isWarmUpPhase_emptyRange_returnsFalse() {
+        calendar.firstWeekday = 1
+        let dayStart = date(year: 2026, month: 3, day: 15)
+        let emptyPeriod = dayStart..<dayStart
+        let reference = calendar.date(byAdding: .hour, value: 14, to: dayStart)!
+
+        XCTAssertFalse(
+            ReviewWeekTrendPolicy.isWarmUpPhase(
+                currentPeriod: emptyPeriod,
+                referenceDate: reference,
+                calendar: calendar
+            )
+        )
+    }
+
     // MARK: - Surfacing trend (floors + warm-up exceptions)
 
     func test_rawTrend_matchesWeekOverWeekDirection() {
