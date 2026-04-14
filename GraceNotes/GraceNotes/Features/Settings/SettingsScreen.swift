@@ -19,7 +19,6 @@ struct SettingsScreen: View {
     @State private var highlightedTarget: SettingsScrollTarget?
     @State private var settingsHighlightDismissTask: Task<Void, Never>?
     @State private var showAppTourFromSettings = false
-    @AppStorage(JournalOnboardingStorageKeys.hasSeenAppTour) private var hasSeenAppTour = false
     @AppStorage(JournalOnboardingStorageKeys.completedGuidedJournal) private var hasCompletedGuidedJournal = false
     /// Same storage as first Full/Harvest celebration; unlocks Bloom in Advanced settings.
     @AppStorage(JournalTutorialStorageKeys.celebratedFirstBloom) private var hasCelebratedFirstBloom = false
@@ -135,6 +134,8 @@ struct SettingsScreen: View {
             }
             .onDisappear {
                 settingsHighlightDismissTask?.cancel()
+                settingsHighlightDismissTask = nil
+                highlightedTarget = nil
             }
             .onChange(of: scenePhase) { _, newValue in
                 guard newValue == .active else { return }
