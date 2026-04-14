@@ -13,6 +13,10 @@ struct WeeklyInsightCandidateBuilder {
     }
 
     func buildCandidates(inputs: CandidateInputs) -> [InsightCandidate] {
+        if isSparseWeek(entries: inputs.entries, reflectionDayCount: inputs.currentDayCount) {
+            return []
+        }
+
         var candidates: [InsightCandidate] = []
 
         if let fullCompletion = fullCompletionCandidate(
@@ -37,9 +41,6 @@ struct WeeklyInsightCandidateBuilder {
             candidates.append(shift)
         }
 
-        if isSparseWeek(entries: inputs.entries, reflectionDayCount: inputs.currentDayCount) {
-            return []
-        }
         return candidates
     }
 
