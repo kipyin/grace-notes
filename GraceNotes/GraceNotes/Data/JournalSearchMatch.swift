@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 
 /// One searchable line or note row tied to a journal day, for Past search results.
@@ -15,9 +16,20 @@ struct JournalSearchMatch: Identifiable, Equatable, Sendable {
     }
 
     init(entryDate: Date, journalEntryId: UUID, source: ReviewThemeSourceCategory, content: String) {
-        self.id = "\(journalEntryId.uuidString)|\(source.rawValue)"
+        self.id = Self.fieldMatchId(journalEntryId: journalEntryId, source: source, content: content)
         self.entryDate = entryDate
         self.source = source
         self.content = content
+    }
+
+    /// Stable identity for whole-field matches (reading notes, reflections) without storing full text in `id`.
+    private static func fieldMatchId(
+        journalEntryId: UUID,
+        source: ReviewThemeSourceCategory,
+        content: String
+    ) -> String {
+        let digest = SHA256.hash(data: Data(content.utf8))
+        let fingerprint = digest.prefix(8).map { String(format: "%02x", $0) }.joined()
+        return "\(journalEntryId.uuidString)|\(source.rawValue)|\(fingerprint)"
     }
 }
