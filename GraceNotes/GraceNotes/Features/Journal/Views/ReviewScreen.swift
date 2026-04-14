@@ -51,7 +51,6 @@ struct ReviewScreen: View {
     @State private var journalSearchText = ""
     @State private var journalSearchMatches: [JournalSearchMatch] = []
     @FocusState private var isPastSearchFieldFocused: Bool
-    @EnvironmentObject private var appNavigation: AppNavigationModel
 
     private let reviewInsightsProvider = ReviewInsightsProvider.shared
     private let reviewInsightsCache = ReviewInsightsCache.shared
