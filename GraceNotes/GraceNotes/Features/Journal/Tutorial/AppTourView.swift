@@ -60,6 +60,12 @@ struct AppTourView: View {
                 .background(AppTheme.settingsBackground)
         }
         .background(AppTheme.settingsBackground.ignoresSafeArea())
+        .onAppear {
+            let clamped = min(max(pageIndex, firstPageIndex), lastPageIndex)
+            if clamped != pageIndex {
+                pageIndex = clamped
+            }
+        }
         .task {
             reminderState.reminderNotificationBody = { reminderTime in
                 (try? ReminderNotificationBodyBuilder.localizedBody(
@@ -73,7 +79,7 @@ struct AppTourView: View {
         }
         .onChange(of: scenePhase) { _, newValue in
             guard newValue == .active else { return }
-            Task {
+            Task { @MainActor in
                 await reminderState.refreshStatus()
             }
             iCloudAccountState.refresh()
@@ -339,13 +345,12 @@ struct AppTourInsightsPreview: View {
     /// Shows roughly the source row + upper ~4/5 of the Reflection rhythm panel, then fades before Observation.
     private static let previewClipHeight: CGFloat = 360
 
-    private var sampleInsights: ReviewInsights {
-        ReviewInsights.appTourTutorialPreview()
-    }
+    /// Built once so the panel does not rebuild identical preview data on every SwiftUI body pass.
+    private static let sampleInsights = ReviewInsights.appTourTutorialPreview()
 
     var body: some View {
         ReviewDaysYouWrotePanel(
-            insights: sampleInsights,
+            insights: Self.sampleInsights,
             isLoading: false
         )
         .frame(maxWidth: .infinity, alignment: .leading)
