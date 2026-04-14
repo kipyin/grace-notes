@@ -144,6 +144,25 @@ enum ReviewHistoryDrilldownCalendarLayout {
         return weeks
     }
 
+    /// Month keys in cell order (year-month). Weeks spanning two months yield two specs.
+    private static func orderedMonthBannerSpecs(
+        for week: [Date?],
+        calendar: Calendar
+    ) -> [(key: String, monthDate: Date)] {
+        var seen = Set<String>()
+        var specs: [(String, Date)] = []
+        for cell in week {
+            guard let date = cell else { continue }
+            let year = calendar.component(.year, from: date)
+            let month = calendar.component(.month, from: date)
+            let key = "\(year)-\(month)"
+            if seen.insert(key).inserted {
+                specs.append((key, date))
+            }
+        }
+        return specs
+    }
+
     private static func rowsWithBannersFromWeeks(
         _ weeks: [[Date?]],
         calendar: Calendar
@@ -151,18 +170,15 @@ enum ReviewHistoryDrilldownCalendarLayout {
         var rows: [ReviewHistoryDrilldownCalendarRow] = []
         var lastBannerMonthKey: String?
         for (weekIndex, week) in weeks.enumerated() {
-            if let firstDate = week.compactMap({ $0 }).first {
-                let year = calendar.component(.year, from: firstDate)
-                let month = calendar.component(.month, from: firstDate)
-                let key = "\(year)-\(month)"
-                if lastBannerMonthKey != key {
-                    let title = firstDate.formatted(.dateTime.month(.wide).year())
-                    rows.append(.monthBanner(id: "banner-\(key)", title: title))
-                    lastBannerMonthKey = key
-                }
+            let monthSpecs = orderedMonthBannerSpecs(for: week, calendar: calendar)
+            for spec in monthSpecs where lastBannerMonthKey != spec.key {
+                let title = spec.monthDate.formatted(.dateTime.month(.wide).year())
+                rows.append(.monthBanner(id: "banner-\(spec.key)", title: title))
+                lastBannerMonthKey = spec.key
             }
+            let weekDays = week.compactMap { $0 }
             let weekId: String
-            if let first = week.compactMap({ $0 }).first {
+            if let first = weekDays.first {
                 weekId = "week-\(Int(first.timeIntervalSince1970))-\(weekIndex)"
             } else {
                 weekId = "week-pad-\(weekIndex)"
