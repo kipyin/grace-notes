@@ -278,19 +278,30 @@ extension WeeklyReviewAggregatesBuilder {
 
     func moderateSurfaceSemanticMatch(themeConcept: String, supportText: String) -> Bool {
         let normalizedSupport = textNormalizer.normalizeThemeLabel(supportText)
-        guard !normalizedSupport.isEmpty else { return false }
-        if normalizedSupport.contains(themeConcept) || themeConcept.contains(normalizedSupport) {
+        let normalizedTheme = textNormalizer.normalizeThemeLabel(themeConcept)
+        guard !normalizedSupport.isEmpty, !normalizedTheme.isEmpty else { return false }
+        if containsHanCharacters(themeConcept) {
+            return normalizedSupport.contains(normalizedTheme) || normalizedTheme.contains(normalizedSupport)
+        }
+        // Latin: naive `contains` matches inside other words (e.g. "rest" in "forest"); require word boundaries.
+        if latinPhraseHasWordBoundaryMatch(haystack: normalizedSupport, needle: normalizedTheme)
+            || latinPhraseHasWordBoundaryMatch(haystack: normalizedTheme, needle: normalizedSupport) {
             return true
         }
-        if containsHanCharacters(themeConcept) {
-            return normalizedSupport.contains(themeConcept)
-        }
-        let themeTokens = Set(themeConcept.split(separator: " ").map(String.init).filter { $0.count >= 3 })
+        let themeTokens = Set(normalizedTheme.split(separator: " ").map(String.init).filter { $0.count >= 3 })
         let supportTokens = Set(normalizedSupport.split(separator: " ").map(String.init).filter { $0.count >= 3 })
         if themeTokens.isEmpty || supportTokens.isEmpty {
             return false
         }
         return !themeTokens.isDisjoint(with: supportTokens)
+    }
+
+    /// Whole-phrase / whole-word match for Latin script; avoids substring hits like "rest" inside "forest".
+    private func latinPhraseHasWordBoundaryMatch(haystack: String, needle: String) -> Bool {
+        guard needle.count <= haystack.count else { return false }
+        let escaped = NSRegularExpression.escapedPattern(for: needle)
+        let pattern = "\\b\(escaped)\\b"
+        return haystack.range(of: pattern, options: .regularExpression) != nil
     }
 
     func containsHanCharacters(_ text: String) -> Bool {
