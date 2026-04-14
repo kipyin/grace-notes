@@ -23,6 +23,67 @@ final class JournalOnboardingProgressTests: XCTestCase {
         XCTAssertTrue(resolvedValue)
     }
 
+    func test_resolvedHasCompletedGuidedJournal_whenCompletedGuidedJournalIsNSNumberOne_preservesStoredValue() {
+        let defaults = makeIsolatedDefaults()
+        let one = NSNumber(value: 1)
+        defaults.set(one, forKey: JournalOnboardingStorageKeys.completedGuidedJournal)
+
+        let resolvedValue = JournalOnboardingProgress.resolvedHasCompletedGuidedJournal(using: defaults)
+
+        XCTAssertTrue(resolvedValue)
+        let stored = defaults.object(forKey: JournalOnboardingStorageKeys.completedGuidedJournal)
+        XCTAssertTrue(stored is NSNumber)
+        XCTAssertEqual((stored as? NSNumber)?.boolValue, true)
+    }
+
+    func test_resolvedHasCompletedGuidedJournal_whenCompletedGuidedJournalIsNSNumberZero_preservesStoredValue() {
+        let defaults = makeIsolatedDefaults()
+        let zero = NSNumber(value: 0)
+        defaults.set(zero, forKey: JournalOnboardingStorageKeys.completedGuidedJournal)
+
+        let resolvedValue = JournalOnboardingProgress.resolvedHasCompletedGuidedJournal(using: defaults)
+
+        XCTAssertFalse(resolvedValue)
+        let stored = defaults.object(forKey: JournalOnboardingStorageKeys.completedGuidedJournal)
+        XCTAssertTrue(stored is NSNumber)
+        XCTAssertEqual((stored as? NSNumber)?.boolValue, false)
+    }
+
+    func test_resolvedHasCompletedGuidedJournal_whenCompletedGuidedJournalIsNSNumberNonFinite_interpretsViaBoolValue() {
+        let defaults = makeIsolatedDefaults()
+        let infinityNumber = NSNumber(value: 1.0 / 0.0)
+        defaults.set(infinityNumber, forKey: JournalOnboardingStorageKeys.completedGuidedJournal)
+
+        let resolvedValue = JournalOnboardingProgress.resolvedHasCompletedGuidedJournal(using: defaults)
+
+        XCTAssertTrue(resolvedValue)
+        let stored = defaults.object(forKey: JournalOnboardingStorageKeys.completedGuidedJournal)
+        XCTAssertTrue(stored is NSNumber)
+    }
+
+    func test_resolvedHasCompletedGuidedJournal_whenLegacyFirstRunCompletedIsNSNumberOne_migratesWithoutLosingIntent() {
+        let defaults = makeIsolatedDefaults()
+        defaults.set(NSNumber(value: 1), forKey: FirstRunOnboardingStorageKeys.completed)
+
+        let resolvedValue = JournalOnboardingProgress.resolvedHasCompletedGuidedJournal(using: defaults)
+
+        XCTAssertTrue(resolvedValue)
+        XCTAssertTrue(defaults.bool(forKey: JournalOnboardingStorageKeys.completedGuidedJournal))
+    }
+
+    func test_migrateLegacyPostSeedOrientationFlags_whenBranchResolutionSetAndCompletedGuidedJournalIsNSNumber_doesNotOverwriteWithFalse() {
+        let defaults = makeIsolatedDefaults()
+        defaults.set(NSNumber(value: 1), forKey: JournalOnboardingStorageKeys.completedGuidedJournal)
+        defaults.set(true, forKey: JournalOnboardingStorageKeys.legacy051GuidedBranchResolution)
+
+        JournalOnboardingProgress.migrateLegacyPostSeedOrientationFlagsIfNeeded(using: defaults)
+
+        XCTAssertTrue(JournalOnboardingProgress.resolvedHasCompletedGuidedJournal(using: defaults))
+        let stored = defaults.object(forKey: JournalOnboardingStorageKeys.completedGuidedJournal)
+        XCTAssertTrue(stored is NSNumber)
+        XCTAssertEqual((stored as? NSNumber)?.boolValue, true)
+    }
+
     func test_resetAll_clearsGuidedJournalAndSuggestionFlags() {
         let defaults = makeIsolatedDefaults()
         let progress = JournalOnboardingProgress(defaults: defaults)
