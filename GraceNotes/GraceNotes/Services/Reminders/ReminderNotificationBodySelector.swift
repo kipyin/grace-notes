@@ -73,6 +73,8 @@ enum ReminderNotificationBodySelector {
 
     /// Calendar-day gap from the last meaningful journal day to ``todayStart``.
     /// Returns `nil` when there was never meaningful content.
+    /// The result is always non-negative: future-dated entries (``lastDay`` after ``todayStart``)
+    /// yield `0` instead of a negative component.
     static func calendarDayGapSinceLastMeaningfulEntry(
         entries: [Journal],
         todayStart: Date,
@@ -86,7 +88,8 @@ enum ReminderNotificationBodySelector {
             }
         }
         guard let lastDay = latestMeaningfulDay else { return nil }
-        return calendar.dateComponents([.day], from: lastDay, to: todayStart).day
+        let rawDay = calendar.dateComponents([.day], from: lastDay, to: todayStart).day ?? 0
+        return max(0, rawDay)
     }
 
     /// True when we should use welcoming-back copy (requires a prior meaningful day and
