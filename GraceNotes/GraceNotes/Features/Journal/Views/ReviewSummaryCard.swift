@@ -527,7 +527,7 @@ struct ReviewDaysYouWrotePanel: View {
 
     private func activityAccessibilityLabel(for day: ReviewDayActivity) -> String {
         let dateText = day.date.formatted(date: .abbreviated, time: .omitted)
-        if let level = day.strongestCompletionLevel {
+        if let level = rhythmDisplayedCompletionLevel(for: day) {
             if level == .soil {
                 return String(
                     format: String(localized: "review.insights.wroteOnDate"),
@@ -537,12 +537,6 @@ struct ReviewDaysYouWrotePanel: View {
             return String(
                 format: String(localized: "review.insights.reachedStageOnDate"),
                 localizedCompletionStageName(for: level),
-                dateText
-            )
-        }
-        if day.hasPersistedEntry {
-            return String(
-                format: String(localized: "review.insights.wroteOnDate"),
                 dateText
             )
         }
