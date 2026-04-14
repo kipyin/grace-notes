@@ -13,6 +13,10 @@ struct CompletionInfoCard: View {
     let showMorph: Bool
     let bloomProgress: CGFloat
 
+    private var isEntryRevealed: Bool {
+        contentVisible || reduceMotion
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(badgeInfo.description)
@@ -21,8 +25,8 @@ struct CompletionInfoCard: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .opacity(contentVisible || reduceMotion ? 1 : 0)
-        .offset(y: contentVisible || reduceMotion ? 0 : 8)
+        .opacity(isEntryRevealed ? 1 : 0)
+        .offset(y: isEntryRevealed ? 0 : 8)
         .padding(AppTheme.spacingRegular)
         .background(cardSurface)
         .overlay(
@@ -30,6 +34,8 @@ struct CompletionInfoCard: View {
                 .stroke(cardTintColor.opacity(0.38), lineWidth: 1)
         )
         .shadow(color: cardTintColor.opacity(reduceTransparency ? 0.18 : 0.24), radius: 8, x: 0, y: 4)
+        .allowsHitTesting(isEntryRevealed)
+        .accessibilityHidden(!isEntryRevealed)
         .accessibilityElement(children: .contain)
         .onAppear {
             animateEntry()
