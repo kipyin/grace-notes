@@ -8,12 +8,23 @@ enum ShareTypographyScript: Equatable, Sendable {
 }
 
 extension ShareTypographyScript {
-    static func current() -> ShareTypographyScript {
-        switch Locale.current.language.languageCode {
-        case .some(.chinese), .some(.japanese), .some(.korean):
+    /// Consults the app bundle’s active UI language before the system locale, so CJK typography
+    /// applies when the app is localized to Chinese/Japanese/Korean even if the device language is English.
+    static func current(bundle: Bundle = .main) -> ShareTypographyScript {
+        let languages: [Locale.Language] = bundle.preferredLocalizations.map { Locale.Language(identifier: $0) }
+            + [Locale.current.language]
+        for language in languages where isCJK(language.languageCode) {
             return .chinese
+        }
+        return .latin
+    }
+
+    private static func isCJK(_ code: Locale.LanguageCode?) -> Bool {
+        switch code?.identifier {
+        case "zh", "ja", "ko":
+            return true
         default:
-            return .latin
+            return false
         }
     }
 }
