@@ -13,9 +13,14 @@ struct JournalItem: Codable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
-        fullText = try container.decode(String.self, forKey: .fullText)
-        _ = try container.decodeIfPresent(String.self, forKey: .entryLabel)
-        _ = try container.decodeIfPresent(String.self, forKey: .chipLabel)
+        let entryLabel = try container.decodeIfPresent(String.self, forKey: .entryLabel)
+        let chipLabel = try container.decodeIfPresent(String.self, forKey: .chipLabel)
+        if let full = try container.decodeIfPresent(String.self, forKey: .fullText) {
+            fullText = full
+        } else {
+            // Legacy rows may omit `fullText` but still carry `entryLabel` / `chipLabel` (see export import).
+            fullText = entryLabel ?? chipLabel ?? ""
+        }
         _ = try container.decodeIfPresent(Bool.self, forKey: .isTruncated)
     }
 
