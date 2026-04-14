@@ -78,7 +78,7 @@ enum JournalKeyboardScrollMetrics {
 /// Keyboard overlap with the key window; sizes extra scroll affordance without guessing global safe-area behavior.
 enum JournalKeyboardOverlapReader {
     static func overlapHeight(from notification: Notification) -> CGFloat {
-        guard let frame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else {
+        guard let frame = keyboardFrameEnd(from: notification) else {
             return 0
         }
         guard let window = JournalKeyWindowReader.keyWindow() else {
@@ -86,6 +86,20 @@ enum JournalKeyboardOverlapReader {
         }
         let keyboardInWindow = window.convert(frame, from: nil)
         return max(0, window.bounds.intersection(keyboardInWindow).height)
+    }
+
+    /// `keyboardFrameEndUserInfoKey` is documented as an `NSValue` wrapping `CGRect`; a bare `as? CGRect` often fails.
+    private static func keyboardFrameEnd(from notification: Notification) -> CGRect? {
+        guard let raw = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] else {
+            return nil
+        }
+        if let rect = raw as? CGRect {
+            return rect
+        }
+        if let value = raw as? NSValue {
+            return value.cgRectValue
+        }
+        return nil
     }
 }
 
@@ -114,7 +128,8 @@ enum JournalCaretVisibilityReader {
     /// Outer `scrollTo(anchor: .bottom)` aligns the **frame**; this aligns the **insertion point** inside the editor.
     static func nudgeFirstResponderUITextViewCaretIntoVisibleContent() {
         guard let window = JournalKeyWindowReader.keyWindow(),
-              let textView = findFirstResponder(in: window) as? UITextView,
+              let responder = findFirstResponder(in: window),
+              let textView = nearestTextView(from: responder),
               let range = textView.selectedTextRange else { return }
         var rect = textView.caretRect(for: range.end)
         if rect.height < 1 {
@@ -133,10 +148,10 @@ enum JournalCaretVisibilityReader {
         guard let window = JournalKeyWindowReader.keyWindow(),
               let responder = findFirstResponder(in: window) else { return nil }
         let caretInWindow: CGRect?
-        if let textView = responder as? UITextView, let range = textView.selectedTextRange {
+        if let textView = nearestTextView(from: responder), let range = textView.selectedTextRange {
             let local = textView.caretRect(for: range.end)
             caretInWindow = textView.convert(local, to: nil)
-        } else if let textField = responder as? UITextField, let range = textField.selectedTextRange {
+        } else if let textField = nearestTextField(from: responder), let range = textField.selectedTextRange {
             let local = textField.caretRect(for: range.end)
             caretInWindow = textField.convert(local, to: nil)
         } else {
@@ -149,6 +164,30 @@ enum JournalCaretVisibilityReader {
               caretInWindow.height.isFinite else { return nil }
         if caretInWindow == .zero { return nil }
         return caretInWindow.maxY
+    }
+
+    /// First responder is sometimes an internal subview; walk up to the `UITextView` that owns the caret APIs.
+    private static func nearestTextView(from view: UIView) -> UITextView? {
+        var current: UIView? = view
+        while let node = current {
+            if let textView = node as? UITextView {
+                return textView
+            }
+            current = node.superview
+        }
+        return nil
+    }
+
+    /// Same as `nearestTextView` but for single-line fields (`UITextField` and common subclasses).
+    private static func nearestTextField(from view: UIView) -> UITextField? {
+        var current: UIView? = view
+        while let node = current {
+            if let textField = node as? UITextField {
+                return textField
+            }
+            current = node.superview
+        }
+        return nil
     }
 
     private static func findFirstResponder(in view: UIView) -> UIView? {
