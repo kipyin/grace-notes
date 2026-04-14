@@ -2,6 +2,7 @@ import SwiftUI
 
 struct JournalOnboardingSuggestionView: View {
     @Environment(\.todayJournalPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let title: String
     let message: String
     let primaryActionTitle: String
@@ -22,24 +23,8 @@ struct JournalOnboardingSuggestionView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            HStack(spacing: AppTheme.spacingRegular) {
-                Button(action: onPrimaryAction) {
-                    Text(primaryActionTitle)
-                        .frame(maxWidth: .infinity, minHeight: 44)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(AppTheme.accent)
-                .foregroundStyle(AppTheme.onAccent)
-
-                Button(action: onSecondaryAction) {
-                    Text(secondaryActionTitle)
-                        .frame(maxWidth: .infinity, minHeight: 44)
-                }
-                .buttonStyle(.bordered)
-                .tint(AppTheme.accentText)
-                .foregroundStyle(AppTheme.accentText)
-            }
-            .font(AppTheme.warmPaperBody)
+            actionButtons
+                .font(AppTheme.warmPaperBody)
         }
         .padding(AppTheme.spacingRegular)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -50,5 +35,40 @@ struct JournalOnboardingSuggestionView: View {
                 .stroke(palette.inputBorder, lineWidth: 1)
         )
         .accessibilityElement(children: .contain)
+    }
+
+    @ViewBuilder
+    private var actionButtons: some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            VStack(spacing: AppTheme.spacingRegular) {
+                primaryActionButton
+                secondaryActionButton
+            }
+        } else {
+            HStack(spacing: AppTheme.spacingRegular) {
+                primaryActionButton
+                secondaryActionButton
+            }
+        }
+    }
+
+    private var primaryActionButton: some View {
+        Button(action: onPrimaryAction) {
+            Text(primaryActionTitle)
+                .frame(maxWidth: .infinity, minHeight: 44)
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(AppTheme.accent)
+        .foregroundStyle(AppTheme.onAccent)
+    }
+
+    private var secondaryActionButton: some View {
+        Button(action: onSecondaryAction) {
+            Text(secondaryActionTitle)
+                .frame(maxWidth: .infinity, minHeight: 44)
+        }
+        .buttonStyle(.bordered)
+        .tint(AppTheme.accentText)
+        .foregroundStyle(AppTheme.accentText)
     }
 }
