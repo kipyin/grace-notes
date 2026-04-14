@@ -68,14 +68,14 @@ enum CompletionBadgeInfo: Equatable, Sendable {
     }
 
     func infoCardTintColor(using palette: TodayJournalPalette) -> Color {
-        switch self {
-        case .empty:
+        switch completionLevel {
+        case .soil:
             return palette.textMuted
-        case .started:
+        case .sprout:
             return palette.quickCheckInText
-        case .growing, .balanced:
+        case .twig, .leaf:
             return palette.standardText
-        case .full:
+        case .bloom:
             return palette.fullText
         }
     }
