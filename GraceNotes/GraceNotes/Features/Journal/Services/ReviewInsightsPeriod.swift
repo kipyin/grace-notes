@@ -29,7 +29,10 @@ enum ReviewInsightsPeriod {
         // local days when offset changes break the SI-second count between week starts.
         let lastInstantBeforeCurrent = current.lowerBound.addingTimeInterval(-1)
         let lastDayStart = calendar.startOfDay(for: lastInstantBeforeCurrent)
-        let previousStart = calendar.date(byAdding: .day, value: -6, to: lastDayStart) ?? lastDayStart
+        guard let previousStart = calendar.date(byAdding: .day, value: -6, to: lastDayStart) else {
+            let fallback = rollingSevenDayFallback(containing: lastInstantBeforeCurrent, calendar: calendar)
+            return fallback.lowerBound..<current.lowerBound
+        }
         return previousStart..<current.lowerBound
     }
 
