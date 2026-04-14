@@ -44,6 +44,7 @@ struct JournalShareComposerView: View {
                 .padding(.vertical, 16)
                 .disabled(isShareCommitInProgress)
             }
+            .scrollDisabled(isShareCommitInProgress)
             .scrollContentBackground(.hidden)
             .background(AppTheme.settingsBackground.ignoresSafeArea())
             .navigationTitle(String(localized: "sharing.composer.title"))
