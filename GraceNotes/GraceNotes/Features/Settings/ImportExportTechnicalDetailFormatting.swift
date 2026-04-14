@@ -48,10 +48,16 @@ enum ImportExportTechnicalDetailFormatting {
     }
 
     /// Trims surrounding whitespace, treats whitespace-only as absent, and flattens line breaks so
-    /// history rows and accessibility labels stay single-line.
+    /// history rows and accessibility labels stay single-line. Each newline-delimited segment is
+    /// trimmed; empty segments are dropped so spacing collapses to single spaces between words.
     private static func normalizedExportHistoryDetail(_ raw: String) -> String? {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
-        return trimmed.split { $0.isNewline }.joined(separator: " ")
+        let segments = trimmed
+            .split(whereSeparator: \.isNewline)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        guard !segments.isEmpty else { return nil }
+        return segments.joined(separator: " ")
     }
 }
