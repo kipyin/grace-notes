@@ -58,4 +58,15 @@ final class JournalShareRendererTests: XCTestCase {
             XCTAssertGreaterThan(image.size.width, 0, style.rawValue)
         }
     }
+
+    func test_shareTypographyScript_forLocale_mapsCJKPrimaryLanguages() {
+        XCTAssertEqual(ShareTypographyScript.forLocale(Locale(identifier: "zh-Hans")), .cjk)
+        XCTAssertEqual(ShareTypographyScript.forLocale(Locale(identifier: "ja_JP")), .cjk)
+        XCTAssertEqual(ShareTypographyScript.forLocale(Locale(identifier: "ko")), .cjk)
+    }
+
+    func test_shareTypographyScript_forLocale_mapsLatinLocales() {
+        XCTAssertEqual(ShareTypographyScript.forLocale(Locale(identifier: "en_US")), .latin)
+        XCTAssertEqual(ShareTypographyScript.forLocale(Locale(identifier: "de_DE")), .latin)
+    }
 }
