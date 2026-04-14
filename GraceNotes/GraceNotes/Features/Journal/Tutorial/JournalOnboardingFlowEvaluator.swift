@@ -63,7 +63,7 @@ struct JournalOnboardingPresentation: Equatable {
     )
 
     var isGuidanceActive: Bool {
-        step != nil
+        step != nil && !(message?.isEmpty ?? true)
     }
 
     func state(for section: JournalOnboardingSection) -> JournalOnboardingSectionState {
@@ -131,7 +131,16 @@ private extension JournalOnboardingFlowEvaluator {
         message: String,
         states: [JournalOnboardingSection: JournalOnboardingSectionState]
     ) -> JournalOnboardingPresentation {
-        JournalOnboardingPresentation(
+        if message.isEmpty {
+            #if DEBUG
+            assertionFailure(
+                "Journal onboarding requires non-empty message for step \(step); "
+                    + "treating as inactive to avoid locked sections without copy."
+            )
+            #endif
+            return .inactive
+        }
+        return JournalOnboardingPresentation(
             step: step,
             title: title,
             message: message,

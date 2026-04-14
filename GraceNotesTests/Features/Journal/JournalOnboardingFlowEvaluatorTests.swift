@@ -79,6 +79,29 @@ final class JournalOnboardingFlowEvaluatorTests: XCTestCase {
 
         XCTAssertFalse(presentation.isGuidanceActive)
     }
+
+    func test_presentation_negativeGratitudesCount_targetsGratitudeLikeZero() {
+        let presentation = makePresentation(gratitudes: -1, needs: 0, people: 0)
+
+        XCTAssertEqual(presentation.step, .gratitude)
+        XCTAssertTrue(presentation.isGuidanceActive)
+        XCTAssertNotNil(presentation.sectionGuidance(for: .gratitude))
+        XCTAssertEqual(presentation.state(for: .gratitude), .active)
+        XCTAssertEqual(
+            presentation.state(for: .need),
+            .locked(reason: String(localized: "journal.onboarding.needsLockedReason"))
+        )
+    }
+
+    func test_presentation_negativeNeedsCount_targetsNeedAfterFirstGratitude() {
+        let presentation = makePresentation(gratitudes: 1, needs: -1, people: 0)
+
+        XCTAssertEqual(presentation.step, .need)
+        XCTAssertTrue(presentation.isGuidanceActive)
+        XCTAssertNotNil(presentation.sectionGuidance(for: .need))
+        XCTAssertEqual(presentation.state(for: .gratitude), .available)
+        XCTAssertEqual(presentation.state(for: .need), .active)
+    }
 }
 
 private extension JournalOnboardingFlowEvaluatorTests {
