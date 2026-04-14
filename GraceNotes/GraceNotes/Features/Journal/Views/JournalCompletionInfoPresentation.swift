@@ -39,6 +39,7 @@ final class JournalCompletionInfoPresentation {
     }
 
     func dismissInfoCard(reduceMotion: Bool) {
+        cancelInfoCardBloomAnimation(resetProgress: true)
         infoCardDismissTask?.cancel()
         infoCardDismissSequence += 1
         infoCardDismissTask = nil
@@ -67,11 +68,11 @@ final class JournalCompletionInfoPresentation {
         infoCardDismissTask?.cancel()
         infoCardDismissSequence += 1
         infoCardDismissTask = nil
-        infoCardBloomTask?.cancel()
-        infoCardBloomTask = nil
+        cancelInfoCardBloomAnimation(resetProgress: true)
     }
 
     private func scheduleInfoCardCloseThenReopenAfterDelay(reduceMotion: Bool) {
+        cancelInfoCardBloomAnimation(resetProgress: true)
         withAnimation(infoCardExitAnimation(reduceMotion: reduceMotion)) {
             isInfoCardPresented = false
         }
@@ -99,6 +100,7 @@ final class JournalCompletionInfoPresentation {
 
     private func triggerInfoCardBloomPulse(reduceMotion: Bool) {
         guard !reduceMotion else {
+            cancelInfoCardBloomAnimation(resetProgress: false)
             infoCardBloomProgress = 1
             return
         }
@@ -116,6 +118,14 @@ final class JournalCompletionInfoPresentation {
             withAnimation(.easeOut(duration: 0.35)) {
                 infoCardBloomProgress = 0
             }
+        }
+    }
+
+    private func cancelInfoCardBloomAnimation(resetProgress: Bool) {
+        infoCardBloomTask?.cancel()
+        infoCardBloomTask = nil
+        if resetProgress {
+            infoCardBloomProgress = 0
         }
     }
 
