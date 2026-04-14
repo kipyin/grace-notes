@@ -8,12 +8,17 @@ enum ShareTypographyScript: Equatable, Sendable {
 }
 
 extension ShareTypographyScript {
-    static func current() -> ShareTypographyScript {
-        switch Locale.current.language.languageCode {
+    /// Pure CJK vs Latin selection for unit tests and stable behavior vs `Locale.current`.
+    static func forLanguageCode(_ languageCode: Locale.LanguageCode?) -> ShareTypographyScript {
+        switch languageCode {
         case .some(.chinese), .some(.japanese), .some(.korean):
             return .chinese
         default:
             return .latin
         }
+    }
+
+    static func current() -> ShareTypographyScript {
+        forLanguageCode(Locale.current.language.languageCode)
     }
 }
