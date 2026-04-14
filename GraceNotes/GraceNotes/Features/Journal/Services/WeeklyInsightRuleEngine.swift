@@ -69,15 +69,18 @@ struct WeeklyInsightRuleEngine {
         )
     }
 
-    /// Prefer the first non-empty trimmed `observation` across selected insights. If an observation is blank
-    /// but `primaryTheme` is present (e.g. failed template substitution), use the trimmed theme so the
-    /// resurfacing line still matches visible card context instead of the generic starter copy.
-    private static func firstNonEmptyTrimmedHeadline(in insights: [ReviewWeeklyInsight]) -> String? {
+    /// Prefer the first non-empty trimmed `observation` across selected insights (scanning every insight
+    /// before any theme). If no observation is available but `primaryTheme` is present (e.g. failed template
+    /// substitution), use the first non-empty trimmed theme so the resurfacing line still matches visible
+    /// card context instead of the generic starter copy.
+    static func firstNonEmptyTrimmedHeadline(in insights: [ReviewWeeklyInsight]) -> String? {
         for insight in insights {
             let trimmedObservation = insight.observation.trimmingCharacters(in: .whitespacesAndNewlines)
             if !trimmedObservation.isEmpty {
                 return trimmedObservation
             }
+        }
+        for insight in insights {
             if let theme = insight.primaryTheme?.trimmingCharacters(in: .whitespacesAndNewlines),
                !theme.isEmpty {
                 return theme
