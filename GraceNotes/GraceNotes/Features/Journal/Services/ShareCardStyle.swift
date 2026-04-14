@@ -1,11 +1,13 @@
 import SwiftUI
 
 private extension Color {
+    /// 24-bit `RRGGBB`. High bits are masked so `AARRGGBB`-style literals still resolve to the same sRGB triplet.
     init(hex: UInt) {
-        let red = Double((hex >> 16) & 0xFF) / 255
-        let green = Double((hex >> 8) & 0xFF) / 255
-        let blue = Double(hex & 0xFF) / 255
-        self.init(red: red, green: green, blue: blue)
+        let rgb = hex & 0xFFFFFF
+        let red = Double((rgb >> 16) & 0xFF) / 255
+        let green = Double((rgb >> 8) & 0xFF) / 255
+        let blue = Double(rgb & 0xFF) / 255
+        self.init(.sRGB, red: red, green: green, blue: blue)
     }
 }
 
@@ -92,14 +94,7 @@ enum ShareCardStyle: String, CaseIterable, Identifiable, Sendable {
     }
 
     var completionChipTextColor: Color {
-        switch self {
-        case .paperWarm:
-            Color(hex: 0x7A6F68)
-        case .editorialMist:
-            Color(hex: 0x737373)
-        case .sunriseGradient:
-            Color(hex: 0x9B8A7E)
-        }
+        footerInk
     }
 
     @ViewBuilder
