@@ -59,6 +59,9 @@ final class ReminderSettingsFlowModel: ObservableObject {
     }
 
     func enableReminders() async {
+        // User intent to turn reminders on cancels any deferred "disable after current work" and must not
+        // be overridden by a later drain from an earlier busy window.
+        pendingDisableAfterCurrentWork = false
         await runWithWorking {
             transientErrorMessage = nil
             let result = await reminderScheduler.enableDailyReminder(at: selectedTime, body: resolvedReminderBody())
@@ -93,6 +96,8 @@ final class ReminderSettingsFlowModel: ObservableObject {
         transientErrorMessage = nil
         _ = await reminderScheduler.disableDailyReminder()
         await refreshStatus()
+        // Coalesced disable requests that arrived during `await` are redundant once this attempt finishes.
+        pendingDisableAfterCurrentWork = false
     }
 
     func saveEnabledReminderTime() async {
@@ -188,6 +193,7 @@ final class ReminderSettingsFlowModel: ObservableObject {
         transientErrorMessage = nil
         _ = await reminderScheduler.disableDailyReminder()
         await refreshStatus()
+        pendingDisableAfterCurrentWork = false
     }
 
     /// Runs a deferred time save after `isWorking` drops (picker updates coalesced during enable or overlapping saves).
