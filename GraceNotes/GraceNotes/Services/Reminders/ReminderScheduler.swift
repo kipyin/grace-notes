@@ -91,6 +91,13 @@ struct ReminderScheduler {
 
     /// Reschedules only when authorization is already available.
     func rescheduleEnabledReminder(at time: Date, body: String) async -> ReminderSyncResult {
+        // `notDetermined` is not a denial. This path does not prompt, so treat it as “cannot
+        // reconcile now” and keep any existing pending request (maps to the same UI result as
+        // before, without clearing a still-valid schedule).
+        if await notificationCenter.authorizationStatus() == .notDetermined {
+            return .permissionDenied
+        }
+
         switch await notificationPermissionOutcome(allowPermissionPrompt: false) {
         case .granted:
             let wasScheduled = await scheduleReminder(at: time, body: body)
