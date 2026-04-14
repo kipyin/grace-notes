@@ -29,13 +29,14 @@ struct ReviewJournalThemeLanguageResolver: ReviewJournalThemeLanguageResolving {
             return Self.englishCatalogLocale
         }
 
-        let meaningfulCount = trimmed.filter { !$0.isWhitespace }.count
-        guard meaningfulCount >= minimumMeaningfulGraphemes else {
+        guard Self.hasEnoughMeaningfulGraphemes(trimmed, minimum: minimumMeaningfulGraphemes) else {
             return Self.englishCatalogLocale
         }
 
+        let analysisText = Self.analysisSample(from: trimmed)
+
         let recognizer = NLLanguageRecognizer()
-        recognizer.processString(trimmed)
+        recognizer.processString(analysisText)
 
         if let dominant = recognizer.dominantLanguage {
             let hypotheses = recognizer.languageHypotheses(withMaximum: 5)
@@ -45,10 +46,29 @@ struct ReviewJournalThemeLanguageResolver: ReviewJournalThemeLanguageResolving {
             }
         }
 
-        return Self.scriptTieBreakLocale(trimmed: trimmed)
+        return Self.scriptTieBreakLocale(trimmed: analysisText)
     }
 
     private static let englishCatalogLocale = Locale(identifier: "en")
+
+    /// Upper bound on text fed to `NLLanguageRecognizer` and script tie-break (prefix by extended grapheme cluster).
+    private static let maximumAnalysisGraphemes = 50_000
+
+    private static func hasEnoughMeaningfulGraphemes(_ text: String, minimum: Int) -> Bool {
+        var count = 0
+        for character in text where !character.isWhitespace {
+            count += 1
+            if count >= minimum {
+                return true
+            }
+        }
+        return count >= minimum
+    }
+
+    /// Keeps language detection and script scanning bounded on pathologically long corpora without scanning `count`.
+    private static func analysisSample(from trimmed: String) -> String {
+        String(trimmed.prefix(maximumAnalysisGraphemes))
+    }
 
     /// Maps recognizer output to a locale that exists in `Localizable.xcstrings` (we ship `en` + `zh-Hans`).
     private static func catalogLocale(for language: NLLanguage) -> Locale {
