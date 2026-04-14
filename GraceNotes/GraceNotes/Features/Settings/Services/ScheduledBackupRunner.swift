@@ -23,8 +23,8 @@ private final class ScheduledBackupSingleFlight: @unchecked Sendable {
 
     func end() {
         lock.lock()
+        defer { lock.unlock() }
         inFlight = false
-        lock.unlock()
     }
 }
 
@@ -45,10 +45,10 @@ enum ScheduledBackupRunner {
         }
 
         guard scheduledBackupSingleFlight.tryBegin() else { return }
-        defer { scheduledBackupSingleFlight.end() }
 
         let result = await Task.detached(priority: .utility) {
-            Self.performScheduledExport(modelContainer: modelContainer)
+            defer { scheduledBackupSingleFlight.end() }
+            return Self.performScheduledExport(modelContainer: modelContainer)
         }.value
 
         switch result {
