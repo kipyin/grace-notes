@@ -82,52 +82,68 @@ final class StartupCoordinator: ObservableObject {
 
         currentAttemptID += 1
         let attemptID = currentAttemptID
+        let runPersistence = persistenceFactory
+        let copyRotationInterval = timing.copyRotationInterval
+        let reassuranceDelay = timing.reassuranceDelay
         isStartingUp = true
         loadingCopyIndex = 0
         reassuranceCopyIndex = 0
         phase = .loading
         startupMessage = loadingMessage(for: loadingCopyIndex)
-        startCopyRotation(for: attemptID)
-        scheduleReassuranceTransition(for: attemptID)
+        startCopyRotation(for: attemptID, interval: copyRotationInterval)
+        scheduleReassuranceTransition(for: attemptID, delay: reassuranceDelay)
 
         startupTask?.cancel()
-        startupTask = Task { [weak self] in
-            guard let self else { return }
+        startupTask = Task {
             let trace = PerformanceTrace.begin("StartupCoordinator.startupAttempt")
             do {
-                let controller = try await persistenceFactory()
-                await handleStartupSuccess(controller, attemptID: attemptID, traceStart: trace)
+                let controller = try await runPersistence()
+                await MainActor.run { [weak self] in
+                    guard let self else {
+                        PerformanceTrace.end("StartupCoordinator.startupAttempt.superseded", startedAt: trace)
+                        return
+                    }
+                    self.handleStartupSuccess(controller, attemptID: attemptID, traceStart: trace)
+                }
             } catch {
-                await handleStartupFailure(error, attemptID: attemptID, traceStart: trace)
+                await MainActor.run { [weak self] in
+                    guard let self else {
+                        PerformanceTrace.end("StartupCoordinator.startupAttempt.superseded", startedAt: trace)
+                        return
+                    }
+                    self.handleStartupFailure(error, attemptID: attemptID, traceStart: trace)
+                }
             }
         }
     }
 
-    private func startCopyRotation(for attemptID: UInt64) {
+    private func startCopyRotation(for attemptID: UInt64, interval: Duration) {
         copyRotationTask?.cancel()
-        copyRotationTask = Task { [weak self] in
-            guard let self else { return }
+        copyRotationTask = Task {
             while !Task.isCancelled {
                 do {
-                    try await Task.sleep(for: timing.copyRotationInterval)
+                    try await Task.sleep(for: interval)
                 } catch {
                     break
                 }
-                await advanceCopyIfNeeded(for: attemptID)
+                await MainActor.run { [weak self] in
+                    self?.advanceCopyIfNeeded(for: attemptID)
+                }
             }
         }
     }
 
-    private func scheduleReassuranceTransition(for attemptID: UInt64) {
+    private func scheduleReassuranceTransition(for attemptID: UInt64, delay: Duration) {
         reassuranceTask?.cancel()
-        reassuranceTask = Task { [weak self] in
-            guard let self else { return }
+        reassuranceTask = Task {
             do {
-                try await Task.sleep(for: timing.reassuranceDelay)
+                try await Task.sleep(for: delay)
             } catch {
                 return
             }
-            await enterReassuranceIfNeeded(for: attemptID)
+            await MainActor.run { [weak self] in
+                self?.enterReassuranceIfNeeded(for: attemptID)
+            }
         }
     }
 
