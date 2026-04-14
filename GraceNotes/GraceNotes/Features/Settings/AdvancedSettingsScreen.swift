@@ -164,9 +164,15 @@ struct AdvancedSettingsScreen: View {
 
     private func loadIntervalState() {
         let selection = PastStatisticsIntervalPreference.selection(fromAppStorage: intervalEncoded).validated
-        customQuantity = Self.clampedPickerQuantity(selection.quantity)
-        customUnit = selection.unit
-        intervalMode = selection.mode == .all ? .all : .custom
+        let nextQuantity = Self.clampedPickerQuantity(selection.quantity)
+        let nextUnit = selection.unit
+        let nextMode: PastStatisticsIntervalPickerMode = selection.mode == .all ? .all : .custom
+        if nextQuantity == customQuantity, nextUnit == customUnit, nextMode == intervalMode {
+            return
+        }
+        customQuantity = nextQuantity
+        customUnit = nextUnit
+        intervalMode = nextMode
     }
 
     private func applyIntervalMode(_ mode: PastStatisticsIntervalPickerMode) {
