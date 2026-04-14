@@ -66,7 +66,7 @@ extension ShareCardStyle {
         case .editorialMist:
             switch script {
             case .latin:
-                Font.custom("Spectral-Regular", size: 15, relativeTo: .body)
+                Font.custom("Spectral", size: 15, relativeTo: .body)
             case .chinese:
                 Font.system(size: 15, weight: .regular, design: .serif)
             }
