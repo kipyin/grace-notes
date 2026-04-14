@@ -116,14 +116,19 @@ struct ReviewMostRecurringTheme: Equatable, Hashable, Sendable, Codable, Identif
         dayCount = try container.decode(Int.self, forKey: .dayCount)
         currentWeekCount = try container.decode(Int.self, forKey: .currentWeekCount)
         previousWeekCount = try container.decode(Int.self, forKey: .previousWeekCount)
-        evidence = Self.decodeEvidence(from: container)
+        evidence = try Self.decodeEvidence(from: container)
     }
 
-    /// `decodeIfPresent` throws on shape mismatch when the key exists, so legacy
-    /// `[ReviewThemeEvidence]` must be tried with `try? decode`.
+    /// When the `evidence` key is absent, decoding defaults to `[]`. When the key is present,
+    /// `decodeIfPresent` throws on type mismatch, so we try structured `[ReviewThemeSurfaceEvidence]`
+    /// then legacy `[ReviewThemeEvidence]` with `try? decode`; if both fail, decoding throws instead
+    /// of silently producing empty evidence.
     private static func decodeEvidence(
         from container: KeyedDecodingContainer<CodingKeys>
-    ) -> [ReviewThemeSurfaceEvidence] {
+    ) throws -> [ReviewThemeSurfaceEvidence] {
+        guard container.contains(.evidence) else {
+            return []
+        }
         if let structuredEvidence = try? container.decode([ReviewThemeSurfaceEvidence].self, forKey: .evidence) {
             return structuredEvidence
         }
@@ -136,7 +141,13 @@ struct ReviewMostRecurringTheme: Equatable, Hashable, Sendable, Codable, Identif
                 }
             }
         }
-        return []
+        throw DecodingError.dataCorrupted(
+            DecodingError.Context(
+                codingPath: container.codingPath + [CodingKeys.evidence],
+                debugDescription: "Invalid evidence: expected [ReviewThemeSurfaceEvidence] "
+                    + "or legacy [ReviewThemeEvidence]."
+            )
+        )
     }
 
     func encode(to encoder: Encoder) throws {
