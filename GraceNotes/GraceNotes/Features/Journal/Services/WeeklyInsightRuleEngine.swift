@@ -47,14 +47,9 @@ struct WeeklyInsightRuleEngine {
         )
 
         let narrativeSummary = candidateBuilder.narrativeSummary(from: selectedInsights)
-        let trimmedHeadline = selectedInsights.first?.observation
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        let resurfacingMessage: String
-        if let trimmedHeadline, !trimmedHeadline.isEmpty {
-            resurfacingMessage = trimmedHeadline
-        } else {
-            resurfacingMessage = String(localized: "review.insights.starterReflection")
-        }
+        let starterReflection = String(localized: "review.insights.starterReflection")
+        let trimmedHeadline = Self.firstNonEmptyTrimmedObservation(in: selectedInsights)
+        let resurfacingMessage = trimmedHeadline ?? starterReflection
 
         let continuityPrompt = selectedInsights.compactMap(\.action).map {
             $0.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -72,5 +67,17 @@ struct WeeklyInsightRuleEngine {
             weekStats: aggregates.stats,
             presentationMode: aggregates.supportsInsightNarrative ? .insight : .statsFirst
         )
+    }
+
+    /// Prefer the first non-empty observation line across selected insights. The first card can be
+    /// blank in pathological cases while a second selected insight still carries the visible headline.
+    private static func firstNonEmptyTrimmedObservation(in insights: [ReviewWeeklyInsight]) -> String? {
+        for insight in insights {
+            let trimmed = insight.observation.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                return trimmed
+            }
+        }
+        return nil
     }
 }
