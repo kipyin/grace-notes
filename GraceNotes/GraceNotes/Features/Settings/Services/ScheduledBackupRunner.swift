@@ -7,6 +7,29 @@ private let scheduledBackupLogger = Logger(
     category: "ScheduledBackup"
 )
 
+/// Prevents overlapping scheduled backup runs when the app becomes active repeatedly before
+/// `lastRunAt` is updated (each transition spawns a new `Task` in ``GraceNotesApp``).
+private final class ScheduledBackupSingleFlight: @unchecked Sendable {
+    private let lock = NSLock()
+    private var inFlight = false
+
+    func tryBegin() -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !inFlight else { return false }
+        inFlight = true
+        return true
+    }
+
+    func end() {
+        lock.lock()
+        inFlight = false
+        lock.unlock()
+    }
+}
+
+private let scheduledBackupSingleFlight = ScheduledBackupSingleFlight()
+
 enum ScheduledBackupRunner {
     /// Writes a JSON export into the user’s appointed folder when the schedule says it is time.
     static func runIfDue(modelContainer: ModelContainer) async {
@@ -20,6 +43,9 @@ enum ScheduledBackupRunner {
             await recordScheduledFailure(detail: String(localized: "settings.dataPrivacy.scheduledBackup.folderError"))
             return
         }
+
+        guard scheduledBackupSingleFlight.tryBegin() else { return }
+        defer { scheduledBackupSingleFlight.end() }
 
         let result = await Task.detached(priority: .utility) {
             Self.performScheduledExport(modelContainer: modelContainer)
