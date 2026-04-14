@@ -10,7 +10,7 @@ enum JournalOnboardingStorageKeys {
     /// Legacy upgrade cohort: Today clears this after one branch resolution. Listed for iCloud continuity.
     static let legacy051GuidedBranchResolution = "journalOnboarding.pending051GuidedJournalBranchResolution"
     static let hasSeenAppTour = "journalOnboarding.hasSeenAppTour"
-    /// Legacy key; value is copied once into ``hasSeenAppTour`` by ``migrateLegacyAppTourSeenFlagIfNeeded``.
+    /// Legacy key; value is copied once into ``hasSeenAppTour`` by ``migrateLegacyAppTourSeenFlagIfNeeded``, then removed.
     static let legacyHasSeenPostSeedJourney = "journalOnboarding.hasSeenPostSeedJourney"
     static let dismissedRemindersSuggestion = "journalOnboarding.dismissedRemindersSuggestion"
     static let dismissedICloudSuggestion = "journalOnboarding.dismissedICloudSuggestion"
@@ -97,7 +97,8 @@ final class JournalOnboardingProgress {
         defaults.removeObject(forKey: upgradeKey)
     }
 
-    /// Copies ``legacyHasSeenPostSeedJourney`` into ``hasSeenAppTour`` once so existing installs keep tour state.
+    /// Copies ``legacyHasSeenPostSeedJourney`` into ``hasSeenAppTour`` once so existing installs keep tour state,
+    /// then removes the legacy entry (same shape as ``JournalTutorialStorageKeys`` boolean migrations).
     static func migrateLegacyAppTourSeenFlagIfNeeded(using defaults: UserDefaults = .standard) {
         guard defaults.object(forKey: JournalOnboardingStorageKeys.hasSeenAppTour) == nil else { return }
         guard defaults.object(forKey: JournalOnboardingStorageKeys.legacyHasSeenPostSeedJourney) != nil else {
@@ -107,6 +108,7 @@ final class JournalOnboardingProgress {
             defaults.bool(forKey: JournalOnboardingStorageKeys.legacyHasSeenPostSeedJourney),
             forKey: JournalOnboardingStorageKeys.hasSeenAppTour
         )
+        defaults.removeObject(forKey: JournalOnboardingStorageKeys.legacyHasSeenPostSeedJourney)
     }
 
     /// After Today’s entry loads, finalize legacy upgrade cohort branch for `completedGuidedJournal`.
