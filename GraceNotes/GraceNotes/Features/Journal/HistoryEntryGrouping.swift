@@ -59,6 +59,25 @@ enum HistoryEntryGrouping {
         guard let year = components.year, let month = components.month else {
             return calendar.startOfDay(for: date)
         }
+        return gregorianUTCMonthStartFromYearMonth(
+            year: year,
+            month: month,
+            calendar: calendar,
+            fallbackDate: date
+        )
+    }
+
+    /// When `date(from:)` cannot build the first of the month from normalized components but year and month
+    /// are still present, anchor at January 1 and add months so entries in the same calendar month share one bucket.
+    /// Exposed as `internal` for unit tests (`@testable`) because forcing the parent `date(from:)` failure in
+    /// `gregorianUTCMonthStart(for:)` is impractical to reproduce reliably across OS versions.
+    internal static func gregorianUTCMonthStartFromYearMonth(
+        year: Int,
+        month: Int,
+        calendar: Calendar,
+        fallbackDate: Date
+    ) -> Date {
+        // Ultra-defensive: if components ever produced garbage, avoid crashing and land in a plausible month.
         let clampedMonth = min(max(month, 1), 12)
         var yearStartComponents = DateComponents()
         yearStartComponents.timeZone = calendar.timeZone
@@ -70,9 +89,9 @@ enum HistoryEntryGrouping {
         yearStartComponents.second = 0
         yearStartComponents.nanosecond = 0
         guard let januaryFirst = calendar.date(from: yearStartComponents) else {
-            return calendar.startOfDay(for: date)
+            return calendar.startOfDay(for: fallbackDate)
         }
         return calendar.date(byAdding: .month, value: clampedMonth - 1, to: januaryFirst)
-            ?? calendar.startOfDay(for: date)
+            ?? calendar.startOfDay(for: fallbackDate)
     }
 }
