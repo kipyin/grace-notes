@@ -280,7 +280,8 @@ extension WeeklyReviewAggregatesBuilder {
         let normalizedSupport = textNormalizer.normalizeThemeLabel(supportText)
         let normalizedTheme = textNormalizer.normalizeThemeLabel(themeConcept)
         guard !normalizedSupport.isEmpty, !normalizedTheme.isEmpty else { return false }
-        if containsHanCharacters(themeConcept) {
+        // CJK: word boundaries and Latin token overlap do not apply; substring match either direction.
+        if containsHanCharacters(themeConcept) || containsHanCharacters(supportText) {
             return normalizedSupport.contains(normalizedTheme) || normalizedTheme.contains(normalizedSupport)
         }
         // Latin: naive `contains` matches inside other words (e.g. "rest" in "forest"); require word boundaries.
