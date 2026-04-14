@@ -31,15 +31,16 @@ enum HistoryEntryGrouping {
         if let normalized = calendar.date(from: components) {
             return normalized
         }
-        return gregorianUTCMonthStart(for: date)
+        return gregorianMonthStart(for: date, timeZone: calendar.timeZone)
     }
 
-    /// When the active calendar cannot form a month start, anchor by Gregorian UTC year/month
-    /// so entries in the same month are not split by day. `startOfDay` is only used if even
-    /// this normalization fails.
-    private static func gregorianUTCMonthStart(for date: Date) -> Date {
+    /// When the active calendar cannot form a month start, anchor by Gregorian year/month
+    /// in the caller's time zone so entries in the same month are not split by day and
+    /// the resulting key remains stable when later formatted locally. `startOfDay` is
+    /// only used if even this normalization fails.
+    private static func gregorianMonthStart(for date: Date, timeZone: TimeZone) -> Date {
         var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.timeZone = timeZone
         var components = calendar.dateComponents([.year, .month], from: date)
         components.day = 1
         components.hour = 0
