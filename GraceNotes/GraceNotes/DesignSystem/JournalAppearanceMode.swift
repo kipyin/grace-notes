@@ -8,18 +8,25 @@ enum JournalAppearanceMode: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 
     /// Interprets persisted `@AppStorage` / `UserDefaults` strings, including legacy `"summer"`.
+    /// Trims surrounding whitespace and lowercases before matching so hand-edited or oddly-cased values do not silently fall back to Standard.
     static func resolveStored(rawValue: String) -> JournalAppearanceMode {
-        if rawValue == "summer" {
+        let normalized = normalizedStoredRawValue(rawValue)
+        if normalized == "summer" {
             return .bloom
         }
-        return JournalAppearanceMode(rawValue: rawValue) ?? .standard
+        return JournalAppearanceMode(rawValue: normalized) ?? .standard
     }
 
     /// Rewrites legacy `"summer"` to ``bloom``’s raw value so new exports and debugging stay canonical.
     static func migrateLegacyJournalAppearanceRawValueIfNeeded(defaults: UserDefaults = .standard) {
         let key = JournalAppearanceStorageKeys.todayMode
-        guard defaults.string(forKey: key) == "summer" else { return }
+        guard let stored = defaults.string(forKey: key) else { return }
+        guard normalizedStoredRawValue(stored) == "summer" else { return }
         defaults.set(JournalAppearanceMode.bloom.rawValue, forKey: key)
+    }
+
+    private static func normalizedStoredRawValue(_ rawValue: String) -> String {
+        rawValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
     }
 }
 
