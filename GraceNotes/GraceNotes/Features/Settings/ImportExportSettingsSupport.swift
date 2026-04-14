@@ -200,6 +200,7 @@ struct BackupFolderImportFileListView: View {
         }
         do {
             files = try BackupFolderLibrary.listExportFiles(in: folderURL)
+            listError = nil
         } catch {
             listError = String(localized: "settings.dataPrivacy.importExport.backupFolder.unreachable")
         }
