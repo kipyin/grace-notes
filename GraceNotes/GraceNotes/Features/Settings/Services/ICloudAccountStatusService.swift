@@ -21,7 +21,7 @@ final class ICloudAccountStatusService: ICloudAccountStatusProviding {
             let status = try await container.accountStatus()
             return ICloudAccountBucket(status)
         } catch {
-            if !(error is CancellationError) {
+            if !isCancellationLike(error) {
                 let detail = error.localizedDescription
                 iCloudAccountStatusLogger.error(
                     "Failed to fetch iCloud account status. \(detail, privacy: .public)"
@@ -30,6 +30,15 @@ final class ICloudAccountStatusService: ICloudAccountStatusProviding {
             return .couldNotDetermine
         }
     }
+}
+
+/// CloudKit may report cancellation as `CKError.operationCancelled`; URL loading as `URLError.cancelled`, not only
+/// `CancellationError`.
+private func isCancellationLike(_ error: Error) -> Bool {
+    if error is CancellationError { return true }
+    if let ckError = error as? CKError, ckError.code == .operationCancelled { return true }
+    let nsError = error as NSError
+    return nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled
 }
 
 extension ICloudAccountBucket {
