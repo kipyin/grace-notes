@@ -11,6 +11,8 @@ enum JournalTutorialStorageKeys {
     /// First time all fifteen Entries were filled (Bloom).
     static let celebratedFirstBloom = "journalTutorial.celebratedFirstBloom"
 
+    // When adding a new key above, append it to `currentKeys` so `resetAll` clears it; add a migration line in
+    // `migrateLegacyKeysIfNeeded` when replacing a legacy spelling.
     private static let currentKeys: [String] = [
         dismissedSproutGuidance,
         dismissedBloomGuidance,
