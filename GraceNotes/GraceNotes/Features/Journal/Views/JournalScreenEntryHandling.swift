@@ -84,14 +84,14 @@ enum JournalScreenEntryHandling {
         return true
     }
 
-    /// Performs the delete flow: removes the item and updates editing state.
+    /// Performs the delete flow: removes the item and updates editing state when removal succeeds.
     static func performDelete(
         index: Int,
         remove: @MainActor (Int) -> Bool,
         input: Binding<String>,
         editingIndex: Binding<Int?>
     ) {
-        _ = remove(index)
+        guard remove(index) else { return }
         if editingIndex.wrappedValue == index {
             editingIndex.wrappedValue = nil
             input.wrappedValue = ""
