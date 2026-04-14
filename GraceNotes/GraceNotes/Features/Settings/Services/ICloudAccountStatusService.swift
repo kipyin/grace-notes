@@ -1,7 +1,13 @@
 import CloudKit
 import Foundation
+import os
 
-/// Live `CKContainer.accountStatus()` bridge; work runs off the main actor.
+private let iCloudAccountStatusLogger = Logger(
+    subsystem: "com.gracenotes.GraceNotes",
+    category: "ICloudAccountStatus"
+)
+
+/// Live `CKContainer.accountStatus()` bridge; `accountStatus()` suspends without blocking the caller.
 final class ICloudAccountStatusService: ICloudAccountStatusProviding {
     private let containerIdentifier: String
 
@@ -10,15 +16,19 @@ final class ICloudAccountStatusService: ICloudAccountStatusProviding {
     }
 
     func fetchAccountBucket() async -> ICloudAccountBucket {
-        await Task.detached(priority: .utility) { [containerIdentifier] in
-            let container = CKContainer(identifier: containerIdentifier)
-            do {
-                let status = try await container.accountStatus()
-                return ICloudAccountBucket(status)
-            } catch {
-                return .couldNotDetermine
+        let container = CKContainer(identifier: containerIdentifier)
+        do {
+            let status = try await container.accountStatus()
+            return ICloudAccountBucket(status)
+        } catch {
+            if !(error is CancellationError) {
+                let detail = error.localizedDescription
+                iCloudAccountStatusLogger.error(
+                    "Failed to fetch iCloud account status. \(detail, privacy: .public)"
+                )
             }
-        }.value
+            return .couldNotDetermine
+        }
     }
 }
 
