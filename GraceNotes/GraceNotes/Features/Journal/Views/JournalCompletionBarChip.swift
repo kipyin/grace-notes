@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 /// Compact completion control for the navigation bar: **capsule** fill (tier colors).
 ///
@@ -194,7 +193,7 @@ struct JournalCompletionBarChip: View {
     private var accessibilityLabelText: String {
         let statusName = completionTitle
         let format = String(localized: "journal.share.sectionCountsSentence")
-        return String(format: format, locale: Locale.current, statusName, gratitudesCount, needsCount, peopleCount)
+        return String(format: format, locale: locale, statusName, gratitudesCount, needsCount, peopleCount)
     }
 
     private var labelColor: Color {
