@@ -1,6 +1,6 @@
 import Foundation
 
-/// Latin vs Chinese typography for share cards.
+/// Latin vs system CJK typography for share cards (`zh` / `ja` / `ko` locale languages).
 /// Figma uses Noto for zh; we approximate CJK with system serif/sans to avoid multi‑MB font bundles.
 enum ShareTypographyScript: Equatable, Sendable {
     case latin
@@ -9,9 +9,11 @@ enum ShareTypographyScript: Equatable, Sendable {
 
 extension ShareTypographyScript {
     static func current() -> ShareTypographyScript {
-        if Locale.current.identifier.hasPrefix("zh") {
+        switch Locale.current.language.languageCode?.identifier {
+        case "zh", "ja", "ko":
             return .chinese
+        default:
+            return .latin
         }
-        return .latin
     }
 }
