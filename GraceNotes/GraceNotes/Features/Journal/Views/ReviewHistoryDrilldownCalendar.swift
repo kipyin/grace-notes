@@ -113,8 +113,10 @@ enum ReviewHistoryDrilldownCalendarLayout {
 
     private static func normalizedRangeLastInclusive(displayRange: Range<Date>, calendar: Calendar) -> Date? {
         let upperEx = displayRange.upperBound
-        guard let dayBeforeUpper = calendar.date(byAdding: .day, value: -1, to: upperEx) else { return nil }
-        return calendar.startOfDay(for: dayBeforeUpper)
+        guard upperEx > displayRange.lowerBound else { return nil }
+        // Exclusive upper may fall mid-day; subtracting one *calendar* day only matches midnight uppers.
+        guard let lastInstant = calendar.date(byAdding: .second, value: -1, to: upperEx) else { return nil }
+        return calendar.startOfDay(for: lastInstant)
     }
 
     private static func paddedDayCells(lower: Date, lastInclusive: Date, calendar: Calendar) -> [Date?] {
