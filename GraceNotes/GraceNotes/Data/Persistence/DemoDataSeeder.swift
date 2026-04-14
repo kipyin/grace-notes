@@ -4,7 +4,7 @@ import SwiftData
 
 @MainActor
 enum DemoDataSeeder {
-    private static let seedVersion = 6
+    private static let seedVersion = 7
     private static let seedVersionKey = "demoDataSeedVersion"
 
     static func seedIfNeeded(context: ModelContext, calendar: Calendar = .current) {
@@ -17,6 +17,10 @@ enum DemoDataSeeder {
 
         let today = calendar.startOfDay(for: now)
         let entries = makeSeedEntries(today: today, now: now, calendar: calendar)
+        guard !entries.isEmpty else {
+            PerformanceTrace.end("DemoDataSeeder.seedIfNeeded.noEntries", startedAt: seedTrace)
+            return
+        }
 
         for payload in entries {
             upsertEntry(payload, context: context, calendar: calendar, now: now)
@@ -37,12 +41,12 @@ enum DemoDataSeeder {
         if savedVersion != seedVersion { return true }
 
         let today = calendar.startOfDay(for: now)
-        return fetchEntry(for: today, context: context, calendar: calendar) == nil
+        return fetchDemoJournalForDay(today, context: context, calendar: calendar) == nil
     }
 
     private static func upsertEntry(_ payload: DemoEntryPayload, context: ModelContext, calendar: Calendar, now: Date) {
         let dayStart = calendar.startOfDay(for: payload.entryDate)
-        if let existing = fetchEntry(for: dayStart, context: context, calendar: calendar) {
+        if let existing = fetchDemoJournalForDay(dayStart, context: context, calendar: calendar) {
             existing.gratitudes = payload.gratitudes
             existing.needs = payload.needs
             existing.people = payload.people
@@ -69,35 +73,21 @@ enum DemoDataSeeder {
         )
     }
 
-    /// Uses `[dayStart, nextDay)` like ``JournalRepository/fetchEntry(dayStart:context:)``.
-    private static func fetchEntry(for date: Date, context: ModelContext, calendar: Calendar) -> Journal? {
-        let dayStart = calendar.startOfDay(for: date)
-        guard let nextDay = calendar.date(byAdding: .day, value: 1, to: dayStart) else { return nil }
-        let descriptor = FetchDescriptor<Journal>(
-            predicate: #Predicate { entry in
-                entry.entryDate >= dayStart && entry.entryDate < nextDay
-            },
-            sortBy: [SortDescriptor(\.createdAt, order: .forward)]
-        )
-        return try? context.fetch(descriptor).first
-    }
-
     private static func makeSeedEntries(today: Date, now: Date, calendar: Calendar) -> [DemoEntryPayload] {
-        let yesterday = calendar.date(byAdding: .day, value: -1, to: today) ?? today
-        let twoDaysAgo = calendar.date(byAdding: .day, value: -2, to: today) ?? today
-        let threeDaysAgo = calendar.date(byAdding: .day, value: -3, to: today) ?? today
-        let fourDaysAgo = calendar.date(byAdding: .day, value: -4, to: today) ?? today
-        let fiveDaysAgo = calendar.date(byAdding: .day, value: -5, to: today) ?? today
-        let sixDaysAgo = calendar.date(byAdding: .day, value: -6, to: today) ?? today
+        guard let days = rollingWeekDayStarts(from: today, calendar: calendar)
+            ?? fallbackWeekDayStarts(from: today, calendar: calendar) else {
+            assertionFailure("DemoDataSeeder: could not resolve seven day starts for demo week")
+            return []
+        }
 
         let week = [
-            makeTodayPayload(entryDate: today, completedAt: now),
-            makeYesterdayPayload(entryDate: yesterday),
-            makeBlankPayload(entryDate: twoDaysAgo),
-            makeThreeDaysAgoPayload(entryDate: threeDaysAgo, completedAt: now),
-            makeFourDaysAgoPayload(entryDate: fourDaysAgo),
-            makeFiveDaysAgoPayload(entryDate: fiveDaysAgo),
-            makeSixDaysAgoPayload(entryDate: sixDaysAgo)
+            makeTodayPayload(entryDate: days[0], completedAt: now),
+            makeYesterdayPayload(entryDate: days[1]),
+            makeBlankPayload(entryDate: days[2]),
+            makeThreeDaysAgoPayload(entryDate: days[3], completedAt: now),
+            makeFourDaysAgoPayload(entryDate: days[4]),
+            makeFiveDaysAgoPayload(entryDate: days[5]),
+            makeSixDaysAgoPayload(entryDate: days[6])
         ]
 
         // The anchored December row must not share a calendar day with the rolling week, or the
@@ -274,13 +264,63 @@ enum DemoDataSeeder {
     }
 }
 
+/// Uses `[dayStart, nextDay)` like ``JournalRepository/fetchEntry(dayStart:context:)``.
+private func fetchDemoJournalForDay(_ date: Date, context: ModelContext, calendar: Calendar) -> Journal? {
+    let dayStart = calendar.startOfDay(for: date)
+    guard let nextDay = calendar.date(byAdding: .day, value: 1, to: dayStart) else { return nil }
+    let descriptor = FetchDescriptor<Journal>(
+        predicate: #Predicate { entry in
+            entry.entryDate >= dayStart && entry.entryDate < nextDay
+        },
+        sortBy: [SortDescriptor(\.createdAt, order: .forward)]
+    )
+    do {
+        return try context.fetch(descriptor).first
+    } catch {
+        assertionFailure("DemoDataSeeder: failed to fetch journal for demo seeding: \(error)")
+        return nil
+    }
+}
+
+/// Seven consecutive local calendar days ending at `today`, without collapsing failed `date(byAdding:)`
+/// steps to the same day.
+private func rollingWeekDayStarts(from today: Date, calendar: Calendar) -> [Date]? {
+    var result: [Date] = []
+    var cursor = today
+    for _ in 0..<7 {
+        result.append(calendar.startOfDay(for: cursor))
+        guard let prior = calendar.date(byAdding: .day, value: -1, to: cursor) else {
+            assertionFailure("DemoDataSeeder: calendar could not subtract one day from \(cursor)")
+            return nil
+        }
+        cursor = prior
+    }
+    return result
+}
+
+/// Fallback when the day-by-day chain fails (rare); avoids `?? today` collapsing multiple rows onto one day.
+private func fallbackWeekDayStarts(from today: Date, calendar: Calendar) -> [Date]? {
+    var result: [Date] = []
+    for offset in 0..<7 {
+        guard let offsetDate = calendar.date(byAdding: .day, value: -offset, to: today) else {
+            assertionFailure("DemoDataSeeder: calendar could not subtract \(offset) days from today")
+            return nil
+        }
+        result.append(calendar.startOfDay(for: offsetDate))
+    }
+    return result
+}
+
 /// Anchored historical row so Demo builds can sanity-check Past/review behavior across calendar years.
+/// Gregorian components avoid misinterpreting year/month/day when `Calendar.current` is not Gregorian.
 private func demoDecember2025Entry(calendar: Calendar, now: Date) -> DemoEntryPayload {
+    var gregorian = Calendar(identifier: .gregorian)
+    gregorian.timeZone = calendar.timeZone
     var parts = DateComponents()
     parts.year = 2025
     parts.month = 12
     parts.day = 10
-    let raw = calendar.date(from: parts) ?? calendar.startOfDay(for: now)
+    let raw = gregorian.date(from: parts) ?? calendar.startOfDay(for: now)
     let entryDate = calendar.startOfDay(for: raw)
     return DemoEntryPayload(
         entryDate: entryDate,
