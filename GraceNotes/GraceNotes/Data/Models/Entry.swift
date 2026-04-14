@@ -19,7 +19,7 @@ struct JournalItem: Codable {
             fullText = full
         } else {
             // Legacy rows may omit `fullText` but still carry `entryLabel` / `chipLabel` (see export import).
-            fullText = entryLabel ?? chipLabel ?? ""
+            fullText = Self.firstNonEmptyTrimmed(entryLabel, chipLabel)
         }
         _ = try container.decodeIfPresent(Bool.self, forKey: .isTruncated)
     }
@@ -28,6 +28,18 @@ struct JournalItem: Codable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
         try container.encode(fullText, forKey: .fullText)
+    }
+
+    /// First non-empty string after trimming; order matches legacy `JournalDataExportItem` preference (`entryLabel` then `chipLabel`).
+    private static func firstNonEmptyTrimmed(_ entryLabel: String?, _ chipLabel: String?) -> String {
+        for candidate in [entryLabel, chipLabel] {
+            guard let candidate else { continue }
+            let trimmed = candidate.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                return trimmed
+            }
+        }
+        return ""
     }
 
     private enum CodingKeys: String, CodingKey {
