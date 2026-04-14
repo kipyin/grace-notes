@@ -49,6 +49,7 @@ struct StreakCalculator {
 
     private func currentStreakLength(byDay: [Date: Bool], today: Date) -> Int {
         let yesterday = calendar.date(byAdding: .day, value: -1, to: today)
+            .map { calendar.startOfDay(for: $0) }
         let startDay: Date
         if byDay[today] == true {
             startDay = today
@@ -62,7 +63,11 @@ struct StreakCalculator {
         var cursor = startDay
         while byDay[cursor] == true {
             streakLength += 1
-            guard let previousDay = calendar.date(byAdding: .day, value: -1, to: cursor) else {
+            guard let rawPrevious = calendar.date(byAdding: .day, value: -1, to: cursor) else {
+                break
+            }
+            let previousDay = calendar.startOfDay(for: rawPrevious)
+            guard previousDay != cursor else {
                 break
             }
             cursor = previousDay
