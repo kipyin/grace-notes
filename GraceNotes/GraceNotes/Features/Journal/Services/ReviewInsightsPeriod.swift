@@ -24,8 +24,12 @@ enum ReviewInsightsPeriod {
     /// The calendar week immediately before `current` (the seven local days whose end abuts
     /// `current.lowerBound`).
     static func previousPeriod(before current: Range<Date>, calendar: Calendar) -> Range<Date> {
-        let previousStart = calendar.date(byAdding: .day, value: -7, to: current.lowerBound)
-            ?? current.lowerBound.addingTimeInterval(-604_800)
+        // Anchor on the last instant before the current week so `startOfDay` + day offsets match
+        // local week boundaries (including across DST). A fixed −604_800s stride is not seven
+        // local days when offset changes break the SI-second count between week starts.
+        let lastInstantBeforeCurrent = current.lowerBound.addingTimeInterval(-1)
+        let lastDayStart = calendar.startOfDay(for: lastInstantBeforeCurrent)
+        let previousStart = calendar.date(byAdding: .day, value: -6, to: lastDayStart) ?? lastDayStart
         return previousStart..<current.lowerBound
     }
 
