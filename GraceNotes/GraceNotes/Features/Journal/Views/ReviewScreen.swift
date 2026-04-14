@@ -82,13 +82,18 @@ extension ReviewScreen {
     }
 
     private var currentInsightsRefreshKey: ReviewInsightsRefreshKey {
-        let now = Date()
-        let period = ReviewInsightsPeriod.currentPeriod(containing: now, calendar: calendar)
+        makeInsightsRefreshKey(referenceDate: Date())
+    }
+
+    /// Single `Date()` for both the refresh key and `generateInsights` keeps past-window math aligned
+    /// with the staleness token (important when `referenceDate` affects resolved history ranges).
+    private func makeInsightsRefreshKey(referenceDate: Date) -> ReviewInsightsRefreshKey {
+        let period = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
         return ReviewInsightsRefreshKey(
             weekStart: period.lowerBound,
             entrySnapshots: ReviewInsightsRefreshKey.entrySnapshotsAffectingInsights(
                 entries: entries,
-                referenceDate: now,
+                referenceDate: referenceDate,
                 calendar: calendar,
                 pastStatisticsInterval: pastStatisticsInterval,
                 currentReviewPeriod: period
@@ -96,10 +101,6 @@ extension ReviewScreen {
             weekBoundaryPreferenceRawValue: reviewWeekBoundaryRawValue,
             pastStatisticsIntervalToken: pastStatisticsInterval.cacheKeyToken
         )
-    }
-
-    private var currentReviewPeriod: Range<Date> {
-        ReviewInsightsPeriod.currentPeriod(containing: Date(), calendar: calendar)
     }
 
     private var calendar: Calendar {
@@ -423,7 +424,8 @@ extension ReviewScreen {
             return
         }
 
-        let refreshKey = currentInsightsRefreshKey
+        let referenceDate = Date()
+        let refreshKey = makeInsightsRefreshKey(referenceDate: referenceDate)
         let shouldRefresh = ReviewInsightsRefreshPolicy.shouldRefresh(
             hasInsights: reviewInsights != nil,
             previousKey: lastInsightsRefreshKey,
@@ -434,7 +436,7 @@ extension ReviewScreen {
         isLoadingInsights = true
         let generatedInsights = await reviewInsightsProvider.generateInsights(
             from: entries,
-            referenceDate: Date(),
+            referenceDate: referenceDate,
             calendar: calendar,
             pastStatisticsInterval: pastStatisticsInterval
         )
@@ -442,7 +444,7 @@ extension ReviewScreen {
             isLoadingInsights = false
             return
         }
-        if refreshKey != currentInsightsRefreshKey {
+        if refreshKey != makeInsightsRefreshKey(referenceDate: Date()) {
             isLoadingInsights = false
             return
         }
@@ -462,7 +464,7 @@ extension ReviewScreen {
         guard !entries.isEmpty else { return }
         guard reviewInsights == nil else { return }
         reviewInsights = await reviewInsightsCache.insights(
-            forWeekStart: currentReviewPeriod.lowerBound,
+            forWeekStart: currentInsightsRefreshKey.weekStart,
             calendar: calendar,
             weekBoundaryPreferenceRawValue: reviewWeekBoundaryRawValue,
             pastStatisticsIntervalToken: pastStatisticsInterval.cacheKeyToken
