@@ -183,11 +183,13 @@ extension JournalViewModel {
     }
 
     func updateReadingNotes(_ value: String) {
+        guard value != readingNotes else { return }
         readingNotes = value
         scheduleAutosave()
     }
 
     func updateReflections(_ value: String) {
+        guard value != reflections else { return }
         reflections = value
         scheduleAutosave()
     }
