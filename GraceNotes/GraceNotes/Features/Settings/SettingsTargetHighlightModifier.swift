@@ -4,6 +4,7 @@ struct SettingsTargetHighlightModifier: ViewModifier {
     let isHighlighted: Bool
 
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
 
     func body(content: Content) -> some View {
         content
@@ -18,7 +19,7 @@ struct SettingsTargetHighlightModifier: ViewModifier {
             .overlay {
                 if isHighlighted {
                     RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
-                        .strokeBorder(AppTheme.accent, lineWidth: 1)
+                        .strokeBorder(AppTheme.accent, lineWidth: differentiateWithoutColor ? 2 : 1)
                         .allowsHitTesting(false)
                 }
             }
