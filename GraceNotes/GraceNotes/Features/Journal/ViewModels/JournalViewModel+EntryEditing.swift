@@ -70,6 +70,7 @@ extension JournalViewModel {
     func updateGratitudeImmediate(at index: Int, fullText: String) -> Int? {
         let trimmed = fullText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard index >= 0, index < gratitudes.count, !trimmed.isEmpty else { return nil }
+        guard trimmed != gratitudes[index].fullText else { return index }
 
         gratitudes[index] = Entry(fullText: trimmed, id: gratitudes[index].id)
         scheduleAutosave()
@@ -90,6 +91,7 @@ extension JournalViewModel {
     func updateNeedImmediate(at index: Int, fullText: String) -> Int? {
         let trimmed = fullText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard index >= 0, index < needs.count, !trimmed.isEmpty else { return nil }
+        guard trimmed != needs[index].fullText else { return index }
 
         needs[index] = Entry(fullText: trimmed, id: needs[index].id)
         scheduleAutosave()
@@ -110,6 +112,7 @@ extension JournalViewModel {
     func updatePersonImmediate(at index: Int, fullText: String) -> Int? {
         let trimmed = fullText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard index >= 0, index < people.count, !trimmed.isEmpty else { return nil }
+        guard trimmed != people[index].fullText else { return index }
 
         people[index] = Entry(fullText: trimmed, id: people[index].id)
         scheduleAutosave()
