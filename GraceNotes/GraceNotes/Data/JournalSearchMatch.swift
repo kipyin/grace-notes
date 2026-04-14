@@ -1,7 +1,7 @@
 import Foundation
 
 /// One searchable line or note row tied to a journal day, for Past search results.
-struct JournalSearchMatch: Identifiable, Equatable {
+struct JournalSearchMatch: Identifiable, Equatable, Sendable {
     let id: String
     let entryDate: Date
     let source: ReviewThemeSourceCategory
