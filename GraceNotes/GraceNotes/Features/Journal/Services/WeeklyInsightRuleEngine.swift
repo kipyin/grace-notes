@@ -48,13 +48,14 @@ struct WeeklyInsightRuleEngine {
 
         let narrativeSummary = candidateBuilder.narrativeSummary(from: selectedInsights)
         let starterReflection = String(localized: "review.insights.starterReflection")
-        let trimmedHeadline = Self.firstNonEmptyTrimmedHeadline(in: selectedInsights)
-        let resurfacingMessage = trimmedHeadline ?? starterReflection
+        let (headline, primaryInsight) = Self.headlineAndPrimaryInsight(from: selectedInsights)
+        let resurfacingMessage = headline ?? starterReflection
 
-        let continuityPrompt = selectedInsights.compactMap(\.action).map {
-            $0.trimmingCharacters(in: .whitespacesAndNewlines)
-        }.first(where: { !$0.isEmpty })
-            ?? candidateBuilder.defaultContinuityPrompt
+        let continuityPrompt = Self.continuityPrompt(
+            matching: primaryInsight,
+            in: selectedInsights,
+            defaultPrompt: candidateBuilder.defaultContinuityPrompt
+        )
 
         return WeeklyInsightAnalysis(
             weeklyInsights: selectedInsights,
@@ -69,20 +70,46 @@ struct WeeklyInsightRuleEngine {
         )
     }
 
+    /// Prefer a non-empty trimmed `action` from the same insight that drives the resurfacing headline
+    /// (first insight with a non-empty observation or `primaryTheme`), then any other insight’s action,
+    /// so the prompt stays aligned with the line the member actually sees.
+    private static func continuityPrompt(
+        matching primaryInsight: ReviewWeeklyInsight?,
+        in insights: [ReviewWeeklyInsight],
+        defaultPrompt: String
+    ) -> String {
+        if let primary = primaryInsight,
+           let action = primary.action,
+           let trimmed = Self.nonEmptyTrimmed(action) {
+            return trimmed
+        }
+        return insights.compactMap(\.action).map {
+            $0.trimmingCharacters(in: .whitespacesAndNewlines)
+        }.first(where: { !$0.isEmpty })
+            ?? defaultPrompt
+    }
+
+    private static func nonEmptyTrimmed(_ text: String) -> String? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
     /// Prefer the first non-empty trimmed `observation` across selected insights. If an observation is blank
     /// but `primaryTheme` is present (e.g. failed template substitution), use the trimmed theme so the
     /// resurfacing line still matches visible card context instead of the generic starter copy.
-    private static func firstNonEmptyTrimmedHeadline(in insights: [ReviewWeeklyInsight]) -> String? {
+    private static func headlineAndPrimaryInsight(
+        from insights: [ReviewWeeklyInsight]
+    ) -> (headline: String?, primaryInsight: ReviewWeeklyInsight?) {
         for insight in insights {
             let trimmedObservation = insight.observation.trimmingCharacters(in: .whitespacesAndNewlines)
             if !trimmedObservation.isEmpty {
-                return trimmedObservation
+                return (trimmedObservation, insight)
             }
             if let theme = insight.primaryTheme?.trimmingCharacters(in: .whitespacesAndNewlines),
                !theme.isEmpty {
-                return theme
+                return (theme, insight)
             }
         }
-        return nil
+        return (nil, nil)
     }
 }
