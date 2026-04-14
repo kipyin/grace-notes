@@ -158,7 +158,10 @@ final class StartupCoordinator: ObservableObject {
         attemptID: UInt64,
         traceStart: TimeInterval
     ) {
-        guard attemptID == currentAttemptID else { return }
+        guard attemptID == currentAttemptID else {
+            PerformanceTrace.end("StartupCoordinator.startupAttempt.superseded", startedAt: traceStart)
+            return
+        }
         finishAttempt()
         phase = .ready(controller)
         PerformanceTrace.end("StartupCoordinator.startupAttempt.success", startedAt: traceStart)
@@ -169,7 +172,10 @@ final class StartupCoordinator: ObservableObject {
         attemptID: UInt64,
         traceStart: TimeInterval
     ) {
-        guard attemptID == currentAttemptID else { return }
+        guard attemptID == currentAttemptID else {
+            PerformanceTrace.end("StartupCoordinator.startupAttempt.superseded", startedAt: traceStart)
+            return
+        }
         finishAttempt()
         let message = startupErrorMessage(from: error)
         startupMessage = message
