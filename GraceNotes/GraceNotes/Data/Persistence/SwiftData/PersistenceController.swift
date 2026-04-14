@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import SwiftData
 
@@ -62,20 +63,26 @@ final class PersistenceController {
             url: uiTestStoreURL,
             cloudKitDatabase: .none
         )
+        let container: ModelContainer
         do {
-            let container = try ModelContainer(for: schema, configurations: configuration)
-            try seedUITestDataIfNeeded(in: container)
-            PerformanceTrace.end("PersistenceController.makeForUITesting", startedAt: startupTrace)
-            let snapshot = PersistenceRuntimeSnapshot.forDiskLaunch(
-                userRequestedCloudSync: Self.cloudSyncEnabled(using: .standard),
-                storeUsesCloudKit: false,
-                startupUsedCloudKitFallback: false
-            )
-            return PersistenceController(container: container, runtimeSnapshot: snapshot)
+            container = try ModelContainer(for: schema, configurations: configuration)
         } catch {
             PerformanceTrace.end("PersistenceController.makeForUITesting.failed", startedAt: startupTrace)
             throw PersistenceControllerError.unableToCreateContainer(error)
         }
+        do {
+            try seedUITestDataIfNeeded(in: container)
+        } catch {
+            PerformanceTrace.end("PersistenceController.makeForUITesting.failed", startedAt: startupTrace)
+            throw error
+        }
+        PerformanceTrace.end("PersistenceController.makeForUITesting", startedAt: startupTrace)
+        let snapshot = PersistenceRuntimeSnapshot.forDiskLaunch(
+            userRequestedCloudSync: Self.cloudSyncEnabled(using: .standard),
+            storeUsesCloudKit: false,
+            startupUsedCloudKitFallback: false
+        )
+        return PersistenceController(container: container, runtimeSnapshot: snapshot)
     }
 
     static func makeInMemoryForTesting() throws -> PersistenceController {
@@ -156,6 +163,13 @@ final class PersistenceController {
     }
 #endif
 
+    /// Stable, bounded-length filename so long `XCTestConfigurationFilePath` values cannot exceed filesystem limits.
+    private static func uiTestStoreFileName(for sessionKey: String) -> String {
+        let digest = SHA256.hash(data: Data(sessionKey.utf8))
+        let hex = digest.map { String(format: "%02x", $0) }.joined()
+        return "ui-test-\(hex).store"
+    }
+
     private static var uiTestStoreURL: URL {
         let fileManager = FileManager.default
         let appSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
@@ -181,10 +195,7 @@ final class PersistenceController {
             try? sessionKey.write(to: markerURL, atomically: true, encoding: .utf8)
         }
 
-        let safeSessionKey = sessionKey
-            .replacingOccurrences(of: "/", with: "_")
-            .replacingOccurrences(of: ":", with: "_")
-        let fileName = "ui-test-\(safeSessionKey).store"
+        let fileName = uiTestStoreFileName(for: sessionKey)
         return uiTestDirectory.appendingPathComponent(fileName, isDirectory: false)
     }
 
