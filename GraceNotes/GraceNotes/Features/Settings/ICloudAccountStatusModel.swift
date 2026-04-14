@@ -17,10 +17,12 @@ final class ICloudAccountStatusModel: ObservableObject {
     func refresh() {
         refreshGeneration += 1
         let generation = refreshGeneration
-        Task { @MainActor in
+        let provider = self.provider
+        Task { @MainActor [weak self] in
             let bucket = await provider.fetchAccountBucket()
-            guard generation == refreshGeneration else { return }
-            displayedBucket = bucket
+            guard let self else { return }
+            guard generation == self.refreshGeneration else { return }
+            self.displayedBucket = bucket
         }
     }
 }
