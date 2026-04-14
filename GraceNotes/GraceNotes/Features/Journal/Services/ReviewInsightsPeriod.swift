@@ -12,17 +12,20 @@ enum ReviewInsightsPeriod {
             return rollingSevenDayFallback(containing: referenceDate, calendar: calendar)
         }
         let weekStart = calendar.startOfDay(for: interval.start)
-        guard let periodEndExclusive = calendar.date(byAdding: .day, value: 7, to: weekStart) else {
+        if let exclusiveEnd = calendar.date(byAdding: .day, value: 7, to: weekStart), exclusiveEnd > weekStart {
+            return weekStart..<exclusiveEnd
+        }
+        if interval.end > weekStart {
             return weekStart..<interval.end
         }
-        return weekStart..<periodEndExclusive
+        return rollingSevenDayFallback(containing: referenceDate, calendar: calendar)
     }
 
     /// The calendar week immediately before `current` (the seven local days whose end abuts
     /// `current.lowerBound`).
     static func previousPeriod(before current: Range<Date>, calendar: Calendar) -> Range<Date> {
         let previousStart = calendar.date(byAdding: .day, value: -7, to: current.lowerBound)
-            ?? current.lowerBound
+            ?? current.lowerBound.addingTimeInterval(-604_800)
         return previousStart..<current.lowerBound
     }
 
