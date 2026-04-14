@@ -7,7 +7,7 @@ extension ReviewInsights {
         referenceDate: Date = .now
     ) -> ReviewInsights {
         let period = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
-        let weekStats = appTourTutorialWeekStats(calendar: calendar, referenceDate: referenceDate)
+        let weekStats = appTourTutorialWeekStats(calendar: calendar, reviewWeek: period)
         let weeklyInsight = ReviewWeeklyInsight(
             pattern: .sparseFallback,
             observation: String(localized: "tutorial.appTour.sampleInsights.row1.observation"),
@@ -33,22 +33,26 @@ extension ReviewInsights {
         )
     }
 
-    private static func appTourTutorialWeekStats(calendar: Calendar, referenceDate: Date) -> ReviewWeekStats {
-        let refStart = calendar.startOfDay(for: referenceDate)
-        let windowLower = calendar.startOfDay(
-            for: calendar.date(byAdding: .day, value: -6, to: refStart) ?? refStart
-        )
+    /// Uses the same seven-day window as ``ReviewInsightsPeriod/currentPeriod(containing:calendar:)`` so sample
+    /// rhythm columns align with ``weekStart``/``weekEnd`` and with live ``WeeklyReviewAggregatesBuilder`` output.
+    private static func appTourTutorialWeekStats(calendar: Calendar, reviewWeek: Range<Date>) -> ReviewWeekStats {
         let levels: [JournalCompletionLevel] = [.sprout, .twig, .leaf, .bloom, .soil, .sprout, .twig]
-        let days: [ReviewDayActivity] = (0..<7).compactMap { offset in
-            guard let date = calendar.date(byAdding: .day, value: offset, to: windowLower) else { return nil }
-            let dayStart = calendar.startOfDay(for: date)
+        var days: [ReviewDayActivity] = []
+        var dayStart = calendar.startOfDay(for: reviewWeek.lowerBound)
+        var offset = 0
+        while dayStart < reviewWeek.upperBound, offset < levels.count {
             let level = levels[offset]
-            return ReviewDayActivity(
-                date: dayStart,
-                hasReflectiveActivity: true,
-                strongestCompletionLevel: level == .soil ? nil : level,
-                hasPersistedEntry: true
+            days.append(
+                ReviewDayActivity(
+                    date: dayStart,
+                    hasReflectiveActivity: true,
+                    strongestCompletionLevel: level == .soil ? nil : level,
+                    hasPersistedEntry: true
+                )
             )
+            offset += 1
+            guard let nextRaw = calendar.date(byAdding: .day, value: 1, to: dayStart) else { break }
+            dayStart = calendar.startOfDay(for: nextRaw)
         }
         let mix = ReviewWeekCompletionMix(
             soilDayCount: 1,
@@ -59,8 +63,8 @@ extension ReviewInsights {
         )
         let sectionTotals = ReviewWeekSectionTotals(gratitudeMentions: 3, needMentions: 2, peopleMentions: 2)
         return ReviewWeekStats(
-            reflectionDays: 5,
-            meaningfulEntryCount: 5,
+            reflectionDays: 7,
+            meaningfulEntryCount: 7,
             completionMix: mix,
             activity: days,
             rhythmHistory: days,
