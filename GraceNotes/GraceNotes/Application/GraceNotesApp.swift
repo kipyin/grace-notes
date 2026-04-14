@@ -248,7 +248,7 @@ private struct DailyReminderRefreshOnActiveModifier: ViewModifier {
     func body(content: Content) -> some View {
         content.onChange(of: scenePhase) { _, phase in
             guard phase == .active else { return }
-            Task {
+            Task { @MainActor in
                 await DailyReminderNotificationSync.rescheduleEnabledReminderIfNeeded(modelContext: modelContext)
             }
         }
