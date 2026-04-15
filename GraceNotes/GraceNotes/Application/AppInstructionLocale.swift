@@ -11,7 +11,12 @@ enum AppInstructionLocale: Equatable, Sendable {
         guard let preferred = bundle.preferredLocalizations.first else {
             return .english
         }
-        if isSimplifiedChineseUIIdentifier(preferred) {
+        return resolved(forPreferredLocalizationIdentifier: preferred)
+    }
+
+    /// Resolves a tag from `bundle.preferredLocalizations` (same strings as `bundle.preferredLocalizations.first`).
+    internal static func resolved(forPreferredLocalizationIdentifier identifier: String) -> AppInstructionLocale {
+        if isSimplifiedChineseUIIdentifier(identifier) {
             return .simplifiedChinese
         }
         return .english
@@ -19,10 +24,9 @@ enum AppInstructionLocale: Equatable, Sendable {
 
     /// Uses `Locale.Language` so legacy tags (`zh_CN`, `zh_Hans_CN`) and bare `zh` resolve like the system,
     /// instead of brittle `zh-hans` / `zh-hans-` string prefix checks that miss underscore forms.
-    private static let simplifiedChineseScript = Locale.Script("Hans")
-
     private static func isSimplifiedChineseUIIdentifier(_ identifier: String) -> Bool {
         let language = Locale.Language(identifier: identifier)
-        return language.languageCode == .chinese && language.script == simplifiedChineseScript
+        guard language.languageCode == .chinese else { return false }
+        return language.script?.identifier.caseInsensitiveCompare("Hans") == .orderedSame
     }
 }
