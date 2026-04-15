@@ -31,16 +31,13 @@ final class ReviewJournalThemeLanguageResolverTests: XCTestCase {
         XCTAssertEqual(locale.identifier, "en")
     }
 
-    /// Prefix-only analysis (50k grapheme clusters): Latin head vs Han tail would differ under full-corpus scanning.
-    func test_resolvedDisplayLocale_usesBoundedAnalysisPrefixForVeryLargeCorpora() {
-        let resolver = ReviewJournalThemeLanguageResolver(
-            minimumMeaningfulGraphemes: 8,
-            confidenceThreshold: 1.0
-        )
-        let prefixLatin = String(repeating: "a", count: 50_000)
-        let suffixHan = String(repeating: "休", count: 100_000)
-        let corpus = prefixLatin + suffixHan
-        let locale = resolver.resolvedDisplayLocale(forJournalCorpus: corpus)
+    func test_resolvedDisplayLocale_sparseAnalysisPrefixDenseTail_fallsBackToEnglish() {
+        let resolver = ReviewJournalThemeLanguageResolver()
+        // One meaningful grapheme in the first 50k clusters, then spaces to fill the prefix, then dense
+        // Chinese: the meaningful-grapheme gate only sees the analysis prefix, so we fall back to English.
+        let sparseHead = "A" + String(repeating: " ", count: 49_999)
+        let denseTail = String(repeating: "休", count: 10_000)
+        let locale = resolver.resolvedDisplayLocale(forJournalCorpus: sparseHead + denseTail)
         XCTAssertEqual(locale.identifier, "en")
     }
 }
