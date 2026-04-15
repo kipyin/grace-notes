@@ -27,4 +27,33 @@ final class ReminderSettingsTests: XCTestCase {
         XCTAssertEqual(extracted.hour, 19)
         XCTAssertEqual(extracted.minute, 45)
     }
+
+    func test_sanitizedTimeInterval_nonFinite_fallsBackToDefault() {
+        XCTAssertEqual(
+            ReminderSettings.sanitizedTimeInterval(stored: .nan),
+            ReminderSettings.defaultTimeInterval
+        )
+        XCTAssertEqual(
+            ReminderSettings.sanitizedTimeInterval(stored: .infinity),
+            ReminderSettings.defaultTimeInterval
+        )
+        XCTAssertEqual(
+            ReminderSettings.sanitizedTimeInterval(stored: -.infinity),
+            ReminderSettings.defaultTimeInterval
+        )
+    }
+
+    func test_coercedTimeIntervalFromUserDefaults_repairsNonFiniteStorage() {
+        let suiteName = "ReminderSettingsTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+
+        defaults.set(Double.nan, forKey: ReminderSettings.timeIntervalKey)
+        let coerced = ReminderSettings.coercedTimeInterval(fromUserDefaults: defaults)
+        XCTAssertEqual(coerced, ReminderSettings.defaultTimeInterval)
+        XCTAssertEqual(
+            defaults.object(forKey: ReminderSettings.timeIntervalKey) as? TimeInterval,
+            ReminderSettings.defaultTimeInterval
+        )
+    }
 }

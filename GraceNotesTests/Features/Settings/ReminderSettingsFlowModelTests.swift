@@ -33,6 +33,21 @@ final class ReminderSettingsFlowModelTests: XCTestCase {
         XCTAssertEqual(storedTime, selectedTime.timeIntervalSinceReferenceDate)
     }
 
+    func test_init_nonFiniteStoredTime_coercesToDefaultAndRepairsStorage() {
+        let scheduler = MockReminderScheduling()
+        let userDefaults = makeUserDefaults()
+        userDefaults.set(Double.nan, forKey: ReminderSettings.timeIntervalKey)
+
+        let model = ReminderSettingsFlowModel(reminderScheduler: scheduler, userDefaults: userDefaults)
+
+        let expectedInterval = ReminderSettings.defaultTimeInterval
+        XCTAssertEqual(model.selectedTime.timeIntervalSinceReferenceDate, expectedInterval, accuracy: 0.001)
+        XCTAssertEqual(
+            userDefaults.object(forKey: ReminderSettings.timeIntervalKey) as? TimeInterval,
+            expectedInterval
+        )
+    }
+
     func test_refreshStatus_reflectsSystemChangeFromDeniedToEnabled() async {
         let scheduler = MockReminderScheduling()
         scheduler.currentStatus = .denied

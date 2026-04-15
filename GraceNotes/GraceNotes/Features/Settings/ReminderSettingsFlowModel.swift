@@ -25,9 +25,8 @@ final class ReminderSettingsFlowModel: ObservableObject {
     ) {
         self.reminderScheduler = reminderScheduler
         self.userDefaults = userDefaults
-        let storedTimeInterval = userDefaults.object(forKey: ReminderSettings.timeIntervalKey) as? TimeInterval
-            ?? ReminderSettings.defaultTimeInterval
-        selectedTime = ReminderSettings.date(from: storedTimeInterval)
+        let interval = ReminderSettings.coercedTimeInterval(fromUserDefaults: userDefaults)
+        selectedTime = ReminderSettings.date(from: interval)
     }
 
     deinit {
