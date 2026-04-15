@@ -28,6 +28,8 @@ extension WeeklyReviewAggregatesBuilder {
             forJournalCorpus: journalCorpus
         )
         var map: [String: DistilledThemeAccumulator] = [:]
+        /// Strongest section source seen for each canonical (drives `displayLabel`; `.people` enables person labels).
+        var displaySourceByCanonical: [String: ReviewThemeSourceCategory] = [:]
         var sequence = 0
 
         for entry in entries {
@@ -52,6 +54,14 @@ extension WeeklyReviewAggregatesBuilder {
                     .compactMap { _, candidates in candidates.max(by: { $0.score < $1.score }) }
 
                 for concept in uniqueConcepts {
+                    if let existing = displaySourceByCanonical[concept.canonicalConcept] {
+                        displaySourceByCanonical[concept.canonicalConcept] = strongerDisplaySourceForThemeLabel(
+                            existing,
+                            surface.source
+                        )
+                    } else {
+                        displaySourceByCanonical[concept.canonicalConcept] = surface.source
+                    }
                     let isFirstAppearance = map[concept.canonicalConcept] == nil
                     var accumulator = map[concept.canonicalConcept] ?? DistilledThemeAccumulator(
                         canonicalConcept: concept.canonicalConcept,
@@ -98,8 +108,12 @@ extension WeeklyReviewAggregatesBuilder {
 
         for canonical in Array(map.keys) {
             guard var accumulator = map[canonical] else { continue }
-            let source: ReviewThemeSourceCategory =
-                canonical == "mom" || canonical == "dad" ? .people : .gratitudes
+            let source: ReviewThemeSourceCategory
+            if canonical == "mom" || canonical == "dad" {
+                source = .people
+            } else {
+                source = displaySourceByCanonical[canonical] ?? .gratitudes
+            }
             accumulator.displayLabel = textNormalizer.displayLabel(
                 for: accumulator.canonicalConcept,
                 source: source,
@@ -306,9 +320,29 @@ extension WeeklyReviewAggregatesBuilder {
         return !themeTokens.isDisjoint(with: supportTokens)
     }
 
+    /// Picks the section whose `displayLabel` semantics should win when a theme appears in more than one chip type.
+    private func strongerDisplaySourceForThemeLabel(
+        _ lhs: ReviewThemeSourceCategory,
+        _ rhs: ReviewThemeSourceCategory
+    ) -> ReviewThemeSourceCategory {
+        func rank(_ source: ReviewThemeSourceCategory) -> Int {
+            switch source {
+            case .people:
+                return 3
+            case .needs:
+                return 2
+            case .gratitudes:
+                return 1
+            case .readingNotes, .reflections:
+                return 0
+            }
+        }
+        return rank(lhs) >= rank(rhs) ? lhs : rhs
+    }
+
     /// Whole-phrase / whole-word match for Latin script; avoids substring hits like "rest" inside "forest".
     private func latinPhraseHasWordBoundaryMatch(haystack: String, needle: String) -> Bool {
-        guard needle.count <= haystack.count else { return false }
+        guard !needle.isEmpty, needle.count <= haystack.count else { return false }
         let escaped = NSRegularExpression.escapedPattern(for: needle)
         let pattern = "\\b\(escaped)\\b"
         return haystack.range(of: pattern, options: .regularExpression) != nil
