@@ -25,7 +25,6 @@ enum ReminderNotificationBodyBuilder {
         )
 
         if isLapse {
-            // `completion` / `streakBucket` are unused when `isLapse` is true (`localizationKey` returns early).
             let key = ReminderNotificationBodySelector.localizationKey(
                 isLapse: true,
                 completion: .empty,
@@ -35,9 +34,28 @@ enum ReminderNotificationBodyBuilder {
             return String(localized: String.LocalizationValue(key))
         }
 
+        return nonLapseLocalizedBody(
+            entries: entries,
+            todayStart: todayStart,
+            timeBucket: timeBucket,
+            now: now,
+            calendar: calendar
+        )
+    }
+
+    private static func nonLapseLocalizedBody(
+        entries: [Journal],
+        todayStart: Date,
+        timeBucket: ReminderNotificationBodySelector.TimeBucket,
+        now: Date,
+        calendar: Calendar
+    ) -> String {
         let calculator = StreakCalculator(calendar: calendar)
-        let todayEntry = try repository.fetchEntry(for: now, context: modelContext)
-        let completion = ReminderNotificationBodySelector.completionFamily(for: todayEntry)
+        let completion = completionFamilyForToday(
+            entries: entries,
+            todayStart: todayStart,
+            calendar: calendar
+        )
 
         let summary = JournalStreakSummaryRefresher.loadSummary(
             calculator: calculator,
@@ -63,5 +81,23 @@ enum ReminderNotificationBodyBuilder {
             streakBucket: streakBucket
         )
         return String(localized: String.LocalizationValue(key))
+    }
+
+    /// Aggregates completion across every journal row for ``todayStart`` so copy matches
+    /// the per-day OR semantics in ``StreakCalculator``. A single canonical row from
+    /// ``JournalRepository/fetchEntry`` can disagree when multiple rows exist for one calendar day.
+    private static func completionFamilyForToday(
+        entries: [Journal],
+        todayStart: Date,
+        calendar: Calendar
+    ) -> ReminderNotificationBodySelector.CompletionFamily {
+        let todayJournals = entries.filter { calendar.startOfDay(for: $0.entryDate) == todayStart }
+        if todayJournals.contains(where: { $0.hasReachedBloom }) {
+            return .complete
+        }
+        if todayJournals.contains(where: { $0.hasMeaningfulContent }) {
+            return .inProgress
+        }
+        return .empty
     }
 }
