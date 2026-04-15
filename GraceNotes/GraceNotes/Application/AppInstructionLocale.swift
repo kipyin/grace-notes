@@ -17,13 +17,25 @@ enum AppInstructionLocale: Equatable, Sendable {
         return .english
     }
 
-    /// Uses `Locale.Language` so legacy tags (`zh_CN`, `zh_Hans_CN`) and bare `zh` resolve like the system,
-    /// instead of brittle `zh-hans` / `zh-hans-` string prefix checks that miss underscore forms.
-    /// BCP 47 tags are case-insensitive; `Bundle` may return `zh-Hans` or `zh-hans`.
-    /// - Note: Unit tests cover tag forms; production code should use ``preferred(bundle:)``.
-    static func isSimplifiedChineseUIIdentifier(_ identifier: String) -> Bool {
+    /// Uses `Locale.Language` so tags with explicit scripts (e.g. `zh-Hans`, `zh-Hant`, `zh_CN` when
+    /// Foundation infers a script) are handled without brittle `zh-hans` / `zh-hans-` string prefix checks.
+    ///
+    /// **Script inference:** When `Locale.Language(identifier:)` supplies a `script`, we treat
+    /// `Hans` as Simplified Chinese. Foundation does not infer Hans vs Hant from region alone for
+    /// scriptless identifiers—e.g. bare `zh` typically has no script and falls through to English
+    /// prompts here, matching the old `zh-hans` prefix behavior. If the product ever needs
+    /// “unspecified Chinese → follow region” (e.g. infer Hans from `CN`), add an explicit rule in
+    /// this function; do not rely on Foundation to do that in the guards below.
+    private static func isSimplifiedChineseUIIdentifier(_ identifier: String) -> Bool {
         let language = Locale.Language(identifier: identifier)
-        return language.languageCode == .chinese && language.script == simplifiedChineseScript
+        guard language.languageCode?.identifier == "zh" else {
+            return false
+        }
+        guard let script = language.script?.identifier else {
+            // No script: bare `zh` / legacy forms Foundation leaves scriptless → English instructions.
+            return false
+        }
+        return script.caseInsensitiveCompare("Hans") == .orderedSame
     }
 
     private static let simplifiedChineseScript = Locale.Script("Hans")
