@@ -39,6 +39,21 @@ final class HistoryEntryGroupingTests: XCTestCase {
         XCTAssertEqual(grouped[0].entries.count, 2)
     }
 
+    /// Covers the January 1 + `date(byAdding: .month, …)` path in `gregorianUTCMonthStart(for:)`, used when
+    /// `dateInterval(of: .month, …)` and `date(from:)` for day=1 both fail but year/month are still known.
+    /// That full chain is hard to force in a deterministic test; `gregorianUTCMonthStartFromYearMonth` is the
+    /// extracted implementation and is what we assert here.
+    func test_gregorianUTCMonthStartFromYearMonth_anchorsFromJanuaryFirst() {
+        let fallback = date(year: 2026, month: 3, day: 15)
+        let result = HistoryEntryGrouping.gregorianUTCMonthStartFromYearMonth(
+            year: 2026,
+            month: 3,
+            calendar: calendar,
+            fallbackDate: fallback
+        )
+        XCTAssertEqual(result, date(year: 2026, month: 3, day: 1))
+    }
+
     private func date(year: Int, month: Int, day: Int) -> Date {
         var components = DateComponents()
         components.year = year
@@ -46,5 +61,12 @@ final class HistoryEntryGroupingTests: XCTestCase {
         components.day = day
         components.timeZone = calendar.timeZone
         return calendar.date(from: components)!
+    }
+
+    private func date(components: DateComponents, calendar cal: Calendar) -> Date {
+        var merged = components
+        merged.calendar = cal
+        merged.timeZone = cal.timeZone
+        return cal.date(from: merged)!
     }
 }

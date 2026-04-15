@@ -1,3 +1,4 @@
+import os
 import SwiftUI
 import UIKit
 
@@ -77,6 +78,11 @@ enum JournalKeyboardScrollMetrics {
 
 /// Keyboard overlap with the key window; sizes extra scroll affordance without guessing global safe-area behavior.
 enum JournalKeyboardOverlapReader {
+    private static let logger = Logger(
+        subsystem: "com.gracenotes.GraceNotes",
+        category: "JournalKeyboardScroll"
+    )
+
     static func overlapHeight(from notification: Notification) -> CGFloat {
         guard let frame = keyboardFrameEnd(from: notification) else {
             return 0
@@ -99,7 +105,16 @@ enum JournalKeyboardOverlapReader {
         if let value = raw as? NSValue {
             return value.cgRectValue
         }
+        logUnrecognizedKeyboardFrameUserInfoValue(raw)
         return nil
+    }
+
+    private static func logUnrecognizedKeyboardFrameUserInfoValue(_ raw: Any) {
+        let typeName = String(describing: type(of: raw))
+        #if DEBUG
+        assertionFailure("Keyboard frame end userInfo value had unexpected type: \(typeName)")
+        #endif
+        logger.warning("Keyboard frame end userInfo value had unexpected type: \(typeName, privacy: .public)")
     }
 }
 
@@ -167,11 +182,23 @@ enum JournalCaretVisibilityReader {
     }
 
     /// First responder is sometimes an internal subview; walk up to the `UITextView` that owns the caret APIs.
+    /// Skips an outer `UITextView` when a `UITextField` owns first responder (nested controls). Only accepts an
+    /// ancestor `UITextView` when the responder lies inside that view’s bounds in local coordinates.
     private static func nearestTextView(from view: UIView) -> UITextView? {
-        var current: UIView? = view
+        if let direct = view as? UITextView {
+            return direct
+        }
+        if view is UITextField {
+            return nil
+        }
+        let responder = view
+        var current: UIView? = view.superview
         while let node = current {
             if let textView = node as? UITextView {
-                return textView
+                let originInTextView = textView.convert(responder.bounds.origin, from: responder)
+                if responder.isDescendant(of: textView), textView.bounds.contains(originInTextView) {
+                    return textView
+                }
             }
             current = node.superview
         }
@@ -179,11 +206,23 @@ enum JournalCaretVisibilityReader {
     }
 
     /// Same as `nearestTextView` but for single-line fields (`UITextField` and common subclasses).
+    /// Skips an outer `UITextField` when a `UITextView` owns first responder. Only accepts an ancestor field when
+    /// the responder lies inside that field’s bounds in local coordinates.
     private static func nearestTextField(from view: UIView) -> UITextField? {
-        var current: UIView? = view
+        if let direct = view as? UITextField {
+            return direct
+        }
+        if view is UITextView {
+            return nil
+        }
+        let responder = view
+        var current: UIView? = view.superview
         while let node = current {
             if let textField = node as? UITextField {
-                return textField
+                let originInField = textField.convert(responder.bounds.origin, from: responder)
+                if responder.isDescendant(of: textField), textField.bounds.contains(originInField) {
+                    return textField
+                }
             }
             current = node.superview
         }

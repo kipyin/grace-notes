@@ -70,6 +70,22 @@ final class ReviewWeekTrendPolicyTests: XCTestCase {
         )
     }
 
+    /// Empty half-open range (`lowerBound == upperBound`) must not be treated as warm-up.
+    func test_isWarmUpPhase_emptyRange_returnsFalse() {
+        calendar.firstWeekday = 1
+        let dayStart = date(year: 2026, month: 3, day: 15)
+        let emptyPeriod = dayStart..<dayStart
+        let reference = calendar.date(byAdding: .hour, value: 14, to: dayStart)!
+
+        XCTAssertFalse(
+            ReviewWeekTrendPolicy.isWarmUpPhase(
+                currentPeriod: emptyPeriod,
+                referenceDate: reference,
+                calendar: calendar
+            )
+        )
+    }
+
     // MARK: - Surfacing trend (floors + warm-up exceptions)
 
     func test_rawTrend_matchesWeekOverWeekDirection() {
@@ -78,6 +94,28 @@ final class ReviewWeekTrendPolicyTests: XCTestCase {
         XCTAssertEqual(ReviewWeekTrendPolicy.rawTrend(current: 2, previous: 1), .rising)
         XCTAssertEqual(ReviewWeekTrendPolicy.rawTrend(current: 1, previous: 3), .down)
         XCTAssertEqual(ReviewWeekTrendPolicy.rawTrend(current: 2, previous: 2), .stable)
+    }
+
+    /// Invalid negative counts are treated as `.stable` so bad upstream data does not imply rising/down labels.
+    func test_rawTrend_negativeCountsAreStable() {
+        XCTAssertEqual(ReviewWeekTrendPolicy.rawTrend(current: -1, previous: 0), .stable)
+        XCTAssertEqual(ReviewWeekTrendPolicy.rawTrend(current: 0, previous: -1), .stable)
+        XCTAssertEqual(ReviewWeekTrendPolicy.rawTrend(current: -1, previous: -2), .stable)
+    }
+
+    func test_trendingSurfacingTrend_negativeCountsAreStable() {
+        XCTAssertEqual(
+            ReviewWeekTrendPolicy.trendingSurfacingTrend(current: -1, previous: 0, isWarmUpPhase: false),
+            .stable
+        )
+        XCTAssertEqual(
+            ReviewWeekTrendPolicy.trendingSurfacingTrend(current: 0, previous: -1, isWarmUpPhase: false),
+            .stable
+        )
+        XCTAssertEqual(
+            ReviewWeekTrendPolicy.trendingSurfacingTrend(current: -1, previous: -2, isWarmUpPhase: true),
+            .stable
+        )
     }
 
     func test_trendingSurfacing_new_requiresCurrentAtLeastTwo() {

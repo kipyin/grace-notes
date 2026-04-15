@@ -345,12 +345,12 @@ struct AppTourInsightsPreview: View {
     /// Shows roughly the source row + upper ~4/5 of the Reflection rhythm panel, then fades before Observation.
     private static let previewClipHeight: CGFloat = 360
 
-    /// Built once so the panel does not rebuild identical preview data on every SwiftUI body pass.
-    private static let sampleInsights = ReviewInsights.appTourTutorialPreview()
+    /// Built once per view instance so the panel does not rebuild identical preview data on every SwiftUI body pass.
+    @State private var sampleInsights = ReviewInsights.appTourTutorialPreview()
 
     var body: some View {
         ReviewDaysYouWrotePanel(
-            insights: Self.sampleInsights,
+            insights: sampleInsights,
             isLoading: false
         )
         .frame(maxWidth: .infinity, alignment: .leading)

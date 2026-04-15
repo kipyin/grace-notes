@@ -1,16 +1,5 @@
 import SwiftUI
 
-private extension Color {
-    /// 24-bit `RRGGBB`. High bits are masked so `AARRGGBB`-style literals still resolve to the same sRGB triplet.
-    init(hex: UInt) {
-        let rgb = hex & 0xFFFFFF
-        let red = Double((rgb >> 16) & 0xFF) / 255
-        let green = Double((rgb >> 8) & 0xFF) / 255
-        let blue = Double(rgb & 0xFF) / 255
-        self.init(.sRGB, red: red, green: green, blue: blue)
-    }
-}
-
 /// Named presets for the exported share card bitmap (Figma Make: grace-notes / editorial / embellished).
 enum ShareCardStyle: String, CaseIterable, Identifiable, Sendable {
     case paperWarm
@@ -36,15 +25,15 @@ enum ShareCardStyle: String, CaseIterable, Identifiable, Sendable {
     func cardBackgroundLayer() -> some View {
         switch self {
         case .paperWarm:
-            Color(hex: 0xF5EDE4)
+            Color(hexSRGB: 0xF5EDE4)
         case .editorialMist:
-            Color(hex: 0xFAFAF9)
+            Color(hexSRGB: 0xFAFAF9)
         case .sunriseGradient:
             LinearGradient(
                 colors: [
-                    Color(hex: 0xF8F4F0),
-                    Color(hex: 0xFBF7F3),
-                    Color(hex: 0xF5EEE8)
+                    Color(hexSRGB: 0xF8F4F0),
+                    Color(hexSRGB: 0xFBF7F3),
+                    Color(hexSRGB: 0xF5EEE8)
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -56,11 +45,11 @@ enum ShareCardStyle: String, CaseIterable, Identifiable, Sendable {
     var bodyInk: Color {
         switch self {
         case .paperWarm:
-            Color(hex: 0x2B2520)
+            Color(hexSRGB: 0x2B2520)
         case .editorialMist:
-            Color(hex: 0x1A1A1A)
+            Color(hexSRGB: 0x1A1A1A)
         case .sunriseGradient:
-            Color(hex: 0x1F1B18)
+            Color(hexSRGB: 0x1F1B18)
         }
     }
 
@@ -72,11 +61,11 @@ enum ShareCardStyle: String, CaseIterable, Identifiable, Sendable {
     var footerInk: Color {
         switch self {
         case .paperWarm:
-            Color(hex: 0x7A6F68)
+            Color(hexSRGB: 0x7A6F68)
         case .editorialMist:
-            Color(hex: 0x737373)
+            Color(hexSRGB: 0x737373)
         case .sunriseGradient:
-            Color(hex: 0x9B8A7E)
+            Color(hexSRGB: 0x9B8A7E)
         }
     }
 
@@ -101,12 +90,12 @@ enum ShareCardStyle: String, CaseIterable, Identifiable, Sendable {
     func completionChipBackgroundView() -> some View {
         switch self {
         case .paperWarm:
-            Color(hex: 0xE8DED2)
+            Color(hexSRGB: 0xE8DED2)
         case .editorialMist:
-            Color(hex: 0xE5E5E5)
+            Color(hexSRGB: 0xE5E5E5)
         case .sunriseGradient:
             LinearGradient(
-                colors: [Color(hex: 0xE8DDD4), Color(hex: 0xEDE3DA)],
+                colors: [Color(hexSRGB: 0xE8DDD4), Color(hexSRGB: 0xEDE3DA)],
                 startPoint: .leading,
                 endPoint: .trailing
             )
@@ -114,11 +103,11 @@ enum ShareCardStyle: String, CaseIterable, Identifiable, Sendable {
     }
 
     var sectionDividerColor: Color {
-        Color(hex: 0xE5E5E5)
+        Color(hexSRGB: 0xE5E5E5)
     }
 
     var redactionBarColor: Color {
-        Color(hex: 0xD4CEC7)
+        Color(hexSRGB: 0xD4CEC7)
     }
 
     // MARK: - Chrome
@@ -139,22 +128,22 @@ enum ShareCardStyle: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .paperWarm:
             LinearGradient(
-                colors: [Color(hex: 0xD97757), Color(hex: 0xE88B6F)],
+                colors: [Color(hexSRGB: 0xD97757), Color(hexSRGB: 0xE88B6F)],
                 startPoint: .leading,
                 endPoint: .trailing
             )
         case .editorialMist:
             LinearGradient(
-                colors: [Color(hex: 0xB8968E), Color(hex: 0xC4A59E)],
+                colors: [Color(hexSRGB: 0xB8968E), Color(hexSRGB: 0xC4A59E)],
                 startPoint: .leading,
                 endPoint: .trailing
             )
         case .sunriseGradient:
             LinearGradient(
                 colors: [
-                    Color(hex: 0xC17B5B),
-                    Color(hex: 0xD4916F),
-                    Color(hex: 0xC17B5B)
+                    Color(hexSRGB: 0xC17B5B),
+                    Color(hexSRGB: 0xD4916F),
+                    Color(hexSRGB: 0xC17B5B)
                 ],
                 startPoint: .leading,
                 endPoint: .trailing

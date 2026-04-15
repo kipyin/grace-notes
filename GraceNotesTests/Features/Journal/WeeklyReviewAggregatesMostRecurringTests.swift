@@ -169,6 +169,49 @@ extension WeeklyReviewAggregatesMostRecurringTests {
         XCTAssertEqual(literal.totalCount, 3)
     }
 
+    /// When the same canonical theme appears under gratitudes, needs, and people, `buildThemeSections` picks a
+    /// single winning `ReviewThemeSourceCategory` for `displayLabel` (people > needs > gratitudes). This
+    /// integration test locks that merge plus the curated label for `rest`.
+    func test_buildThemeSections_sameCanonicalAcrossPeopleNeedsGratitudesPicksRankedDisplaySource() throws {
+        let referenceDate = date(year: 2026, month: 3, day: 18)
+        let period = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
+        let previous = ReviewInsightsPeriod.previousPeriod(before: period, calendar: calendar)
+
+        // Day 16: gratitudes + needs both map to canonical `rest`; needs outranks gratitudes (no people yet).
+        // Day 17: people-only surface for `rest`, merged with prior days so people outranks needs for the label source.
+        let entries = [
+            makeEntry(
+                on: date(year: 2026, month: 3, day: 16),
+                gratitudes: ["recover"],
+                needs: ["downtime"],
+                people: []
+            ),
+            makeEntry(
+                on: date(year: 2026, month: 3, day: 17),
+                gratitudes: [],
+                needs: [],
+                people: ["Rest"]
+            )
+        ]
+        let aggregates = builder.build(
+            currentPeriod: period,
+            currentWeekEntries: entries.filter { period.contains($0.entryDate) },
+            previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
+            allEntries: entries,
+            calendar: calendar,
+            referenceDate: referenceDate
+        )
+
+        let restTheme = try XCTUnwrap(
+            aggregates.stats.mostRecurringThemes.first(where: { $0.label == "Rest" })
+        )
+        XCTAssertGreaterThanOrEqual(restTheme.totalCount, 2)
+        let sources = Set(restTheme.evidence.map(\.source))
+        XCTAssertTrue(sources.contains(.gratitudes))
+        XCTAssertTrue(sources.contains(.needs))
+        XCTAssertTrue(sources.contains(.people))
+    }
+
     func test_buildThemeSections_trendingIncludesNewUpAndDownWithPriorVsCurrentCounts() throws {
         let referenceDate = date(year: 2026, month: 3, day: 18)
         let period = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
@@ -284,6 +327,61 @@ extension WeeklyReviewAggregatesMostRecurringTests {
             2,
             "Gratitudes and needs are separate surfaces; each counts once when they match."
         )
+    }
+
+    /// When two themes first appear on the same structured surface in one pass and later tie on recurring
+    /// counts and day counts, ordering must follow per-theme debut order (`firstSeenOrder`), not arbitrary
+    /// `Dictionary` key order.
+    func test_buildThemeSections_mostRecurringTieBreakUsesSameSurfaceDebutOrder() throws {
+        let surfacePhrase = "walking and rest"
+        let normalizer = WeeklyInsightTextNormalizer()
+        let distilled = normalizer.distillConcepts(
+            from: surfacePhrase,
+            source: .gratitudes,
+            maximumCount: 3,
+            highConfidenceOnly: false,
+            journalThemeDisplayLocale: Locale(identifier: "en")
+        )
+        let restIndex = distilled.firstIndex { $0.canonicalConcept == "rest" }
+        let walkingIndex = distilled.firstIndex { $0.canonicalConcept == "walking" }
+        guard let restIndex, let walkingIndex else {
+            XCTFail(
+                "Test setup requires distillConcepts to surface both rest and walking from \"\(surfacePhrase)\"."
+            )
+            return
+        }
+        let walkingShouldRankAboveRest = walkingIndex < restIndex
+
+        let referenceDate = date(year: 2026, month: 3, day: 18)
+        let period = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
+        let previous = ReviewInsightsPeriod.previousPeriod(before: period, calendar: calendar)
+
+        let entries = [
+            makeEntry(on: date(year: 2026, month: 3, day: 16), gratitudes: [surfacePhrase]),
+            makeEntry(on: date(year: 2026, month: 3, day: 17), gratitudes: [surfacePhrase])
+        ]
+        let aggregates = builder.build(
+            currentPeriod: period,
+            currentWeekEntries: entries.filter { period.contains($0.entryDate) },
+            previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
+            allEntries: entries,
+            calendar: calendar,
+            referenceDate: referenceDate
+        )
+
+        let recurring = aggregates.stats.mostRecurringThemes
+        let walking = try XCTUnwrap(recurring.first(where: { $0.label == "Walking" }))
+        let rest = try XCTUnwrap(recurring.first(where: { $0.label == "Rest" }))
+        XCTAssertEqual(walking.totalCount, rest.totalCount)
+        XCTAssertEqual(walking.dayCount, rest.dayCount)
+
+        let walkingRank = try XCTUnwrap(recurring.firstIndex(where: { $0.label == "Walking" }))
+        let restRank = try XCTUnwrap(recurring.firstIndex(where: { $0.label == "Rest" }))
+        if walkingShouldRankAboveRest {
+            XCTAssertLessThan(walkingRank, restRank)
+        } else {
+            XCTAssertLessThan(restRank, walkingRank)
+        }
     }
 
     func test_buildThemeSections_hardBannedConceptsNeverSurface() {
@@ -498,6 +596,47 @@ extension WeeklyReviewAggregatesMostRecurringTests {
         XCTAssertTrue(rest.evidence.contains(where: { $0.source == .readingNotes }))
         XCTAssertTrue(rest.evidence.contains(where: { $0.source == .reflections }))
         XCTAssertFalse(recurring.contains(where: { $0.label == "Exercise" || $0.label == "Movement" }))
+    }
+
+    /// Latin-only themes must not pick up supporting evidence when the only Latin overlap is a substring inside
+    /// another word (e.g. "rest" ⊂ "forest") in mixed-script reading notes or reflections.
+    func test_buildThemeSections_mixedScriptSupportDoesNotMatchLatinSubstringInsideAnotherWord() throws {
+        let referenceDate = date(year: 2026, month: 3, day: 18)
+        let period = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
+        let previous = ReviewInsightsPeriod.previousPeriod(before: period, calendar: calendar)
+
+        let entries = [
+            makeEntry(on: date(year: 2026, month: 3, day: 16), needs: ["rest"]),
+            makeEntry(on: date(year: 2026, month: 3, day: 17), needs: ["rest"]),
+            makeEntry(
+                on: date(year: 2026, month: 3, day: 18),
+                readingNotes: "forest 森林",
+                reflections: "Walking through the forest 森林."
+            ),
+            makeEntry(
+                on: date(year: 2026, month: 3, day: 18),
+                readingNotes: "I need rest 休息."
+            )
+        ]
+
+        let recurring = builder.build(
+            currentPeriod: period,
+            currentWeekEntries: entries.filter { period.contains($0.entryDate) },
+            previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
+            allEntries: entries,
+            calendar: calendar,
+            referenceDate: referenceDate
+        ).stats.mostRecurringThemes
+
+        let rest = try XCTUnwrap(recurring.first(where: { $0.label == "Rest" }))
+        XCTAssertFalse(
+            rest.evidence.contains { $0.content.contains("forest") },
+            "Mixed-script support text must not match a Latin theme via in-word substring overlap."
+        )
+        XCTAssertTrue(
+            rest.evidence.contains { $0.content.contains("I need rest 休息") },
+            "Whole-word Latin matches should still attach supporting evidence when Han is also present."
+        )
     }
 
     /// Mirrors `PersistenceController.seedUITestDataIfNeeded` default seed + Monday reference (issue #140 UI test).

@@ -197,6 +197,7 @@ private struct ReviewHistoryGrowthSkyline: View {
                     : String(localized: "accessibility.reviewHistory.growthColumn")
             )
             .accessibilityAddTraits(count == 0 ? [] : .isButton)
+            .accessibilityRemoveTraits(count == 0 ? .isButton : [])
         }
     }
 }
@@ -420,6 +421,7 @@ private struct ReviewHistorySectionStrip: View {
                         )
                         .accessibilityHint(segmentAccessibilityHint(forCount: item.count))
                         .accessibilityAddTraits(item.count == 0 ? [] : .isButton)
+                        .accessibilityRemoveTraits(item.count == 0 ? .isButton : [])
                     }
                 }
                 .frame(width: width, height: stripHeight)
@@ -466,6 +468,7 @@ private struct ReviewHistorySectionStrip: View {
                     )
                     .accessibilityHint(segmentAccessibilityHint(forCount: item.count))
                     .accessibilityAddTraits(item.count == 0 ? [] : .isButton)
+                    .accessibilityRemoveTraits(item.count == 0 ? .isButton : [])
                 }
             }
         }

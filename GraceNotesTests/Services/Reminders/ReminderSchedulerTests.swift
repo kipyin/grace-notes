@@ -112,6 +112,7 @@ final class ReminderSchedulerTests: XCTestCase {
         XCTAssertEqual(result, .permissionDenied)
         XCTAssertFalse(center.didRequestAuthorization)
         XCTAssertNil(center.lastAddedRequest)
+        XCTAssertNil(center.removedIdentifiers)
     }
 
     func test_disableDailyReminder_removesPendingRequest() async {

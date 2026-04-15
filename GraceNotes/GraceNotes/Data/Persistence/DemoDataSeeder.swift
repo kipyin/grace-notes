@@ -16,9 +16,8 @@ enum DemoDataSeeder {
         }
 
         let today = calendar.startOfDay(for: now)
-        let entries = makeSeedEntries(today: today, now: now, calendar: calendar)
-        guard !entries.isEmpty else {
-            PerformanceTrace.end("DemoDataSeeder.seedIfNeeded.noEntries", startedAt: seedTrace)
+        guard let entries = makeSeedEntries(today: today, now: now, calendar: calendar) else {
+            PerformanceTrace.end("DemoDataSeeder.seedIfNeeded.noEntries.weekResolutionFailed", startedAt: seedTrace)
             return
         }
 
@@ -42,12 +41,12 @@ enum DemoDataSeeder {
         if savedVersion != seedVersion { return true }
 
         let today = calendar.startOfDay(for: now)
-        return fetchDemoJournalForDay(today, context: context, calendar: calendar) == nil
+        return fetchJournalForDayStart(today, context: context, calendar: calendar) == nil
     }
 
     private static func upsertEntry(_ payload: DemoEntryPayload, context: ModelContext, calendar: Calendar, now: Date) {
         let dayStart = calendar.startOfDay(for: payload.entryDate)
-        if let existing = fetchDemoJournalForDay(dayStart, context: context, calendar: calendar) {
+        if let existing = fetchJournalForDayStart(dayStart, context: context, calendar: calendar) {
             existing.gratitudes = payload.gratitudes
             existing.needs = payload.needs
             existing.people = payload.people
@@ -74,11 +73,11 @@ enum DemoDataSeeder {
         )
     }
 
-    private static func makeSeedEntries(today: Date, now: Date, calendar: Calendar) -> [DemoEntryPayload] {
+    private static func makeSeedEntries(today: Date, now: Date, calendar: Calendar) -> [DemoEntryPayload]? {
         guard let days = rollingWeekDayStarts(from: today, calendar: calendar)
             ?? fallbackWeekDayStarts(from: today, calendar: calendar) else {
             assertionFailure("DemoDataSeeder: could not resolve seven day starts for demo week")
-            return []
+            return nil
         }
 
         let week = [
@@ -91,12 +90,9 @@ enum DemoDataSeeder {
             makeSixDaysAgoPayload(entryDate: days[6])
         ]
 
-        // The anchored December row must not share a calendar day with the rolling week, or the
-        // later upsert would overwrite the intended demo for that day.
-        let anchored = demoDecember2025Entry(calendar: calendar, now: now)
-        let anchoredDay = calendar.startOfDay(for: anchored.entryDate)
-        let weekDays = Set(week.map { calendar.startOfDay(for: $0.entryDate) })
-        if weekDays.contains(anchoredDay) {
+        // Historical anchor uses the day before the oldest day in the rolling week (`today-6`), so it
+        // never shares a calendar day with the seven seeded rows (collision-proof without a runtime check).
+        guard let anchored = demoHistoricalAnchorEntry(today: today, calendar: calendar) else {
             return week
         }
         return week + [anchored]
@@ -263,17 +259,22 @@ enum DemoDataSeeder {
     private static func item(_ fullText: String) -> Entry {
         Entry(fullText: fullText)
     }
-}
 
-/// Delegates to ``JournalRepository/fetchEntry(dayStart:context:)`` so demo upserts target the same
-/// canonical journal Past and Today use when more than one row exists for a calendar day.
-private func fetchDemoJournalForDay(_ date: Date, context: ModelContext, calendar: Calendar) -> Journal? {
-    let dayStart = calendar.startOfDay(for: date)
-    do {
-        return try JournalRepository(calendar: calendar).fetchEntry(dayStart: dayStart, context: context)
-    } catch {
-        assertionFailure("DemoDataSeeder: failed to fetch journal for demo seeding: \(error)")
-        return nil
+    /// Resolves the journal for `[dayStart, nextDay)` using ``JournalRepository/fetchEntry(dayStart:context:)``
+    /// so duplicate rows for one calendar day match the app’s canonical choice. Only demo builds use this
+    /// (`USE_DEMO_DATABASE`); the store is not tagged separately from ordinary journal rows.
+    private static func fetchJournalForDayStart(
+        _ dayStart: Date,
+        context: ModelContext,
+        calendar: Calendar
+    ) -> Journal? {
+        let repository = JournalRepository(calendar: calendar)
+        do {
+            return try repository.fetchEntry(dayStart: dayStart, context: context)
+        } catch {
+            assertionFailure("DemoDataSeeder: failed to fetch journal for demo seeding: \(error)")
+            return nil
+        }
     }
 }
 
@@ -320,20 +321,21 @@ private func demoDecember2025Entry(calendar: Calendar, now: Date) -> DemoEntryPa
     return DemoEntryPayload(
         entryDate: entryDate,
         gratitudes: [
-            demoLine("Grateful for closing out 2025 with calm routines"),
+            demoLine("Grateful for steady routines before this week"),
             demoLine("Thankful for friends who checked in"),
             demoLine("Quiet evening to reflect")
         ],
         needs: [
-            demoLine("Need margin before the new year"),
-            demoLine("Want to plan January lightly")
+            demoLine("Need margin as schedules shift"),
+            demoLine("Want to plan the week lightly")
         ],
         people: [
-            demoLine("Thinking of family gathering plans"),
+            demoLine("Thinking of family plans"),
             demoLine("Grateful for community support")
         ],
-        readingNotes: "Demo note dated in 2025 for Past-tab and rhythm checks.",
-        reflections: "This entry is intentionally in December 2025 to verify history outside the current week.",
+        readingNotes: "Demo note outside the rolling week for Past-tab and rhythm checks.",
+        reflections: "This entry is intentionally one day older than the seeded week "
+            + "to verify history outside the current seven days.",
         completedAt: nil
     )
 }

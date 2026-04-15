@@ -192,7 +192,7 @@ struct JournalCompletionBarChip: View {
 
     private var accessibilityLabelText: String {
         let statusName = completionTitle
-        let format = String(localized: "journal.share.sectionCountsSentence")
+        let format = String(localized: "journal.share.sectionCountsSentence", locale: locale)
         return String(format: format, locale: locale, statusName, gratitudesCount, needsCount, peopleCount)
     }
 

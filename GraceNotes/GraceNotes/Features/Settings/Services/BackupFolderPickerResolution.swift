@@ -53,8 +53,19 @@ enum BackupFolderPickerResolution {
         case .directory:
             return url
         case .missing:
-            try fileManager.createDirectory(at: url, withIntermediateDirectories: true)
-            return url
+            do {
+                try fileManager.createDirectory(at: url, withIntermediateDirectories: true)
+                return url
+            } catch {
+                switch pathKind(at: url, fileManager: fileManager) {
+                case .directory:
+                    return url
+                case .notDirectory:
+                    throw ResolutionError.pathComponentIsNotDirectory(url)
+                case .missing:
+                    throw error
+                }
+            }
         }
     }
 }

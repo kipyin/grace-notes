@@ -15,11 +15,16 @@ struct JournalItem: Codable {
         id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
         let entryLabel = try container.decodeIfPresent(String.self, forKey: .entryLabel)
         let chipLabel = try container.decodeIfPresent(String.self, forKey: .chipLabel)
-        if let full = try container.decodeIfPresent(String.self, forKey: .fullText), !full.isEmpty {
-            fullText = full
+        if let full = try container.decodeIfPresent(String.self, forKey: .fullText) {
+            let trimmed = full.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                fullText = trimmed
+            } else {
+                // Legacy rows may omit meaningful `fullText` but still carry `entryLabel` / `chipLabel` (see export import).
+                fullText = Self.firstNonEmptyTrimmed(entryLabel, chipLabel)
+            }
         } else {
-            // Legacy rows may omit `fullText`, use empty `fullText`, or only carry legacy labels (see export import).
-            fullText = entryLabel ?? chipLabel ?? ""
+            fullText = Self.firstNonEmptyTrimmed(entryLabel, chipLabel)
         }
         _ = try container.decodeIfPresent(Bool.self, forKey: .isTruncated)
     }
@@ -28,6 +33,18 @@ struct JournalItem: Codable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
         try container.encode(fullText, forKey: .fullText)
+    }
+
+    /// First non-empty string after trimming; order matches legacy `JournalDataExportItem` preference (`entryLabel` then `chipLabel`).
+    private static func firstNonEmptyTrimmed(_ entryLabel: String?, _ chipLabel: String?) -> String {
+        for candidate in [entryLabel, chipLabel] {
+            guard let candidate else { continue }
+            let trimmed = candidate.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                return trimmed
+            }
+        }
+        return ""
     }
 
     private enum CodingKeys: String, CodingKey {

@@ -17,7 +17,7 @@ struct JournalDataExportService {
         let entries = try context.fetch(descriptor)
         let data = try makeArchiveData(from: entries, exportedAt: now)
 
-        let filename = "grace-notes-export-\(timestampString(from: now))-\(UUID().uuidString).json"
+        let filename = "grace-notes-export-\(exportFilenameTimestamp(for: now))-\(UUID().uuidString).json"
         let fileURL = fileManager.temporaryDirectory.appendingPathComponent(filename, isDirectory: false)
         try data.write(to: fileURL, options: .atomic)
         return fileURL
@@ -39,6 +39,8 @@ struct JournalDataExportService {
             if lhs.createdAt != rhs.createdAt {
                 return lhs.createdAt < rhs.createdAt
             }
+            // Ties: `UUID` `<` uses RFC 4122 byte order, not `uuidString` lexicographic order—stable within a build,
+            // but can differ from older exports that compared strings.
             return lhs.id < rhs.id
         }
         return JournalDataExportArchive(
@@ -70,20 +72,19 @@ struct JournalDataExportService {
         )
     }
 
-    private func timestampString(from date: Date) -> String {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
-        let parts = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date)
-        return String(
-            format: "%04d%02d%02d-%02d%02d%02d",
-            parts.year ?? 0,
-            parts.month ?? 0,
-            parts.day ?? 0,
-            parts.hour ?? 0,
-            parts.minute ?? 0,
-            parts.second ?? 0
-        )
+    /// UTC `yyyyMMdd-HHmmss` stamp for export filenames; deterministic and locale-insensitive (`en_US_POSIX`).
+    func exportFilenameTimestamp(for date: Date) -> String {
+        Self.exportFilenameTimestampFormatter.string(from: date)
     }
+
+    private static let exportFilenameTimestampFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.timeZone = TimeZone(secondsFromGMT: 0) ?? TimeZone(identifier: "GMT")!
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyyMMdd-HHmmss"
+        return formatter
+    }()
 }
 
 struct JournalDataExportArchive: Codable, Equatable {

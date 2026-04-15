@@ -117,6 +117,8 @@ struct WeeklyInsightCandidateBuilder {
                     secondTheme
                 )
                 return nonEmptyTrimmed(combined)
+                    ?? nonEmptyTrimmed(insights[0].observation)
+                    ?? nonEmptyTrimmed(insights[1].observation)
             }
             return nonEmptyTrimmed(second) ?? nonEmptyTrimmed(first)
         }

@@ -8,15 +8,19 @@ protocol ReviewJournalThemeLanguageResolving: Sendable {
 }
 
 struct ReviewJournalThemeLanguageResolver: ReviewJournalThemeLanguageResolving {
-    /// Ignore language detection until the corpus has at least this many non-whitespace graphemes.
+    private static let defaultConfidenceThreshold = 0.55
+
+    /// Ignore language detection until the corpus has at least this many non-whitespace graphemes in the
+    /// **analysis prefix** (the first 50,000 extended grapheme clusters—the same capped sample used for
+    /// `NLLanguageRecognizer`), not the entire trimmed corpus. Dense text after that prefix does not count.
     private let minimumMeaningfulGraphemes: Int
     /// If the top `NLLanguageRecognizer` hypothesis is weaker than this, fall back to script share.
     private let confidenceThreshold: Double
 
-    init(minimumMeaningfulGraphemes: Int = 24, confidenceThreshold: Double = 0.55) {
+    init(minimumMeaningfulGraphemes: Int = 24, confidenceThreshold: Double = Self.defaultConfidenceThreshold) {
         self.minimumMeaningfulGraphemes = max(0, minimumMeaningfulGraphemes)
         if confidenceThreshold.isNaN {
-            self.confidenceThreshold = 0.55
+            self.confidenceThreshold = Self.defaultConfidenceThreshold
         } else {
             self.confidenceThreshold = min(max(confidenceThreshold, 0), 1)
         }
@@ -92,10 +96,12 @@ struct ReviewJournalThemeLanguageResolver: ReviewJournalThemeLanguageResolving {
 
     /// When hypotheses are ambiguous, count Han vs Latin letters and pick a side. Equal counts → English.
     /// Latin includes common accented letters (Latin-1 + Extended-A) so tie-break matches mixed European text.
+    /// Uses NFC so NFD text (e.g. `e` + combining acute) counts the same as precomposed `é`.
     private static func scriptTieBreakLocale(analysisText: String) -> Locale {
+        let normalized = analysisText.precomposedStringWithCanonicalMapping
         var han = 0
         var latin = 0
-        for scalar in analysisText.unicodeScalars {
+        for scalar in normalized.unicodeScalars {
             switch scalar.value {
             case 0x3400...0x4DBF,
                  0x4E00...0x9FFF,

@@ -54,9 +54,15 @@ struct ReviewInsightsProvider: Sendable {
             )
         } catch {
             if !(error is CancellationError) {
+                let nsError = error as NSError
                 let detail = error.localizedDescription
+                let errorTypeName = String(describing: type(of: error))
                 reviewInsightsProviderLogger.error(
-                    "Sparse fallback after generator failure. \(detail, privacy: .public)"
+                    """
+                    Sparse fallback after generator failure. \
+                    type: \(errorTypeName, privacy: .public), domain: \(nsError.domain, privacy: .public), \
+                    code: \(nsError.code, privacy: .public), detail: \(detail, privacy: .private)
+                    """
                 )
             }
             return sparseFallbackInsights(

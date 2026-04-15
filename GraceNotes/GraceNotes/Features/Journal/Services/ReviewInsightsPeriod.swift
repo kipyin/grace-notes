@@ -7,12 +7,29 @@ enum ReviewInsightsPeriod {
     /// The calendar week containing `referenceDate`, as half-open `[lower, upper)` where
     /// `lower` is the start of the week’s first day and `upper` is the start of the day after
     /// the week’s last day (exactly seven local days).
-    static func currentPeriod(containing referenceDate: Date, calendar: Calendar) -> Range<Date> {
-        guard let interval = calendar.dateInterval(of: .weekOfYear, for: referenceDate) else {
+    static func currentPeriod(
+        containing referenceDate: Date,
+        calendar: Calendar,
+        weekExclusiveEnd: ((Date) -> Date?)? = nil,
+        weekIntervalForReference: ((Date) -> DateInterval?)? = nil
+    ) -> Range<Date> {
+        let interval: DateInterval?
+        if let override = weekIntervalForReference {
+            interval = override(referenceDate)
+        } else {
+            interval = calendar.dateInterval(of: .weekOfYear, for: referenceDate)
+        }
+        guard let interval else {
             return rollingSevenDayFallback(containing: referenceDate, calendar: calendar)
         }
         let weekStart = calendar.startOfDay(for: interval.start)
-        if let exclusiveEnd = calendar.date(byAdding: .day, value: 7, to: weekStart), exclusiveEnd > weekStart {
+        let exclusiveEnd: Date?
+        if let override = weekExclusiveEnd {
+            exclusiveEnd = override(weekStart)
+        } else {
+            exclusiveEnd = calendar.date(byAdding: .day, value: 7, to: weekStart)
+        }
+        if let exclusiveEnd, exclusiveEnd > weekStart {
             return weekStart..<exclusiveEnd
         }
         if interval.end > weekStart {
@@ -29,7 +46,10 @@ enum ReviewInsightsPeriod {
         // local days when offset changes break the SI-second count between week starts.
         let lastInstantBeforeCurrent = current.lowerBound.addingTimeInterval(-1)
         let lastDayStart = calendar.startOfDay(for: lastInstantBeforeCurrent)
-        let previousStart = calendar.date(byAdding: .day, value: -6, to: lastDayStart) ?? lastDayStart
+        guard let previousStart = calendar.date(byAdding: .day, value: -6, to: lastDayStart) else {
+            let fallback = rollingSevenDayFallback(containing: lastInstantBeforeCurrent, calendar: calendar)
+            return fallback.lowerBound..<current.lowerBound
+        }
         return previousStart..<current.lowerBound
     }
 

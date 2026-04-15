@@ -67,4 +67,73 @@ final class ImportExportDetailFormattingTests: XCTestCase {
         )
         XCTAssertTrue(plain.contains("grace-notes-export-test.json"))
     }
+
+    func test_exportHistoryLineParts_multilineDetailBecomesSingleLineWithSpaces() {
+        let entry = BackupExportHistoryEntry(
+            id: UUID(),
+            finishedAt: Date(),
+            success: true,
+            kind: .manualShare,
+            detail: "first line\nsecond line"
+        )
+        let parts = ImportExportTechnicalDetailFormatting.exportHistoryLineParts(for: entry)
+        XCTAssertEqual(parts.detail, "first line second line")
+        let plain = ImportExportTechnicalDetailFormatting.exportHistoryPlainLabel(for: entry)
+        XCTAssertTrue(plain.contains("first line second line"))
+        XCTAssertFalse(plain.contains("\n"))
+    }
+
+    func test_exportHistoryLineParts_whitespaceOnlyDetailIsNil() {
+        let entry = BackupExportHistoryEntry(
+            id: UUID(),
+            finishedAt: Date(),
+            success: false,
+            kind: .manualFolder,
+            detail: "   \n  \t  "
+        )
+        let parts = ImportExportTechnicalDetailFormatting.exportHistoryLineParts(for: entry)
+        XCTAssertNil(parts.detail)
+        let plain = ImportExportTechnicalDetailFormatting.exportHistoryPlainLabel(for: entry)
+        XCTAssertEqual(plain, "\(parts.kindLabel) · \(parts.statusLabel)")
+        XCTAssertEqual(plain.components(separatedBy: " · ").count, 2)
+    }
+
+    func test_exportHistoryLineParts_trimsSegmentsAroundNewlinesNoDoubleSpaces() {
+        let entry = BackupExportHistoryEntry(
+            id: UUID(),
+            finishedAt: Date(),
+            success: true,
+            kind: .scheduledFolder,
+            detail: "foo \n bar"
+        )
+        let parts = ImportExportTechnicalDetailFormatting.exportHistoryLineParts(for: entry)
+        XCTAssertEqual(parts.detail, "foo bar")
+        let plain = ImportExportTechnicalDetailFormatting.exportHistoryPlainLabel(for: entry)
+        XCTAssertTrue(plain.contains("foo bar"))
+        XCTAssertFalse(plain.contains("foo  bar"))
+    }
+
+    func test_exportHistoryLineParts_blankLinesBetweenContentCollapseToSingleSpaces() {
+        let entry = BackupExportHistoryEntry(
+            id: UUID(),
+            finishedAt: Date(),
+            success: true,
+            kind: .manualShare,
+            detail: "foo\n \nbar"
+        )
+        let parts = ImportExportTechnicalDetailFormatting.exportHistoryLineParts(for: entry)
+        XCTAssertEqual(parts.detail, "foo bar")
+    }
+
+    func test_exportHistoryLineParts_leadingAndTrailingNewlinesTrimmed() {
+        let entry = BackupExportHistoryEntry(
+            id: UUID(),
+            finishedAt: Date(),
+            success: true,
+            kind: .manualShare,
+            detail: "\n\ninner\n"
+        )
+        let parts = ImportExportTechnicalDetailFormatting.exportHistoryLineParts(for: entry)
+        XCTAssertEqual(parts.detail, "inner")
+    }
 }

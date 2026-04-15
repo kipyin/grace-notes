@@ -43,4 +43,47 @@ final class ICloudSyncActivityModelTests: XCTestCase {
 
         await waitForLastRemoteChange(on: model)
     }
+
+    func test_multiplePersistentStoreRemoteChangeNotifications_persistLatestTimestamp() async {
+        let model = ICloudSyncActivityModel()
+        model.startMonitoring()
+
+        for _ in 0..<8 {
+            NotificationCenter.default.post(name: .NSPersistentStoreRemoteChange, object: nil)
+        }
+
+        await waitForLastRemoteChange(on: model)
+
+        let expected = model.lastRemoteChangeAt!.timeIntervalSince1970
+        await waitUntilPersistedTimestampEquals(expected)
+
+        XCTAssertEqual(
+            UserDefaults.standard.double(forKey: ICloudSyncActivityModel.persistedTimestampKey),
+            expected,
+            accuracy: 1e-9
+        )
+    }
+
+    private func waitUntilPersistedTimestampEquals(
+        _ expected: TimeInterval,
+        timeout: TimeInterval = 1,
+        pollIntervalNanoseconds: UInt64 = 1_000_000,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) async {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            let stored = UserDefaults.standard.double(forKey: ICloudSyncActivityModel.persistedTimestampKey)
+            if abs(stored - expected) < 1e-9 {
+                return
+            }
+            try? await Task.sleep(nanoseconds: pollIntervalNanoseconds)
+        }
+
+        XCTFail(
+            "Timed out waiting for UserDefaults to match coalesced lastRemoteChangeAt",
+            file: file,
+            line: line
+        )
+    }
 }

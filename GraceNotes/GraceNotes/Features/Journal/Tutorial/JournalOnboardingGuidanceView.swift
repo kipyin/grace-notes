@@ -13,25 +13,16 @@ struct JournalOnboardingGuidanceView: View {
         self.messageSecondary = messageSecondary
     }
 
-    private var trimmedTitle: String {
-        title.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    private var trimmedMessage: String {
-        message.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    private var trimmedSecondaryLine: String? {
-        guard let messageSecondary else { return nil }
-        let trimmed = messageSecondary.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? nil : trimmed
-    }
-
-    private var hasMeaningfulContent: Bool {
-        !trimmedTitle.isEmpty || !trimmedMessage.isEmpty || trimmedSecondaryLine != nil
-    }
-
     var body: some View {
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedMessage = message.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedSecondaryLine: String? = {
+            guard let messageSecondary else { return nil }
+            let trimmed = messageSecondary.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmed.isEmpty ? nil : trimmed
+        }()
+        let hasMeaningfulContent = !trimmedTitle.isEmpty || !trimmedMessage.isEmpty || trimmedSecondaryLine != nil
+
         if !hasMeaningfulContent {
             EmptyView()
         } else {
@@ -50,8 +41,8 @@ struct JournalOnboardingGuidanceView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
-                if let trimmedSecondaryLine {
-                    Text(trimmedSecondaryLine)
+                if let secondaryLine = trimmedSecondaryLine {
+                    Text(secondaryLine)
                         .font(AppTheme.warmPaperBody)
                         .foregroundStyle(palette.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)

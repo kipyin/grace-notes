@@ -11,18 +11,31 @@ enum AppInstructionLocale: Equatable, Sendable {
         guard let preferred = bundle.preferredLocalizations.first else {
             return .english
         }
-        if isSimplifiedChineseUIIdentifier(preferred) {
+        return resolved(forPreferredLocalizationIdentifier: preferred)
+    }
+
+    /// Resolves a tag from `bundle.preferredLocalizations` (same strings as `bundle.preferredLocalizations.first`).
+    internal static func resolved(forPreferredLocalizationIdentifier identifier: String) -> AppInstructionLocale {
+        if isSimplifiedChineseUIIdentifier(identifier) {
             return .simplifiedChinese
         }
         return .english
     }
 
-    /// Uses `Locale.Language` so legacy tags (`zh_CN`, `zh_Hans_CN`) and bare `zh` resolve like the system,
-    /// instead of brittle `zh-hans` / `zh-hans-` string prefix checks that miss underscore forms.
-    private static let simplifiedChineseScript = Locale.Script("Hans")
-
+    /// Uses `Locale.Language` so tags with explicit scripts (e.g. `zh-Hans`, `zh-Hant`, `zh_CN` when
+    /// Foundation infers a script) are handled without brittle `zh-hans` / `zh-hans-` string prefix checks.
+    ///
+    /// **Script inference:** When `Locale.Language(identifier:)` supplies a `script`, we treat
+    /// `Hans` as Simplified Chinese. Foundation does not infer Hans vs Hant from region alone for
+    /// scriptless identifiers—e.g. bare `zh` typically has no script and falls through to English
+    /// prompts here, matching the old `zh-hans` prefix behavior. If the product ever needs
+    /// “unspecified Chinese → follow region” (e.g. infer Hans from `CN`), add an explicit rule in
+    /// this function; do not rely on Foundation to do that in the guards below.
     private static func isSimplifiedChineseUIIdentifier(_ identifier: String) -> Bool {
         let language = Locale.Language(identifier: identifier)
-        return language.languageCode == .chinese && language.script == simplifiedChineseScript
+        guard language.languageCode == .chinese else { return false }
+        return language.script?.identifier.caseInsensitiveCompare("Hans") == .orderedSame
     }
+
+    private static let simplifiedChineseScript = Locale.Script("Hans")
 }

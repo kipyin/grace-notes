@@ -5,8 +5,15 @@ import Foundation
 /// Used to reset trailing-edge scroll pinning after a real dataset change, without clearing user scroll when
 /// `ReviewInsights` is regenerated for the same week with the same per-day rhythm payload (#131).
 ///
-/// Equality ignores ``ReviewDayActivity/strongestCompletionLevel``: it only affects which growth-stage row is
-/// highlighted, not column count or horizontal extent, so recomputing completion staging must not reset pin state.
+/// Equality matches **week anchor + ordered calendar day columns** only: `ReviewSummaryCard` renders one column per
+/// `days` element, so horizontal extent is driven by ``weekStart``, ``days.count``, and each paired day’s
+/// ``ReviewDayActivity/date``.
+/// Fields that affect only cell content (``ReviewDayActivity/hasReflectiveActivity``,
+/// ``ReviewDayActivity/hasPersistedEntry``, ``ReviewDayActivity/strongestCompletionLevel``) are ignored so pin state
+/// does not reset when those values refresh without layout changes.
+///
+/// If new fields are added to ``ReviewDayActivity`` that affect column count or width, extend this comparison
+/// accordingly.
 struct ReviewRhythmScrollPinIdentity: Equatable {
     let weekStart: Date
     let days: [ReviewDayActivity]
@@ -15,8 +22,6 @@ struct ReviewRhythmScrollPinIdentity: Equatable {
         guard lhs.weekStart == rhs.weekStart, lhs.days.count == rhs.days.count else { return false }
         return zip(lhs.days, rhs.days).allSatisfy { left, right in
             left.date == right.date
-                && left.hasReflectiveActivity == right.hasReflectiveActivity
-                && left.hasPersistedEntry == right.hasPersistedEntry
         }
     }
 }

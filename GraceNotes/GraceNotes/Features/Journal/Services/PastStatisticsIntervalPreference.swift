@@ -152,6 +152,11 @@ enum PastStatisticsIntervalPreference {
     static let appStorageKey = "pastStatisticsInterval.selection.v1"
     private static let legacyBrowseWindowsKey = "GraceNotes.mostRecurringBrowseWindowWeeks"
 
+    /// Encoded string for ``appStorageKey``, matching `@AppStorage` string resolution when the default is `""`.
+    static func appStorageRawValue(defaults: UserDefaults = .standard) -> String {
+        defaults.string(forKey: appStorageKey) ?? ""
+    }
+
     static func selection(fromAppStorage raw: String) -> PastStatisticsIntervalSelection {
         PastStatisticsIntervalSelection.decode(from: raw)
     }

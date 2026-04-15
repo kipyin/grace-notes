@@ -52,4 +52,29 @@ final class PastStatisticsIntervalPreferenceTests: XCTestCase {
         XCTAssertEqual(range.lowerBound, refStart)
         XCTAssertEqual(range.upperBound, calendar.date(byAdding: .day, value: 1, to: refStart))
     }
+
+    func test_resolvedHistoryRange_customMode_outOfBoundsQuantity_clampsAndProducesWellFormedRange() {
+        var calendar = Calendar(identifier: .gregorian)
+        guard let utc = TimeZone(identifier: "UTC") else {
+            XCTFail("Missing UTC timezone")
+            return
+        }
+        calendar.timeZone = utc
+        let refStart = calendar.startOfDay(for: Date(timeIntervalSince1970: 1_700_000_000))
+        let entries: [Journal] = []
+
+        let rangeAtZero = PastStatisticsIntervalSelection(mode: .custom, quantity: 0, unit: .week)
+            .resolvedHistoryRange(referenceDate: refStart, calendar: calendar, allEntries: entries)
+        let rangeAtOne = PastStatisticsIntervalSelection(mode: .custom, quantity: 1, unit: .week)
+            .resolvedHistoryRange(referenceDate: refStart, calendar: calendar, allEntries: entries)
+        XCTAssertEqual(rangeAtZero, rangeAtOne)
+        XCTAssertLessThan(rangeAtZero.lowerBound, rangeAtZero.upperBound)
+
+        let rangeAt1000 = PastStatisticsIntervalSelection(mode: .custom, quantity: 1000, unit: .week)
+            .resolvedHistoryRange(referenceDate: refStart, calendar: calendar, allEntries: entries)
+        let rangeAt999 = PastStatisticsIntervalSelection(mode: .custom, quantity: 999, unit: .week)
+            .resolvedHistoryRange(referenceDate: refStart, calendar: calendar, allEntries: entries)
+        XCTAssertEqual(rangeAt1000, rangeAt999)
+        XCTAssertLessThan(rangeAt1000.lowerBound, rangeAt1000.upperBound)
+    }
 }

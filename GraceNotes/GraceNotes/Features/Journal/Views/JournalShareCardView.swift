@@ -83,6 +83,8 @@ private extension JournalShareCardView {
                 .padding(.bottom, 32)
 
             VStack(alignment: .leading, spacing: 24) {
+                // Invariant: each `ShareSectionKind` appears at most once in `payload.sections`
+                // (enforced by `ShareRenderPayloadBuilder`); duplicate kinds would break `ForEach` identity.
                 ForEach(Array(payload.sections.enumerated()), id: \.element.kind) { index, section in
                     if payload.style.showsSectionDividers, index > 0 {
                         Rectangle()
@@ -263,6 +265,7 @@ private extension JournalShareCardView {
             .italic()
             .foregroundStyle(surface.stubInk)
             .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityLabel(String(localized: "sharing.a11y.sectionStub"))
     }
 

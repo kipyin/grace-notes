@@ -82,7 +82,7 @@ struct ReviewMostRecurringCard: View {
         ) {
             VStack(alignment: .leading, spacing: 10) {
                 VStack(alignment: .leading, spacing: 8) {
-                    ForEach(Array(themes.prefix(3))) { theme in
+                    ForEach(Array(themes.prefix(3)), id: \.mostRecurringRowIdentity) { theme in
                         mostRecurringThemeRow(theme)
                     }
                 }
@@ -120,7 +120,9 @@ struct ReviewMostRecurringCard: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(PastTappablePressStyle())
-        .accessibilityIdentifier("MostRecurringThemeRow.\(reviewInsightSanitizedThemeId(theme.id))")
+        .accessibilityIdentifier(
+            "MostRecurringThemeRow.\(reviewInsightSanitizedThemeId(theme.mostRecurringRowIdentity))"
+        )
         .accessibilityLabel(
             String(
                 format: String(localized: "journal.share.lineCountsThree"),
@@ -169,5 +171,21 @@ struct ReviewMostRecurringCard: View {
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(String(localized: "review.insights.loading"))
         }
+    }
+}
+
+private extension ReviewMostRecurringTheme {
+    /// Row identity for `ForEach` and accessibility: display `label` is not unique across canonical themes.
+    var mostRecurringRowIdentity: String {
+        let evidenceKey = evidence.map(\.id).sorted().joined(separator: "\u{001e}")
+        let sep = "\u{001f}"
+        return [
+            label,
+            String(totalCount),
+            String(dayCount),
+            String(currentWeekCount),
+            String(previousWeekCount),
+            evidenceKey
+        ].joined(separator: sep)
     }
 }

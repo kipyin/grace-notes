@@ -56,6 +56,7 @@ final class PersistenceController {
 
     static func makeForUITesting() throws -> PersistenceController {
         resetUITestStoreIfRequested()
+        removeLegacyUITestStoreFiles()
         let startupTrace = PerformanceTrace.begin("PersistenceController.makeForUITesting")
         let schema = Schema([Journal.self])
         let configuration = ModelConfiguration(
@@ -74,7 +75,7 @@ final class PersistenceController {
             try seedUITestDataIfNeeded(in: container)
         } catch {
             PerformanceTrace.end("PersistenceController.makeForUITesting.failed", startedAt: startupTrace)
-            throw error
+            throw PersistenceControllerError.unableToSeedUITestData(error)
         }
         PerformanceTrace.end("PersistenceController.makeForUITesting", startedAt: startupTrace)
         let snapshot = PersistenceRuntimeSnapshot.forDiskLaunch(
@@ -170,7 +171,7 @@ final class PersistenceController {
         return "ui-test-\(hex).store"
     }
 
-    private static var uiTestStoreURL: URL {
+    private static var uiTestDirectoryURL: URL {
         let fileManager = FileManager.default
         let appSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
@@ -178,6 +179,41 @@ final class PersistenceController {
         if !fileManager.fileExists(atPath: uiTestDirectory.path) {
             try? fileManager.createDirectory(at: uiTestDirectory, withIntermediateDirectories: true)
         }
+        return uiTestDirectory
+    }
+
+    /// Removes pre-hashing `ui-test-*.store` files (session key embedded in the filename) so Application Support
+    /// does not accumulate orphaned stores after the SHA-256 naming change.
+    private static func removeLegacyUITestStoreFiles() {
+        let fileManager = FileManager.default
+        let uiTestDirectory = uiTestDirectoryURL
+        guard let contents = try? fileManager.contentsOfDirectory(
+            at: uiTestDirectory,
+            includingPropertiesForKeys: nil
+        ) else {
+            return
+        }
+        for url in contents {
+            let name = url.lastPathComponent
+            guard name.hasPrefix("ui-test-"), name.hasSuffix(".store") else { continue }
+            if isHashedUITestStoreFileName(name) {
+                continue
+            }
+            try? fileManager.removeItem(at: url)
+        }
+    }
+
+    /// `true` when `name` matches `^ui-test-[0-9a-f]{64}\.store$` (current on-disk naming).
+    private static func isHashedUITestStoreFileName(_ name: String) -> Bool {
+        guard name.hasPrefix("ui-test-"), name.hasSuffix(".store") else { return false }
+        let middle = name.dropFirst("ui-test-".count).dropLast(".store".count)
+        guard middle.count == 64 else { return false }
+        let hexDigits = CharacterSet(charactersIn: "0123456789abcdef")
+        return middle.unicodeScalars.allSatisfy { hexDigits.contains($0) }
+    }
+
+    private static var uiTestStoreURL: URL {
+        let uiTestDirectory = uiTestDirectoryURL
 
         // Prefer XCTest's config path so parallel runs stay isolated. After `terminate()` + `launch()`,
         // that env var is often missing in the app; reuse the last key so relaunch hits the same store.
@@ -279,6 +315,7 @@ final class PersistenceController {
 
 enum PersistenceControllerError: LocalizedError {
     case unableToCreateContainer(Error)
+    case unableToSeedUITestData(Error)
 
     var errorDescription: String? {
         String(localized: "startup.error.setupFailed")

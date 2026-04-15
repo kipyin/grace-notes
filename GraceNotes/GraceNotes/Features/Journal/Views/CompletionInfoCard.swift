@@ -1,6 +1,27 @@
 import SwiftUI
 
 struct CompletionInfoCard: View {
+    let badgeInfo: CompletionBadgeInfo
+    let cardTintColor: Color
+    let reduceTransparency: Bool
+    let morphNamespace: Namespace.ID
+    let showMorph: Bool
+    let bloomProgress: CGFloat
+
+    var body: some View {
+        CompletionInfoCardContent(
+            badgeInfo: badgeInfo,
+            cardTintColor: cardTintColor,
+            reduceTransparency: reduceTransparency,
+            morphNamespace: morphNamespace,
+            showMorph: showMorph,
+            bloomProgress: bloomProgress
+        )
+        .id(badgeInfo)
+    }
+}
+
+private struct CompletionInfoCardContent: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.todayJournalPalette) private var palette
     @State private var contentVisible = false

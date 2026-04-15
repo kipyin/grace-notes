@@ -1,16 +1,25 @@
 import SwiftUI
 import UIKit
 
+/// Layout metrics for fixed-width share export (`JournalShareCardView` with `usesFixedExportWidth == true`)
+/// and bitmap rendering (`JournalShareRenderer`). Keeps `ImageRenderer`'s proposed width aligned with the card.
+enum JournalShareExportMetrics {
+    static let cardContentWidth: CGFloat = 448
+    static let horizontalPadding: CGFloat = 24
+    /// Card column width plus horizontal padding (matches `JournalShareCardView` fixed export layout).
+    static var totalLayoutWidth: CGFloat { cardContentWidth + horizontalPadding * 2 }
+}
+
 enum JournalShareRenderer {
     /// Renders the share card to a bitmap.
     ///
     /// `ImageRenderer` proposes a size to the root view. If that size is effectively unbounded,
     /// flexible-width SwiftUI content can lay out poorly and `uiImage` may be nil or empty.
-    /// Width must match `JournalShareCardView` export layout: inner `cardWidth` plus horizontal `padding`.
+    /// Width matches the fixed export card plus horizontal padding via `JournalShareExportMetrics`.
     @MainActor static func renderImage(from payload: ShareRenderPayload) -> UIImage? {
         let cardView = JournalShareCardView(payload: payload, onLineTap: nil)
         let renderer = ImageRenderer(content: cardView)
-        renderer.proposedSize = ProposedViewSize(width: Self.proposedLayoutWidth, height: nil)
+        renderer.proposedSize = ProposedViewSize(width: JournalShareExportMetrics.totalLayoutWidth, height: nil)
         renderer.scale = Self.recommendedPixelScale()
         guard let image = renderer.uiImage else { return nil }
         guard image.size.width > 0, image.size.height > 0 else { return nil }
@@ -19,21 +28,16 @@ enum JournalShareRenderer {
         return image
     }
 
-    /// Keep in sync with `JournalShareCardView` (`cardWidth` + twice `padding`).
-    private static let cardContentWidth: CGFloat = 448
-    private static let cardHorizontalPadding: CGFloat = 24
-    private static var proposedLayoutWidth: CGFloat {
-        cardContentWidth + cardHorizontalPadding * 2
-    }
-
     /// `ImageRenderer` runs without hosting in a window; `UITraitCollection.current.displayScale` can be
-    /// unset or 1× while the device screen is Retina. Prefer the foreground window scene scale (active or
-    /// inactive — a presented sheet can leave the root scene inactive), then trait, then screen, then a
-    /// safe default. Ignores background/unattached scenes so multi-window layouts do not pick an unrelated
-    /// display’s scale.
+    /// unset or 1× while the device screen is Retina. Uses the highest positive scale available from any
+    /// foreground window scene (active or inactive — a presented sheet can leave the root scene inactive),
+    /// the current trait collection, or the main screen, then clamps to a safe supported range. Ignores
+    /// background/unattached scenes so multi-window layouts do not pick an unrelated display’s scale.
     @MainActor
     private static func recommendedPixelScale() -> CGFloat {
         let traitScale = UITraitCollection.current.displayScale
+        // Deliberately take the maximum across foreground scenes so export matches the sharpest attached
+        // screen when multiple windows are visible.
         let sceneScale = UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
             .filter {
@@ -47,7 +51,6 @@ enum JournalShareRenderer {
             sceneScale > 0 ? sceneScale : 0,
             screenScale > 0 ? screenScale : 0
         )
-        guard best > 0 else { return 3 }
-        return min(max(best, 1), 3)
+        return best > 0 ? best : 3
     }
 }

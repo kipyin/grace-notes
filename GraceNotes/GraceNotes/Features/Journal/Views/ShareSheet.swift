@@ -7,39 +7,59 @@ struct ShareableImage: Identifiable {
     let image: UIImage
 }
 
+// MARK: - Popover anchoring
+
+private enum ShareSheetPopover {
+    /// On iPad and other horizontally regular layouts, `UIActivityViewController` uses a popover and must have a
+    /// valid popover source or the system can fail to present it.
+    static func configureIfNeeded(for controller: UIActivityViewController) {
+        guard let popover = controller.popoverPresentationController else { return }
+        guard let view = controller.viewIfLoaded else { return }
+        guard view.bounds.width > 0, view.bounds.height > 0 else { return }
+
+        popover.sourceView = view
+        popover.sourceRect = CGRect(
+            x: view.bounds.midX,
+            y: view.bounds.midY,
+            width: 0,
+            height: 0
+        )
+        popover.permittedArrowDirections = []
+    }
+}
+
+/// Defers popover configuration until the activity view is in the hierarchy and laid out, avoiding reliance on a
+/// key window during the first `makeUIViewController` frame.
+private final class ShareActivityViewController: UIActivityViewController {
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        ShareSheetPopover.configureIfNeeded(for: self)
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        ShareSheetPopover.configureIfNeeded(for: self)
+    }
+}
+
 struct ShareSheet: UIViewControllerRepresentable {
     let activityItems: [Any]
     var applicationActivities: [UIActivity]?
 
     func makeUIViewController(context: Context) -> UIActivityViewController {
-        assert(!activityItems.isEmpty, "ShareSheet requires at least one activity item.")
-        let controller = UIActivityViewController(
+        precondition(!activityItems.isEmpty, "ShareSheet requires at least one activity item.")
+        let controller = ShareActivityViewController(
             activityItems: activityItems,
             applicationActivities: applicationActivities
         )
-        configurePopoverPresentationIfNeeded(for: controller)
+        ShareSheetPopover.configureIfNeeded(for: controller)
+        DispatchQueue.main.async {
+            ShareSheetPopover.configureIfNeeded(for: controller)
+        }
         return controller
     }
 
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
-
-    /// On iPad and other horizontally regular layouts, `UIActivityViewController` uses a popover and must have a
-    /// valid popover source or the system can fail to present it.
-    private func configurePopoverPresentationIfNeeded(for controller: UIActivityViewController) {
-        guard let popover = controller.popoverPresentationController else { return }
-        guard let window = UIApplication.shared.connectedScenes
-            .compactMap({ $0 as? UIWindowScene })
-            .flatMap(\.windows)
-            .first(where: \.isKeyWindow)
-        else { return }
-
-        popover.sourceView = window
-        popover.sourceRect = CGRect(
-            x: window.bounds.midX,
-            y: window.bounds.midY,
-            width: 0,
-            height: 0
-        )
-        popover.permittedArrowDirections = []
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {
+        ShareSheetPopover.configureIfNeeded(for: uiViewController)
     }
 }

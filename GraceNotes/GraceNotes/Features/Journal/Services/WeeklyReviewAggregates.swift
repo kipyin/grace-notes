@@ -1,5 +1,13 @@
 import Foundation
 
+/// Caps how far back ``WeeklyReviewAggregatesBuilder/buildRhythmHistory`` materializes
+/// calendar-day rows so multi-year journals cannot allocate unbounded ``ReviewDayActivity`` arrays.
+/// Custom Past statistics windows already clip via ``PastStatisticsIntervalSelection/resolvedHistoryRange``.
+private enum RhythmHistoryLimits {
+    /// Maximum inclusive number of local calendar days in the rhythm strip (about two years).
+    static let maxInclusiveCalendarDays = 731
+}
+
 struct ThemeSummary {
     let normalizedLabel: String
     let displayLabel: String
@@ -215,6 +223,9 @@ private extension WeeklyReviewAggregatesBuilder {
         return sortedThemeSummaries(from: themeMap)
     }
 
+    /// Recurring chips sort by mention/day; further ties use scan order (`firstSeenOrder`) before label,
+    /// matching ``sortedThemeSummaries`` for chip-only aggregates (narrative paths can still differ when text
+    /// themes mix in).
     func topThemes(from summaries: [ThemeSummary]) -> [ReviewInsightTheme] {
         summaries
             .sorted {
@@ -250,21 +261,25 @@ private extension WeeklyReviewAggregatesBuilder {
         let normalized = textNormalizer.normalizeThemeLabel(trimmedLabel)
         guard !normalized.isEmpty else { return }
 
-        if var existing = map[normalized] {
-            existing.mentionCount += 1
-            existing.weightedScore += weight
-            existing.days.insert(day)
-            map[normalized] = existing
+        let isNew = map[normalized] == nil
+        var accumulator = map[normalized] ?? ThemeAccumulator(
+            normalizedLabel: normalized,
+            displayLabel: trimmedLabel,
+            mentionCount: 0,
+            weightedScore: 0,
+            days: [],
+            firstSeenOrder: sequence
+        )
+        if isNew {
+            accumulator.mentionCount = 1
+            accumulator.weightedScore = weight
+            accumulator.days = [day]
         } else {
-            map[normalized] = ThemeAccumulator(
-                normalizedLabel: normalized,
-                displayLabel: trimmedLabel,
-                mentionCount: 1,
-                weightedScore: weight,
-                days: [day],
-                firstSeenOrder: sequence
-            )
+            accumulator.mentionCount += 1
+            accumulator.weightedScore += weight
+            accumulator.days.insert(day)
         }
+        map[normalized] = accumulator
     }
 
     func sortedThemeSummaries(from map: [String: ThemeAccumulator]) -> [ThemeSummary] {
@@ -315,21 +330,22 @@ private extension WeeklyReviewAggregatesBuilder {
             strongestCompletionByDay: weekStrongestByDay,
             calendar: calendar
         )
+        let historyRange = pastStatisticsInterval.validated.resolvedHistoryRange(
+            referenceDate: referenceDate,
+            calendar: calendar,
+            allEntries: allEntries
+        )
         let rhythmHistory = buildRhythmHistory(
             allEntries: allEntries,
             currentPeriod: currentPeriod,
             calendar: calendar,
-            referenceDate: referenceDate
+            referenceDate: referenceDate,
+            pastStatisticsHistoryLowerBound: historyRange.lowerBound
         )
         let sectionTotals = ReviewWeekSectionTotals(
             gratitudeMentions: entries.reduce(0) { $0 + ($1.gratitudes ?? []).count },
             needMentions: entries.reduce(0) { $0 + ($1.needs ?? []).count },
             peopleMentions: entries.reduce(0) { $0 + ($1.people ?? []).count }
-        )
-        let historyRange = pastStatisticsInterval.validated.resolvedHistoryRange(
-            referenceDate: referenceDate,
-            calendar: calendar,
-            allEntries: allEntries
         )
         let entriesInHistoryRange = ReviewHistoryWindowing.entriesInValidatedHistoryWindow(
             allEntries: allEntries,
@@ -370,13 +386,16 @@ private extension WeeklyReviewAggregatesBuilder {
         )
     }
 
-    /// Builds a dense oldest-to-newest activity sequence from the earliest journal day through
-    /// ``min(lastDayOfReviewWeek, startOfReferenceDay)`` (one row per calendar day, including hollow days).
+    /// Builds a dense oldest-to-newest activity sequence through ``min(lastDayOfReviewWeek, startOfReferenceDay)``
+    /// (one row per calendar day, including hollow days). Starts no earlier than the Past statistics window
+    /// (``pastStatisticsHistoryLowerBound``) and applies ``RhythmHistoryLimits`` so multi-year journals cannot
+    /// allocate an unbounded number of rows.
     func buildRhythmHistory(
         allEntries: [Journal],
         currentPeriod: Range<Date>,
         calendar: Calendar,
-        referenceDate: Date
+        referenceDate: Date,
+        pastStatisticsHistoryLowerBound: Date
     ) -> [ReviewDayActivity]? {
         guard !allEntries.isEmpty else { return nil }
 
@@ -393,7 +412,21 @@ private extension WeeklyReviewAggregatesBuilder {
         guard let entryMinRaw = allEntries.map({ calendar.startOfDay(for: $0.entryDate) }).min() else {
             return nil
         }
-        let startDay = entryMinRaw
+        let pastWindowStart = calendar.startOfDay(for: pastStatisticsHistoryLowerBound)
+        let windowClampedStart = max(entryMinRaw, pastWindowStart)
+        let horizonCappedStart: Date = {
+            guard
+                let capped = calendar.date(
+                    byAdding: .day,
+                    value: -(RhythmHistoryLimits.maxInclusiveCalendarDays - 1),
+                    to: endDayInclusive
+                )
+            else {
+                return windowClampedStart
+            }
+            return max(windowClampedStart, calendar.startOfDay(for: capped))
+        }()
+        let startDay = horizonCappedStart
         guard startDay <= endDayInclusive else { return nil }
 
         guard let rangeEndExclusive = calendar.date(byAdding: .day, value: 1, to: endDayInclusive) else {

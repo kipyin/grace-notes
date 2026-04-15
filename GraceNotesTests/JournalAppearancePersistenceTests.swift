@@ -25,6 +25,20 @@ final class JournalAppearancePersistenceTests: XCTestCase {
         XCTAssertEqual(JournalAppearanceMode.resolveStored(rawValue: "summer"), .bloom)
     }
 
+    func test_resolveStored_normalizesWhitespaceAndCaseForBloom() {
+        XCTAssertEqual(JournalAppearanceMode.resolveStored(rawValue: " Bloom "), .bloom)
+        XCTAssertEqual(JournalAppearanceMode.resolveStored(rawValue: "BLOOM"), .bloom)
+    }
+
+    func test_resolveStored_normalizesWhitespaceAndCaseForLegacySummer() {
+        XCTAssertEqual(JournalAppearanceMode.resolveStored(rawValue: "  summer  "), .bloom)
+    }
+
+    func test_resolveStored_normalizesWhitespaceAndCaseForStandard() {
+        XCTAssertEqual(JournalAppearanceMode.resolveStored(rawValue: " Standard "), .standard)
+        XCTAssertEqual(JournalAppearanceMode.resolveStored(rawValue: "Standard"), .standard)
+    }
+
     func test_migrateLegacyJournalAppearance_rewritesSummerRawToBloom() {
         let key = JournalAppearanceStorageKeys.todayMode
         UserDefaults.standard.set("summer", forKey: key)
@@ -34,5 +48,35 @@ final class JournalAppearancePersistenceTests: XCTestCase {
             JournalAppearanceMode.resolveStored(rawValue: UserDefaults.standard.string(forKey: key) ?? ""),
             .bloom
         )
+    }
+
+    func test_migrateLegacyJournalAppearance_migratesWhitespacePaddedSummerInTestSuite() {
+        let suiteName = "test.JournalAppearance.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suiteName) else {
+            XCTFail("Could not create test suite")
+            return
+        }
+        defer { UserDefaults().removePersistentDomain(forName: suiteName) }
+
+        let key = JournalAppearanceStorageKeys.todayMode
+        defaults.set(" Summer ", forKey: key)
+        JournalAppearanceMode.migrateLegacyJournalAppearanceRawValueIfNeeded(defaults: defaults)
+        XCTAssertEqual(defaults.string(forKey: key), JournalAppearanceMode.bloom.rawValue)
+        XCTAssertEqual(JournalAppearanceMode.resolveStored(rawValue: defaults.string(forKey: key) ?? ""), .bloom)
+    }
+
+    func test_migrateLegacyJournalAppearance_migratesUppercasedSummerInTestSuite() {
+        let suiteName = "test.JournalAppearance.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suiteName) else {
+            XCTFail("Could not create test suite")
+            return
+        }
+        defer { UserDefaults().removePersistentDomain(forName: suiteName) }
+
+        let key = JournalAppearanceStorageKeys.todayMode
+        defaults.set("SUMMER", forKey: key)
+        JournalAppearanceMode.migrateLegacyJournalAppearanceRawValueIfNeeded(defaults: defaults)
+        XCTAssertEqual(defaults.string(forKey: key), JournalAppearanceMode.bloom.rawValue)
+        XCTAssertEqual(JournalAppearanceMode.resolveStored(rawValue: defaults.string(forKey: key) ?? ""), .bloom)
     }
 }

@@ -72,7 +72,7 @@ final class JournalCompletionInfoPresentation {
     }
 
     private func scheduleInfoCardCloseThenReopenAfterDelay(reduceMotion: Bool) {
-        cancelInfoCardBloomAnimation(resetProgress: true)
+        cancelInfoCardBloomAnimation(resetProgress: !reduceMotion)
         withAnimation(infoCardExitAnimation(reduceMotion: reduceMotion)) {
             isInfoCardPresented = false
         }

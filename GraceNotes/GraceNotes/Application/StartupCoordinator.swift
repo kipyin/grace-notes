@@ -1,5 +1,11 @@
 import Combine
 import Foundation
+import os
+
+private let startupCoordinatorLogger = Logger(
+    subsystem: "com.gracenotes.GraceNotes",
+    category: "StartupCoordinator"
+)
 
 @MainActor
 final class StartupCoordinator: ObservableObject {
@@ -100,7 +106,7 @@ final class StartupCoordinator: ObservableObject {
                 let controller = try await runPersistence()
                 await MainActor.run { [weak self] in
                     guard let self else {
-                        PerformanceTrace.end("StartupCoordinator.startupAttempt.superseded", startedAt: trace)
+                        PerformanceTrace.end("StartupCoordinator.startupAttempt.teardown", startedAt: trace)
                         return
                     }
                     self.handleStartupSuccess(controller, attemptID: attemptID, traceStart: trace)
@@ -108,7 +114,7 @@ final class StartupCoordinator: ObservableObject {
             } catch {
                 await MainActor.run { [weak self] in
                     guard let self else {
-                        PerformanceTrace.end("StartupCoordinator.startupAttempt.superseded", startedAt: trace)
+                        PerformanceTrace.end("StartupCoordinator.startupAttempt.teardown", startedAt: trace)
                         return
                     }
                     self.handleStartupFailure(error, attemptID: attemptID, traceStart: trace)
@@ -228,11 +234,9 @@ final class StartupCoordinator: ObservableObject {
     }
 
     private func startupErrorMessage(from error: Error) -> String {
-        if let localizedError = error as? LocalizedError,
-           let message = localizedError.errorDescription,
-           !message.isEmpty {
-            return message
-        }
+        startupCoordinatorLogger.error(
+            "Persistence startup failed: \(String(reflecting: error), privacy: .public)"
+        )
         return String(localized: "startup.error.setupFailed")
     }
 }

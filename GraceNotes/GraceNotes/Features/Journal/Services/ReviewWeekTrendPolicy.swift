@@ -1,4 +1,10 @@
 import Foundation
+import os
+
+private let reviewWeekTrendPolicyLogger = Logger(
+    subsystem: Bundle(for: PersistenceController.self).bundleIdentifier ?? "GraceNotes",
+    category: "ReviewWeekTrendPolicy"
+)
 
 /// Calendar-week trend surfacing: warm-up (first two local days of the week) plus balanced floors.
 enum ReviewWeekTrendPolicy {
@@ -25,6 +31,9 @@ enum ReviewWeekTrendPolicy {
     /// Raw week-over-week direction from mention counts (before confidence / floors).
     static func rawTrend(current: Int, previous: Int) -> ReviewThemeTrend {
         guard current >= 0, previous >= 0 else {
+            reviewWeekTrendPolicyLogger.warning(
+                "Negative mention counts in rawTrend (current=\(current, privacy: .public), previous=\(previous, privacy: .public))"
+            )
             return .stable
         }
         if previous == 0, current > 0 {

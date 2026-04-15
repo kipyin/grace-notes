@@ -14,14 +14,14 @@ struct ShareCardSurface: Sendable {
 
     var bodyInk: Color {
         guard usesDarkTheme else { return style.bodyInk }
-        return Color(hex: 0xF2E8DE)
+        return Color(hexSRGB: 0xF2E8DE)
     }
 
     var sectionTitleInk: Color { bodyInk }
 
     var footerInk: Color {
         guard usesDarkTheme else { return style.footerInk }
-        return Color(hex: 0xC5B7A8)
+        return Color(hexSRGB: 0xC5B7A8)
     }
 
     var stubInk: Color { footerInk }
@@ -29,12 +29,12 @@ struct ShareCardSurface: Sendable {
 
     var sectionDividerColor: Color {
         guard usesDarkTheme else { return style.sectionDividerColor }
-        return Color(hex: 0x3D3834)
+        return Color(hexSRGB: 0x3D3834)
     }
 
     var redactionBarColor: Color {
         guard usesDarkTheme else { return style.redactionBarColor }
-        return Color(hex: 0x4A423A)
+        return Color(hexSRGB: 0x4A423A)
     }
 
     var cardShadowColor: Color {
@@ -44,7 +44,7 @@ struct ShareCardSurface: Sendable {
 
     var completionChipTextColor: Color {
         guard usesDarkTheme else { return style.completionChipTextColor }
-        return Color(hex: 0xD4C4B6)
+        return Color(hexSRGB: 0xD4C4B6)
     }
 
     @ViewBuilder
@@ -78,15 +78,15 @@ extension ShareRenderPayload {
 private func darkCardBackground(style: ShareCardStyle) -> some View {
     switch style {
     case .paperWarm:
-        Color(hex: 0x2A241F)
+        Color(hexSRGB: 0x2A241F)
     case .editorialMist:
-        Color(hex: 0x1C1C1C)
+        Color(hexSRGB: 0x1C1C1C)
     case .sunriseGradient:
         LinearGradient(
             colors: [
-                Color(hex: 0x2A1F1A),
-                Color(hex: 0x302820),
-                Color(hex: 0x261C18)
+                Color(hexSRGB: 0x2A1F1A),
+                Color(hexSRGB: 0x302820),
+                Color(hexSRGB: 0x261C18)
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
@@ -98,25 +98,14 @@ private func darkCardBackground(style: ShareCardStyle) -> some View {
 private func darkCompletionChipBackground(style: ShareCardStyle) -> some View {
     switch style {
     case .paperWarm:
-        Color(hex: 0x3A322C)
+        Color(hexSRGB: 0x3A322C)
     case .editorialMist:
-        Color(hex: 0x333333)
+        Color(hexSRGB: 0x333333)
     case .sunriseGradient:
         LinearGradient(
-            colors: [Color(hex: 0x3D322C), Color(hex: 0x453D36)],
+            colors: [Color(hexSRGB: 0x3D322C), Color(hexSRGB: 0x453D36)],
             startPoint: .leading,
             endPoint: .trailing
         )
-    }
-}
-
-private extension Color {
-    /// 24-bit `RRGGBB`. High bits are masked so `AARRGGBB`-style literals still resolve to the same sRGB triplet.
-    init(hex: UInt) {
-        let rgb = hex & 0xFFFFFF
-        let red = Double((rgb >> 16) & 0xFF) / 255
-        let green = Double((rgb >> 8) & 0xFF) / 255
-        let blue = Double(rgb & 0xFF) / 255
-        self.init(.sRGB, red: red, green: green, blue: blue)
     }
 }

@@ -8,21 +8,21 @@ extension ShareCardStyle {
             switch script {
             case .latin:
                 Font.custom("Cormorant Garamond", size: 24, relativeTo: .title2).weight(.semibold)
-            case .chinese:
+            case .cjk:
                 Font.system(size: 24, weight: .semibold, design: .serif)
             }
         case .editorialMist:
             switch script {
             case .latin:
                 Font.custom("Inter", size: 20, relativeTo: .title3).weight(.semibold)
-            case .chinese:
+            case .cjk:
                 Font.system(size: 20, weight: .semibold, design: .default)
             }
         case .sunriseGradient:
             switch script {
             case .latin:
                 Font.custom("Bebas Neue", size: 42, relativeTo: .largeTitle).weight(.regular)
-            case .chinese:
+            case .cjk:
                 Font.system(size: 28, weight: .semibold, design: .rounded)
             }
         }
@@ -34,21 +34,21 @@ extension ShareCardStyle {
             switch script {
             case .latin:
                 Font.custom("Crimson Text", size: 16, relativeTo: .headline).weight(.semibold)
-            case .chinese:
+            case .cjk:
                 Font.system(size: 16, weight: .semibold, design: .serif)
             }
         case .editorialMist:
             switch script {
             case .latin:
                 Font.custom("Inter", size: 13, relativeTo: .subheadline).weight(.semibold)
-            case .chinese:
+            case .cjk:
                 Font.system(size: 13, weight: .semibold, design: .default)
             }
         case .sunriseGradient:
             switch script {
             case .latin:
                 Font.custom("Bebas Neue", size: 22, relativeTo: .title3).weight(.regular)
-            case .chinese:
+            case .cjk:
                 Font.system(size: 19, weight: .semibold, design: .rounded)
             }
         }
@@ -60,21 +60,21 @@ extension ShareCardStyle {
             switch script {
             case .latin:
                 Font.custom("Crimson Text", size: 15, relativeTo: .body)
-            case .chinese:
+            case .cjk:
                 Font.system(size: 15, weight: .regular, design: .serif)
             }
         case .editorialMist:
             switch script {
             case .latin:
                 Font.custom("Spectral", size: 15, relativeTo: .body)
-            case .chinese:
+            case .cjk:
                 Font.system(size: 15, weight: .regular, design: .serif)
             }
         case .sunriseGradient:
             switch script {
             case .latin:
                 Font.custom("Bodoni Moda", size: 15, relativeTo: .body)
-            case .chinese:
+            case .cjk:
                 Font.system(size: 16, weight: .medium, design: .rounded)
             }
         }
@@ -86,21 +86,21 @@ extension ShareCardStyle {
             switch script {
             case .latin:
                 Font.custom("Crimson Text", size: 11, relativeTo: .caption2)
-            case .chinese:
+            case .cjk:
                 Font.system(size: 11, weight: .regular, design: .serif)
             }
         case .editorialMist:
             switch script {
             case .latin:
                 Font.custom("Inter", size: 10, relativeTo: .caption2)
-            case .chinese:
+            case .cjk:
                 Font.system(size: 10, weight: .regular, design: .default)
             }
         case .sunriseGradient:
             switch script {
             case .latin:
                 Font.custom("Bodoni Moda", size: 9, relativeTo: .caption2)
-            case .chinese:
+            case .cjk:
                 Font.system(size: 10, weight: .regular, design: .rounded)
             }
         }
@@ -108,7 +108,7 @@ extension ShareCardStyle {
 
     func sectionTitleTextCase(for script: ShareTypographyScript) -> Text.Case? {
         switch script {
-        case .chinese:
+        case .cjk:
             return nil
         case .latin:
             return .uppercase

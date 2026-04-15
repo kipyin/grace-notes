@@ -1,5 +1,6 @@
 import CoreData
 import Foundation
+import UIKit
 
 /// Best-effort “last time iCloud-related store activity was observed” using persistent-store
 /// remote-change notifications.
@@ -9,7 +10,8 @@ final class ICloudSyncActivityModel: ObservableObject {
 
     @Published private(set) var lastRemoteChangeAt: Date?
 
-    private var observerToken: NSObjectProtocol?
+    private var remoteChangeObserverToken: NSObjectProtocol?
+    private var appLifecycleObserverTokens: [NSObjectProtocol] = []
     /// Limits disk writes when many remote-change notifications arrive in a short burst (e.g. sync).
     private var pendingUserDefaultsPersist = false
 
@@ -21,19 +23,51 @@ final class ICloudSyncActivityModel: ObservableObject {
     }
 
     func startMonitoring() {
-        guard observerToken == nil else { return }
-        observerToken = NotificationCenter.default.addObserver(
+        guard remoteChangeObserverToken == nil else { return }
+
+        remoteChangeObserverToken = NotificationCenter.default.addObserver(
             forName: .NSPersistentStoreRemoteChange,
             object: nil,
             queue: .main
         ) { [weak self] _ in
             self?.recordRemoteChange()
         }
+
+        let center = NotificationCenter.default
+        appLifecycleObserverTokens = [
+            center.addObserver(
+                forName: UIApplication.didEnterBackgroundNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                self?.persistLastRemoteChangeIfNeeded()
+            },
+            center.addObserver(
+                forName: UIApplication.willTerminateNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                self?.persistLastRemoteChangeIfNeeded()
+            }
+        ]
     }
 
     deinit {
-        if let observerToken {
-            NotificationCenter.default.removeObserver(observerToken)
+        if let remoteChangeObserverToken {
+            NotificationCenter.default.removeObserver(remoteChangeObserverToken)
+        }
+        for token in appLifecycleObserverTokens {
+            NotificationCenter.default.removeObserver(token)
+        }
+    }
+
+    /// Synchronously mirrors `lastRemoteChangeAt` into `UserDefaults` when present.
+    /// Used on background/terminate so disk is less likely to lag in-memory state if the process exits
+    /// before a coalesced write runs.
+    func persistLastRemoteChangeIfNeeded() {
+        pendingUserDefaultsPersist = false
+        if let stamp = lastRemoteChangeAt {
+            UserDefaults.standard.set(stamp.timeIntervalSince1970, forKey: Self.persistedTimestampKey)
         }
     }
 
@@ -43,7 +77,7 @@ final class ICloudSyncActivityModel: ObservableObject {
             return
         }
         pendingUserDefaultsPersist = true
-        DispatchQueue.main.async { [weak self] in
+        Task { @MainActor [weak self] in
             guard let self else { return }
             self.pendingUserDefaultsPersist = false
             if let stamp = self.lastRemoteChangeAt {

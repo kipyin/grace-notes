@@ -30,4 +30,14 @@ final class ReviewJournalThemeLanguageResolverTests: XCTestCase {
         let locale = resolver.resolvedDisplayLocale(forJournalCorpus: corpus)
         XCTAssertEqual(locale.identifier, "en")
     }
+
+    func test_resolvedDisplayLocale_sparseAnalysisPrefixDenseTail_fallsBackToEnglish() {
+        let resolver = ReviewJournalThemeLanguageResolver()
+        // One meaningful grapheme in the first 50k clusters, then spaces to fill the prefix, then dense
+        // Chinese: the meaningful-grapheme gate only sees the analysis prefix, so we fall back to English.
+        let sparseHead = "A" + String(repeating: " ", count: 49_999)
+        let denseTail = String(repeating: "休", count: 10_000)
+        let locale = resolver.resolvedDisplayLocale(forJournalCorpus: sparseHead + denseTail)
+        XCTAssertEqual(locale.identifier, "en")
+    }
 }

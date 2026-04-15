@@ -254,7 +254,70 @@ final class WeeklyReviewHistoryRollupsTests: XCTestCase {
 
         let rhythm = try XCTUnwrap(aggregates.stats.rhythmHistory)
         XCTAssertEqual(calendar.startOfDay(for: rhythm.first!.date), calendar.startOfDay(for: ancient))
-        XCTAssertGreaterThan(rhythm.count, 180, "Uncapped history should span ancient entry through week end.")
+        XCTAssertGreaterThan(
+            rhythm.count,
+            180,
+            "History should span ancient entry through week end when under the hard horizon cap."
+        )
+    }
+
+    func test_rhythmHistory_skipsDaysBeforeHardHorizonWhenJournalSpansManyYears() throws {
+        let referenceDate = date(year: 2026, month: 3, day: 18)
+        let period = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
+        let previous = ReviewInsightsPeriod.previousPeriod(before: period, calendar: calendar)
+        let veryOld = date(year: 1995, month: 1, day: 1)
+        let recent = date(year: 2026, month: 3, day: 17)
+        let oldEntry = makeEntry(on: veryOld, gratitudes: ["dust"])
+        let recentEntry = makeEntry(on: recent, gratitudes: ["new"])
+        let allEntries = [oldEntry, recentEntry]
+
+        let aggregates = builder.build(
+            currentPeriod: period,
+            currentWeekEntries: allEntries.filter { period.contains($0.entryDate) },
+            previousWeekEntries: allEntries.filter { previous.contains($0.entryDate) },
+            allEntries: allEntries,
+            calendar: calendar,
+            referenceDate: referenceDate
+        )
+        let rhythm = try XCTUnwrap(aggregates.stats.rhythmHistory)
+        XCTAssertLessThanOrEqual(rhythm.count, 731)
+        let firstStart = calendar.startOfDay(for: rhythm.first!.date)
+        XCTAssertGreaterThan(firstStart, calendar.startOfDay(for: veryOld))
+    }
+
+    func test_build_weekActivity_matchesAlignedPeriod_whenCurrentPeriodLowerBoundIsNotMidnight() throws {
+        let referenceDate = date(year: 2026, month: 3, day: 18)
+        let alignedPeriod = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
+        let noonLower = try XCTUnwrap(calendar.date(byAdding: .hour, value: 12, to: alignedPeriod.lowerBound))
+        XCTAssertLessThan(noonLower, alignedPeriod.upperBound)
+        let skewedPeriod = noonLower..<alignedPeriod.upperBound
+        let previous = ReviewInsightsPeriod.previousPeriod(before: alignedPeriod, calendar: calendar)
+
+        let entryDay = date(year: 2026, month: 3, day: 17)
+        let weekEntry = makeEntry(on: entryDay, gratitudes: ["solo"])
+        let allEntries = [weekEntry]
+
+        let skewed = builder.build(
+            currentPeriod: skewedPeriod,
+            currentWeekEntries: allEntries,
+            previousWeekEntries: allEntries.filter { previous.contains($0.entryDate) },
+            allEntries: allEntries,
+            calendar: calendar,
+            referenceDate: referenceDate
+        )
+        let aligned = builder.build(
+            currentPeriod: alignedPeriod,
+            currentWeekEntries: allEntries,
+            previousWeekEntries: allEntries.filter { previous.contains($0.entryDate) },
+            allEntries: allEntries,
+            calendar: calendar,
+            referenceDate: referenceDate
+        )
+
+        XCTAssertEqual(skewed.stats.activity, aligned.stats.activity)
+        for row in skewed.stats.activity {
+            XCTAssertEqual(row.date, calendar.startOfDay(for: row.date))
+        }
     }
 
     func test_reviewHistoryWindowing_entriesContributingToSection_sortsNewestFirst() {

@@ -62,16 +62,11 @@ struct JournalOnboardingPresentation: Equatable {
         sectionStates: [:]
     )
 
-    /// Guided step plus body copy; both are required for a visible banner (`sectionGuidance`).
-    private var guidedStepWithMessage: (step: JournalOnboardingStep, message: String)? {
-        guard let step, let message else { return nil }
-        let trimmed = message.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return nil }
-        return (step, trimmed)
-    }
-
+    /// True when guided copy is actually shown for the active step's banner section
+    /// (that is, when `sectionGuidance(for: step.bannerSection)` would be non-nil).
     var isGuidanceActive: Bool {
-        guidedStepWithMessage != nil
+        guard step != nil, let message else { return false }
+        return !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     func state(for section: JournalOnboardingSection) -> JournalOnboardingSectionState {
@@ -80,23 +75,31 @@ struct JournalOnboardingPresentation: Equatable {
 
     /// Per-section placement: linear steps use the active row.
     func sectionGuidance(for section: JournalOnboardingSection) -> JournalOnboardingSectionGuidance? {
-        guard let guided = guidedStepWithMessage else { return nil }
-        guard section == guided.step.bannerSection else { return nil }
+        guard let message, let step else { return nil }
+        guard !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+        guard section == step.bannerSection else { return nil }
         let secondary: String? = {
-            switch guided.step {
+            switch step {
             case .gratitude:
-                let hint = String(localized: "journal.onboarding.keyboardFinishHint")
-                let trimmedHint = hint.trimmingCharacters(in: .whitespacesAndNewlines)
-                return trimmedHint.isEmpty ? nil : trimmedHint
+                return Self.trimmedKeyboardFinishHintLine(
+                    String(localized: "journal.onboarding.keyboardFinishHint")
+                )
             case .need, .person:
                 return nil
             }
         }()
         return JournalOnboardingSectionGuidance(
             title: title ?? "",
-            message: guided.message,
+            message: message,
             messageSecondary: secondary
         )
+    }
+
+    /// Returns `nil` when `raw` is empty or only whitespace and newlines; otherwise returns trimmed text.
+    /// Used for the gratitude keyboard hint line; exposed for unit tests covering trim/empty rules.
+    static func trimmedKeyboardFinishHintLine(_ raw: String) -> String? {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 }
 
@@ -142,7 +145,16 @@ private extension JournalOnboardingFlowEvaluator {
         message: String,
         states: [JournalOnboardingSection: JournalOnboardingSectionState]
     ) -> JournalOnboardingPresentation {
-        JournalOnboardingPresentation(
+        if message.isEmpty {
+            #if DEBUG
+            assertionFailure(
+                "Journal onboarding requires non-empty message for step \(step); "
+                    + "treating as inactive to avoid locked sections without copy."
+            )
+            #endif
+            return .inactive
+        }
+        return JournalOnboardingPresentation(
             step: step,
             title: title,
             message: message,

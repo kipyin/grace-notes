@@ -31,7 +31,8 @@ extension JournalViewModel {
         return true
     }
 
-    /// Returns true if the item was updated (valid index and trimmed text non-empty).
+    /// Returns false for an invalid index or empty trimmed text; returns true if the stored value
+    /// already matches or was updated.
     func updateGratitude(at index: Int, fullText: String) async -> Bool {
         guard gratitudes.indices.contains(index) else { return false }
         let trimmed = fullText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -44,7 +45,8 @@ extension JournalViewModel {
         return true
     }
 
-    /// Returns true if the item was updated (valid index and trimmed text non-empty).
+    /// Returns false for an invalid index or empty trimmed text; returns true if the stored value
+    /// already matches or was updated.
     func updateNeed(at index: Int, fullText: String) async -> Bool {
         guard needs.indices.contains(index) else { return false }
         let trimmed = fullText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -57,7 +59,8 @@ extension JournalViewModel {
         return true
     }
 
-    /// Returns true if the item was updated (valid index and trimmed text non-empty).
+    /// Returns false for an invalid index or empty trimmed text; returns true if the stored value
+    /// already matches or was updated.
     func updatePerson(at index: Int, fullText: String) async -> Bool {
         guard people.indices.contains(index) else { return false }
         let trimmed = fullText.trimmingCharacters(in: .whitespacesAndNewlines)

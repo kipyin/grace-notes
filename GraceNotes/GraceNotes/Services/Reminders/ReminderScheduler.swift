@@ -71,7 +71,11 @@ struct ReminderScheduler {
     }
 
     func enableDailyReminder(at time: Date, body: String) async -> ReminderSyncResult {
-        switch await notificationPermissionOutcome(allowPermissionPrompt: true) {
+        let authorizationStatus = await notificationCenter.authorizationStatus()
+        switch await notificationPermissionOutcome(
+            allowPermissionPrompt: true,
+            authorizationStatus: authorizationStatus
+        ) {
         case .granted:
             let wasScheduled = await scheduleReminder(at: time, body: body)
             return wasScheduled ? .scheduled : .failed
@@ -94,11 +98,15 @@ struct ReminderScheduler {
         // `notDetermined` is not a denial. This path does not prompt, so treat it as “cannot
         // reconcile now” and keep any existing pending request (maps to the same UI result as
         // before, without clearing a still-valid schedule).
-        if await notificationCenter.authorizationStatus() == .notDetermined {
+        let authorizationStatus = await notificationCenter.authorizationStatus()
+        if authorizationStatus == .notDetermined {
             return .permissionDenied
         }
 
-        switch await notificationPermissionOutcome(allowPermissionPrompt: false) {
+        switch await notificationPermissionOutcome(
+            allowPermissionPrompt: false,
+            authorizationStatus: authorizationStatus
+        ) {
         case .granted:
             let wasScheduled = await scheduleReminder(at: time, body: body)
             return wasScheduled ? .scheduled : .failed
@@ -120,9 +128,9 @@ struct ReminderScheduler {
     }
 
     private func notificationPermissionOutcome(
-        allowPermissionPrompt: Bool
+        allowPermissionPrompt: Bool,
+        authorizationStatus status: UNAuthorizationStatus
     ) async -> NotificationPermissionOutcome {
-        let status = await notificationCenter.authorizationStatus()
         switch status {
         case .authorized, .provisional, .ephemeral:
             return .granted

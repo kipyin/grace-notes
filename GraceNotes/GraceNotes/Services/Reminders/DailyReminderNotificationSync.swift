@@ -13,7 +13,7 @@ enum DailyReminderNotificationSync {
         let status = await reminderScheduler.currentReminderStatus()
         guard status == .enabled else { return }
 
-        let interval = storedReminderTimeInterval(from: userDefaults)
+        let interval = ReminderSettings.coercedTimeInterval(fromUserDefaults: userDefaults)
         let reminderTime = ReminderSettings.date(from: interval)
         let body: String
         do {

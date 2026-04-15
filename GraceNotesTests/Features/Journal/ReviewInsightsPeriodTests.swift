@@ -62,11 +62,33 @@ final class ReviewInsightsPeriodTests: XCTestCase {
         XCTAssertEqual(period.lowerBound, weekStart)
     }
 
-    private func date(year: Int, month: Int, day: Int) -> Date {
+    /// US Eastern spring forward March 8, 2026 (2:00 → 3:00 local). Exercises `previousPeriod` with
+    /// non-GMT offsets and a reference instant after the transition so week math stays day-anchored.
+    func test_previousPeriod_dstAmericaNewYork_sevenLocalDaysAfterSpringForward() {
+        var nyCalendar = Calendar(identifier: .gregorian)
+        nyCalendar.timeZone = TimeZone(identifier: "America/New_York")!
+        nyCalendar.firstWeekday = 1
+        calendar = nyCalendar
+
+        let reference = date(year: 2026, month: 3, day: 8, hour: 4, minute: 0)
+        let current = ReviewInsightsPeriod.currentPeriod(containing: reference, calendar: calendar)
+        let previous = ReviewInsightsPeriod.previousPeriod(before: current, calendar: calendar)
+
+        XCTAssertEqual(previous.upperBound, current.lowerBound)
+        XCTAssertEqual(previous.lowerBound, calendar.startOfDay(for: previous.lowerBound))
+        XCTAssertEqual(current.lowerBound, calendar.startOfDay(for: current.lowerBound))
+
+        let daySpan = calendar.dateComponents([.day], from: previous.lowerBound, to: previous.upperBound).day
+        XCTAssertEqual(daySpan, 7)
+    }
+
+    private func date(year: Int, month: Int, day: Int, hour: Int = 0, minute: Int = 0) -> Date {
         var components = DateComponents()
         components.year = year
         components.month = month
         components.day = day
+        components.hour = hour
+        components.minute = minute
         components.timeZone = calendar.timeZone
         return calendar.date(from: components)!
     }

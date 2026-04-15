@@ -127,10 +127,8 @@ struct SequentialSectionView: View {
         inputFocus?.wrappedValue ?? false
     }
 
-    /// Matches `SequentialSectionPrimaryColumn.activeEditingIndex`: ignore stale or out-of-bounds indices.
     private var activeEditingIndex: Int? {
-        guard let editingIndex, items.indices.contains(editingIndex) else { return nil }
-        return editingIndex
+        sequentialSectionActiveEditingIndex(editingIndex: editingIndex, itemCount: items.count)
     }
 
     private var shouldAnimateEditingPulse: Bool {
@@ -185,6 +183,7 @@ struct SequentialSectionView: View {
             onboardingState: onboardingState,
             isTransitioning: isTransitioning,
             editingIndex: editingIndex,
+            activeEditingIndex: activeEditingIndex,
             inputFocus: inputFocus,
             onInputFocusLost: onInputFocusLost,
             onSubmit: onSubmit,

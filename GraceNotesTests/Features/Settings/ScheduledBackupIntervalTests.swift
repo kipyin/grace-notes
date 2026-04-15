@@ -64,10 +64,10 @@ final class ScheduledBackupIntervalTests: XCTestCase {
         XCTAssertFalse(ScheduledBackupInterval.monthly.isDue(lastRun: start, now: plus29, calendar: calendar))
     }
 
-    func test_monthly_thirtyFirstDayFromStart_isDue() {
+    func test_monthly_firstDayOfNextCalendarMonth_isDue() {
         let start = makeDate(year: 2026, month: 1, day: 1)
-        let plus30 = makeDate(year: 2026, month: 1, day: 31)
-        XCTAssertTrue(ScheduledBackupInterval.monthly.isDue(lastRun: start, now: plus30, calendar: calendar))
+        let firstOfFebruary = makeDate(year: 2026, month: 2, day: 1)
+        XCTAssertTrue(ScheduledBackupInterval.monthly.isDue(lastRun: start, now: firstOfFebruary, calendar: calendar))
     }
 
     private func makeDate(year: Int, month: Int, day: Int, hour: Int = 12) -> Date {

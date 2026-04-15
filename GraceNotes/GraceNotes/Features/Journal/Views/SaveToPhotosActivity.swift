@@ -32,9 +32,8 @@ final class SaveToPhotosActivity: UIActivity {
     }
 
     override func perform() {
-        PHPhotoLibrary.requestAuthorization(for: .addOnly) { [weak self] status in
+        PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
             DispatchQueue.main.async {
-                guard let self else { return }
                 guard status == .authorized else {
                     self.activityDidFinish(false)
                     return
