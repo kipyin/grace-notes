@@ -79,14 +79,6 @@ extension SequentialSectionPrimaryColumn {
         !isTransitioning && !isLockedByGuidance
     }
 
-    private var inputAccessibilityLabel: String {
-        String(
-            format: String(localized: "accessibility.sectionInputLabel"),
-            locale: Locale.current,
-            title
-        )
-    }
-
     private var ambientGuidanceOpacity: CGFloat {
         ambientInlineEditingActive ? SequentialSectionInlineLayout.ambientUnfocusedOpacity : 1
     }
@@ -188,7 +180,7 @@ extension SequentialSectionPrimaryColumn {
                 .onTapGesture {
                     if isInlineEditingActive {
                         commitInlineEditIfNeeded()
-                    } else if isAddMorphComposerVisible {
+                    } else if isAddMorphComposerVisible, showMorphAddSlot {
                         commitAddMorphFromHeaderTap()
                     }
                 }
@@ -268,6 +260,10 @@ extension SequentialSectionPrimaryColumn {
                 self.morphingItemID = nil
             }
             if itemIDs.isEmpty {
+                isAddMorphComposerVisible = false
+            } else if itemIDs.count >= slotCount {
+                // Filling the last slot can leave `isAddMorphComposerVisible` true while the morph is not shown;
+                // keep header tap / parent state (e.g. `JournalScreen`) consistent with the hidden composer.
                 isAddMorphComposerVisible = false
             }
         }
