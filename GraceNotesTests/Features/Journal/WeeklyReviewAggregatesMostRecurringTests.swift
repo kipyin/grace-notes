@@ -555,29 +555,45 @@ extension WeeklyReviewAggregatesMostRecurringTests {
         XCTAssertFalse(recurring.contains(where: { $0.label == "Exercise" || $0.label == "Movement" }))
     }
 
-    func test_moderateSurfaceSemanticMatch_latinRestDoesNotMatchForestSubstring() {
-        XCTAssertFalse(
-            builder.moderateSurfaceSemanticMatch(themeConcept: "rest", supportText: "I walked in the forest")
-        )
-    }
+    /// Latin-only themes must not pick up supporting evidence when the only Latin overlap is a substring inside
+    /// another word (e.g. "rest" ⊂ "forest") in mixed-script reading notes or reflections.
+    func test_buildThemeSections_mixedScriptSupportDoesNotMatchLatinSubstringInsideAnotherWord() throws {
+        let referenceDate = date(year: 2026, month: 3, day: 18)
+        let period = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
+        let previous = ReviewInsightsPeriod.previousPeriod(before: period, calendar: calendar)
 
-    func test_moderateSurfaceSemanticMatch_latinMatchesWholeWordAndPhrase() {
-        XCTAssertTrue(builder.moderateSurfaceSemanticMatch(themeConcept: "rest", supportText: "I need rest today"))
-        XCTAssertTrue(
-            builder.moderateSurfaceSemanticMatch(
-                themeConcept: "quiet morning",
-                supportText: "A quiet morning walk helped"
+        let entries = [
+            makeEntry(on: date(year: 2026, month: 3, day: 16), needs: ["rest"]),
+            makeEntry(on: date(year: 2026, month: 3, day: 17), needs: ["rest"]),
+            makeEntry(
+                on: date(year: 2026, month: 3, day: 18),
+                readingNotes: "forest 森林",
+                reflections: "Walking through the forest 森林."
+            ),
+            makeEntry(
+                on: date(year: 2026, month: 3, day: 18),
+                readingNotes: "I need rest 休息."
             )
+        ]
+
+        let recurring = builder.build(
+            currentPeriod: period,
+            currentWeekEntries: entries.filter { period.contains($0.entryDate) },
+            previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
+            allEntries: entries,
+            calendar: calendar,
+            referenceDate: referenceDate
+        ).stats.mostRecurringThemes
+
+        let rest = try XCTUnwrap(recurring.first(where: { $0.label == "Rest" }))
+        XCTAssertFalse(
+            rest.evidence.contains { $0.content.contains("forest") },
+            "Mixed-script support text must not match a Latin theme via in-word substring overlap."
         )
-    }
-
-    func test_moderateSurfaceSemanticMatch_hanContentionAfterNormalization() {
-        XCTAssertTrue(builder.moderateSurfaceSemanticMatch(themeConcept: "休息", supportText: "今天 休息 很重要"))
-        XCTAssertTrue(builder.moderateSurfaceSemanticMatch(themeConcept: "今天休息", supportText: "休息"))
-    }
-
-    func test_moderateSurfaceSemanticMatch_punctuationOnlySupportDoesNotMatch() {
-        XCTAssertFalse(builder.moderateSurfaceSemanticMatch(themeConcept: "rest", supportText: "   ..., "))
+        XCTAssertTrue(
+            rest.evidence.contains { $0.content.contains("I need rest 休息") },
+            "Whole-word Latin matches should still attach supporting evidence when Han is also present."
+        )
     }
 
     /// Mirrors `PersistenceController.seedUITestDataIfNeeded` default seed + Monday reference (issue #140 UI test).

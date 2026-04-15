@@ -314,39 +314,20 @@ extension WeeklyReviewAggregatesBuilder {
         let normalizedSupport = textNormalizer.normalizeThemeLabel(supportText)
         let normalizedTheme = textNormalizer.normalizeThemeLabel(themeConcept)
         guard !normalizedSupport.isEmpty, !normalizedTheme.isEmpty else { return false }
-
-        let hasHanInRaw = containsHanCharacters(themeConcept) || containsHanCharacters(supportText)
-        let bothNormalizedHaveLatin = containsLatinLetters(normalizedTheme) && containsLatinLetters(normalizedSupport)
-        let latinWordOrTokenMatch = latinWordBoundaryOrTokenOverlap(
+        // Substring matching is for CJK themes where `\b` and token overlap do not apply. If the theme is
+        // Latin-only, substring matching whenever the support text also contains CJK would reintroduce
+        // Latin-in-word hits (e.g. "rest" inside "forest") in mixed-language passages.
+        if containsHanCharacters(themeConcept) {
+            return normalizedSupport.contains(normalizedTheme) || normalizedTheme.contains(normalizedSupport)
+        }
+        return latinNormalizedThemeMatchesSupport(
             normalizedTheme: normalizedTheme,
             normalizedSupport: normalizedSupport
         )
-
-        if !hasHanInRaw {
-            return latinWordOrTokenMatch
-        }
-
-        if !bothNormalizedHaveLatin {
-            // Han/kanji (or one side lacks Latin letters): `\b` and Latin token overlap are unreliable;
-            // substring either way.
-            return normalizedSupport.contains(normalizedTheme) || normalizedTheme.contains(normalizedSupport)
-        }
-
-        if latinWordOrTokenMatch {
-            return true
-        }
-
-        // Both normalized strings include Latin letters; Latin checks already ran. Substring fallback only when both
-        // sides also include Han characters (Han/kanji adjacency), avoiding pure Latin substring hits like "rest"
-        // inside "forest …" when a Han character triggers the Han path.
-        let bidirectionalSubstring =
-            normalizedSupport.contains(normalizedTheme) || normalizedTheme.contains(normalizedSupport)
-        return bidirectionalSubstring
-            && containsHanCharacters(normalizedTheme)
-            && containsHanCharacters(normalizedSupport)
     }
 
-    private func latinWordBoundaryOrTokenOverlap(normalizedTheme: String, normalizedSupport: String) -> Bool {
+    /// Latin-safe matching after normalization: word boundaries, then multi-character token overlap.
+    private func latinNormalizedThemeMatchesSupport(normalizedTheme: String, normalizedSupport: String) -> Bool {
         if latinPhraseHasWordBoundaryMatch(haystack: normalizedSupport, needle: normalizedTheme)
             || latinPhraseHasWordBoundaryMatch(haystack: normalizedTheme, needle: normalizedSupport) {
             return true
