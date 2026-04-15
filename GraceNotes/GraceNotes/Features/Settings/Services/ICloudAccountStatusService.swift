@@ -18,13 +18,20 @@ final class ICloudAccountStatusService: ICloudAccountStatusProviding {
     func fetchAccountBucket() async -> ICloudAccountBucket {
         let container = CKContainer(identifier: containerIdentifier)
         do {
-            let status = try await container.accountStatus()
+            let status = try await Task(priority: .utility) {
+                try await container.accountStatus()
+            }.value
             return ICloudAccountBucket(status)
         } catch {
-            if !isCancellationLike(error) {
-                let detail = error.localizedDescription
+            if !(error is CancellationError) {
+                let nsError = error as NSError
                 iCloudAccountStatusLogger.error(
-                    "Failed to fetch iCloud account status. \(detail, privacy: .public)"
+                    """
+                    Failed to fetch iCloud account status. \
+                    type=\(String(describing: type(of: error)), privacy: .public) \
+                    domain=\(nsError.domain, privacy: .public) \
+                    code=\(nsError.code, privacy: .public)
+                    """
                 )
             }
             return .couldNotDetermine
