@@ -1,6 +1,12 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+/// Editing index clamped to item count; `nil` when stale or out-of-range (shared by dots and rows).
+func sequentialSectionActiveEditingIndex(editingIndex: Int?, itemCount: Int) -> Int? {
+    guard let editingIndex, editingIndex >= 0, editingIndex < itemCount else { return nil }
+    return editingIndex
+}
+
 private enum SequentialSectionPrimaryColumnLayout {
     static let sectionProgressDotsTrailingInset: CGFloat = 8
 }
@@ -26,6 +32,8 @@ struct SequentialSectionPrimaryColumn<ProgressDots: View>: View {
     let onboardingState: JournalOnboardingSectionState
     let isTransitioning: Bool
     let editingIndex: Int?
+    /// In-bounds inline editor index; matches progress dots (ignores stale `editingIndex`).
+    let activeEditingIndex: Int?
     let inputFocus: FocusState<Bool>.Binding?
     let onInputFocusLost: (() -> Void)?
     let onSubmit: () -> Void
@@ -53,11 +61,6 @@ struct SequentialSectionPrimaryColumn<ProgressDots: View>: View {
 }
 
 extension SequentialSectionPrimaryColumn {
-    private var activeEditingIndex: Int? {
-        guard let editingIndex, items.indices.contains(editingIndex) else { return nil }
-        return editingIndex
-    }
-
     private var isInlineEditingActive: Bool {
         activeEditingIndex != nil
     }
@@ -413,7 +416,7 @@ private extension SequentialSectionPrimaryColumn {
             itemCount: items.count,
             sentence: item.fullText,
             accessibilityIdentifier: rowAccessibilityPrefix,
-            isSelected: editingIndex == index,
+            isSelected: activeEditingIndex == index,
             isExpanded: expandedItemIDs.contains(item.id),
             isExpandable: isExpandable,
             expansionAccessibilityIdentifier: rowAccessibilityPrefix.map { "\($0).more" },
