@@ -347,7 +347,7 @@ struct WarmPaperPressStyle: ButtonStyle {
     }
 }
 
-// MARK: - Color Hex Extension
+// MARK: - Adaptive color (hex parsing: `Color+Hex.swift`)
 
 /// Shared 24-bit `0xRRGGBB` parsing; masks to the low 24 bits so stray high bits cannot skew channels.
 private struct HexRGBComponents {
@@ -371,11 +371,6 @@ private extension UIColor {
 }
 
 private extension Color {
-    init(hex: UInt) {
-        let rgb = HexRGBComponents(hex: hex)
-        self.init(red: Double(rgb.red), green: Double(rgb.green), blue: Double(rgb.blue))
-    }
-
     static func adaptive(lightHex: UInt, darkHex: UInt) -> Color {
         Color(
             UIColor { traitCollection in
@@ -383,5 +378,16 @@ private extension Color {
                 return UIColor(hex: colorHex)
             }
         )
+    }
+}
+
+private extension UIColor {
+    /// Matches `Color.init(hex:)` masking so light/dark adaptive pairs stay consistent with share-card hex colors.
+    convenience init(hex: UInt) {
+        let rgb = hex & 0xFFFFFF
+        let red = CGFloat((rgb >> 16) & 0xFF) / 255
+        let green = CGFloat((rgb >> 8) & 0xFF) / 255
+        let blue = CGFloat(rgb & 0xFF) / 255
+        self.init(red: red, green: green, blue: blue, alpha: 1)
     }
 }
