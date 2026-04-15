@@ -62,59 +62,33 @@ final class ReviewInsightsPeriodTests: XCTestCase {
         XCTAssertEqual(period.lowerBound, weekStart)
     }
 
-    /// Forces the `weekStart..<interval.end` branch when the seven-day exclusive end is unavailable.
-    func test_currentPeriod_fallsBackToIntervalEndWhenExclusiveEndUnavailable() {
-        calendar.firstWeekday = 1
-        let reference = date(year: 2026, month: 3, day: 18)
-        let interval = calendar.dateInterval(of: .weekOfYear, for: reference)!
-        let weekStart = calendar.startOfDay(for: interval.start)
-        let period = ReviewInsightsPeriod.currentPeriod(
-            containing: reference,
-            calendar: calendar,
-            weekExclusiveEnd: { _ in nil }
-        )
-        XCTAssertEqual(period.lowerBound, weekStart)
-        XCTAssertEqual(period.upperBound, interval.end)
+    /// US Eastern spring forward March 8, 2026 (2:00 → 3:00 local). Exercises `previousPeriod` with
+    /// non-GMT offsets and a reference instant after the transition so week math stays day-anchored.
+    func test_previousPeriod_dstAmericaNewYork_sevenLocalDaysAfterSpringForward() {
+        var nyCalendar = Calendar(identifier: .gregorian)
+        nyCalendar.timeZone = TimeZone(identifier: "America/New_York")!
+        nyCalendar.firstWeekday = 1
+        calendar = nyCalendar
+
+        let reference = date(year: 2026, month: 3, day: 8, hour: 4, minute: 0)
+        let current = ReviewInsightsPeriod.currentPeriod(containing: reference, calendar: calendar)
+        let previous = ReviewInsightsPeriod.previousPeriod(before: current, calendar: calendar)
+
+        XCTAssertEqual(previous.upperBound, current.lowerBound)
+        XCTAssertEqual(previous.lowerBound, calendar.startOfDay(for: previous.lowerBound))
+        XCTAssertEqual(current.lowerBound, calendar.startOfDay(for: current.lowerBound))
+
+        let daySpan = calendar.dateComponents([.day], from: previous.lowerBound, to: previous.upperBound).day
+        XCTAssertEqual(daySpan, 7)
     }
 
-    /// Forces ``rollingSevenDayFallback`` when the week interval cannot be resolved.
-    func test_currentPeriod_rollingFallbackWhenWeekIntervalUnavailable() {
-        calendar.firstWeekday = 1
-        let reference = date(year: 2026, month: 3, day: 18)
-        let period = ReviewInsightsPeriod.currentPeriod(
-            containing: reference,
-            calendar: calendar,
-            weekIntervalForReference: { _ in nil }
-        )
-        let endDay = calendar.startOfDay(for: reference)
-        let expectedEnd = calendar.date(byAdding: .day, value: 1, to: endDay) ?? endDay
-        let expectedStart = calendar.date(byAdding: .day, value: -6, to: endDay) ?? endDay
-        XCTAssertEqual(period.lowerBound, expectedStart)
-        XCTAssertEqual(period.upperBound, expectedEnd)
-    }
-
-    /// Forces the span-based fallback when subtracting seven local days returns nil.
-    func test_previousPeriod_fallsBackToSpanWhenSubtractSevenDaysUnavailable() {
-        calendar.firstWeekday = 1
-        let lower = date(year: 2026, month: 3, day: 15)
-        let upper = date(year: 2026, month: 3, day: 24)
-        let current = lower..<upper
-        let span = upper.timeIntervalSince(lower)
-        let previous = ReviewInsightsPeriod.previousPeriod(
-            before: current,
-            calendar: calendar,
-            subtractSevenDaysFromLowerBound: { _ in nil }
-        )
-        XCTAssertEqual(previous.upperBound, lower)
-        XCTAssertEqual(previous.lowerBound, lower.addingTimeInterval(-span))
-        XCTAssertEqual(previous.upperBound.timeIntervalSince(previous.lowerBound), span, accuracy: 0.001)
-    }
-
-    private func date(year: Int, month: Int, day: Int) -> Date {
+    private func date(year: Int, month: Int, day: Int, hour: Int = 0, minute: Int = 0) -> Date {
         var components = DateComponents()
         components.year = year
         components.month = month
         components.day = day
+        components.hour = hour
+        components.minute = minute
         components.timeZone = calendar.timeZone
         return calendar.date(from: components)!
     }

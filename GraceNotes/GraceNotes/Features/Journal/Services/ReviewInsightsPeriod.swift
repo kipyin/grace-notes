@@ -40,22 +40,15 @@ enum ReviewInsightsPeriod {
 
     /// The calendar week immediately before `current` (the seven local days whose end abuts
     /// `current.lowerBound`).
-    static func previousPeriod(
-        before current: Range<Date>,
-        calendar: Calendar,
-        subtractSevenDaysFromLowerBound: ((Date) -> Date?)? = nil
-    ) -> Range<Date> {
-        let previousStart: Date
-        if let override = subtractSevenDaysFromLowerBound {
-            let span = current.upperBound.timeIntervalSince(current.lowerBound)
-            previousStart = override(current.lowerBound) ?? current.lowerBound.addingTimeInterval(-span)
-        } else {
-            // Anchor on the last instant before the current week so `startOfDay` + day offsets match
-            // local week boundaries (including across DST). A fixed −604_800s stride is not seven
-            // local days when offset changes break the SI-second count between week starts.
-            let lastInstantBeforeCurrent = current.lowerBound.addingTimeInterval(-1)
-            let lastDayStart = calendar.startOfDay(for: lastInstantBeforeCurrent)
-            previousStart = calendar.date(byAdding: .day, value: -6, to: lastDayStart) ?? lastDayStart
+    static func previousPeriod(before current: Range<Date>, calendar: Calendar) -> Range<Date> {
+        // Anchor on the last instant before the current week so `startOfDay` + day offsets match
+        // local week boundaries (including across DST). A fixed −604_800s stride is not seven
+        // local days when offset changes break the SI-second count between week starts.
+        let lastInstantBeforeCurrent = current.lowerBound.addingTimeInterval(-1)
+        let lastDayStart = calendar.startOfDay(for: lastInstantBeforeCurrent)
+        guard let previousStart = calendar.date(byAdding: .day, value: -6, to: lastDayStart) else {
+            let fallback = rollingSevenDayFallback(containing: lastInstantBeforeCurrent, calendar: calendar)
+            return fallback.lowerBound..<current.lowerBound
         }
         return previousStart..<current.lowerBound
     }
