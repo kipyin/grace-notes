@@ -11,7 +11,12 @@ enum AppInstructionLocale: Equatable, Sendable {
         guard let preferred = bundle.preferredLocalizations.first else {
             return .english
         }
-        if isSimplifiedChineseUIIdentifier(preferred) {
+        return resolved(forPreferredLocalizationIdentifier: preferred)
+    }
+
+    /// Resolves a tag from `bundle.preferredLocalizations` (same strings as `bundle.preferredLocalizations.first`).
+    internal static func resolved(forPreferredLocalizationIdentifier identifier: String) -> AppInstructionLocale {
+        if isSimplifiedChineseUIIdentifier(identifier) {
             return .simplifiedChinese
         }
         return .english
@@ -28,14 +33,8 @@ enum AppInstructionLocale: Equatable, Sendable {
     /// this function; do not rely on Foundation to do that in the guards below.
     private static func isSimplifiedChineseUIIdentifier(_ identifier: String) -> Bool {
         let language = Locale.Language(identifier: identifier)
-        guard language.languageCode?.identifier == "zh" else {
-            return false
-        }
-        guard let script = language.script?.identifier else {
-            // No script: bare `zh` / legacy forms Foundation leaves scriptless → English instructions.
-            return false
-        }
-        return script.caseInsensitiveCompare("Hans") == .orderedSame
+        guard language.languageCode == .chinese else { return false }
+        return language.script?.identifier.caseInsensitiveCompare("Hans") == .orderedSame
     }
 
     private static let simplifiedChineseScript = Locale.Script("Hans")
