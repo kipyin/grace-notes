@@ -71,7 +71,7 @@ struct JournalOnboardingPresentation: Equatable {
     }
 
     var isGuidanceActive: Bool {
-        guidedStepWithMessage != nil
+        step != nil && !(message?.isEmpty ?? true)
     }
 
     func state(for section: JournalOnboardingSection) -> JournalOnboardingSectionState {
@@ -80,21 +80,18 @@ struct JournalOnboardingPresentation: Equatable {
 
     /// Per-section placement: linear steps use the active row.
     func sectionGuidance(for section: JournalOnboardingSection) -> JournalOnboardingSectionGuidance? {
-        guard let guided = guidedStepWithMessage else { return nil }
-        guard section == guided.step.bannerSection else { return nil }
-        let secondary: String? = {
-            switch guided.step {
-            case .gratitude:
-                let hint = String(localized: "journal.onboarding.keyboardFinishHint")
-                let trimmedHint = hint.trimmingCharacters(in: .whitespacesAndNewlines)
-                return trimmedHint.isEmpty ? nil : trimmedHint
-            case .need, .person:
-                return nil
-            }
-        }()
+        guard let message, let step else { return nil }
+        guard !message.isEmpty else { return nil }
+        guard section == step.bannerSection else { return nil }
+        let secondary: String? = switch step {
+        case .gratitude:
+            String(localized: "journal.onboarding.keyboardFinishHint")
+        case .need, .person:
+            nil
+        }
         return JournalOnboardingSectionGuidance(
             title: title ?? "",
-            message: guided.message,
+            message: message,
             messageSecondary: secondary
         )
     }
@@ -142,7 +139,16 @@ private extension JournalOnboardingFlowEvaluator {
         message: String,
         states: [JournalOnboardingSection: JournalOnboardingSectionState]
     ) -> JournalOnboardingPresentation {
-        JournalOnboardingPresentation(
+        if message.isEmpty {
+            #if DEBUG
+            assertionFailure(
+                "Journal onboarding requires non-empty message for step \(step); "
+                    + "treating as inactive to avoid locked sections without copy."
+            )
+            #endif
+            return .inactive
+        }
+        return JournalOnboardingPresentation(
             step: step,
             title: title,
             message: message,
