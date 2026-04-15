@@ -34,7 +34,7 @@ struct ReviewJournalThemeLanguageResolver: ReviewJournalThemeLanguageResolving {
             return Self.englishCatalogLocale
         }
 
-        let analysisText = Self.normalizedAnalysisSample(from: trimmed)
+        let analysisText = Self.analysisSample(from: trimmed)
 
         let recognizer = NLLanguageRecognizer()
         recognizer.processString(analysisText)
@@ -47,7 +47,7 @@ struct ReviewJournalThemeLanguageResolver: ReviewJournalThemeLanguageResolving {
             }
         }
 
-        return Self.scriptTieBreakLocale(analysisText: analysisText)
+        return Self.scriptTieBreakLocale(trimmed: analysisText)
     }
 
     private static let englishCatalogLocale = Locale(identifier: "en")
@@ -55,16 +55,12 @@ struct ReviewJournalThemeLanguageResolver: ReviewJournalThemeLanguageResolving {
     /// Upper bound on text fed to `NLLanguageRecognizer` and script tie-break (prefix by extended grapheme cluster).
     private static let maximumAnalysisGraphemes = 50_000
 
-    /// Counts non-whitespace graphemes only in the same prefix we analyze, so the threshold matches
-    /// `normalizedAnalysisSample` and pathological corpora cannot spend unbounded time here.
     private static func hasEnoughMeaningfulGraphemes(_ text: String, minimum: Int) -> Bool {
         if minimum <= 0 {
             return true
         }
-
-        let prefix = text.prefix(maximumAnalysisGraphemes)
         var count = 0
-        for character in prefix where !character.isWhitespace {
+        for character in text where !character.isWhitespace {
             count += 1
             if count >= minimum {
                 return true
@@ -73,15 +69,9 @@ struct ReviewJournalThemeLanguageResolver: ReviewJournalThemeLanguageResolving {
         return false
     }
 
-    /// Collapses whitespace runs only inside the analysis prefix so pathological corpora never run a full-string
-    /// regex replace.
-    private static func normalizedAnalysisSample(from trimmed: String) -> String {
-        let head = String(trimmed.prefix(maximumAnalysisGraphemes))
-        return collapseWhitespaceRuns(head)
-    }
-
-    private static func collapseWhitespaceRuns(_ text: String) -> String {
-        text.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+    /// Keeps language detection and script scanning bounded on pathologically long corpora without scanning `count`.
+    private static func analysisSample(from trimmed: String) -> String {
+        String(trimmed.prefix(maximumAnalysisGraphemes))
     }
 
     /// Maps recognizer output to a locale that exists in `Localizable.xcstrings` (we ship `en` + `zh-Hans`).
