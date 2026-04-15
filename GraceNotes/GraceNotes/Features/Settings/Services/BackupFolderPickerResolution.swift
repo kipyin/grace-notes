@@ -9,6 +9,20 @@ enum BackupFolderPickerResolution {
         case pathComponentIsNotDirectory(URL)
     }
 
+    private enum PathKind {
+        case missing
+        case directory
+        case notDirectory
+    }
+
+    private static func pathKind(at url: URL, fileManager: FileManager) -> PathKind {
+        var isDirectory: ObjCBool = false
+        guard fileManager.fileExists(atPath: url.path, isDirectory: &isDirectory) else {
+            return .missing
+        }
+        return isDirectory.boolValue ? .directory : .notDirectory
+    }
+
     static func resolvedFolderURL(
         userPicked: URL,
         fileManager: FileManager = .default
@@ -24,20 +38,23 @@ enum BackupFolderPickerResolution {
 
     /// Returns without error when nothing exists at `url` (caller may create a path below it).
     private static func requireDirectoryIfExists(at url: URL, fileManager: FileManager) throws {
-        var isDirectory: ObjCBool = false
-        guard fileManager.fileExists(atPath: url.path, isDirectory: &isDirectory) else { return }
-        guard isDirectory.boolValue else {
+        switch pathKind(at: url, fileManager: fileManager) {
+        case .missing, .directory:
+            return
+        case .notDirectory:
             throw ResolutionError.pathComponentIsNotDirectory(url)
         }
     }
 
     private static func ensureDirectoryExistsOrCreate(at url: URL, fileManager: FileManager) throws -> URL {
-        try requireDirectoryIfExists(at: url, fileManager: fileManager)
-        var isDirectory: ObjCBool = false
-        if fileManager.fileExists(atPath: url.path, isDirectory: &isDirectory) {
+        switch pathKind(at: url, fileManager: fileManager) {
+        case .notDirectory:
+            throw ResolutionError.pathComponentIsNotDirectory(url)
+        case .directory:
+            return url
+        case .missing:
+            try fileManager.createDirectory(at: url, withIntermediateDirectories: true)
             return url
         }
-        try fileManager.createDirectory(at: url, withIntermediateDirectories: true)
-        return url
     }
 }
