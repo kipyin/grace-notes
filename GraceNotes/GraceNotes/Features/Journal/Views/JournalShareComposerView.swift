@@ -45,6 +45,7 @@ struct JournalShareComposerView: View {
                 .disabled(isShareCommitInProgress)
             }
             .scrollDisabled(isShareCommitInProgress)
+            .allowsHitTesting(!isShareCommitInProgress)
             .scrollContentBackground(.hidden)
             .background(AppTheme.settingsBackground.ignoresSafeArea())
             .navigationTitle(String(localized: "sharing.composer.title"))
@@ -219,5 +220,6 @@ struct JournalShareComposerView: View {
             return
         }
         onShare(image)
+        isShareCommitInProgress = false
     }
 }
