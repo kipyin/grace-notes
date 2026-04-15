@@ -29,7 +29,8 @@ struct JournalSearchMatch: Identifiable, Equatable, Sendable {
         content: String
     ) -> String {
         let digest = SHA256.hash(data: Data(content.utf8))
-        let fingerprint = digest.prefix(8).map { String(format: "%02x", $0) }.joined()
+        // Use the full digest so truncated-hash collisions cannot map two different bodies of text to one `id`.
+        let fingerprint = digest.map { String(format: "%02x", $0) }.joined()
         return "\(journalEntryId.uuidString)|\(source.rawValue)|\(fingerprint)"
     }
 }
