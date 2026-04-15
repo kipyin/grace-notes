@@ -318,3 +318,123 @@ final class WeeklyInsightRuleEngineTests: XCTestCase {
         return calendar.date(from: components)!
     }
 }
+
+// MARK: - Continuity prompt + resurfacing headline alignment
+
+final class WeeklyInsightRuleEngineContinuityTests: XCTestCase {
+    func test_continuityPrompt_prefersTrimmedActionFromPrimaryInsightWhenTwoInsightsDisagree() {
+        let other = ReviewWeeklyInsight(
+            pattern: .recurringTheme,
+            observation: "Second card",
+            action: "Other action",
+            primaryTheme: nil,
+            mentionCount: nil,
+            dayCount: nil
+        )
+        let primary = ReviewWeeklyInsight(
+            pattern: .continuityShift,
+            observation: "Headline insight",
+            action: "  Primary action  ",
+            primaryTheme: nil,
+            mentionCount: nil,
+            dayCount: nil
+        )
+        let selected = [primary, other]
+        let (headline, primaryInsight) = WeeklyInsightRuleEngine.headlineAndPrimaryInsight(from: selected)
+        XCTAssertEqual(headline, "Headline insight")
+        XCTAssertEqual(primaryInsight?.action, primary.action)
+
+        let prompt = WeeklyInsightRuleEngine.continuityPrompt(
+            matching: primaryInsight,
+            in: selected,
+            defaultPrompt: "DEFAULT"
+        )
+        XCTAssertEqual(prompt, "Primary action")
+    }
+
+    func test_continuityPrompt_alignsWithHeadlineRowWhenEarlierInsightHasOnlyAction() {
+        let skippedRow = ReviewWeeklyInsight(
+            pattern: .recurringTheme,
+            observation: "",
+            action: "Only non-empty action on first row",
+            primaryTheme: nil,
+            mentionCount: nil,
+            dayCount: nil
+        )
+        let headlineRow = ReviewWeeklyInsight(
+            pattern: .continuityShift,
+            observation: "Resurfacing headline",
+            action: "  Action from headline row  ",
+            primaryTheme: nil,
+            mentionCount: nil,
+            dayCount: nil
+        )
+        let selected = [skippedRow, headlineRow]
+        let (headline, primaryInsight) = WeeklyInsightRuleEngine.headlineAndPrimaryInsight(from: selected)
+        XCTAssertEqual(headline, "Resurfacing headline")
+        XCTAssertEqual(primaryInsight, headlineRow)
+        let prompt = WeeklyInsightRuleEngine.continuityPrompt(
+            matching: primaryInsight,
+            in: selected,
+            defaultPrompt: "DEFAULT"
+        )
+        XCTAssertEqual(prompt, "Action from headline row")
+    }
+
+    func test_continuityPrompt_fallsBackToFirstNonEmptyActionInOrderWhenPrimaryIsBlank() {
+        let primary = ReviewWeeklyInsight(
+            pattern: .continuityShift,
+            observation: "Headline",
+            action: " \n ",
+            primaryTheme: nil,
+            mentionCount: nil,
+            dayCount: nil
+        )
+        let fallback = ReviewWeeklyInsight(
+            pattern: .recurringTheme,
+            observation: "",
+            primaryTheme: "Theme",
+            action: "  Fallback action ",
+            mentionCount: nil,
+            dayCount: nil
+        )
+        let selected = [primary, fallback]
+        let (_, primaryInsight) = WeeklyInsightRuleEngine.headlineAndPrimaryInsight(from: selected)
+        XCTAssertEqual(primaryInsight, primary)
+
+        let prompt = WeeklyInsightRuleEngine.continuityPrompt(
+            matching: primaryInsight,
+            in: selected,
+            defaultPrompt: "DEFAULT"
+        )
+        XCTAssertEqual(prompt, "Fallback action")
+    }
+
+    func test_continuityPrompt_usesDefaultWhenAllActionsEmpty() {
+        let insights = [
+            ReviewWeeklyInsight(
+                pattern: .recurringTheme,
+                observation: "Only observation",
+                action: nil,
+                primaryTheme: nil,
+                mentionCount: nil,
+                dayCount: nil
+            ),
+            ReviewWeeklyInsight(
+                pattern: .fullCompletion,
+                observation: "Another",
+                action: "   ",
+                primaryTheme: nil,
+                mentionCount: nil,
+                dayCount: nil
+            )
+        ]
+        let (_, primaryInsight) = WeeklyInsightRuleEngine.headlineAndPrimaryInsight(from: insights)
+        let prompt = WeeklyInsightRuleEngine.continuityPrompt(
+            matching: primaryInsight,
+            in: insights,
+            defaultPrompt: "DEFAULT"
+        )
+        XCTAssertEqual(prompt, "DEFAULT")
+    }
+}

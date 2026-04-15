@@ -48,17 +48,12 @@ struct WeeklyInsightRuleEngine {
 
         let narrativeSummary = candidateBuilder.narrativeSummary(from: selectedInsights)
         let starterReflection = String(localized: "review.insights.starterReflection")
-        let trimmedHeadline = Self.firstNonEmptyTrimmedHeadline(in: selectedInsights)
-        let resurfacingMessage = trimmedHeadline ?? starterReflection
-
-        let narrativeSummary = candidateBuilder.narrativeSummary(from: normalizedInsights)
-        let starterReflection = String(localized: "review.insights.starterReflection")
-        let (headline, primaryInsight) = Self.headlineAndPrimaryInsight(from: normalizedInsights)
+        let (headline, primaryInsight) = Self.headlineAndPrimaryInsight(from: selectedInsights)
         let resurfacingMessage = headline ?? starterReflection
 
         let continuityPrompt = Self.continuityPrompt(
             matching: primaryInsight,
-            in: normalizedInsights,
+            in: selectedInsights,
             defaultPrompt: candidateBuilder.defaultContinuityPrompt
         )
 
@@ -75,62 +70,45 @@ struct WeeklyInsightRuleEngine {
         )
     }
 
-    /// Prefer the first non-empty trimmed `observation` across selected insights (scanning every insight
-    /// before any theme). If no observation is available but `primaryTheme` is present (e.g. failed template
-    /// substitution), use the first non-empty trimmed theme so the resurfacing line still matches visible
-    /// card context instead of the generic starter copy.
-    static func firstNonEmptyTrimmedHeadline(in insights: [ReviewWeeklyInsight]) -> String? {
-        for insight in insights {
-            let trimmedObservation = insight.observation.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !trimmedObservation.isEmpty {
-                return trimmedObservation
-            }
+    /// Prefer a non-empty trimmed `action` from the same insight that drives the resurfacing headline
+    /// (first insight with a non-empty observation or `primaryTheme`), then any other insight’s action,
+    /// so the prompt stays aligned with the line the member actually sees.
+    static func continuityPrompt(
+        matching primaryInsight: ReviewWeeklyInsight?,
+        in insights: [ReviewWeeklyInsight],
+        defaultPrompt: String
+    ) -> String {
+        if let primary = primaryInsight,
+           let action = primary.action,
+           let trimmed = Self.nonEmptyTrimmed(action) {
+            return trimmed
         }
+        return insights
+            .compactMap(\.action)
+            .compactMap(Self.nonEmptyTrimmed)
+            .first
+            ?? defaultPrompt
+    }
+
+    static func nonEmptyTrimmed(_ text: String) -> String? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
+    /// Prefer the first non-empty trimmed `observation` across selected insights. If an observation is blank
+    /// but `primaryTheme` is present (e.g. failed template substitution), use the trimmed theme so the
+    /// resurfacing line still matches visible card context instead of the generic starter copy.
+    static func headlineAndPrimaryInsight(
+        from insights: [ReviewWeeklyInsight]
+    ) -> (headline: String?, primaryInsight: ReviewWeeklyInsight?) {
         for insight in insights {
-            if let theme = insight.primaryTheme?.trimmingCharacters(in: .whitespacesAndNewlines),
-               !theme.isEmpty {
-                return theme
+            if let trimmedObservation = Self.nonEmptyTrimmed(insight.observation) {
+                return (trimmedObservation, insight)
+            }
+            if let theme = insight.primaryTheme.flatMap(Self.nonEmptyTrimmed) {
+                return (theme, insight)
             }
         }
         return (nil, nil)
-    }
-}
-
-extension WeeklyInsightRuleEngine {
-    /// Trims insight copy so `weeklyInsights` matches `resurfacingMessage` / `continuityPrompt`.
-    static func normalizedWeeklyInsights(_ insights: [ReviewWeeklyInsight]) -> [ReviewWeeklyInsight] {
-        insights.map { insight in
-            let trimmedObservation = insight.observation.trimmingCharacters(in: .whitespacesAndNewlines)
-            let trimmedAction = insight.action?.trimmingCharacters(in: .whitespacesAndNewlines)
-            let action: String? = {
-                guard let trimmedAction, !trimmedAction.isEmpty else { return nil }
-                return trimmedAction
-            }()
-            return ReviewWeeklyInsight(
-                pattern: insight.pattern,
-                observation: trimmedObservation,
-                action: action,
-                primaryTheme: insight.primaryTheme,
-                mentionCount: insight.mentionCount,
-                dayCount: insight.dayCount
-            )
-        }
-    }
-
-    static func resurfacingMessage(
-        for insights: [ReviewWeeklyInsight],
-        emptyObservationFallback: String
-    ) -> String {
-        guard let headline = insights.first?.observation, !headline.isEmpty else {
-            return emptyObservationFallback
-        }
-        return headline
-    }
-
-    static func continuityPrompt(
-        for insights: [ReviewWeeklyInsight],
-        defaultPrompt: String
-    ) -> String {
-        insights.compactMap(\.action).first ?? defaultPrompt
     }
 }
