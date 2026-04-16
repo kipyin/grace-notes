@@ -54,7 +54,8 @@ struct EditableTextSection: View {
                         .font(AppTheme.warmPaperBody)
                         .foregroundStyle(palette.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
-                    if let guidanceMessageSecondary, !guidanceMessageSecondary.isEmpty {
+                    if let guidanceMessageSecondary,
+                       !guidanceMessageSecondary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         Text(guidanceMessageSecondary)
                             .font(AppTheme.warmPaperBody)
                             .foregroundStyle(palette.textPrimary)
