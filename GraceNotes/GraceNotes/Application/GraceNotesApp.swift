@@ -227,13 +227,21 @@ private struct DeferredReviewRoot: View {
                     .navigationTitle(String(localized: "shell.tab.past"))
             }
         }
-        // `.task` alone does not re-run when `isSelected` flips after first load; drive off `id` so Past
-        // defers `ReviewScreen` until the tab is actually selected (default tab is Today).
-        .task(id: isSelected) {
-            guard isSelected, !hasOpenedReviewTab else { return }
-            hasOpenedReviewTab = true
-            PerformanceTrace.instant("ReviewScreen.deferredUntilSelected")
+        // Past defers `ReviewScreen` until the tab is actually selected (default tab is Today). Use
+        // synchronous callbacks for the open gate: a `.task` body can be cancelled before it assigns
+        // `hasOpenedReviewTab` if `await` is ever inserted ahead of that assignment.
+        .onAppear {
+            openPastTabIfNeeded()
         }
+        .onChange(of: isSelected) { _, _ in
+            openPastTabIfNeeded()
+        }
+    }
+
+    private func openPastTabIfNeeded() {
+        guard isSelected, !hasOpenedReviewTab else { return }
+        hasOpenedReviewTab = true
+        PerformanceTrace.instant("ReviewScreen.deferredUntilSelected")
     }
 }
 
