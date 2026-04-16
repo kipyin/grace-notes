@@ -303,6 +303,7 @@ struct ImportExportSettingsScreen: View {
             Button(String(localized: "common.cancel"), role: .cancel) {
                 pendingImportURL = nil
                 mergeConflictDays = []
+                showMergeConflictResolution = false
             }
         } message: {
             Text(mergeConflictAlertMessage(count: mergeConflictDays.count))
