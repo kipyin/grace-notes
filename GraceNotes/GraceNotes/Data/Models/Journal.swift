@@ -173,10 +173,12 @@ final class JournalEntry {
 
     /// True when each chip section has at least one item (milestone “1/1/1”, independent of status name).
     var hasAtLeastOneEntryInEachSection: Bool {
-        let gratitudesCount = (gratitudes ?? []).count
-        let needsCount = (needs ?? []).count
-        let peopleCount = (people ?? []).count
-        return gratitudesCount >= 1 && needsCount >= 1 && peopleCount >= 1
+        let counts = NonNegativeSectionCounts(
+            gratitudesCount: (gratitudes ?? []).count,
+            needsCount: (needs ?? []).count,
+            peopleCount: (people ?? []).count
+        )
+        return counts.gratitudesCount >= 1 && counts.needsCount >= 1 && counts.peopleCount >= 1
     }
 
     /// Minimum items per section before the leaf tier when not yet at bloom (all sections must reach this).

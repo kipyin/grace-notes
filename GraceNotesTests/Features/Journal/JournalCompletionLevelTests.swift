@@ -113,6 +113,63 @@ final class JournalCompletionLevelTests: XCTestCase {
         XCTAssertEqual(level, .bloom)
     }
 
+    func test_completionLevel_clampsNegativeCounts_sproutWhenOneSectionNegative() {
+        let level = Journal.completionLevel(
+            gratitudesCount: -1,
+            needsCount: 2,
+            peopleCount: 2
+        )
+
+        XCTAssertEqual(level, .sprout)
+    }
+
+    func test_completionLevel_clampsNegativeCounts_soilWhenAllNegative() {
+        let level = Journal.completionLevel(
+            gratitudesCount: -1,
+            needsCount: -1,
+            peopleCount: -1
+        )
+
+        XCTAssertEqual(level, .soil)
+    }
+
+    func test_minimumEntryCountAcrossSections_alignsWithCompletionLevel_negativeInputs() {
+        let gratitudesCount = -1
+        let needsCount = 2
+        let peopleCount = 2
+        let minAcross = Journal.minimumEntryCountAcrossSections(
+            gratitudesCount: gratitudesCount,
+            needsCount: needsCount,
+            peopleCount: peopleCount
+        )
+        XCTAssertEqual(minAcross, 0)
+        XCTAssertEqual(
+            Journal.completionLevel(
+                gratitudesCount: gratitudesCount,
+                needsCount: needsCount,
+                peopleCount: peopleCount
+            ),
+            .sprout
+        )
+
+        let allNegativeMin = Journal.minimumEntryCountAcrossSections(
+            gratitudesCount: -1,
+            needsCount: -1,
+            peopleCount: -1
+        )
+        XCTAssertEqual(allNegativeMin, 0)
+        XCTAssertEqual(Journal.completionLevel(gratitudesCount: -1, needsCount: -1, peopleCount: -1), .soil)
+    }
+
+    func test_entriesIndicateBloom_usesClampedMinCountAgainstSlotCount() {
+        XCTAssertFalse(
+            Journal.entriesIndicateBloom(gratitudesCount: -1, needsCount: -1, peopleCount: -1)
+        )
+        XCTAssertTrue(
+            Journal.entriesIndicateBloom(gratitudesCount: 5, needsCount: 5, peopleCount: 5)
+        )
+    }
+
     func test_hasReachedBloom_alignsWithCompletionLevel_withOrWithoutNotes() throws {
         let context = try makeInMemoryContext()
         let items = (1...Journal.slotCount).map { Entry(fullText: "x\($0)") }
