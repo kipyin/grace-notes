@@ -17,16 +17,16 @@ enum ReviewHistoryWindowing {
         calendar: Calendar,
         pastStatisticsInterval: PastStatisticsIntervalSelection
     ) -> [Journal] {
-        let sortedAll = sortedEntries(allEntries)
         let historyRange = pastStatisticsInterval.validated.resolvedHistoryRange(
             referenceDate: referenceDate,
             calendar: calendar,
             allEntries: allEntries
         )
-        return sortedAll.filter { entry in
+        let inWindow = allEntries.filter { entry in
             let day = calendar.startOfDay(for: entry.entryDate)
             return day >= historyRange.lowerBound && day < historyRange.upperBound
         }
+        return sortedEntries(inWindow)
     }
 
     /// Strongest completion level per calendar day (same rules as ``WeeklyReviewAggregatesBuilder`` / skyline mix).
