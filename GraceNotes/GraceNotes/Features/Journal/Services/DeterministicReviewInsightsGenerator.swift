@@ -11,8 +11,18 @@ struct DeterministicReviewInsightsGenerator: ReviewInsightsGenerating {
     ) async throws -> ReviewInsights {
         let currentPeriod = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
         let previousPeriod = ReviewInsightsPeriod.previousPeriod(before: currentPeriod, calendar: calendar)
-        let currentWeekEntries = entries.filter { currentPeriod.contains($0.entryDate) }
-        let previousWeekEntries = entries.filter { previousPeriod.contains($0.entryDate) }
+
+        var currentWeekEntries: [Journal] = []
+        var previousWeekEntries: [Journal] = []
+        for entry in entries {
+            let date = entry.entryDate
+            if currentPeriod.contains(date) {
+                currentWeekEntries.append(entry)
+            } else if previousPeriod.contains(date) {
+                previousWeekEntries.append(entry)
+            }
+        }
+
         let analysis = ruleEngine.analyze(
             currentPeriod: currentPeriod,
             currentWeekEntries: currentWeekEntries,
