@@ -122,13 +122,9 @@ enum ScheduledBackupRunner {
     }
 
     private static func copyTempExport(at tempFile: URL, to folderURL: URL, exportDate: Date) throws -> String {
-        let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone(secondsFromGMT: 0)
-        formatter.dateFormat = "yyyyMMdd-HHmmss"
+        let stamp = JournalDataExportService().exportFilenameTimestamp(for: exportDate)
         // UUID avoids same-second overwrites (copyTempFile replaces an existing destination name).
-        let name = "grace-notes-scheduled-\(formatter.string(from: exportDate))-\(UUID().uuidString).json"
+        let name = "grace-notes-scheduled-\(stamp)-\(UUID().uuidString).json"
         return try BackupFolderJSONExport.copyTempFile(
             tempFile,
             into: folderURL,
