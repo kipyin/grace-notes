@@ -2,29 +2,19 @@ import SwiftUI
 
 /// Capsule-wrapped growth glyph shared by the Past skyline columns and drill-down chrome (issue #186).
 struct ReviewGrowthStageSkylineGlyph: View {
-    private enum Metrics {
-        case skyline(DynamicTypeSize)
-        case calendarDayTeaser
+    private struct Metrics {
+        let glyphSize: CGFloat
+        let glyphChrome: CGFloat
 
-        fileprivate var glyphSize: CGFloat {
-            switch self {
-            case .skyline(let dynamicTypeSize):
-                let scale = ReviewHistoryPanelLayoutScale.skylineMetricsScale(for: dynamicTypeSize)
-                return (14 * scale).rounded(.toNearestOrAwayFromZero)
-            case .calendarDayTeaser:
-                return 11
-            }
+        static func skyline(dynamicTypeSize: DynamicTypeSize) -> Metrics {
+            let scale = ReviewHistoryPanelLayoutScale.skylineMetricsScale(for: dynamicTypeSize)
+            return Metrics(
+                glyphSize: (14 * scale).rounded(.toNearestOrAwayFromZero),
+                glyphChrome: (26 * scale).rounded(.toNearestOrAwayFromZero)
+            )
         }
 
-        fileprivate var glyphChrome: CGFloat {
-            switch self {
-            case .skyline(let dynamicTypeSize):
-                let scale = ReviewHistoryPanelLayoutScale.skylineMetricsScale(for: dynamicTypeSize)
-                return (26 * scale).rounded(.toNearestOrAwayFromZero)
-            case .calendarDayTeaser:
-                return 20
-            }
-        }
+        static let calendarDayTeaser = Metrics(glyphSize: 11, glyphChrome: 20)
     }
 
     let level: JournalCompletionLevel
@@ -32,7 +22,7 @@ struct ReviewGrowthStageSkylineGlyph: View {
 
     init(level: JournalCompletionLevel, dynamicTypeSize: DynamicTypeSize) {
         self.level = level
-        self.metrics = .skyline(dynamicTypeSize)
+        self.metrics = .skyline(dynamicTypeSize: dynamicTypeSize)
     }
 
     /// Smaller glyph for calendar day cells.
