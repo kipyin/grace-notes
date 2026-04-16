@@ -18,7 +18,7 @@ enum PastJournalSearchDebouncer {
         }
 
         do {
-            try await Task.sleep(nanoseconds: 250_000_000)
+            try await Task.sleep(for: .milliseconds(250))
         } catch {
             return
         }
@@ -66,7 +66,11 @@ enum PastJournalSearchGrouping {
                 ReviewThemeSourceCategory.allCases.compactMap { source in
                     guard let rows = bySource[source], !rows.isEmpty else { return nil }
                     let sortedRows = rows.sorted {
-                        $0.content.localizedCaseInsensitiveCompare($1.content) == .orderedAscending
+                        let ordering = $0.content.localizedCaseInsensitiveCompare($1.content)
+                        if ordering != .orderedSame {
+                            return ordering == .orderedAscending
+                        }
+                        return $0.id < $1.id
                     }
                     return (source: source, rows: sortedRows)
                 }
@@ -94,6 +98,9 @@ private enum PastJournalSearchHighlighting {
     }
 
     private static func matchRanges(for content: String, trimmedQuery: String) -> [Range<String.Index>] {
+        // `range(of: "")` yields a zero-width match without advancing — would spin forever.
+        guard !trimmedQuery.isEmpty else { return [] }
+
         var ranges: [Range<String.Index>] = []
         var searchStart = content.startIndex
         while searchStart < content.endIndex,
