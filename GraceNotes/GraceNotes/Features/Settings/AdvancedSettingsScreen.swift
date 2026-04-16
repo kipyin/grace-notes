@@ -19,6 +19,8 @@ struct AdvancedSettingsScreen: View {
     @State private var intervalMode: PastStatisticsIntervalPickerMode
     @State private var customQuantity: Int
     @State private var customUnit: PastStatisticsIntervalUnit
+    @State private var appIconRowChoice: AppAlternateIconSelection.Choice = .liquidGlass
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         let raw = PastStatisticsIntervalPreference.appStorageRawValue()
@@ -30,6 +32,32 @@ struct AdvancedSettingsScreen: View {
 
     var body: some View {
         List {
+            if AppAlternateIconSelection.supportsAlternateIcons {
+                Section {
+                    NavigationLink {
+                        AppIconSelectionScreen()
+                    } label: {
+                        HStack(spacing: AppTheme.spacingRegular) {
+                            Text(String(localized: "settings.advanced.appIcon.pickerLabel"))
+                                .font(AppTheme.warmPaperBody)
+                                .foregroundStyle(AppTheme.settingsTextPrimary)
+                            Spacer(minLength: AppTheme.spacingRegular)
+                            Text(appIconRowChoice.localizedTitle)
+                                .font(AppTheme.warmPaperMeta)
+                                .foregroundStyle(AppTheme.settingsTextMuted)
+                                .lineLimit(1)
+                        }
+                        .frame(minHeight: 44)
+                        .contentShape(Rectangle())
+                    }
+                } header: {
+                    Text(String(localized: "settings.advanced.appIcon.sectionTitle"))
+                        .font(AppTheme.warmPaperHeader)
+                        .foregroundStyle(AppTheme.settingsTextPrimary)
+                        .textCase(nil)
+                }
+            }
+
             Section {
                 Picker(
                     String(localized: "settings.advanced.firstWeekday.label"),
@@ -119,6 +147,12 @@ struct AdvancedSettingsScreen: View {
         .navigationTitle(String(localized: "settings.advanced.title"))
         .onAppear {
             loadIntervalState()
+            appIconRowChoice = AppAlternateIconSelection.currentChoice()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                appIconRowChoice = AppAlternateIconSelection.currentChoice()
+            }
         }
         .onChange(of: intervalEncoded) { _, _ in
             loadIntervalState()

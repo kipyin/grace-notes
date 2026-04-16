@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "LiquidGlass-Default.png",
+      "filename" : "A49340C7-DEA4-4FF1-853E-5CE188863B83_1_102_o.jpeg",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -13,7 +13,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "LiquidGlass-Dark.png",
+      "filename" : "A49340C7-DEA4-4FF1-853E-5CE188863B83_1_102_o 1.jpeg",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -25,7 +25,7 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "LiquidGlass-Tinted.png",
+      "filename" : "A49340C7-DEA4-4FF1-853E-5CE188863B83_1_102_o 2.jpeg",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"

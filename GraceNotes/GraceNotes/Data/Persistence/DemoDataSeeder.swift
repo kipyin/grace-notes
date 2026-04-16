@@ -307,17 +307,18 @@ private func fallbackWeekDayStarts(from today: Date, calendar: Calendar) -> [Dat
     return result
 }
 
-/// Anchored historical row so Demo builds can sanity-check Past/review behavior across calendar years.
-/// Gregorian components avoid misinterpreting year/month/day when `Calendar.current` is not Gregorian.
-private func demoDecember2025Entry(calendar: Calendar, now: Date) -> DemoEntryPayload {
-    var gregorian = Calendar(identifier: .gregorian)
-    gregorian.timeZone = calendar.timeZone
-    var parts = DateComponents()
-    parts.year = 2025
-    parts.month = 12
-    parts.day = 10
-    let raw = gregorian.date(from: parts) ?? calendar.startOfDay(for: now)
-    let entryDate = calendar.startOfDay(for: raw)
+/// One entry on the calendar day **before** the oldest day in the rolling week (`days[6]`), so it never
+/// shares a day with the seven seeded rows.
+private func demoHistoricalAnchorEntry(today: Date, calendar: Calendar) -> DemoEntryPayload? {
+    guard let days = rollingWeekDayStarts(from: today, calendar: calendar)
+        ?? fallbackWeekDayStarts(from: today, calendar: calendar) else {
+        return nil
+    }
+    let oldestInWeek = days[6]
+    guard let dayBeforeOldest = calendar.date(byAdding: .day, value: -1, to: oldestInWeek) else {
+        return nil
+    }
+    let entryDate = calendar.startOfDay(for: dayBeforeOldest)
     return DemoEntryPayload(
         entryDate: entryDate,
         gratitudes: [
