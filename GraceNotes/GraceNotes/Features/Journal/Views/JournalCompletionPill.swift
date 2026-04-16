@@ -15,9 +15,11 @@ struct JournalCompletionPill: View {
     var morphAccentColor: Color = .clear
     var morphBloomProgress: CGFloat = 0
 
-    /// Defensive clamp so morph bloom visuals stay stable if progress is driven past 0…1.
+    /// Defensive clamp so morph bloom visuals stay stable if progress is outside 0…1 or non-finite.
     private var clampedMorphBloomProgress: CGFloat {
-        min(max(morphBloomProgress, 0), 1)
+        let raw = morphBloomProgress
+        guard raw.isFinite else { return 0 }
+        return min(max(raw, 0), 1)
     }
 
     var body: some View {
