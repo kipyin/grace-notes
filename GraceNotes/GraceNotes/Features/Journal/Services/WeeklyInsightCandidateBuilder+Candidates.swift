@@ -261,10 +261,14 @@ extension WeeklyInsightCandidateBuilder {
         _ candidate: ReviewWeeklyInsight,
         becauseOf selected: [ReviewWeeklyInsight]
     ) -> Bool {
-        guard let theme = candidate.primaryTheme?.lowercased() else { return false }
+        guard let rawTheme = candidate.primaryTheme else { return false }
+        let normalizedCandidate = textNormalizer.normalizeThemeLabel(rawTheme)
+        guard !normalizedCandidate.isEmpty else { return false }
         return selected.contains { selectedInsight in
-            let selectedTheme = selectedInsight.primaryTheme?.lowercased()
-            return selectedTheme == theme &&
+            guard let rawSelected = selectedInsight.primaryTheme else { return false }
+            let normalizedSelected = textNormalizer.normalizeThemeLabel(rawSelected)
+            guard !normalizedSelected.isEmpty else { return false }
+            return normalizedSelected == normalizedCandidate &&
                 selectedInsight.pattern != .fullCompletion &&
                 candidate.pattern != .fullCompletion
         }
