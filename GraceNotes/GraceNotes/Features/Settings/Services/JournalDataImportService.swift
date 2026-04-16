@@ -58,11 +58,11 @@ struct JournalDataImportService {
         if let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
            let num = attrs[.size] as? NSNumber {
             // Use 64-bit magnitude: `intValue` truncates past 32-bit signed range and can mis-report huge files.
-            let v = num.uint64Value
-            if v > UInt64(Int.max) {
+            let uint64Bytes = num.uint64Value
+            if uint64Bytes > UInt64(Int.max) {
                 return Int.max
             }
-            return Int(v)
+            return Int(uint64Bytes)
         }
         return nil
     }
@@ -279,12 +279,12 @@ struct JournalDataImportService {
 
     /// ISO8601 decode vs persisted `Date` can differ slightly in sub-second precision; treat as same for merge
     /// detection.
-    private static func completedAtEqualForMerge(_ a: Date?, _ b: Date?) -> Bool {
-        switch (a, b) {
+    private static func completedAtEqualForMerge(_ lhsDate: Date?, _ rhsDate: Date?) -> Bool {
+        switch (lhsDate, rhsDate) {
         case (nil, nil): return true
         case (nil, _), (_, nil): return false
-        case let (a?, b?):
-            return abs(a.timeIntervalSince(b)) < 1.0
+        case let (lhsDate?, rhsDate?):
+            return abs(lhsDate.timeIntervalSince(rhsDate)) < 1.0
         }
     }
 
@@ -340,7 +340,7 @@ extension JournalDataImportService {
 }
 
 private extension JournalDataImportService {
-    func comparisonPayload(for journal: Journal) -> ImportComparisonPayload {
+    private func comparisonPayload(for journal: Journal) -> ImportComparisonPayload {
         comparisonPayload(for: exportMapper.makeExportEntry(from: journal))
     }
 
