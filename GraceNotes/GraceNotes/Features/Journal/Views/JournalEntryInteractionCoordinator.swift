@@ -27,6 +27,9 @@ enum JournalEntryInteractionCoordinator {
         tapIndex: Int,
         restoreInputFocus: (FocusState<Bool>.Binding) -> Void
     ) {
+        // Row taps come from list indices; ignore out-of-range values so we do not run transitions
+        // or keyboard focus restoration for a non-existent row (e.g. stale index after a data race).
+        guard tapIndex >= 0, tapIndex < context.operations.count else { return }
         let handled = JournalScreenEntryHandling.performEntryTap(
             tapIndex: tapIndex,
             input: context.input,
