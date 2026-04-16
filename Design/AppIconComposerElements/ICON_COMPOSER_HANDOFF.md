@@ -8,7 +8,7 @@
 
 All three files are full-canvas (`1024x1024`) with transparent backgrounds and aligned coordinates for direct import into Icon Composer.
 
-**Loop geometry:** The stroke is a single continuous curve: it rises from the lower left, threads the row (passing through the third dot’s centerline), forms a balanced teardrop above the dots, and **terminates at 3 o’clock on the accent (fifth) dot** — point `(916, 512)` for `r = 66` and center `(850, 512)`.
+**Loop geometry (intent):** The stroke is a single continuous curve: it rises from the lower left, threads the row (passing through the third dot’s centerline), forms a balanced teardrop above the dots, and **terminates on the accent (fifth) dot near its 3 o’clock**. **Canonical geometry is whatever ships** in this folder’s `01_loop.svg` and in `GraceNotesIconLiquidGlass.icon` after Icon Composer (layers can translate paths); use those files—not fixed pixel coordinates in this doc—when checking or editing alignment.
 
 ## Figma Source
 

@@ -20,6 +20,7 @@ struct AdvancedSettingsScreen: View {
     @State private var customQuantity: Int
     @State private var customUnit: PastStatisticsIntervalUnit
     @State private var appIconRowChoice: AppAlternateIconSelection.Choice = .liquidGlass
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         let raw = PastStatisticsIntervalPreference.appStorageRawValue()
@@ -147,6 +148,11 @@ struct AdvancedSettingsScreen: View {
         .onAppear {
             loadIntervalState()
             appIconRowChoice = AppAlternateIconSelection.currentChoice()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                appIconRowChoice = AppAlternateIconSelection.currentChoice()
+            }
         }
         .onChange(of: intervalEncoded) { _, _ in
             loadIntervalState()

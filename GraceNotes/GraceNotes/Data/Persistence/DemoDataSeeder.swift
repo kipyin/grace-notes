@@ -341,39 +341,6 @@ private func demoHistoricalAnchorEntry(today: Date, calendar: Calendar) -> DemoE
     )
 }
 
-/// Anchored historical row so Demo builds can sanity-check Past/review behavior across calendar years.
-/// Gregorian components avoid misinterpreting year/month/day when `Calendar.current` is not Gregorian.
-private func demoDecember2025Entry(calendar: Calendar, now: Date) -> DemoEntryPayload {
-    var gregorian = Calendar(identifier: .gregorian)
-    gregorian.timeZone = calendar.timeZone
-    var parts = DateComponents()
-    parts.year = 2025
-    parts.month = 12
-    parts.day = 10
-    let raw = gregorian.date(from: parts) ?? calendar.startOfDay(for: now)
-    let entryDate = calendar.startOfDay(for: raw)
-    return DemoEntryPayload(
-        entryDate: entryDate,
-        gratitudes: [
-            demoLine("Grateful for steady routines before this week"),
-            demoLine("Thankful for friends who checked in"),
-            demoLine("Quiet evening to reflect")
-        ],
-        needs: [
-            demoLine("Need margin as schedules shift"),
-            demoLine("Want to plan the week lightly")
-        ],
-        people: [
-            demoLine("Thinking of family plans"),
-            demoLine("Grateful for community support")
-        ],
-        readingNotes: "Demo note outside the rolling week for Past-tab and rhythm checks.",
-        reflections: "This entry is intentionally one day older than the seeded week "
-            + "to verify history outside the current seven days.",
-        completedAt: nil
-    )
-}
-
 private func demoLine(_ fullText: String) -> Entry {
     Entry(fullText: fullText)
 }
