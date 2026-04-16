@@ -38,14 +38,14 @@ enum JournalTodayOrientationPolicy {
     /// present at **1/1/1**—for both the generic rank-up case and the first 1/1/1 milestone highlight.
     /// The first line alone in a section still shows feedback (`hasAtLeastOneEntryInEachSection` is false).
     ///
-    /// **Keep in sync** with `AppTourTrigger.evaluate`: tour eligibility uses the same entry counts as
-    /// `hasAtLeastOneEntryInEachSection`.
+    /// **Keep in sync** with `appTourOutcome` / `AppTourTrigger.evaluate`: suppression only applies when the
+    /// tour would actually be eligible to present (not under UI tests, where the tour is suppressed).
+    /// `hasCompletedGuidedJournal` on `orientationInputs` is ignored; include it so callers can pass
+    /// ``JournalScreen/todayOrientationInputs()``.
     static func shouldSuppressSproutUnlockToast(
-        isTodayEntry: Bool,
         newLevel: JournalCompletionLevel,
-        hasSeenAppTour: Bool,
         milestoneHighlight: JournalUnlockMilestoneHighlight,
-        hasAtLeastOneEntryInEachSection: Bool
+        orientationInputs: Inputs
     ) -> Bool {
         switch milestoneHighlight {
         case .none, .firstOneOneOne:
@@ -53,8 +53,11 @@ enum JournalTodayOrientationPolicy {
         case .firstBalanced, .firstFull:
             return false
         }
-        guard isTodayEntry, newLevel == .sprout, !hasSeenAppTour else { return false }
-        guard hasAtLeastOneEntryInEachSection else { return false }
+        guard !orientationInputs.isRunningUITests else { return false }
+        guard orientationInputs.isTodayEntry, newLevel == .sprout, !orientationInputs.hasSeenAppTour else {
+            return false
+        }
+        guard orientationInputs.hasAtLeastOneEntryInEachSection else { return false }
         return true
     }
 }
