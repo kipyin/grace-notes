@@ -147,7 +147,9 @@ def _git_has_uncommitted_changes(git_root: Path) -> bool:
     return bool((st.stdout or "").strip())
 
 
-def _git_push_origin_head_to_branch(git_root: Path, remote_branch: str) -> subprocess.CompletedProcess[str]:
+def _git_push_origin_head_to_branch(
+    git_root: Path, remote_branch: str
+) -> subprocess.CompletedProcess[str]:
     """
     Push ``HEAD`` to ``origin``'s branch ``remote_branch`` (GitHub PR ``headRefName``).
 
