@@ -12,7 +12,17 @@ extension ProcessInfo {
         return isUITestBundle || hasUITestLaunchArgument
     }
 
-    /// True when UI tests request the wide Review rhythm seed (ignored unless `graceNotesIsRunningUITests` is also true).
+    /// True when XCTest hosts the app for **unit** tests (not UI tests): blank root and no global `UIAppearance`.
+    ///
+    /// Keep in sync with `GraceNotesApp.init` and `GraceNotesAppDelegate`—single definition of “hosted unit tests.”
+    static var graceNotesIsRunningHostedUnitTests: Bool {
+        let processInfo = Self.processInfo
+        let isXCTestSession = processInfo.environment["XCTestConfigurationFilePath"] != nil
+        return isXCTestSession && !graceNotesIsRunningUITests
+    }
+
+    /// True when UI tests request the wide Review rhythm seed (ignored unless
+    /// `graceNotesIsRunningUITests` is also true).
     static var graceNotesUITestWideReviewRhythmSeed: Bool {
         guard graceNotesIsRunningUITests else { return false }
         return Self.processInfo.arguments.contains(Self.graceNotesUITestWideReviewRhythmArgument)

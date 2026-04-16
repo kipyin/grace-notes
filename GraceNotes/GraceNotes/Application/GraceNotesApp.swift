@@ -25,9 +25,8 @@ struct GraceNotesApp: App {
     init() {
         let startupTrace = PerformanceTrace.begin("App.init")
         let processInfo = ProcessInfo.processInfo
-        let isXCTestSession = processInfo.environment["XCTestConfigurationFilePath"] != nil
         isRunningUITests = ProcessInfo.graceNotesIsRunningUITests
-        isRunningUnitTests = isXCTestSession && !isRunningUITests
+        isRunningUnitTests = ProcessInfo.graceNotesIsRunningHostedUnitTests
 
         if !isRunningUnitTests {
             JournalTutorialStorageKeys.migrateLegacyKeysIfNeeded(using: .standard)
