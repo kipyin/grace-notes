@@ -257,18 +257,27 @@ extension WeeklyInsightCandidateBuilder {
         }
     }
 
+    /// Key used to detect duplicate themes when selecting weekly insights. Prefer normalized labels;
+    /// when normalization is empty (whitespace-only, punctuation-only, etc.), fall back to trimmed
+    /// lowercased raw text so meaningless themes still dedupe like the pre-normalization path.
+    private func themeDedupeKeyForSkip(_ rawTheme: String) -> String {
+        let normalized = textNormalizer.normalizeThemeLabel(rawTheme)
+        if !normalized.isEmpty {
+            return normalized
+        }
+        return textNormalizer.trimmed(rawTheme).lowercased()
+    }
+
     func shouldSkip(
         _ candidate: ReviewWeeklyInsight,
         becauseOf selected: [ReviewWeeklyInsight]
     ) -> Bool {
         guard let rawTheme = candidate.primaryTheme else { return false }
-        let normalizedCandidate = textNormalizer.normalizeThemeLabel(rawTheme)
-        guard !normalizedCandidate.isEmpty else { return false }
+        let candidateKey = themeDedupeKeyForSkip(rawTheme)
         return selected.contains { selectedInsight in
             guard let rawSelected = selectedInsight.primaryTheme else { return false }
-            let normalizedSelected = textNormalizer.normalizeThemeLabel(rawSelected)
-            guard !normalizedSelected.isEmpty else { return false }
-            return normalizedSelected == normalizedCandidate &&
+            let selectedKey = themeDedupeKeyForSkip(rawSelected)
+            return selectedKey == candidateKey &&
                 selectedInsight.pattern != .fullCompletion &&
                 candidate.pattern != .fullCompletion
         }
