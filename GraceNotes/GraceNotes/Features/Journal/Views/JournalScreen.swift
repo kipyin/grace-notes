@@ -1440,11 +1440,9 @@ private extension JournalScreen {
     ) {
         tutorialProgress.applyRecording(from: milestoneOutcome)
         let suppressSproutFeedbackForAppTour = JournalTodayOrientationPolicy.shouldSuppressSproutUnlockToast(
-            isTodayEntry: entryDate == nil,
             newLevel: newLevel,
-            hasSeenAppTour: hasSeenAppTour,
             milestoneHighlight: milestoneOutcome.milestoneHighlight,
-            hasAtLeastOneEntryInEachSection: viewModel.hasAtLeastOneEntryInEachSection
+            orientationInputs: todayOrientationInputs()
         )
         if !suppressSproutFeedbackForAppTour {
             triggerStatusCelebration(for: newLevel)
@@ -1454,11 +1452,9 @@ private extension JournalScreen {
 
     private func applyGenericRankUpUnlockToast(newLevel: JournalCompletionLevel) {
         let suppressSproutFeedbackForAppTour = JournalTodayOrientationPolicy.shouldSuppressSproutUnlockToast(
-            isTodayEntry: entryDate == nil,
             newLevel: newLevel,
-            hasSeenAppTour: hasSeenAppTour,
             milestoneHighlight: .none,
-            hasAtLeastOneEntryInEachSection: viewModel.hasAtLeastOneEntryInEachSection
+            orientationInputs: todayOrientationInputs()
         )
         if !suppressSproutFeedbackForAppTour {
             triggerStatusCelebration(for: newLevel)
