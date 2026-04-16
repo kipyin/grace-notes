@@ -128,7 +128,11 @@ final class JournalOnboardingProgress {
         defaults.removeObject(forKey: JournalOnboardingStorageKeys.legacy051GuidedBranchResolution)
     }
 
+    /// Clears journal onboarding keys and tutorial milestone keys so ``resolvedHasCompletedGuidedJournal`` does not
+    /// immediately re-derive completion from leftover tutorial presence (see ``shouldTreatInstallAsPreviouslyOnboarded``).
     static func resetAll(in defaults: UserDefaults = .standard) {
+        JournalTutorialStorageKeys.removeAllStoredKeys(in: defaults)
+
         let keys = [
             JournalOnboardingStorageKeys.completedGuidedJournal,
             LegacyJournalOnboardingStorageKeys.pending051UpgradeOrientation,
