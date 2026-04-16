@@ -77,12 +77,13 @@ final class JournalCompletionInfoPresentation {
             isInfoCardPresented = false
         }
 
+        selectedBadgeInfo = newBadgeInfo
+
         infoCardDismissSequence += 1
         let reopenSequence = infoCardDismissSequence
         infoCardDismissTask = Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(reduceMotion ? 1 : 130))
             guard !Task.isCancelled, reopenSequence == infoCardDismissSequence else { return }
-            selectedBadgeInfo = newBadgeInfo
             withAnimation(infoCardEntranceAnimation(reduceMotion: reduceMotion)) {
                 isInfoCardPresented = true
             }
