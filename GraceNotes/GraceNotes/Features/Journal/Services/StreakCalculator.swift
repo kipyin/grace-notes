@@ -23,33 +23,25 @@ struct StreakCalculator {
 
     func summary(from entries: [Journal], now: Date = .now) -> StreakSummary {
         let today = calendar.startOfDay(for: now)
-        let basicByDay = buildCompletionByDay(entries: entries) { $0.hasMeaningfulContent }
-        // "Perfect" = Harvest: all fifteen chips. `completedAt` alone must not inflate this streak.
-        let perfectByDay = buildCompletionByDay(entries: entries) { $0.hasReachedBloom }
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: today)
+            .map { calendar.startOfDay(for: $0) }
+        var basicByDay: [Date: Bool] = [:]
+        var perfectByDay: [Date: Bool] = [:]
+        for entry in entries {
+            let day = calendar.startOfDay(for: entry.entryDate)
+            basicByDay[day] = (basicByDay[day] ?? false) || entry.hasMeaningfulContent
+            perfectByDay[day] = (perfectByDay[day] ?? false) || entry.hasReachedBloom
+        }
 
         return StreakSummary(
-            basicCurrent: currentStreakLength(byDay: basicByDay, today: today),
-            perfectCurrent: currentStreakLength(byDay: perfectByDay, today: today),
+            basicCurrent: currentStreakLength(byDay: basicByDay, today: today, yesterday: yesterday),
+            perfectCurrent: currentStreakLength(byDay: perfectByDay, today: today, yesterday: yesterday),
             basicDoneToday: basicByDay[today] ?? false,
             perfectDoneToday: perfectByDay[today] ?? false
         )
     }
 
-    private func buildCompletionByDay(
-        entries: [Journal],
-        completion: (Journal) -> Bool
-    ) -> [Date: Bool] {
-        var completionByDay: [Date: Bool] = [:]
-        for entry in entries {
-            let day = calendar.startOfDay(for: entry.entryDate)
-            completionByDay[day] = (completionByDay[day] ?? false) || completion(entry)
-        }
-        return completionByDay
-    }
-
-    private func currentStreakLength(byDay: [Date: Bool], today: Date) -> Int {
-        let yesterday = calendar.date(byAdding: .day, value: -1, to: today)
-            .map { calendar.startOfDay(for: $0) }
+    private func currentStreakLength(byDay: [Date: Bool], today: Date, yesterday: Date?) -> Int {
         let startDay: Date
         if byDay[today] == true {
             startDay = today
