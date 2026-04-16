@@ -6,6 +6,7 @@ import os
 import signal
 import sys
 import time
+from dataclasses import replace
 from pathlib import Path
 from typing import Annotated
 
@@ -50,6 +51,19 @@ def _read_pid(repo_root: Path) -> int | None:
         return None
 
 
+def _settings_with_optional_main_branch(
+    settings: SentrySettings, main_branch: str | None
+) -> SentrySettings:
+    """Override ``main_branch`` when ``--main-branch`` is passed (non-empty after strip)."""
+    if main_branch is None:
+        return settings
+    stripped = main_branch.strip()
+    if not stripped:
+        _console().print("[red]--main-branch must not be empty.[/red]")
+        raise typer.Exit(code=2)
+    return replace(settings, main_branch=stripped)
+
+
 def _make_sink(tui: bool | None) -> tuple[SentryLogSink | None, bool]:
     """Return (plain stderr sink or None, use_textual). When Textual is used, sink is None."""
     if tui is True:
@@ -82,11 +96,24 @@ def sentry_start(
             help="Textual status + log panel (default: on when stdout is a TTY).",
         ),
     ] = None,
+    main_branch: Annotated[
+        str | None,
+        typer.Option(
+            "--main-branch",
+            help=(
+                "Git base branch (fetches origin/<name>, worktrees from that tip). "
+                "Default: [sentry] main_branch or SENTRY_MAIN_BRANCH or main."
+            ),
+        ),
+    ] = None,
 ) -> None:
     """Run sentry until interrupted (``--once`` = one pass). macOS + gh + HTTP or ``agent`` fix."""
     cli_core._require_macos_xcode()
     repo_root = cli_core._repo_root()
-    settings = SentrySettings.from_repo(cli_core._repo_root())
+    settings = _settings_with_optional_main_branch(
+        SentrySettings.from_repo(repo_root),
+        main_branch,
+    )
 
     sink, use_textual = _make_sink(tui)
 
