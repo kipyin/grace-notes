@@ -9,11 +9,11 @@ enum PerformanceTrace {
 
     static func begin(_ label: String) -> TimeInterval {
         logger.log("[BEGIN] \(label, privacy: .public)")
-        return CFAbsoluteTimeGetCurrent()
+        return ProcessInfo.processInfo.systemUptime
     }
 
     static func end(_ label: String, startedAt start: TimeInterval) {
-        let elapsedMs = (CFAbsoluteTimeGetCurrent() - start) * 1000
+        let elapsedMs = max(0, (ProcessInfo.processInfo.systemUptime - start) * 1000)
         logger.log("[END] \(label, privacy: .public) (\(elapsedMs, format: .fixed(precision: 2)) ms)")
     }
 
