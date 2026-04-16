@@ -30,6 +30,7 @@ struct StreakCalculator {
         for entry in entries {
             let day = calendar.startOfDay(for: entry.entryDate)
             basicByDay[day] = (basicByDay[day] ?? false) || entry.hasMeaningfulContent
+            // Perfect streak uses harvest (all chips / Bloom), not `completedAt`, so completion time cannot inflate it.
             perfectByDay[day] = (perfectByDay[day] ?? false) || entry.hasReachedBloom
         }
 
