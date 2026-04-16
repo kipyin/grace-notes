@@ -13,7 +13,15 @@ enum PerformanceTrace {
     }
 
     static func end(_ label: String, startedAt start: TimeInterval) {
-        let elapsedMs = max(0, (ProcessInfo.processInfo.systemUptime - start) * 1000)
+        let now = ProcessInfo.processInfo.systemUptime
+        if now < start {
+            #if DEBUG
+            assertionFailure("PerformanceTrace: system uptime decreased before end; invalid span")
+            #endif
+            logger.log("[END] \(label, privacy: .public) (invalid span; monotonic clock decreased)")
+            return
+        }
+        let elapsedMs = (now - start) * 1000
         logger.log("[END] \(label, privacy: .public) (\(elapsedMs, format: .fixed(precision: 2)) ms)")
     }
 
