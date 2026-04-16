@@ -24,7 +24,6 @@ private enum ShareSheetPopover {
             width: 0,
             height: 0
         )
-        popover.permittedArrowDirections = []
     }
 }
 
@@ -53,7 +52,8 @@ struct ShareSheet: UIViewControllerRepresentable {
             applicationActivities: applicationActivities
         )
         ShareSheetPopover.configureIfNeeded(for: controller)
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [weak controller] in
+            guard let controller else { return }
             ShareSheetPopover.configureIfNeeded(for: controller)
         }
         return controller
