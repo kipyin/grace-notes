@@ -3,6 +3,9 @@ import XCTest
 
 @MainActor
 final class StartupCoordinatorTests: XCTestCase {
+    /// Hosted CI can take several seconds for the first in-memory `ModelContainer` on a cold simulator.
+    private let asyncConditionTimeoutSeconds: TimeInterval = 15
+
     func test_startIfNeeded_immediateSuccess_transitionsToReady() async throws {
         let coordinator = StartupCoordinator(
             timing: .init(copyRotationInterval: .milliseconds(200), reassuranceDelay: .seconds(2)),
@@ -13,7 +16,7 @@ final class StartupCoordinatorTests: XCTestCase {
 
         coordinator.startIfNeeded()
 
-        try await waitUntil(timeoutSeconds: 2) {
+        try await waitUntil(timeoutSeconds: asyncConditionTimeoutSeconds) {
             if case .ready = coordinator.phase {
                 return true
             }
@@ -32,14 +35,14 @@ final class StartupCoordinatorTests: XCTestCase {
 
         coordinator.startIfNeeded()
 
-        try await waitUntil(timeoutSeconds: 2) {
+        try await waitUntil(timeoutSeconds: asyncConditionTimeoutSeconds) {
             if case .reassurance = coordinator.phase {
                 return true
             }
             return false
         }
 
-        try await waitUntil(timeoutSeconds: 2) {
+        try await waitUntil(timeoutSeconds: asyncConditionTimeoutSeconds) {
             if case .ready = coordinator.phase {
                 return true
             }
@@ -59,7 +62,7 @@ final class StartupCoordinatorTests: XCTestCase {
         let firstMessage = coordinator.startupMessage
         coordinator.startIfNeeded()
 
-        try await waitUntil(timeoutSeconds: 2) {
+        try await waitUntil(timeoutSeconds: asyncConditionTimeoutSeconds) {
             coordinator.startupMessage != firstMessage
         }
     }
@@ -74,7 +77,7 @@ final class StartupCoordinatorTests: XCTestCase {
 
         coordinator.startIfNeeded()
 
-        try await waitUntil(timeoutSeconds: 2) {
+        try await waitUntil(timeoutSeconds: asyncConditionTimeoutSeconds) {
             if case .retryableFailure = coordinator.phase {
                 return true
             }
@@ -98,7 +101,7 @@ final class StartupCoordinatorTests: XCTestCase {
 
         coordinator.startIfNeeded()
 
-        try await waitUntil(timeoutSeconds: 2) {
+        try await waitUntil(timeoutSeconds: asyncConditionTimeoutSeconds) {
             if case .retryableFailure = coordinator.phase {
                 return true
             }
@@ -109,7 +112,7 @@ final class StartupCoordinatorTests: XCTestCase {
         coordinator.retry()
         coordinator.retry()
 
-        try await waitUntil(timeoutSeconds: 2) {
+        try await waitUntil(timeoutSeconds: asyncConditionTimeoutSeconds) {
             if case .ready = coordinator.phase {
                 return true
             }
@@ -135,7 +138,7 @@ final class StartupCoordinatorTests: XCTestCase {
         coordinator.retry()
         coordinator.retry()
 
-        try await waitUntil(timeoutSeconds: 2) {
+        try await waitUntil(timeoutSeconds: asyncConditionTimeoutSeconds) {
             if case .ready = coordinator.phase {
                 return true
             }
