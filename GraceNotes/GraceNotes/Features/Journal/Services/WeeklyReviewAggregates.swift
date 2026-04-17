@@ -409,7 +409,7 @@ private extension WeeklyReviewAggregatesBuilder {
         let weekLastStart = calendar.startOfDay(for: weekLastInclusive)
         let referenceDayStart = calendar.startOfDay(for: referenceDate)
         let endDayInclusive = min(weekLastStart, referenceDayStart)
-        guard let entryMinRaw = allEntries.map({ calendar.startOfDay(for: $0.entryDate) }).min() else {
+        guard let entryMinRaw = allEntries.lazy.map({ calendar.startOfDay(for: $0.entryDate) }).min() else {
             return nil
         }
         let pastWindowStart = calendar.startOfDay(for: pastStatisticsHistoryLowerBound)
