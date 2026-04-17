@@ -56,7 +56,8 @@ jobs:
     name: Lint & build (iPhone 17 Pro)
     if: >
       github.event_name == 'pull_request' &&
-      (github.base_ref == 'main' || startsWith(github.base_ref, 'release/'))
+      (github.event.pull_request.base.ref == 'main' ||
+      startsWith(github.event.pull_request.base.ref, 'release/'))
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
@@ -130,7 +131,8 @@ jobs:
     name: PR full-ci — lint, test, UI smoke
     if: >
       github.event_name == 'pull_request' &&
-      (github.base_ref == 'main' || startsWith(github.base_ref, 'release/')) &&
+      (github.event.pull_request.base.ref == 'main' ||
+      startsWith(github.event.pull_request.base.ref, 'release/')) &&
       contains(github.event.pull_request.labels.*.name, 'full-ci')
     runs-on: macos-15
     steps:
