@@ -38,14 +38,13 @@ enum JournalTodayOrientationPolicy {
     /// present at **1/1/1**—for both the generic rank-up case and the first 1/1/1 milestone highlight.
     /// The first line alone in a section still shows feedback (`hasAtLeastOneEntryInEachSection` is false).
     ///
-    /// **Keep in sync** with `AppTourTrigger.evaluate`: tour eligibility uses the same entry counts as
-    /// `hasAtLeastOneEntryInEachSection`.
+    /// Tour eligibility (Today, not UI tests, 1/1/1, not yet seen) is delegated to ``appTourOutcome(for:)``
+    /// so it cannot drift from `AppTourTrigger.evaluate`. ``Inputs/hasCompletedGuidedJournal`` only affects
+    /// congratulations skipping inside the tour, not whether suppression applies.
     static func shouldSuppressSproutUnlockToast(
-        isTodayEntry: Bool,
         newLevel: JournalCompletionLevel,
-        hasSeenAppTour: Bool,
         milestoneHighlight: JournalUnlockMilestoneHighlight,
-        hasAtLeastOneEntryInEachSection: Bool
+        orientationInputs: Inputs
     ) -> Bool {
         switch milestoneHighlight {
         case .none, .firstOneOneOne:
@@ -53,8 +52,33 @@ enum JournalTodayOrientationPolicy {
         case .firstBalanced, .firstFull:
             return false
         }
-        guard isTodayEntry, newLevel == .sprout, !hasSeenAppTour else { return false }
-        guard hasAtLeastOneEntryInEachSection else { return false }
-        return true
+        guard newLevel == .sprout else { return false }
+        return appTourOutcome(for: orientationInputs) != nil
+    }
+
+    /// Bridge for call sites that pass orientation fields separately (for example ``JournalScreen``), using
+    /// the same app-wide defaults for UITesting and guided-journal completion as a fully specified ``Inputs``.
+    static func shouldSuppressSproutUnlockToast(
+        isTodayEntry: Bool,
+        newLevel: JournalCompletionLevel,
+        hasSeenAppTour: Bool,
+        milestoneHighlight: JournalUnlockMilestoneHighlight,
+        hasAtLeastOneEntryInEachSection: Bool
+    ) -> Bool {
+        let guidedDone = UserDefaults.standard.bool(
+            forKey: JournalOnboardingStorageKeys.completedGuidedJournal
+        )
+        let orientationInputs = Inputs(
+            isTodayEntry: isTodayEntry,
+            isRunningUITests: ProcessInfo.graceNotesIsRunningUITests,
+            hasSeenAppTour: hasSeenAppTour,
+            hasCompletedGuidedJournal: guidedDone,
+            hasAtLeastOneEntryInEachSection: hasAtLeastOneEntryInEachSection
+        )
+        return shouldSuppressSproutUnlockToast(
+            newLevel: newLevel,
+            milestoneHighlight: milestoneHighlight,
+            orientationInputs: orientationInputs
+        )
     }
 }
