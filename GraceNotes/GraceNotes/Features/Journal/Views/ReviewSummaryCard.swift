@@ -571,7 +571,7 @@ struct ReviewDaysYouWrotePanel: View {
             columnWidth = (64 * scale).rounded(.toNearestOrAwayFromZero)
             columnGap = max(2, (3 * scale).rounded(.toNearestOrAwayFromZero))
             columnCornerRadius = (10 * scale).rounded(.toNearestOrAwayFromZero)
-            columnEdgeInset = max(2, (3 * scale).rounded(.toNearestOrAwayFromZero)
+            columnEdgeInset = max(2, (3 * scale).rounded(.toNearestOrAwayFromZero))
             rowHeight = (34 * scale).rounded(.toNearestOrAwayFromZero)
             chartMinHeight = (150 * scale).rounded(.toNearestOrAwayFromZero)
             let innerRowSpacing: CGFloat = 3
@@ -579,8 +579,8 @@ struct ReviewDaysYouWrotePanel: View {
             chartRowMinHeight = max(innerStackHeight + (2 * columnEdgeInset), chartMinHeight)
             pillIconSize = (15 * scale).rounded(.toNearestOrAwayFromZero)
             pillChromeSize = (28 * scale).rounded(.toNearestOrAwayFromZero)
-            edgeFeatherWidth = max(10, (14 * scale).rounded(.toNearestOrAwayFromZero)
-            chartHorizontalPadding = max(10, (14 * scale).rounded(.toNearestOrAwayFromZero)
+            edgeFeatherWidth = max(10, (14 * scale).rounded(.toNearestOrAwayFromZero))
+            chartHorizontalPadding = max(10, (14 * scale).rounded(.toNearestOrAwayFromZero))
         }
 
         /// Chart columns + label row + ``ScrollView`` vertical padding.
