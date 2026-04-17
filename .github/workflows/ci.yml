@@ -1,13 +1,11 @@
 name: CI
 
 # Triggers (avoid duplicate runs):
-# - pull_request → PRs targeting main or release lines (default `grace ci`: lint + simulator build; full suite when label `full-ci`).
+# - pull_request → any PR (jobs filter by base ref: main or release/*).
 # - push → main only: full suite (lint, test, UI smoke) unless the merged PR is labeled `no-ci`.
 on:
   pull_request:
-    # `release/*` matches one segment (e.g. release/0.5.0-build-11); `release/**` did not
-    # trigger reliably for release-line PRs in practice.
-    branches: [main, "release/*"]
+    # No `branches:` filter: GitHub glob filters for release lines proved unreliable; gate in jobs instead.
     types: [opened, synchronize, reopened, labeled, unlabeled]
   push:
     branches: [main]
@@ -56,7 +54,9 @@ jobs:
 
   lint-build:
     name: Lint & build (iPhone 17 Pro)
-    if: github.event_name == 'pull_request'
+    if: >
+      github.event_name == 'pull_request' &&
+      (github.base_ref == 'main' || startsWith(github.base_ref, 'release/'))
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
@@ -130,6 +130,7 @@ jobs:
     name: PR full-ci — lint, test, UI smoke
     if: >
       github.event_name == 'pull_request' &&
+      (github.base_ref == 'main' || startsWith(github.base_ref, 'release/')) &&
       contains(github.event.pull_request.labels.*.name, 'full-ci')
     runs-on: macos-15
     steps:
