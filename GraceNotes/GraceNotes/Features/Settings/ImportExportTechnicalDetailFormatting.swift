@@ -4,6 +4,7 @@ struct ExportHistoryLineParts {
     let kindLabel: String
     let statusLabel: String
     /// Non-nil when `entry.detail` has visible content after normalization (trim; line breaks flattened).
+    /// For this purpose, Unicode scalars in General Category `.control` or `.format` count as non-visible.
     let detail: String?
 }
 
@@ -50,6 +51,10 @@ enum ImportExportTechnicalDetailFormatting {
     /// Trims surrounding whitespace, treats whitespace-only as absent, and flattens line breaks so
     /// history rows and accessibility labels stay single-line. Each newline-delimited segment is
     /// trimmed; empty segments are dropped so spacing collapses to single spaces between words.
+    /// Runs of horizontal whitespace on a line collapse to a single space; strings that contain no
+    /// visible Unicode scalars after that are treated as absent. Visibility ignores **all** scalars
+    /// whose General Category is `.control` or `.format` (including zero-width characters, joiners,
+    /// and BOM-style scalars), not a hand-picked zero-width subset.
     private static func normalizedExportHistoryDetail(_ raw: String) -> String? {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
@@ -58,6 +63,18 @@ enum ImportExportTechnicalDetailFormatting {
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
         guard !segments.isEmpty else { return nil }
-        return segments.joined(separator: " ")
+        let joined = segments.joined(separator: " ")
+        let collapsed = joined.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        guard !collapsed.isEmpty else { return nil }
+        // Non-visible for this row: every scalar in General Category `.control` or `.format`.
+        let hasVisibleScalar = collapsed.unicodeScalars.contains { scalar in
+            switch scalar.properties.generalCategory {
+            case .control, .format:
+                return false
+            default:
+                return true
+            }
+        }
+        return hasVisibleScalar ? collapsed : nil
     }
 }

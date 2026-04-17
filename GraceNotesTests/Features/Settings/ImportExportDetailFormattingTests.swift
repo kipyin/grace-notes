@@ -98,6 +98,23 @@ final class ImportExportDetailFormattingTests: XCTestCase {
         XCTAssertEqual(plain.components(separatedBy: " · ").count, 2)
     }
 
+    func test_exportHistoryLineParts_formatAndControlOnlyDetailIsNil() {
+        // U+FEFF (BOM) and U+200B (ZWSP) are `.format`; U+0001 is `.control` — all non-visible for the row.
+        let detail = "\u{FEFF}\u{200B}\u{0001}"
+        let entry = BackupExportHistoryEntry(
+            id: UUID(),
+            finishedAt: Date(),
+            success: true,
+            kind: .manualShare,
+            detail: detail
+        )
+        let parts = ImportExportTechnicalDetailFormatting.exportHistoryLineParts(for: entry)
+        XCTAssertNil(parts.detail)
+        let plain = ImportExportTechnicalDetailFormatting.exportHistoryPlainLabel(for: entry)
+        XCTAssertEqual(plain, "\(parts.kindLabel) · \(parts.statusLabel)")
+        XCTAssertEqual(plain.components(separatedBy: " · ").count, 2)
+    }
+
     func test_exportHistoryLineParts_trimsSegmentsAroundNewlinesNoDoubleSpaces() {
         let entry = BackupExportHistoryEntry(
             id: UUID(),
