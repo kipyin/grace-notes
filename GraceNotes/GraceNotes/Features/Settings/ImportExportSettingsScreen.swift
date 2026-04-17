@@ -300,7 +300,10 @@ struct ImportExportSettingsScreen: View {
             Button(String(localized: "settings.dataPrivacy.import.mergeConflict.keepDevice")) {
                 runConflictResolution(.preferLocal)
             }
-            Button(String(localized: "common.cancel"), role: .cancel) {}
+            Button(String(localized: "common.cancel"), role: .cancel) {
+                pendingImportURL = nil
+                mergeConflictDays = []
+            }
         } message: {
             Text(mergeConflictAlertMessage(count: mergeConflictDays.count))
         }
