@@ -27,6 +27,10 @@ enum JournalEntryInteractionCoordinator {
         tapIndex: Int,
         restoreInputFocus: (FocusState<Bool>.Binding) -> Void
     ) {
+        // Row taps come from list indices. Ignore out-of-range `tapIndex` so we do not run transitions
+        // or keyboard focus restoration when the index is stale (e.g. list position vs. `operations.count`
+        // briefly disagree during SwiftUI updates).
+        guard tapIndex >= 0, tapIndex < context.operations.count else { return }
         let handled = JournalScreenEntryHandling.performEntryTap(
             tapIndex: tapIndex,
             input: context.input,
