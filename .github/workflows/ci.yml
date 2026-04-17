@@ -5,7 +5,9 @@ name: CI
 # - push → main only: full suite (lint, test, UI smoke) unless the merged PR is labeled `no-ci`.
 on:
   pull_request:
-    branches: [main, "release/**"]
+    # `release/*` matches one segment (e.g. release/0.5.0-build-11); `release/**` did not
+    # trigger reliably for release-line PRs in practice.
+    branches: [main, "release/*"]
     types: [opened, synchronize, reopened, labeled, unlabeled]
   push:
     branches: [main]
