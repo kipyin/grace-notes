@@ -12,10 +12,20 @@ private enum InlineSentenceEditorFieldLayout {
     static let bodyFontName = "SourceSerif4Roman-Regular"
     static let bodyFontSize: CGFloat = 17
 
+    private static var cachedScaledBodyFont: UIFont?
+    private static var cachedContentSizeCategoryForFont: UIContentSizeCategory?
+
     static func bodyUIFont() -> UIFont {
+        let category = UITraitCollection.current.preferredContentSizeCategory
+        if let cached = cachedScaledBodyFont, cachedContentSizeCategoryForFont == category {
+            return cached
+        }
         let baseFont = UIFont(name: bodyFontName, size: bodyFontSize)
             ?? UIFont.preferredFont(forTextStyle: .body)
-        return UIFontMetrics(forTextStyle: .body).scaledFont(for: baseFont)
+        let scaled = UIFontMetrics(forTextStyle: .body).scaledFont(for: baseFont)
+        cachedScaledBodyFont = scaled
+        cachedContentSizeCategoryForFont = category
+        return scaled
     }
 }
 
@@ -53,14 +63,17 @@ private struct InlineSentenceEditorTextView: UIViewRepresentable {
 
         if uiView.text != text {
             if uiView.isFirstResponder {
-                let previousRange = uiView.selectedRange
-                uiView.text = text
-                let nsText = text as NSString
-                let length = nsText.length
-                let location = min(previousRange.location, length)
-                let remaining = length - location
-                let len = min(previousRange.length, remaining)
-                uiView.selectedRange = NSRange(location: location, length: len)
+                // Avoid clobbering IME composition when an external binding update races marked text.
+                if uiView.markedTextRange == nil {
+                    let previousRange = uiView.selectedRange
+                    uiView.text = text
+                    let nsText = text as NSString
+                    let length = nsText.length
+                    let location = min(previousRange.location, length)
+                    let remaining = length - location
+                    let len = min(previousRange.length, remaining)
+                    uiView.selectedRange = NSRange(location: location, length: len)
+                }
             } else {
                 uiView.text = text
             }
