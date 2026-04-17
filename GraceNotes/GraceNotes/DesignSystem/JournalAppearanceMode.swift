@@ -8,11 +8,12 @@ enum JournalAppearanceMode: String, CaseIterable, Identifiable, Sendable {
     var id: String { rawValue }
 
     /// Interprets persisted `@AppStorage` / `UserDefaults` strings, including legacy `"summer"`.
-    /// Trims surrounding whitespace and lowercases before matching so hand-edited or oddly-cased values do not
-    /// silently fall back to Standard.
+    /// Trims surrounding whitespace and lowercases before matching so hand-edited or oddly-cased values
+    /// still resolve to ``bloom`` or ``standard`` when the meaning is clear. Unknown strings become
+    /// ``standard``.
     static func resolveStored(rawValue: String) -> JournalAppearanceMode {
         let normalized = normalizedStoredRawValue(rawValue)
-        if normalized == "summer" {
+        if normalized == legacySummerStoredRawValue {
             return .bloom
         }
         return JournalAppearanceMode(rawValue: normalized) ?? .standard
@@ -38,8 +39,13 @@ enum JournalAppearanceMode: String, CaseIterable, Identifiable, Sendable {
         defaults.set(canonical, forKey: key)
     }
 
+    private static let legacySummerStoredRawValue = "summer"
+    /// Locale used for lowercasing stored keys so casing matches do not depend on the user's
+    /// language/region settings (identifier-style strings, not prose).
+    private static let storedKeyLocale = Locale(identifier: "en_US_POSIX")
+
     private static func normalizedStoredRawValue(_ rawValue: String) -> String {
-        rawValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        rawValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(with: storedKeyLocale)
     }
 }
 
