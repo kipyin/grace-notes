@@ -23,7 +23,15 @@ enum JournalAppearanceMode: String, CaseIterable, Identifiable, Sendable {
     /// surrounding whitespace, unknown values, etc.).
     static func migrateLegacyJournalAppearanceRawValueIfNeeded(defaults: UserDefaults = .standard) {
         let key = JournalAppearanceStorageKeys.todayMode
-        guard let stored = defaults.string(forKey: key) else { return }
+        let stored: String
+        if let string = defaults.string(forKey: key) {
+            stored = string
+        } else if defaults.object(forKey: key) != nil {
+            // `string(forKey:)` is nil for non-string values; `@AppStorage` expects a string. Resolve as empty.
+            stored = ""
+        } else {
+            return
+        }
         let resolved = resolveStored(rawValue: stored)
         let canonical = resolved.rawValue
         guard stored != canonical else { return }
