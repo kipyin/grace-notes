@@ -39,12 +39,13 @@ struct ReviewInsightsRefreshKey: Hashable {
         let snapshots = entries.compactMap { entry -> ReviewEntrySnapshot? in
             let entryDay = calendar.startOfDay(for: entry.entryDate)
             let inHistoryWindow = entryDay >= historyRange.lowerBound && entryDay < historyRange.upperBound
-            let inCurrentWeek = currentReviewPeriod.contains(entry.entryDate)
-            let inPreviousWeek = previousPeriod.contains(entry.entryDate)
+            let inCurrentWeek =
+                entryDay >= currentReviewPeriod.lowerBound && entryDay < currentReviewPeriod.upperBound
+            let inPreviousWeek = entryDay >= previousPeriod.lowerBound && entryDay < previousPeriod.upperBound
             guard inHistoryWindow || inCurrentWeek || inPreviousWeek else { return nil }
             return ReviewEntrySnapshot(id: entry.id, updatedAt: entry.updatedAt)
         }
-        return snapshots.sorted { $0.id.uuidString < $1.id.uuidString }
+        return snapshots.sorted { $0.id < $1.id }
     }
 }
 
