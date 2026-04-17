@@ -46,22 +46,28 @@ final class PersistenceController {
     /// When `-grace-notes-reset-uitest-store` is present, deletes the on-disk UI-test store before opening it.
     /// UI tests otherwise reuse one SwiftData file per session key, so data would accumulate across test methods.
     static func resetUITestStoreIfRequested() {
+        resetUITestStoreIfRequested(storeURL: uiTestStoreURL)
+    }
+
+    private static func resetUITestStoreIfRequested(storeURL: URL) {
         guard ProcessInfo.processInfo.arguments.contains("-grace-notes-reset-uitest-store") else { return }
-        let url = uiTestStoreURL
-        if FileManager.default.fileExists(atPath: url.path) {
-            try? FileManager.default.removeItem(at: url)
+        if FileManager.default.fileExists(atPath: storeURL.path) {
+            try? FileManager.default.removeItem(at: storeURL)
         }
         ReviewInsightsCache.wipeDiskPayloadForUITestStoreReset()
     }
 
     static func makeForUITesting() throws -> PersistenceController {
-        resetUITestStoreIfRequested()
+        // Resolve once: `uiTestStoreURL` has side effects (marker file / session key). A second evaluation
+        // could theoretically pick a different path if marker I/O failed between calls.
+        let storeURL = uiTestStoreURL
+        resetUITestStoreIfRequested(storeURL: storeURL)
         removeLegacyUITestStoreFiles()
         let startupTrace = PerformanceTrace.begin("PersistenceController.makeForUITesting")
         let schema = Schema([Journal.self])
         let configuration = ModelConfiguration(
             schema: schema,
-            url: uiTestStoreURL,
+            url: storeURL,
             cloudKitDatabase: .none
         )
         let container: ModelContainer
