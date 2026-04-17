@@ -1,6 +1,38 @@
 import CryptoKit
 import Foundation
+import os
 import SwiftData
+
+private let persistenceUITestLogger = Logger(
+    subsystem: "com.gracenotes.GraceNotes",
+    category: "PersistenceUITest"
+)
+
+/// Deletes the UI-test SwiftData file when present. Retries once for transient file locks.
+private func removeUITestStoreFileIfPresent(at storeURL: URL) {
+    let fileManager = FileManager.default
+    guard fileManager.fileExists(atPath: storeURL.path) else { return }
+    func attemptRemoval() throws {
+        try fileManager.removeItem(at: storeURL)
+    }
+    do {
+        try attemptRemoval()
+    } catch {
+        Thread.sleep(forTimeInterval: 0.05)
+        do {
+            try attemptRemoval()
+        } catch let retryError {
+            let path = storeURL.path
+            let err = String(describing: retryError)
+            persistenceUITestLogger.error(
+                "Failed to remove UI test store after retry at \(path, privacy: .public): \(err, privacy: .public)"
+            )
+#if DEBUG
+            assertionFailure("Failed to remove UI test store after retry: \(retryError)")
+#endif
+        }
+    }
+}
 
 final class PersistenceController {
     private static let startupBootstrapQueue = DispatchQueue(
@@ -51,9 +83,7 @@ final class PersistenceController {
 
     private static func resetUITestStoreIfRequested(storeURL: URL) {
         guard ProcessInfo.processInfo.arguments.contains("-grace-notes-reset-uitest-store") else { return }
-        if FileManager.default.fileExists(atPath: storeURL.path) {
-            try? FileManager.default.removeItem(at: storeURL)
-        }
+        removeUITestStoreFileIfPresent(at: storeURL)
         ReviewInsightsCache.wipeDiskPayloadForUITestStoreReset()
     }
 
