@@ -8,11 +8,11 @@ struct JournalSearchMatch: Identifiable, Equatable, Sendable {
     let source: ReviewThemeSourceCategory
     let content: String
 
-    init(entryDate: Date, journalEntryId: UUID, item: Entry, source: ReviewThemeSourceCategory, content: String) {
+    init(entryDate: Date, journalEntryId: UUID, item: Entry, source: ReviewThemeSourceCategory) {
         self.id = "\(journalEntryId.uuidString)|\(source.rawValue)|\(item.id.uuidString)"
         self.entryDate = entryDate
         self.source = source
-        self.content = content
+        self.content = item.fullText
     }
 
     init(entryDate: Date, journalEntryId: UUID, source: ReviewThemeSourceCategory, content: String) {
@@ -28,7 +28,11 @@ struct JournalSearchMatch: Identifiable, Equatable, Sendable {
         source: ReviewThemeSourceCategory,
         content: String
     ) -> String {
-        let digest = SHA256.hash(data: Data(content.utf8))
+        let digest = content.utf8.withContiguousStorageIfAvailable({ buffer -> SHA256.Digest in
+            var hasher = SHA256()
+            hasher.update(bufferPointer: UnsafeRawBufferPointer(buffer))
+            return hasher.finalize()
+        }) ?? SHA256.hash(data: Data(content.utf8))
         // Use the full digest so truncated-hash collisions cannot map two different bodies of text to one `id`.
         let fingerprint = digest.map { String(format: "%02x", $0) }.joined()
         return "\(journalEntryId.uuidString)|\(source.rawValue)|\(fingerprint)"
