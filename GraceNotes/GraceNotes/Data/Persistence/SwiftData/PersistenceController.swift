@@ -1,8 +1,14 @@
 import CryptoKit
 import Foundation
+import os
 import SwiftData
 
 final class PersistenceController {
+    private static let logger = Logger(
+        subsystem: "com.gracenotes.GraceNotes",
+        category: "PersistenceController"
+    )
+
     private static let startupBootstrapQueue = DispatchQueue(
         label: "com.gracenotes.persistence.bootstrap",
         qos: .userInitiated
@@ -49,7 +55,11 @@ final class PersistenceController {
         guard ProcessInfo.processInfo.arguments.contains("-grace-notes-reset-uitest-store") else { return }
         let url = uiTestStoreURL
         if FileManager.default.fileExists(atPath: url.path) {
-            try? FileManager.default.removeItem(at: url)
+            do {
+                try FileManager.default.removeItem(at: url)
+            } catch {
+                logger.error("Failed to reset UI test store at \(url.path): \(error.localizedDescription)")
+            }
         }
         ReviewInsightsCache.wipeDiskPayloadForUITestStoreReset()
     }
@@ -199,7 +209,11 @@ final class PersistenceController {
             if isHashedUITestStoreFileName(name) {
                 continue
             }
-            try? fileManager.removeItem(at: url)
+            do {
+                try fileManager.removeItem(at: url)
+            } catch {
+                logger.error("Failed to remove legacy UI test store at \(url.path): \(error.localizedDescription)")
+            }
         }
     }
 
