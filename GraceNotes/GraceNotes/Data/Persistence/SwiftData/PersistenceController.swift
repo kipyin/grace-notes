@@ -35,6 +35,11 @@ private func removeUITestStoreFileIfPresent(at storeURL: URL) {
 }
 
 final class PersistenceController {
+    private static let logger = Logger(
+        subsystem: "com.gracenotes.GraceNotes",
+        category: "PersistenceController"
+    )
+
     private static let startupBootstrapQueue = DispatchQueue(
         label: "com.gracenotes.persistence.bootstrap",
         qos: .userInitiated
@@ -235,7 +240,11 @@ final class PersistenceController {
             if isHashedUITestStoreFileName(name) {
                 continue
             }
-            try? fileManager.removeItem(at: url)
+            do {
+                try fileManager.removeItem(at: url)
+            } catch {
+                logger.error("Failed to remove legacy UI test store at \(url.path): \(error.localizedDescription)")
+            }
         }
     }
 

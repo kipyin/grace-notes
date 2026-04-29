@@ -17,6 +17,34 @@ struct ThemeSummary {
     let firstSeenOrder: Int
 }
 
+struct WeeklyReviewAggregatesInput {
+    let currentPeriod: Range<Date>
+    let currentWeekEntries: [Journal]
+    let previousWeekEntries: [Journal]
+    let allEntries: [Journal]
+    let calendar: Calendar
+    let referenceDate: Date
+    let pastStatisticsInterval: PastStatisticsIntervalSelection
+
+    init(
+        currentPeriod: Range<Date>,
+        currentWeekEntries: [Journal],
+        previousWeekEntries: [Journal],
+        allEntries: [Journal],
+        calendar: Calendar,
+        referenceDate: Date,
+        pastStatisticsInterval: PastStatisticsIntervalSelection = .default
+    ) {
+        self.currentPeriod = currentPeriod
+        self.currentWeekEntries = currentWeekEntries
+        self.previousWeekEntries = previousWeekEntries
+        self.allEntries = allEntries
+        self.calendar = calendar
+        self.referenceDate = referenceDate
+        self.pastStatisticsInterval = pastStatisticsInterval
+    }
+}
+
 struct CandidateInputs {
     let entries: [Journal]
     let currentDayCount: Int
@@ -73,34 +101,25 @@ struct WeeklyReviewAggregatesBuilder {
     let textNormalizer = WeeklyInsightTextNormalizer()
     var themeJournalLanguageResolver: any ReviewJournalThemeLanguageResolving = ReviewJournalThemeLanguageResolver()
 
-    // swiftlint:disable:next function_parameter_count
-    func build(
-        currentPeriod: Range<Date>,
-        currentWeekEntries: [Journal],
-        previousWeekEntries: [Journal],
-        allEntries: [Journal],
-        calendar: Calendar,
-        referenceDate: Date,
-        pastStatisticsInterval: PastStatisticsIntervalSelection = .default
-    ) -> WeeklyReviewAggregates {
-        let sortedCurrentEntries = sortedEntries(currentWeekEntries)
-        let sortedPreviousEntries = sortedEntries(previousWeekEntries)
-        let reflectionDays = reflectionDayCount(from: sortedCurrentEntries, calendar: calendar)
+    func build(input: WeeklyReviewAggregatesInput) -> WeeklyReviewAggregates {
+        let sortedCurrentEntries = sortedEntries(input.currentWeekEntries)
+        let sortedPreviousEntries = sortedEntries(input.previousWeekEntries)
+        let reflectionDays = reflectionDayCount(from: sortedCurrentEntries, calendar: input.calendar)
 
         let gratitudeStats = buildChipStats(
             from: sortedCurrentEntries,
             itemsExtractor: { $0.gratitudes ?? [] },
-            calendar: calendar
+            calendar: input.calendar
         )
         let needStats = buildChipStats(
             from: sortedCurrentEntries,
             itemsExtractor: { $0.needs ?? [] },
-            calendar: calendar
+            calendar: input.calendar
         )
         let peopleStats = buildChipStats(
             from: sortedCurrentEntries,
             itemsExtractor: { $0.people ?? [] },
-            calendar: calendar
+            calendar: input.calendar
         )
 
         let candidateInputs = CandidateInputs(
@@ -109,9 +128,9 @@ struct WeeklyReviewAggregatesBuilder {
             needs: needStats,
             gratitudes: gratitudeStats,
             people: peopleStats,
-            currentContinuity: buildContinuityStats(from: sortedCurrentEntries, calendar: calendar),
-            previousContinuity: buildContinuityStats(from: sortedPreviousEntries, calendar: calendar),
-            calendar: calendar
+            currentContinuity: buildContinuityStats(from: sortedCurrentEntries, calendar: input.calendar),
+            previousContinuity: buildContinuityStats(from: sortedPreviousEntries, calendar: input.calendar),
+            calendar: input.calendar
         )
 
         return WeeklyReviewAggregates(
@@ -120,13 +139,9 @@ struct WeeklyReviewAggregatesBuilder {
             recurringNeeds: topThemes(from: needStats),
             recurringPeople: topThemes(from: peopleStats),
             stats: buildWeekStats(
-                currentPeriod: currentPeriod,
-                entries: sortedCurrentEntries,
-                allEntries: allEntries,
-                reflectionDays: reflectionDays,
-                calendar: calendar,
-                referenceDate: referenceDate,
-                pastStatisticsInterval: pastStatisticsInterval
+                input: input,
+                sortedCurrentEntries: sortedCurrentEntries,
+                reflectionDays: reflectionDays
             )
         )
     }
@@ -306,51 +321,50 @@ private extension WeeklyReviewAggregatesBuilder {
             }
     }
 
-    // swiftlint:disable:next function_body_length function_parameter_count
+    // swiftlint:disable:next function_body_length
     func buildWeekStats(
-        currentPeriod: Range<Date>,
-        entries: [Journal],
-        allEntries: [Journal],
-        reflectionDays: Int,
-        calendar: Calendar,
-        referenceDate: Date,
-        pastStatisticsInterval: PastStatisticsIntervalSelection
+        input: WeeklyReviewAggregatesInput,
+        sortedCurrentEntries: [Journal],
+        reflectionDays: Int
     ) -> ReviewWeekStats {
-        let meaningfulEntryCount = meaningfulEntryCount(from: entries)
-        let weekStrongestByDay = ReviewHistoryWindowing.strongestCompletionByDay(from: entries, calendar: calendar)
+        let meaningfulEntryCount = meaningfulEntryCount(from: sortedCurrentEntries)
+        let weekStrongestByDay = ReviewHistoryWindowing.strongestCompletionByDay(
+            from: sortedCurrentEntries,
+            calendar: input.calendar
+        )
         let completionMix = buildCompletionMix(from: weekStrongestByDay)
         let activity = buildDayActivity(
-            currentPeriod: currentPeriod,
-            entries: entries,
+            currentPeriod: input.currentPeriod,
+            entries: sortedCurrentEntries,
             strongestCompletionByDay: weekStrongestByDay,
-            calendar: calendar
+            calendar: input.calendar
         )
-        let historyRange = pastStatisticsInterval.validated.resolvedHistoryRange(
-            referenceDate: referenceDate,
-            calendar: calendar,
-            allEntries: allEntries
+        let historyRange = input.pastStatisticsInterval.validated.resolvedHistoryRange(
+            referenceDate: input.referenceDate,
+            calendar: input.calendar,
+            allEntries: input.allEntries
         )
         let rhythmHistory = buildRhythmHistory(
-            allEntries: allEntries,
-            currentPeriod: currentPeriod,
-            calendar: calendar,
-            referenceDate: referenceDate,
+            allEntries: input.allEntries,
+            currentPeriod: input.currentPeriod,
+            calendar: input.calendar,
+            referenceDate: input.referenceDate,
             pastStatisticsHistoryLowerBound: historyRange.lowerBound
         )
         let sectionTotals = ReviewWeekSectionTotals(
-            gratitudeMentions: entries.reduce(0) { $0 + ($1.gratitudes ?? []).count },
-            needMentions: entries.reduce(0) { $0 + ($1.needs ?? []).count },
-            peopleMentions: entries.reduce(0) { $0 + ($1.people ?? []).count }
+            gratitudeMentions: sortedCurrentEntries.reduce(0) { $0 + ($1.gratitudes ?? []).count },
+            needMentions: sortedCurrentEntries.reduce(0) { $0 + ($1.needs ?? []).count },
+            peopleMentions: sortedCurrentEntries.reduce(0) { $0 + ($1.people ?? []).count }
         )
         let entriesInHistoryRange = ReviewHistoryWindowing.entriesInValidatedHistoryWindow(
-            allEntries: allEntries,
-            referenceDate: referenceDate,
-            calendar: calendar,
-            pastStatisticsInterval: pastStatisticsInterval
+            allEntries: input.allEntries,
+            referenceDate: input.referenceDate,
+            calendar: input.calendar,
+            pastStatisticsInterval: input.pastStatisticsInterval
         )
         let historyStrongestByDay = ReviewHistoryWindowing.strongestCompletionByDay(
             from: entriesInHistoryRange,
-            calendar: calendar
+            calendar: input.calendar
         )
         // Same invariant as week ``completionMix``: bucket totals sum to calendar days with ≥1 persisted
         // entry in the entry set used for the per-day strongest level (here, entries in the past-stats window).
@@ -361,10 +375,10 @@ private extension WeeklyReviewAggregatesBuilder {
             peopleMentions: entriesInHistoryRange.reduce(0) { $0 + ($1.people ?? []).count }
         )
         let sections = buildThemeSections(
-            from: sortedEntries(allEntries),
-            currentPeriod: currentPeriod,
-            calendar: calendar,
-            referenceDate: referenceDate,
+            from: sortedEntries(input.allEntries),
+            currentPeriod: input.currentPeriod,
+            calendar: input.calendar,
+            referenceDate: input.referenceDate,
             mostRecurringWindow: historyRange
         )
         return ReviewWeekStats(

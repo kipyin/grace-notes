@@ -30,14 +30,14 @@ final class WeeklyReviewHistoryRollupsTests: XCTestCase {
         let weekSparse = makeEntry(on: date(year: 2026, month: 3, day: 17), gratitudes: ["solo"])
 
         let allEntries = [priorFull, weekSparse]
-        let aggregates = builder.build(
+        let aggregates = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: allEntries.filter { period.contains($0.entryDate) },
             previousWeekEntries: allEntries.filter { previous.contains($0.entryDate) },
             allEntries: allEntries,
             calendar: calendar,
             referenceDate: referenceDate
-        )
+        ))
 
         XCTAssertEqual(aggregates.stats.sectionTotals.gratitudeMentions, 1)
         XCTAssertEqual(aggregates.stats.sectionTotals.needMentions, 0)
@@ -71,7 +71,7 @@ final class WeeklyReviewHistoryRollupsTests: XCTestCase {
         let recentEntry = makeEntry(on: recent, gratitudes: ["new"])
         let allEntries = [ancientEntry, recentEntry]
         let oneWeek = PastStatisticsIntervalSelection(mode: .custom, quantity: 1, unit: .week)
-        let aggregates = builder.build(
+        let aggregates = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: allEntries.filter { period.contains($0.entryDate) },
             previousWeekEntries: allEntries.filter { previous.contains($0.entryDate) },
@@ -79,7 +79,7 @@ final class WeeklyReviewHistoryRollupsTests: XCTestCase {
             calendar: calendar,
             referenceDate: referenceDate,
             pastStatisticsInterval: oneWeek
-        )
+        ))
         XCTAssertEqual(aggregates.stats.historyCompletionMix.totalDaysRepresented, 1)
     }
 
@@ -103,14 +103,14 @@ final class WeeklyReviewHistoryRollupsTests: XCTestCase {
         let allEntries = [outsideEntry, weekEntry]
         let weekSlice = allEntries.filter { period.contains($0.entryDate) }
 
-        let aggregates = builder.build(
+        let aggregates = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: weekSlice,
             previousWeekEntries: allEntries.filter { previous.contains($0.entryDate) },
             allEntries: allEntries,
             calendar: calendar,
             referenceDate: referenceDate
-        )
+        ))
 
         XCTAssertEqual(distinctEntryDays(weekSlice), 1)
         XCTAssertEqual(aggregates.stats.completionMix.totalDaysRepresented, 1)
@@ -135,14 +135,14 @@ final class WeeklyReviewHistoryRollupsTests: XCTestCase {
         )
         let allEntries = [sparseSameDay, fullSameDay]
 
-        let aggregates = builder.build(
+        let aggregates = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: allEntries.filter { period.contains($0.entryDate) },
             previousWeekEntries: allEntries.filter { previous.contains($0.entryDate) },
             allEntries: allEntries,
             calendar: calendar,
             referenceDate: referenceDate
-        )
+        ))
 
         XCTAssertEqual(distinctEntryDays(allEntries), 1)
         XCTAssertEqual(aggregates.stats.historyCompletionMix.totalDaysRepresented, 1)
@@ -178,14 +178,14 @@ final class WeeklyReviewHistoryRollupsTests: XCTestCase {
         let weekSparse = makeEntry(on: date(year: 2026, month: 3, day: 17), gratitudes: ["solo"])
 
         let allEntries = [priorFull, weekSparse]
-        let aggregates = builder.build(
+        let aggregates = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: allEntries.filter { period.contains($0.entryDate) },
             previousWeekEntries: allEntries.filter { previous.contains($0.entryDate) },
             allEntries: allEntries,
             calendar: calendar,
             referenceDate: referenceDate
-        )
+        ))
 
         let interval = PastStatisticsIntervalSelection.default
         let windowed = ReviewHistoryWindowing.entriesInValidatedHistoryWindow(
@@ -243,14 +243,14 @@ final class WeeklyReviewHistoryRollupsTests: XCTestCase {
         let recentEntry = makeEntry(on: recent, gratitudes: ["new"])
         let allEntries = [ancientEntry, recentEntry]
 
-        let aggregates = builder.build(
+        let aggregates = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: allEntries.filter { period.contains($0.entryDate) },
             previousWeekEntries: allEntries.filter { previous.contains($0.entryDate) },
             allEntries: allEntries,
             calendar: calendar,
             referenceDate: referenceDate
-        )
+        ))
 
         let rhythm = try XCTUnwrap(aggregates.stats.rhythmHistory)
         XCTAssertEqual(calendar.startOfDay(for: rhythm.first!.date), calendar.startOfDay(for: ancient))
@@ -271,14 +271,14 @@ final class WeeklyReviewHistoryRollupsTests: XCTestCase {
         let recentEntry = makeEntry(on: recent, gratitudes: ["new"])
         let allEntries = [oldEntry, recentEntry]
 
-        let aggregates = builder.build(
+        let aggregates = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: allEntries.filter { period.contains($0.entryDate) },
             previousWeekEntries: allEntries.filter { previous.contains($0.entryDate) },
             allEntries: allEntries,
             calendar: calendar,
             referenceDate: referenceDate
-        )
+        ))
         let rhythm = try XCTUnwrap(aggregates.stats.rhythmHistory)
         XCTAssertLessThanOrEqual(rhythm.count, 731)
         let firstStart = calendar.startOfDay(for: rhythm.first!.date)
@@ -297,22 +297,22 @@ final class WeeklyReviewHistoryRollupsTests: XCTestCase {
         let weekEntry = makeEntry(on: entryDay, gratitudes: ["solo"])
         let allEntries = [weekEntry]
 
-        let skewed = builder.build(
+        let skewed = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: skewedPeriod,
             currentWeekEntries: allEntries,
             previousWeekEntries: allEntries.filter { previous.contains($0.entryDate) },
             allEntries: allEntries,
             calendar: calendar,
             referenceDate: referenceDate
-        )
-        let aligned = builder.build(
+        ))
+        let aligned = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: alignedPeriod,
             currentWeekEntries: allEntries,
             previousWeekEntries: allEntries.filter { previous.contains($0.entryDate) },
             allEntries: allEntries,
             calendar: calendar,
             referenceDate: referenceDate
-        )
+        ))
 
         XCTAssertEqual(skewed.stats.activity, aligned.stats.activity)
         for row in skewed.stats.activity {
