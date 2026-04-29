@@ -82,8 +82,15 @@ struct ReviewInsightsProvider: Sendable {
     ) -> ReviewInsights {
         let weekRange = ReviewInsightsPeriod.currentPeriod(containing: referenceDate, calendar: calendar)
         let previousPeriod = ReviewInsightsPeriod.previousPeriod(before: weekRange, calendar: calendar)
-        let currentWeekEntries = entries.filter { weekRange.contains($0.entryDate) }
-        let previousWeekEntries = entries.filter { previousPeriod.contains($0.entryDate) }
+        var currentWeekEntries: [Journal] = []
+        var previousWeekEntries: [Journal] = []
+        for entry in entries {
+            if weekRange.contains(entry.entryDate) {
+                currentWeekEntries.append(entry)
+            } else if previousPeriod.contains(entry.entryDate) {
+                previousWeekEntries.append(entry)
+            }
+        }
         let aggregates = aggregatesBuilder.build(
             input: WeeklyReviewAggregatesInput(
                 currentPeriod: weekRange,
