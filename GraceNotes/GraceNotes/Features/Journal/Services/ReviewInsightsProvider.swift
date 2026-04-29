@@ -85,13 +85,15 @@ struct ReviewInsightsProvider: Sendable {
         let currentWeekEntries = entries.filter { weekRange.contains($0.entryDate) }
         let previousWeekEntries = entries.filter { previousPeriod.contains($0.entryDate) }
         let aggregates = aggregatesBuilder.build(
-            currentPeriod: weekRange,
-            currentWeekEntries: currentWeekEntries,
-            previousWeekEntries: previousWeekEntries,
-            allEntries: entries,
-            calendar: calendar,
-            referenceDate: referenceDate,
-            pastStatisticsInterval: pastStatisticsInterval
+            input: WeeklyReviewAggregatesInput(
+                currentPeriod: weekRange,
+                currentWeekEntries: currentWeekEntries,
+                previousWeekEntries: previousWeekEntries,
+                allEntries: entries,
+                calendar: calendar,
+                referenceDate: referenceDate,
+                pastStatisticsInterval: pastStatisticsInterval
+            )
         )
         let carryIntoNextWeek = String(localized: "review.prompts.carryIntoNextWeek")
         let fallbackInsight = ReviewWeeklyInsight(
