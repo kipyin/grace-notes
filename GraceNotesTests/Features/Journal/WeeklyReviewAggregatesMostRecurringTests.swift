@@ -28,14 +28,14 @@ extension WeeklyReviewAggregatesMostRecurringTests {
             makeEntry(on: date(year: 2026, month: 3, day: 17), needs: ["recover"]),
             makeEntry(on: date(year: 2026, month: 3, day: 18), needs: ["休息"])
         ]
-        let aggregates = builder.build(
+        let aggregates = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: entries.filter { period.contains($0.entryDate) },
             previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
             allEntries: entries,
             calendar: calendar,
             referenceDate: referenceDate
-        )
+        ))
 
         let restTheme = try XCTUnwrap(aggregates.stats.mostRecurringThemes.first(where: { $0.label == "休息" }))
         XCTAssertEqual(restTheme.totalCount, 3)
@@ -52,14 +52,14 @@ extension WeeklyReviewAggregatesMostRecurringTests {
             makeEntry(on: date(year: 2026, month: 3, day: 18), needs: ["休息"])
         ]
         builder.themeJournalLanguageResolver = FixedReviewJournalThemeLanguageResolver(locale: Locale(identifier: "en"))
-        let aggregates = builder.build(
+        let aggregates = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: entries.filter { period.contains($0.entryDate) },
             previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
             allEntries: entries,
             calendar: calendar,
             referenceDate: referenceDate
-        )
+        ))
 
         let restTheme = try XCTUnwrap(aggregates.stats.mostRecurringThemes.first(where: { $0.label == "Rest" }))
         XCTAssertEqual(restTheme.totalCount, 3)
@@ -81,7 +81,7 @@ extension WeeklyReviewAggregatesMostRecurringTests {
         ]
 
         let fourWeeksStats = PastStatisticsIntervalSelection(mode: .custom, quantity: 4, unit: .week)
-        let aggregates = builder.build(
+        let aggregates = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: insideWindow.filter { period.contains($0.entryDate) },
             previousWeekEntries: insideWindow.filter { previous.contains($0.entryDate) },
@@ -89,7 +89,7 @@ extension WeeklyReviewAggregatesMostRecurringTests {
             calendar: calendar,
             referenceDate: referenceDate,
             pastStatisticsInterval: fourWeeksStats
-        )
+        ))
 
         let recurring = aggregates.stats.mostRecurringThemes
         let quiet = try XCTUnwrap(recurring.first(where: { $0.label == "Quiet time" }))
@@ -107,14 +107,14 @@ extension WeeklyReviewAggregatesMostRecurringTests {
             makeEntry(on: date(year: 2026, month: 3, day: 17), needs: ["recover"]),
             makeEntry(on: date(year: 2026, month: 3, day: 18), needs: ["休息"])
         ]
-        let aggregates = builder.build(
+        let aggregates = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: entries.filter { period.contains($0.entryDate) },
             previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
             allEntries: entries,
             calendar: calendar,
             referenceDate: referenceDate
-        )
+        ))
 
         let restTheme = try XCTUnwrap(aggregates.stats.mostRecurringThemes.first(where: { $0.label == "Rest" }))
         XCTAssertEqual(restTheme.totalCount, 3)
@@ -131,14 +131,14 @@ extension WeeklyReviewAggregatesMostRecurringTests {
             makeEntry(on: date(year: 2026, month: 3, day: 16), gratitudes: ["rest"]),
             makeEntry(on: date(year: 2026, month: 3, day: 17), gratitudes: ["rest"])
         ]
-        let aggregates = builder.build(
+        let aggregates = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: entries.filter { period.contains($0.entryDate) },
             previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
             allEntries: entries,
             calendar: calendar,
             referenceDate: referenceDate
-        )
+        ))
 
         let restTheme = try XCTUnwrap(
             aggregates.stats.mostRecurringThemes.first(where: { $0.label == "Rest" })
@@ -156,14 +156,14 @@ extension WeeklyReviewAggregatesMostRecurringTests {
             makeEntry(on: date(year: 2026, month: 3, day: 17), people: ["mia"]),
             makeEntry(on: date(year: 2026, month: 3, day: 18), people: [" Mia "])
         ]
-        let aggregates = builder.build(
+        let aggregates = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: entries.filter { period.contains($0.entryDate) },
             previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
             allEntries: entries,
             calendar: calendar,
             referenceDate: referenceDate
-        )
+        ))
 
         let literal = try XCTUnwrap(aggregates.stats.mostRecurringThemes.first(where: { $0.label == "Mia" }))
         XCTAssertEqual(literal.totalCount, 3)
@@ -193,14 +193,14 @@ extension WeeklyReviewAggregatesMostRecurringTests {
                 people: ["Rest"]
             )
         ]
-        let aggregates = builder.build(
+        let aggregates = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: entries.filter { period.contains($0.entryDate) },
             previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
             allEntries: entries,
             calendar: calendar,
             referenceDate: referenceDate
-        )
+        ))
 
         let restTheme = try XCTUnwrap(
             aggregates.stats.mostRecurringThemes.first(where: { $0.label == "Rest" })
@@ -238,14 +238,14 @@ extension WeeklyReviewAggregatesMostRecurringTests {
             makeEntry(on: date(year: 2026, month: 3, day: 16), needs: ["focus"])
         ]
 
-        let stats = builder.build(
+        let stats = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: entries.filter { period.contains($0.entryDate) },
             previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
             allEntries: entries,
             calendar: calendar,
             referenceDate: referenceDate
-        ).stats
+        )).stats
         let trending = stats.movementThemes
         let buckets = stats.trendingBuckets
 
@@ -283,14 +283,14 @@ extension WeeklyReviewAggregatesMostRecurringTests {
             makeEntry(on: date(year: 2026, month: 3, day: 17), needs: ["therapy"])
         ]
 
-        let stats = builder.build(
+        let stats = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: entries.filter { period.contains($0.entryDate) },
             previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
             allEntries: entries,
             calendar: calendar,
             referenceDate: referenceDate
-        ).stats
+        )).stats
 
         let therapy = try XCTUnwrap(stats.trendingBuckets.newThemes.first(where: { $0.label == "Therapy" }))
         XCTAssertEqual(therapy.trend, .new)
@@ -313,14 +313,14 @@ extension WeeklyReviewAggregatesMostRecurringTests {
                 needs: ["recover"]
             )
         ]
-        let aggregates = builder.build(
+        let aggregates = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: entries.filter { period.contains($0.entryDate) },
             previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
             allEntries: entries,
             calendar: calendar,
             referenceDate: referenceDate
-        )
+        ))
         let rest = try XCTUnwrap(aggregates.stats.mostRecurringThemes.first(where: { $0.label == "Rest" }))
         XCTAssertEqual(
             rest.totalCount,
@@ -360,14 +360,14 @@ extension WeeklyReviewAggregatesMostRecurringTests {
             makeEntry(on: date(year: 2026, month: 3, day: 16), gratitudes: [surfacePhrase]),
             makeEntry(on: date(year: 2026, month: 3, day: 17), gratitudes: [surfacePhrase])
         ]
-        let aggregates = builder.build(
+        let aggregates = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: entries.filter { period.contains($0.entryDate) },
             previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
             allEntries: entries,
             calendar: calendar,
             referenceDate: referenceDate
-        )
+        ))
 
         let recurring = aggregates.stats.mostRecurringThemes
         let walking = try XCTUnwrap(recurring.first(where: { $0.label == "Walking" }))
@@ -396,14 +396,14 @@ extension WeeklyReviewAggregatesMostRecurringTests {
             makeEntry(on: date(year: 2026, month: 3, day: 16), needs: ["rest"]),
             makeEntry(on: date(year: 2026, month: 3, day: 17), needs: ["rest"])
         ]
-        let recurring = builder.build(
+        let recurring = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: entries.filter { period.contains($0.entryDate) },
             previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
             allEntries: entries,
             calendar: calendar,
             referenceDate: referenceDate
-        ).stats.mostRecurringThemes
+        )).stats.mostRecurringThemes
 
         XCTAssertTrue(recurring.contains(where: { $0.label == "Rest" }))
         let bannedLabels: Set<String> = ["Reflection", "Journal", "Things"]
@@ -419,14 +419,14 @@ extension WeeklyReviewAggregatesMostRecurringTests {
             makeEntry(on: date(year: 2026, month: 3, day: 16), needs: ["work"]),
             makeEntry(on: date(year: 2026, month: 3, day: 17), needs: ["work"])
         ]
-        let recurring = builder.build(
+        let recurring = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: entries.filter { period.contains($0.entryDate) },
             previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
             allEntries: entries,
             calendar: calendar,
             referenceDate: referenceDate
-        ).stats.mostRecurringThemes
+        )).stats.mostRecurringThemes
 
         XCTAssertFalse(recurring.contains(where: { $0.label == "Work" }))
     }
@@ -445,14 +445,14 @@ extension WeeklyReviewAggregatesMostRecurringTests {
             entries.append(makeEntry(on: day, gratitudes: ["rest"], needs: ["focus"], people: ["Dad"]))
         }
 
-        let stats = builder.build(
+        let stats = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: entries.filter { period.contains($0.entryDate) },
             previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
             allEntries: entries,
             calendar: calendar,
             referenceDate: referenceDate
-        ).stats
+        )).stats
 
         let dad = try XCTUnwrap(stats.mostRecurringThemes.first(where: { $0.label == "Dad" }))
         XCTAssertTrue(dad.evidence.contains { $0.source == .people })
@@ -485,24 +485,24 @@ extension WeeklyReviewAggregatesMostRecurringTests {
             makeEntry(on: date(year: 2026, month: 3, day: 16), gratitudes: ["walking"])
         ]
 
-        let warmUpStats = builder.build(
+        let warmUpStats = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: entries.filter { period.contains($0.entryDate) },
             previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
             allEntries: entries,
             calendar: calendar,
             referenceDate: warmUpReference
-        ).stats
+        )).stats
         XCTAssertNil(warmUpStats.movementThemes.first(where: { $0.label == "Walking" }))
 
-        let balancedStats = builder.build(
+        let balancedStats = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: entries.filter { period.contains($0.entryDate) },
             previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
             allEntries: entries,
             calendar: calendar,
             referenceDate: afterWarmUpReference
-        ).stats
+        )).stats
         let walking = try XCTUnwrap(balancedStats.movementThemes.first(where: { $0.label == "Walking" }))
         XCTAssertEqual(walking.trend, .down)
     }
@@ -518,14 +518,14 @@ extension WeeklyReviewAggregatesMostRecurringTests {
             makeEntry(on: date(year: 2026, month: 3, day: 17), needs: ["rest"])
         ]
 
-        let stats = builder.build(
+        let stats = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: entries.filter { period.contains($0.entryDate) },
             previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
             allEntries: entries,
             calendar: calendar,
             referenceDate: warmUpReference
-        ).stats
+        )).stats
 
         let rest = try XCTUnwrap(stats.movementThemes.first(where: { $0.label == "Rest" }))
         XCTAssertEqual(rest.trend, .rising)
@@ -544,14 +544,14 @@ extension WeeklyReviewAggregatesMostRecurringTests {
             makeEntry(on: date(year: 2026, month: 3, day: 12), gratitudes: ["walking"])
         ]
 
-        let stats = builder.build(
+        let stats = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: entries.filter { period.contains($0.entryDate) },
             previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
             allEntries: entries,
             calendar: calendar,
             referenceDate: warmUpReference
-        ).stats
+        )).stats
 
         let walking = try XCTUnwrap(stats.movementThemes.first(where: { $0.label == "Walking" }))
         XCTAssertEqual(walking.trend, .down)
@@ -582,14 +582,14 @@ extension WeeklyReviewAggregatesMostRecurringTests {
             )
         ]
 
-        let recurring = builder.build(
+        let recurring = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: entries.filter { period.contains($0.entryDate) },
             previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
             allEntries: entries,
             calendar: calendar,
             referenceDate: referenceDate
-        ).stats.mostRecurringThemes
+        )).stats.mostRecurringThemes
 
         let rest = try XCTUnwrap(recurring.first(where: { $0.label == "Rest" }))
         XCTAssertEqual(rest.totalCount, 2, "Reading/reflection evidence should not inflate count totals.")
@@ -619,14 +619,14 @@ extension WeeklyReviewAggregatesMostRecurringTests {
             )
         ]
 
-        let recurring = builder.build(
+        let recurring = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: entries.filter { period.contains($0.entryDate) },
             previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
             allEntries: entries,
             calendar: calendar,
             referenceDate: referenceDate
-        ).stats.mostRecurringThemes
+        )).stats.mostRecurringThemes
 
         let rest = try XCTUnwrap(recurring.first(where: { $0.label == "Rest" }))
         XCTAssertFalse(
@@ -652,14 +652,14 @@ extension WeeklyReviewAggregatesMostRecurringTests {
             needs: ["stretching"],
             people: ["Jordan"]
         )
-        let aggregates = builder.build(
+        let aggregates = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: [entry].filter { period.contains($0.entryDate) },
             previousWeekEntries: [entry].filter { previousPeriod.contains($0.entryDate) },
             allEntries: [entry],
             calendar: calendar,
             referenceDate: referenceDate
-        )
+        ))
         XCTAssertTrue(
             aggregates.stats.movementThemes.isEmpty,
             "Expected no surfacing trends for seed data; got: \(aggregates.stats.movementThemes.map(\.label))"

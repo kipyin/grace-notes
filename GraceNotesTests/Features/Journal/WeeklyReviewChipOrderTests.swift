@@ -26,14 +26,14 @@ final class WeeklyReviewChipOrderTests: XCTestCase {
         let entries = [
             makeEntry(on: sameDay, gratitudes: ["Zebra", "Apple", "Mango", "Banana"])
         ]
-        let aggregates = builder.build(
+        let aggregates = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: entries.filter { period.contains($0.entryDate) },
             previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
             allEntries: entries,
             calendar: calendar,
             referenceDate: referenceDate
-        )
+        ))
 
         let gratitudeSummaries = aggregates.candidateInputs.gratitudes
         let expectedTopThree = Array(gratitudeSummaries.prefix(3)).map(\.displayLabel)
@@ -66,14 +66,14 @@ final class WeeklyReviewChipOrderTests: XCTestCase {
                 people: ["Yvonne", "Alex", "Quinn", "Pat"]
             )
         ]
-        let aggregates = builder.build(
+        let aggregates = builder.build(input: WeeklyReviewAggregatesInput(
             currentPeriod: period,
             currentWeekEntries: entries.filter { period.contains($0.entryDate) },
             previousWeekEntries: entries.filter { previous.contains($0.entryDate) },
             allEntries: entries,
             calendar: calendar,
             referenceDate: referenceDate
-        )
+        ))
 
         XCTAssertEqual(aggregates.recurringNeeds.map(\.label), ["Zebra", "Apple", "Mango"])
         XCTAssertEqual(aggregates.recurringPeople.map(\.label), ["Yvonne", "Alex", "Quinn"])
