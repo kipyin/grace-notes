@@ -7,8 +7,11 @@ private let scheduledBackupLogger = Logger(
     category: "ScheduledBackup"
 )
 
-/// Prevents overlapping scheduled backup runs when the app becomes active repeatedly before
-/// `lastRunAt` is updated (each transition spawns a new `Task` in ``GraceNotesApp``).
+/// Prevents overlapping scheduled backup runs until the detached export + MainActor bookkeeping
+/// completes. `end()` runs in a `defer` on that detached task so `inFlight` is not cleared if
+/// `runIfDue`’s caller task is cancelled while awaiting the detached work (which would otherwise
+/// allow a second run while export/file I/O is still in flight). Each `active` transition spawns
+/// a new `Task` in ``GraceNotesApp``.
 private final class ScheduledBackupSingleFlight: @unchecked Sendable {
     private let lock = NSLock()
     private var inFlight = false
@@ -46,30 +49,31 @@ enum ScheduledBackupRunner {
 
         guard scheduledBackupSingleFlight.tryBegin() else { return }
 
-        let result = await Task.detached(priority: .utility) {
+        await Task.detached(priority: .utility) {
             defer { scheduledBackupSingleFlight.end() }
-            return Self.performScheduledExport(modelContainer: modelContainer)
-        }.value
 
-        switch result {
-        case .success(let fileName):
-            await MainActor.run {
-                ScheduledBackupPreferences.lastRunAt = Date()
-                ScheduledBackupPreferences.lastFailedAttemptAt = nil
-                BackupExportHistoryStore.record(
-                    success: true,
-                    kind: .scheduledFolder,
-                    detail: fileName
+            let result = Self.performScheduledExport(modelContainer: modelContainer)
+
+            switch result {
+            case .success(let fileName):
+                await MainActor.run {
+                    ScheduledBackupPreferences.lastRunAt = Date()
+                    ScheduledBackupPreferences.lastFailedAttemptAt = nil
+                    BackupExportHistoryStore.record(
+                        success: true,
+                        kind: .scheduledFolder,
+                        detail: fileName
+                    )
+                }
+            case .exportFailed:
+                await recordScheduledFailure(
+                    detail: String(localized: "settings.dataPrivacy.scheduledBackup.failureDetail")
                 )
+            case .copyFailed(let error):
+                let detail = failureDetail(for: error)
+                await recordScheduledFailure(detail: detail)
             }
-        case .exportFailed:
-            await recordScheduledFailure(
-                detail: String(localized: "settings.dataPrivacy.scheduledBackup.failureDetail")
-            )
-        case .copyFailed(let error):
-            let detail = failureDetail(for: error)
-            await recordScheduledFailure(detail: detail)
-        }
+        }.value
     }
 
     private enum ScheduledExportResult {
@@ -122,13 +126,9 @@ enum ScheduledBackupRunner {
     }
 
     private static func copyTempExport(at tempFile: URL, to folderURL: URL, exportDate: Date) throws -> String {
-        let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone(secondsFromGMT: 0)
-        formatter.dateFormat = "yyyyMMdd-HHmmss"
+        let stamp = JournalDataExportService().exportFilenameTimestamp(for: exportDate)
         // UUID avoids same-second overwrites (copyTempFile replaces an existing destination name).
-        let name = "grace-notes-scheduled-\(formatter.string(from: exportDate))-\(UUID().uuidString).json"
+        let name = "grace-notes-scheduled-\(stamp)-\(UUID().uuidString).json"
         return try BackupFolderJSONExport.copyTempFile(
             tempFile,
             into: folderURL,
@@ -157,6 +157,7 @@ enum ScheduledBackupRunner {
     private static func exportToTemporaryFile(modelContainer: ModelContainer, exportDate: Date) -> ExportToTempResult {
         do {
             let exportService = JournalDataExportService()
+            // `ModelContext` is created and used only on this detached task (not the main actor).
             let backgroundContext = ModelContext(modelContainer)
             let tempFile = try exportService.exportArchiveFile(context: backgroundContext, now: exportDate)
             return .success(tempFile)

@@ -16,6 +16,10 @@ final class ICloudAccountStatusModel: ObservableObject {
         self.provider = provider
     }
 
+    deinit {
+        refreshTask?.cancel()
+    }
+
     func refresh() {
         refreshTask?.cancel()
         refreshGeneration += 1

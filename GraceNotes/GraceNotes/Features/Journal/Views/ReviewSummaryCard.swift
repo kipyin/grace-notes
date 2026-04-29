@@ -816,7 +816,7 @@ private struct ReviewRhythmHorizontalScrollEndPin: UIViewRepresentable {
 
         func attachIfNeeded() {
             guard let probeView else { return }
-            guard let scrollView = findAncestorScrollView(from: probeView) else { return }
+            guard let scrollView = findRhythmScrollView(from: probeView) else { return }
             if observedScrollView === scrollView {
                 pinToTrailingIfNeeded(scrollView)
                 return
@@ -859,10 +859,16 @@ private struct ReviewRhythmHorizontalScrollEndPin: UIViewRepresentable {
             }
         }
 
-        private func findAncestorScrollView(from view: UIView) -> UIScrollView? {
+        /// Walks toward the window; skips scroll views that host list rows or editable text so we pin the rhythm
+        /// strip’s own scroller (`UIScrollView` or horizontal `UICollectionView`), not the outer `List` row host
+        /// (`UITableView`) or `UITextView`. We do not skip `UICollectionView` so a future collection-based rhythm
+        /// strip remains observable here.
+        private func findRhythmScrollView(from view: UIView) -> UIScrollView? {
             var currentView: UIView? = view
             while let candidate = currentView?.superview {
-                if let scrollView = candidate as? UIScrollView {
+                if let scrollView = candidate as? UIScrollView,
+                   !(scrollView is UITableView),
+                   !(scrollView is UITextView) {
                     return scrollView
                 }
                 currentView = candidate

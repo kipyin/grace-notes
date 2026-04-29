@@ -128,6 +128,7 @@ struct ShareCardDraft: Equatable, Sendable {
 
 private extension Set where Element == Int {
     mutating func toggleMembership(_ index: Int) {
+        guard index >= 0 else { return }
         if contains(index) {
             remove(index)
         } else {
@@ -356,8 +357,9 @@ enum ShareRenderPayloadBuilder {
         redacted: Set<Int>,
         identity: (Int) -> ShareLineIdentity
     ) -> [ShareLineDisplayItem] {
-        strings.enumerated().map { index, raw in
-            if redacted.contains(index) {
+        let activeRedactions = redacted.intersection(0 ..< strings.count)
+        return strings.enumerated().map { index, raw in
+            if activeRedactions.contains(index) {
                 .redacted(identity: identity(index))
             } else {
                 .visible(
@@ -374,8 +376,9 @@ enum ShareRenderPayloadBuilder {
         identity: (Int) -> ShareLineIdentity
     ) -> [ShareLineDisplayItem] {
         let lines = proseLines(text)
+        let activeRedactions = redacted.intersection(0 ..< lines.count)
         return lines.enumerated().map { index, raw in
-            if redacted.contains(index) {
+            if activeRedactions.contains(index) {
                 .redacted(identity: identity(index))
             } else {
                 .visible(

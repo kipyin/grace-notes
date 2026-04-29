@@ -1,6 +1,12 @@
 import XCTest
 @testable import GraceNotes
 
+/// Persistence tests for Today journal appearance (`JournalAppearanceMode`).
+///
+/// ``JournalAppearanceMode/resolveStored(rawValue:)`` lowercases stored keys with `en_US_POSIX` so
+/// identifier matching stays stable across user locales. If normalization used `Locale.current` or
+/// `String.lowercased()` alone, Turkish (and other) linguistic rules would diverge from POSIX for
+/// Latin `I` (see ``testPOSIXLowercasingDiffersFromTurkishForLatinCapitalI``).
 final class JournalAppearancePersistenceTests: XCTestCase {
     override func tearDown() {
         UserDefaults.standard.removeObject(forKey: JournalAppearanceStorageKeys.todayMode)
@@ -37,6 +43,16 @@ final class JournalAppearancePersistenceTests: XCTestCase {
     func test_resolveStored_normalizesWhitespaceAndCaseForStandard() {
         XCTAssertEqual(JournalAppearanceMode.resolveStored(rawValue: " Standard "), .standard)
         XCTAssertEqual(JournalAppearanceMode.resolveStored(rawValue: "Standard"), .standard)
+        XCTAssertEqual(JournalAppearanceMode.resolveStored(rawValue: "STANDARD"), .standard)
+    }
+
+    func testPOSIXLowercasingDiffersFromTurkishForLatinCapitalI() {
+        let capitalILatin = "I"
+        let posix = capitalILatin.lowercased(with: Locale(identifier: "en_US_POSIX"))
+        let turkish = capitalILatin.lowercased(with: Locale(identifier: "tr_TR"))
+        XCTAssertEqual(posix, "i")
+        XCTAssertEqual(turkish, "ı")
+        XCTAssertNotEqual(posix, turkish)
     }
 
     func test_migrateLegacyJournalAppearance_rewritesSummerRawToBloom() {

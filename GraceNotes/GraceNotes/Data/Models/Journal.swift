@@ -108,9 +108,12 @@ final class JournalEntry {
         needsCount: Int,
         peopleCount: Int
     ) -> Bool {
-        gratitudesCount >= slotCount &&
-            needsCount >= slotCount &&
-            peopleCount >= slotCount
+        let counts = NonNegativeSectionCounts(
+            gratitudesCount: gratitudesCount,
+            needsCount: needsCount,
+            peopleCount: peopleCount
+        )
+        return counts.minCount >= slotCount
     }
 
     /// Minimum count across the three chip sections (weakest section).
@@ -119,7 +122,11 @@ final class JournalEntry {
         needsCount: Int,
         peopleCount: Int
     ) -> Int {
-        min(gratitudesCount, needsCount, peopleCount)
+        NonNegativeSectionCounts(
+            gratitudesCount: gratitudesCount,
+            needsCount: needsCount,
+            peopleCount: peopleCount
+        ).minCount
     }
 
     /// Chip-only status: Gratitudes, Needs, and People in Mind counts. Notes and reflections are ignored.
@@ -128,21 +135,25 @@ final class JournalEntry {
         needsCount: Int,
         peopleCount: Int
     ) -> JournalCompletionLevel {
-        if gratitudesCount == 0 && needsCount == 0 && peopleCount == 0 {
+        let counts = NonNegativeSectionCounts(
+            gratitudesCount: gratitudesCount,
+            needsCount: needsCount,
+            peopleCount: peopleCount
+        )
+
+        if counts.gratitudesCount == 0 && counts.needsCount == 0 && counts.peopleCount == 0 {
             return .soil
         }
 
-        if gratitudesCount >= slotCount && needsCount >= slotCount && peopleCount >= slotCount {
+        if counts.minCount >= slotCount {
             return .bloom
         }
 
-        if gratitudesCount >= 3 && needsCount >= 3 && peopleCount >= 3 {
+        if counts.minCount >= leafProgressThreshold {
             return .leaf
         }
 
-        let hasAtLeastThree = gratitudesCount >= 3 || needsCount >= 3 || peopleCount >= 3
-        let hasBelowThree = gratitudesCount < 3 || needsCount < 3 || peopleCount < 3
-        if hasAtLeastThree && hasBelowThree {
+        if counts.maxCount >= leafProgressThreshold && counts.minCount < leafProgressThreshold {
             return .twig
         }
 
@@ -162,15 +173,40 @@ final class JournalEntry {
 
     /// True when each chip section has at least one item (milestone “1/1/1”, independent of status name).
     var hasAtLeastOneEntryInEachSection: Bool {
-        let gratitudesCount = (gratitudes ?? []).count
-        let needsCount = (needs ?? []).count
-        let peopleCount = (people ?? []).count
-        return gratitudesCount >= 1 && needsCount >= 1 && peopleCount >= 1
+        let counts = NonNegativeSectionCounts(
+            gratitudesCount: (gratitudes ?? []).count,
+            needsCount: (needs ?? []).count,
+            peopleCount: (people ?? []).count
+        )
+        return counts.gratitudesCount >= 1 && counts.needsCount >= 1 && counts.peopleCount >= 1
     }
+
+    /// Minimum items per section before the leaf tier when not yet at bloom (all sections must reach this).
+    private static let leafProgressThreshold = 3
 
     /// Maximum number of items per chip section (gratitudes, needs, people).
     /// The journal design means each section holds at most 5 items.
     static let slotCount = 5
+
+    private struct NonNegativeSectionCounts {
+        let gratitudesCount: Int
+        let needsCount: Int
+        let peopleCount: Int
+
+        init(gratitudesCount: Int, needsCount: Int, peopleCount: Int) {
+            self.gratitudesCount = max(0, gratitudesCount)
+            self.needsCount = max(0, needsCount)
+            self.peopleCount = max(0, peopleCount)
+        }
+
+        var minCount: Int {
+            min(gratitudesCount, needsCount, peopleCount)
+        }
+
+        var maxCount: Int {
+            max(gratitudesCount, needsCount, peopleCount)
+        }
+    }
 }
 
 /// Code name for ``JournalEntry`` (call sites stay “Journal”; persistence stays compatible).

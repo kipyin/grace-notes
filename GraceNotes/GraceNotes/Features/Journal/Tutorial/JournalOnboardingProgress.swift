@@ -128,7 +128,13 @@ final class JournalOnboardingProgress {
         defaults.removeObject(forKey: JournalOnboardingStorageKeys.legacy051GuidedBranchResolution)
     }
 
+    /// Clears journal onboarding keys and tutorial milestone keys, then pins ``completedGuidedJournal`` to `false`
+    /// so ``resolvedHasCompletedGuidedJournal`` does not immediately re-derive `true` from first-run, reminders, or
+    /// other heuristics in ``shouldTreatInstallAsPreviouslyOnboarded``.
+    /// (Removing the key alone would let migration run again on the next read.)
     static func resetAll(in defaults: UserDefaults = .standard) {
+        JournalTutorialStorageKeys.removeAllStoredKeys(in: defaults)
+
         let keys = [
             JournalOnboardingStorageKeys.completedGuidedJournal,
             LegacyJournalOnboardingStorageKeys.pending051UpgradeOrientation,
@@ -143,6 +149,7 @@ final class JournalOnboardingProgress {
         for key in keys {
             defaults.removeObject(forKey: key)
         }
+        defaults.set(false, forKey: JournalOnboardingStorageKeys.completedGuidedJournal)
         AppLaunchVersionTracker.resetLaunchTracking(in: defaults)
     }
 

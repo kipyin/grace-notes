@@ -36,13 +36,15 @@ enum JournalTutorialUnlockEvaluator {
         let shouldRecordLeaf = crossedBalanced && !input.hasCelebratedFirstLeaf
         let shouldRecordBloom = crossedFull && !input.hasCelebratedFirstBloom
 
+        // Prefer the strongest growth-stage toast when several milestones cross in one update
+        // (e.g. empty → balanced or Bloom in a single save); recording flags below still capture each first.
         let highlight: JournalUnlockMilestoneHighlight
-        if shouldRecordTripleOne {
-            highlight = .firstOneOneOne
+        if shouldRecordBloom {
+            highlight = .firstFull
         } else if shouldRecordLeaf {
             highlight = .firstBalanced
-        } else if shouldRecordBloom {
-            highlight = .firstFull
+        } else if shouldRecordTripleOne {
+            highlight = .firstOneOneOne
         } else {
             return nil
         }

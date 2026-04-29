@@ -7,6 +7,21 @@ private let startupCoordinatorLogger = Logger(
     category: "StartupCoordinator"
 )
 
+/// Default startup copy is kept outside ``StartupCoordinator`` so `init` default arguments stay
+/// valid in Swift 6 strict concurrency (defaults are evaluated in a nonisolated context).
+private enum StartupCoordinatorDefaultCopy {
+    static let loading: [String] = [
+        String(localized: "startup.status.settingUp"),
+        String(localized: "startup.status.preparingCalm"),
+        String(localized: "startup.status.almostReady")
+    ]
+
+    static let reassurance: [String] = [
+        String(localized: "startup.status.stillWorking"),
+        String(localized: "startup.status.thanksPatience")
+    ]
+}
+
 @MainActor
 final class StartupCoordinator: ObservableObject {
     enum Phase {
@@ -52,8 +67,8 @@ final class StartupCoordinator: ObservableObject {
 
     init(
         timing: Timing = .default,
-        loadingCopy: [String] = StartupCoordinator.defaultLoadingCopy,
-        reassuranceCopy: [String] = StartupCoordinator.defaultReassuranceCopy,
+        loadingCopy: [String] = StartupCoordinatorDefaultCopy.loading,
+        reassuranceCopy: [String] = StartupCoordinatorDefaultCopy.reassurance,
         persistenceFactory: @escaping PersistenceFactory = {
             try await PersistenceController.makeForStartup()
         }
@@ -239,19 +254,6 @@ final class StartupCoordinator: ObservableObject {
         )
         return String(localized: "startup.error.setupFailed")
     }
-}
-
-private extension StartupCoordinator {
-    static let defaultLoadingCopy: [String] = [
-        String(localized: "startup.status.settingUp"),
-        String(localized: "startup.status.preparingCalm"),
-        String(localized: "startup.status.almostReady")
-    ]
-
-    static let defaultReassuranceCopy: [String] = [
-        String(localized: "startup.status.stillWorking"),
-        String(localized: "startup.status.thanksPatience")
-    ]
 }
 
 private extension Array {

@@ -205,6 +205,12 @@ private extension SettingsScreen {
                 isReminderPickerExpanded = newValue
                 Task {
                     await reminderState.setReminderEnabled(newValue)
+                    // If disable was deferred while another reminder operation held `isWorking`, `liveStatus`
+                    // can still be `.enabled` until work drains; keep the optimistic OFF until `liveStatus` updates.
+                    if !newValue, reminderState.liveStatus == .enabled {
+                        return
+                    }
+                    syncReminderControlState(with: reminderState.liveStatus)
                 }
             }
         )

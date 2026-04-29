@@ -300,7 +300,11 @@ struct ImportExportSettingsScreen: View {
             Button(String(localized: "settings.dataPrivacy.import.mergeConflict.keepDevice")) {
                 runConflictResolution(.preferLocal)
             }
-            Button(String(localized: "common.cancel"), role: .cancel) {}
+            Button(String(localized: "common.cancel"), role: .cancel) {
+                pendingImportURL = nil
+                mergeConflictDays = []
+                showMergeConflictResolution = false
+            }
         } message: {
             Text(mergeConflictAlertMessage(count: mergeConflictDays.count))
         }
@@ -671,7 +675,9 @@ private extension ImportExportSettingsScreen {
         let mode = importMode
         let calendar = Calendar.current
         do {
-            let fileData = try loadManualImportFileData(from: url)
+            let fileData = try await Task.detached(priority: .userInitiated) {
+                try Self.loadManualImportFileData(from: url)
+            }.value
             let summary = try await Task.detached(priority: .userInitiated) {
                 let backgroundContext = ModelContext(container)
                 return try importService.importData(
@@ -734,7 +740,7 @@ private extension ImportExportSettingsScreen {
         return String(localized: "settings.dataPrivacy.import.error.generic")
     }
 
-    private func loadManualImportFileData(from url: URL) throws -> Data {
+    private static func loadManualImportFileData(from url: URL) throws -> Data {
         if ScheduledBackupPreferences.fileURLIsUnderScheduledBackupFolder(url) {
             return try ScheduledBackupPreferences.withFolderSecurityScopedAccess { _ in
                 try readImportFileData(from: url)
@@ -749,7 +755,7 @@ private extension ImportExportSettingsScreen {
         return try readImportFileData(from: url)
     }
 
-    private func readImportFileData(from url: URL) throws -> Data {
+    private static func readImportFileData(from url: URL) throws -> Data {
         if let byteCount = JournalDataImportService.resolvedFileByteCount(at: url) {
             try JournalDataImportService.checkImportPayloadByteCount(byteCount)
         }

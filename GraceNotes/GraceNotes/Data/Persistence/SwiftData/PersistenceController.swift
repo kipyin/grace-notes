@@ -3,6 +3,37 @@ import Foundation
 import os
 import SwiftData
 
+private let persistenceUITestLogger = Logger(
+    subsystem: "com.gracenotes.GraceNotes",
+    category: "PersistenceUITest"
+)
+
+/// Deletes the UI-test SwiftData file when present. Retries once for transient file locks.
+private func removeUITestStoreFileIfPresent(at storeURL: URL) {
+    let fileManager = FileManager.default
+    guard fileManager.fileExists(atPath: storeURL.path) else { return }
+    func attemptRemoval() throws {
+        try fileManager.removeItem(at: storeURL)
+    }
+    do {
+        try attemptRemoval()
+    } catch {
+        Thread.sleep(forTimeInterval: 0.05)
+        do {
+            try attemptRemoval()
+        } catch let retryError {
+            let path = storeURL.path
+            let err = String(describing: retryError)
+            persistenceUITestLogger.error(
+                "Failed to remove UI test store after retry at \(path, privacy: .public): \(err, privacy: .public)"
+            )
+#if DEBUG
+            assertionFailure("Failed to remove UI test store after retry: \(retryError)")
+#endif
+        }
+    }
+}
+
 final class PersistenceController {
     private static let logger = Logger(
         subsystem: "com.gracenotes.GraceNotes",
@@ -52,26 +83,26 @@ final class PersistenceController {
     /// When `-grace-notes-reset-uitest-store` is present, deletes the on-disk UI-test store before opening it.
     /// UI tests otherwise reuse one SwiftData file per session key, so data would accumulate across test methods.
     static func resetUITestStoreIfRequested() {
+        resetUITestStoreIfRequested(storeURL: uiTestStoreURL)
+    }
+
+    private static func resetUITestStoreIfRequested(storeURL: URL) {
         guard ProcessInfo.processInfo.arguments.contains("-grace-notes-reset-uitest-store") else { return }
-        let url = uiTestStoreURL
-        if FileManager.default.fileExists(atPath: url.path) {
-            do {
-                try FileManager.default.removeItem(at: url)
-            } catch {
-                logger.error("Failed to reset UI test store at \(url.path): \(error.localizedDescription)")
-            }
-        }
+        removeUITestStoreFileIfPresent(at: storeURL)
         ReviewInsightsCache.wipeDiskPayloadForUITestStoreReset()
     }
 
     static func makeForUITesting() throws -> PersistenceController {
-        resetUITestStoreIfRequested()
+        // Resolve once: `uiTestStoreURL` has side effects (marker file / session key). A second evaluation
+        // could theoretically pick a different path if marker I/O failed between calls.
+        let storeURL = uiTestStoreURL
+        resetUITestStoreIfRequested(storeURL: storeURL)
         removeLegacyUITestStoreFiles()
         let startupTrace = PerformanceTrace.begin("PersistenceController.makeForUITesting")
         let schema = Schema([Journal.self])
         let configuration = ModelConfiguration(
             schema: schema,
-            url: uiTestStoreURL,
+            url: storeURL,
             cloudKitDatabase: .none
         )
         let container: ModelContainer

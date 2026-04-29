@@ -37,6 +37,11 @@ struct AppTourView: View {
         _iCloudAccountState = StateObject(wrappedValue: ICloudAccountStatusModel())
     }
 
+    /// Keeps `TabView` selection aligned with visible pages (e.g. congratulations page omitted).
+    private func clampedPageIndex(_ index: Int) -> Int {
+        min(max(index, firstPageIndex), lastPageIndex)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             TabView(selection: $pageIndex) {
@@ -61,8 +66,14 @@ struct AppTourView: View {
         }
         .background(AppTheme.settingsBackground.ignoresSafeArea())
         .onAppear {
-            let clamped = min(max(pageIndex, firstPageIndex), lastPageIndex)
+            let clamped = clampedPageIndex(pageIndex)
             if clamped != pageIndex {
+                pageIndex = clamped
+            }
+        }
+        .onChange(of: pageIndex) { _, newValue in
+            let clamped = clampedPageIndex(newValue)
+            if clamped != newValue {
                 pageIndex = clamped
             }
         }
@@ -108,7 +119,7 @@ struct AppTourView: View {
 private enum AppTourPathTitleMetricsKey: PreferenceKey {
     static var defaultValue: CGFloat = 0
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
+        value = max(value, nextValue())
     }
 }
 

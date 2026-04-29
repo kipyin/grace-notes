@@ -266,7 +266,6 @@ private extension JournalShareCardView {
             .foregroundStyle(surface.stubInk)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .accessibilityLabel(String(localized: "sharing.a11y.sectionStub"))
     }
 
     private var redactionBarShape: some View {

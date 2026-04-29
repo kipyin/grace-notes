@@ -73,18 +73,24 @@ struct JournalDataExportService {
     }
 
     /// UTC `yyyyMMdd-HHmmss` stamp for export filenames; deterministic and locale-insensitive (`en_US_POSIX`).
+    /// Uses `Calendar` + `String(format:)` so concurrent exports (e.g. `Task.detached`) do not share a `DateFormatter`,
+    /// which is not thread-safe.
     func exportFilenameTimestamp(for date: Date) -> String {
-        Self.exportFilenameTimestampFormatter.string(from: date)
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.locale = Locale(identifier: "en_US_POSIX")
+        calendar.timeZone = TimeZone(secondsFromGMT: 0) ?? TimeZone(identifier: "UTC")!
+        let components = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date)
+        return String(
+            format: "%04d%02d%02d-%02d%02d%02d",
+            locale: Locale(identifier: "en_US_POSIX"),
+            components.year ?? 0,
+            components.month ?? 0,
+            components.day ?? 0,
+            components.hour ?? 0,
+            components.minute ?? 0,
+            components.second ?? 0
+        )
     }
-
-    private static let exportFilenameTimestampFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.timeZone = TimeZone(secondsFromGMT: 0) ?? TimeZone(identifier: "GMT")!
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "yyyyMMdd-HHmmss"
-        return formatter
-    }()
 }
 
 struct JournalDataExportArchive: Codable, Equatable {

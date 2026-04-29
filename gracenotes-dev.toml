@@ -61,6 +61,9 @@ uitest-reset-store = ["-grace-notes-reset-uitest-store"]
 # reviewer app (`copilot-pull-request-reviewer`) plus Cursor reviewer logins; use
 # `grace sentry review-thread-authors <PR#>` to confirm `author.login` values.
 [sentry]
+# Base branch for fetches and new sentry worktrees (override: SENTRY_MAIN_BRANCH, or
+# `grace sentry start --main-branch <name>`).
+# main_branch = "develop"
 fix_provider = "cursor_agent"
 agent_bin = "agent"
 agent_prefix_args = "chat"

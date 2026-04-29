@@ -54,7 +54,8 @@ struct EditableTextSection: View {
                         .font(AppTheme.warmPaperBody)
                         .foregroundStyle(palette.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
-                    if let guidanceMessageSecondary {
+                    if let guidanceMessageSecondary,
+                       !guidanceMessageSecondary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         Text(guidanceMessageSecondary)
                             .font(AppTheme.warmPaperBody)
                             .foregroundStyle(palette.textPrimary)
@@ -75,24 +76,27 @@ struct EditableTextSection: View {
                 .foregroundStyle(onboardingState.titleColor(palette: palette))
             textEditor
                 .onChange(of: text) { _, newValue in
-                    let newCount = newValue.filter { $0 == "\n" }.count
+                    let newCount = Self.countNewlines(in: newValue)
                     // `nudgeFirstResponderUITextViewCaretIntoVisibleContent` affects whichever UITextView is first
                     // responder; only react when this section owns focus (or no focus binding is provided).
                     let isThisFieldFocused = inputFocus?.wrappedValue ?? true
-                    if let onMultilineLineAdded, isThisFieldFocused, newCount > storedNewlineCount {
-                        onMultilineLineAdded()
-                    }
-                    storedNewlineCount = newCount
-                    if isThisFieldFocused {
-                        Task { @MainActor in
-                            await Task.yield()
-                            JournalCaretVisibilityReader.nudgeFirstResponderUITextViewCaretIntoVisibleContent()
+                    let shouldHandleEditingSideEffects = !onboardingState.isLocked
+                    if shouldHandleEditingSideEffects {
+                        if let onMultilineLineAdded, isThisFieldFocused, newCount > storedNewlineCount {
+                            onMultilineLineAdded()
+                        }
+                        if isThisFieldFocused {
+                            Task { @MainActor in
+                                await Task.yield()
+                                JournalCaretVisibilityReader.nudgeFirstResponderUITextViewCaretIntoVisibleContent()
+                            }
                         }
                     }
+                    storedNewlineCount = newCount
                 }
         }
         .onAppear {
-            storedNewlineCount = text.filter { $0 == "\n" }.count
+            storedNewlineCount = Self.countNewlines(in: text)
         }
         .journalOnboardingSectionStyle(onboardingState)
     }
@@ -134,6 +138,12 @@ struct EditableTextSection: View {
             keyboardScrollAnchoredEditor(editor).focused(inputFocus)
         } else {
             keyboardScrollAnchoredEditor(editor)
+        }
+    }
+
+    private static func countNewlines(in string: String) -> Int {
+        string.reduce(0) { count, character in
+            character == "\n" ? count + 1 : count
         }
     }
 }

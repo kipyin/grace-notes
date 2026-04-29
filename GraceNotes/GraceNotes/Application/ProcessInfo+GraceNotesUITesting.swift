@@ -7,7 +7,9 @@ extension ProcessInfo {
     /// True when the app runs under UI tests: UITest bundle path from XCTest, or `-ui-testing` launch argument.
     static var graceNotesIsRunningUITests: Bool {
         let processInfo = Self.processInfo
-        let isUITestBundle = processInfo.environment["XCTestBundlePath"]?.contains("UITests") == true
+        // Match the UI test `.xctest` bundle (e.g. `GraceNotesUITests.xctest`), not arbitrary `UITests` in a path component.
+        let bundlePath = processInfo.environment["XCTestBundlePath"] ?? ""
+        let isUITestBundle = bundlePath.contains("UITests.xctest")
         let hasUITestLaunchArgument = processInfo.arguments.contains("-ui-testing")
         return isUITestBundle || hasUITestLaunchArgument
     }
@@ -17,7 +19,8 @@ extension ProcessInfo {
     /// Keep in sync with `GraceNotesApp.init` and `GraceNotesAppDelegate`—single definition of “hosted unit tests.”
     static var graceNotesIsRunningHostedUnitTests: Bool {
         let processInfo = Self.processInfo
-        let isXCTestSession = processInfo.environment["XCTestConfigurationFilePath"] != nil
+        let configPath = processInfo.environment["XCTestConfigurationFilePath"] ?? ""
+        let isXCTestSession = !configPath.isEmpty
         return isXCTestSession && !graceNotesIsRunningUITests
     }
 

@@ -188,7 +188,9 @@ struct JournalShareComposerView: View {
     private func styleChip(_ style: ShareCardStyle) -> some View {
         let selected = draft.style == style
         return Button {
-            draft.style = style
+            var next = draft
+            next.style = style
+            draft = next
         } label: {
             Text(style.localizedTitle)
                 .font(AppTheme.warmPaperBody)
@@ -208,6 +210,7 @@ struct JournalShareComposerView: View {
     private func commitShare() {
         guard !isShareCommitInProgress else { return }
         isShareCommitInProgress = true
+        defer { isShareCommitInProgress = false }
 
         let built = ShareRenderPayloadBuilder.build(
             full: basePayload,
@@ -215,11 +218,9 @@ struct JournalShareComposerView: View {
             includePreviewStubs: false
         )
         guard let image = JournalShareRenderer.renderImage(from: built) else {
-            isShareCommitInProgress = false
             showRenderError = true
             return
         }
         onShare(image)
-        isShareCommitInProgress = false
     }
 }

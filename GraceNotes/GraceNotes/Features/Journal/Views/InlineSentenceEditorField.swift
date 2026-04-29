@@ -12,10 +12,20 @@ private enum InlineSentenceEditorFieldLayout {
     static let bodyFontName = "SourceSerif4Roman-Regular"
     static let bodyFontSize: CGFloat = 17
 
+    private static var cachedScaledBodyFont: UIFont?
+    private static var cachedContentSizeCategoryForFont: UIContentSizeCategory?
+
     static func bodyUIFont() -> UIFont {
+        let category = UITraitCollection.current.preferredContentSizeCategory
+        if let cached = cachedScaledBodyFont, cachedContentSizeCategoryForFont == category {
+            return cached
+        }
         let baseFont = UIFont(name: bodyFontName, size: bodyFontSize)
             ?? UIFont.preferredFont(forTextStyle: .body)
-        return UIFontMetrics(forTextStyle: .body).scaledFont(for: baseFont)
+        let scaled = UIFontMetrics(forTextStyle: .body).scaledFont(for: baseFont)
+        cachedScaledBodyFont = scaled
+        cachedContentSizeCategoryForFont = category
+        return scaled
     }
 }
 
@@ -31,7 +41,9 @@ private struct InlineSentenceEditorTextView: UIViewRepresentable {
     let primaryTextUIColor: UIColor
     let onSubmit: () -> Void
 
-    static let minimumHeight = ceil(InlineSentenceEditorFieldLayout.bodyUIFont().lineHeight)
+    static func minimumHeight() -> CGFloat {
+        ceil(InlineSentenceEditorFieldLayout.bodyUIFont().lineHeight)
+    }
 
     func makeCoordinator() -> Coordinator {
         Coordinator(parent: self)
@@ -50,7 +62,21 @@ private struct InlineSentenceEditorTextView: UIViewRepresentable {
         configure(uiView)
 
         if uiView.text != text {
-            uiView.text = text
+            if uiView.isFirstResponder {
+                // Avoid clobbering IME composition when an external binding update races marked text.
+                if uiView.markedTextRange == nil {
+                    let previousRange = uiView.selectedRange
+                    uiView.text = text
+                    let nsText = text as NSString
+                    let length = nsText.length
+                    let location = min(previousRange.location, length)
+                    let remaining = length - location
+                    let len = min(previousRange.length, remaining)
+                    uiView.selectedRange = NSRange(location: location, length: len)
+                }
+            } else {
+                uiView.text = text
+            }
         }
 
         // UIKit can end editing (scroll-dismiss, keyboard hide) before SwiftUI flips @FocusState.
@@ -76,7 +102,7 @@ private struct InlineSentenceEditorTextView: UIViewRepresentable {
         let fittingSize = uiView.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude))
         let lineHeight = uiView.font?.lineHeight ?? InlineSentenceEditorFieldLayout.bodyUIFont().lineHeight
         let maxHeight = ceil(lineHeight * CGFloat(InlineSentenceEditorFieldLayout.maxVisibleLines))
-        let height = min(max(fittingSize.height, Self.minimumHeight), maxHeight)
+        let height = min(max(fittingSize.height, Self.minimumHeight()), maxHeight)
         uiView.isScrollEnabled = fittingSize.height > maxHeight
         return CGSize(width: width, height: height)
     }
@@ -195,7 +221,7 @@ struct InlineSentenceEditorField: View {
                 primaryTextUIColor: UIColor(palette.textPrimary),
                 onSubmit: onSubmit
             )
-            .frame(minHeight: InlineSentenceEditorTextView.minimumHeight, alignment: .leading)
+            .frame(minHeight: InlineSentenceEditorTextView.minimumHeight(), alignment: .leading)
         }
         .warmPaperInputStyle()
         .modifier(SequentialSectionEntryRow.ConditionalAccessibilityIdentifier(identifier: editorIdentifier))

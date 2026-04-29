@@ -82,7 +82,7 @@ struct ReviewMostRecurringCard: View {
         ) {
             VStack(alignment: .leading, spacing: 10) {
                 VStack(alignment: .leading, spacing: 8) {
-                    ForEach(Array(themes.prefix(3)), id: \.mostRecurringRowIdentity) { theme in
+                    ForEach(Array(themes.prefix(3)), id: \.self) { theme in
                         mostRecurringThemeRow(theme)
                     }
                 }
@@ -121,7 +121,7 @@ struct ReviewMostRecurringCard: View {
         }
         .buttonStyle(PastTappablePressStyle())
         .accessibilityIdentifier(
-            "MostRecurringThemeRow.\(reviewInsightSanitizedThemeId(theme.mostRecurringRowIdentity))"
+            "MostRecurringThemeRow.\(reviewInsightSanitizedThemeId(mostRecurringAccessibilityKey(for: theme)))"
         )
         .accessibilityLabel(
             String(
@@ -174,18 +174,16 @@ struct ReviewMostRecurringCard: View {
     }
 }
 
-private extension ReviewMostRecurringTheme {
-    /// Row identity for `ForEach` and accessibility: display `label` is not unique across canonical themes.
-    var mostRecurringRowIdentity: String {
-        let evidenceKey = evidence.map(\.id).sorted().joined(separator: "\u{001e}")
-        let sep = "\u{001f}"
-        return [
-            label,
-            String(totalCount),
-            String(dayCount),
-            String(currentWeekCount),
-            String(previousWeekCount),
-            evidenceKey
-        ].joined(separator: sep)
-    }
+/// Stable key for accessibility / UI-test identifiers. `ReviewMostRecurringTheme.id` is label-only and can collide.
+private func mostRecurringAccessibilityKey(for theme: ReviewMostRecurringTheme) -> String {
+    let evidenceKey = theme.evidence.map(\.id).sorted().joined(separator: "\u{001e}")
+    let sep = "\u{001f}"
+    return [
+        theme.label,
+        String(theme.totalCount),
+        String(theme.dayCount),
+        String(theme.currentWeekCount),
+        String(theme.previousWeekCount),
+        evidenceKey
+    ].joined(separator: sep)
 }

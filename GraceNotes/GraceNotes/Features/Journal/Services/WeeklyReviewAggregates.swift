@@ -155,18 +155,13 @@ private extension WeeklyReviewAggregatesBuilder {
     func reflectionDayCount(from entries: [Journal], calendar: Calendar) -> Int {
         Set(
             entries
-                .filter { $0.hasMeaningfulContent || hasReflectionSurfaceText($0) }
+                .filter(\.hasMeaningfulContent)
                 .map { calendar.startOfDay(for: $0.entryDate) }
         ).count
     }
 
     func meaningfulEntryCount(from entries: [Journal]) -> Int {
         entries.filter(\.hasMeaningfulContent).count
-    }
-
-    func hasReflectionSurfaceText(_ entry: Journal) -> Bool {
-        !textNormalizer.trimmed(entry.readingNotes).isEmpty
-            || !textNormalizer.trimmed(entry.reflections).isEmpty
     }
 
     /// Joins non-empty trimmed notes and reflections without a stray lone space when both are empty.
@@ -423,7 +418,7 @@ private extension WeeklyReviewAggregatesBuilder {
         let weekLastStart = calendar.startOfDay(for: weekLastInclusive)
         let referenceDayStart = calendar.startOfDay(for: referenceDate)
         let endDayInclusive = min(weekLastStart, referenceDayStart)
-        guard let entryMinRaw = allEntries.map({ calendar.startOfDay(for: $0.entryDate) }).min() else {
+        guard let entryMinRaw = allEntries.lazy.map({ calendar.startOfDay(for: $0.entryDate) }).min() else {
             return nil
         }
         let pastWindowStart = calendar.startOfDay(for: pastStatisticsHistoryLowerBound)
@@ -492,7 +487,7 @@ private extension WeeklyReviewAggregatesBuilder {
     ) -> [ReviewDayActivity] {
         let activeDays = Set(
             entries
-                .filter { $0.hasMeaningfulContent || hasReflectionSurfaceText($0) }
+                .filter(\.hasMeaningfulContent)
                 .map { calendar.startOfDay(for: $0.entryDate) }
         )
         var activity: [ReviewDayActivity] = []

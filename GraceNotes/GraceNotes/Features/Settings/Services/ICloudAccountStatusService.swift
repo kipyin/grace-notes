@@ -23,7 +23,7 @@ final class ICloudAccountStatusService: ICloudAccountStatusProviding {
             }.value
             return ICloudAccountBucket(status)
         } catch {
-            if !(error is CancellationError) {
+            if !isCancellationLike(error) {
                 let nsError = error as NSError
                 iCloudAccountStatusLogger.error(
                     """
