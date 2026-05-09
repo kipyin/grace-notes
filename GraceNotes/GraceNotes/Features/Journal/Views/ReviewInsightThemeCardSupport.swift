@@ -9,6 +9,7 @@ struct ReviewTrendBadge: View {
         HStack(spacing: 4) {
             Image(systemName: symbol)
                 .font(.caption.weight(.semibold))
+                .accessibilityHidden(true)
             Text(label)
                 .font(AppTheme.warmPaperMetaEmphasis.weight(.semibold))
         }

@@ -74,6 +74,7 @@ enum SequentialSectionEntryRow {
                 Image(systemName: "plus.circle.fill")
                     .font(AppTheme.outfitRegularTitle3)
                     .foregroundStyle(AppTheme.accentText)
+                    .accessibilityHidden(true)
                 Text(title)
                     .font(AppTheme.warmPaperMetaEmphasis)
                     .foregroundStyle(palette.textPrimary)
@@ -81,6 +82,7 @@ enum SequentialSectionEntryRow {
                     Image(systemName: "chevron.right")
                         .font(AppTheme.outfitSemiboldCaption)
                         .foregroundStyle(palette.textMuted)
+                        .accessibilityHidden(true)
                 }
                 Spacer(minLength: 0)
             }
