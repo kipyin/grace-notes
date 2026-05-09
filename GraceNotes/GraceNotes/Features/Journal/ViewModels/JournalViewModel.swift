@@ -126,16 +126,19 @@ final class JournalViewModel {
     }
 
     private func persistChanges() {
-        saveCurrentJournalStateIfPossible()
+        _ = saveCurrentJournalStateIfPossible()
     }
 
     /// Writes in-memory fields to the loaded journal immediately (e.g. before switching calendar day).
-    func persistImmediately() {
+    /// Returns `false` if SwiftData rejected the save; see ``saveErrorMessage``.
+    @discardableResult
+    func persistImmediately() -> Bool {
         saveCurrentJournalStateIfPossible()
     }
 
-    private func saveCurrentJournalStateIfPossible() {
-        guard !isHydrating, let context = modelContext, let entry = journalEntry else { return }
+    /// Returns `false` only when a save was attempted and failed.
+    private func saveCurrentJournalStateIfPossible() -> Bool {
+        guard !isHydrating, let context = modelContext, let entry = journalEntry else { return true }
         let saveTrace = PerformanceTrace.begin("JournalViewModel.persistChanges")
 
         entry.gratitudes = gratitudes
@@ -158,9 +161,11 @@ final class JournalViewModel {
             } else {
                 PerformanceTrace.end("JournalViewModel.persistChanges", startedAt: saveTrace)
             }
+            return true
         } catch {
             saveErrorMessage = String(localized: "journal.error.saveEntry")
             PerformanceTrace.end("JournalViewModel.persistChanges.failed", startedAt: saveTrace)
+            return false
         }
     }
 
@@ -170,7 +175,7 @@ final class JournalViewModel {
         let shownStart = calendar.startOfDay(for: entryDate)
         let todayStart = calendar.startOfDay(for: now)
         guard todayStart > shownStart else { return }
-        persistImmediately()
+        guard persistImmediately() else { return }
         loadEntry(for: now, using: context)
     }
 
