@@ -79,6 +79,7 @@ struct SettingsScreen: View {
                             Image(systemName: "chevron.right")
                                 .font(AppTheme.outfitRegularCaption2)
                                 .foregroundStyle(AppTheme.settingsTextMuted)
+                                .accessibilityHidden(true)
                         }
                         .contentShape(Rectangle())
                     }
