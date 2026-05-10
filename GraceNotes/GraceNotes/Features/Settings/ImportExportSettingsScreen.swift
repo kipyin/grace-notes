@@ -171,6 +171,7 @@ struct ImportExportSettingsScreen: View {
                                 .font(AppTheme.outfitSemiboldCaption)
                                 .foregroundStyle(AppTheme.settingsTextMuted)
                                 .padding(.top, 2)
+                                .accessibilityHidden(true)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .contentShape(Rectangle())
@@ -412,6 +413,7 @@ struct ImportExportSettingsScreen: View {
                         Image(systemName: "xmark")
                             .font(AppTheme.warmPaperBody.weight(.semibold))
                             .foregroundStyle(AppTheme.settingsTextPrimary)
+                            .accessibilityHidden(true)
                     }
                     .accessibilityLabel(String(localized: "common.done"))
                 }
@@ -533,6 +535,7 @@ private extension ImportExportSettingsScreen {
                 Image(systemName: "chevron.right")
                     .font(AppTheme.outfitSemiboldCaption)
                     .foregroundStyle(AppTheme.settingsTextMuted)
+                    .accessibilityHidden(true)
             }
         }
         .frame(minHeight: 44)
