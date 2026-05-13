@@ -74,6 +74,7 @@ struct SequentialEntryRowView: View {
                         Text(isExpanded ? String(localized: "common.showLess") : String(localized: "common.showMore"))
                         Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                             .font(AppTheme.outfitSemiboldCaption)
+                            .accessibilityHidden(true)
                     }
                     .font(AppTheme.outfitSemiboldSubheadline)
                     .foregroundStyle(AppTheme.accentText)
