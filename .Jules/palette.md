@@ -1,0 +1,3 @@
+## 2024-06-25 - Hide Decorative SF Symbols From Screen Readers
+**Learning:** VoiceOver can unexpectedly read out the system names of `Image(systemName:)` elements (like "chevron right") when they are placed alongside text within interactive elements (like buttons or navigation links). This adds unnecessary noise to the user's screen reader experience.
+**Action:** Always add `.accessibilityHidden(true)` to decorative `Image(systemName:)` elements, particularly when they are used purely for visual styling (e.g., chevrons indicating navigation or expansion) inside labels or buttons that already have their text read by VoiceOver.

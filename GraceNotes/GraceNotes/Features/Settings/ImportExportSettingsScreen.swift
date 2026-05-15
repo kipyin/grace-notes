@@ -170,6 +170,7 @@ struct ImportExportSettingsScreen: View {
                             Image(systemName: "chevron.right")
                                 .font(AppTheme.outfitSemiboldCaption)
                                 .foregroundStyle(AppTheme.settingsTextMuted)
+                                .accessibilityHidden(true)
                                 .padding(.top, 2)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -533,6 +534,7 @@ private extension ImportExportSettingsScreen {
                 Image(systemName: "chevron.right")
                     .font(AppTheme.outfitSemiboldCaption)
                     .foregroundStyle(AppTheme.settingsTextMuted)
+                    .accessibilityHidden(true)
             }
         }
         .frame(minHeight: 44)
