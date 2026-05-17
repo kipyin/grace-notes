@@ -1,0 +1,3 @@
+## 2025-01-20 - Hide Decorative Chevrons for VoiceOver
+**Learning:** Found an accessibility issue pattern where decorative SF Symbols (like "chevron.right", "chevron.up", "chevron.down") used as visual hints for navigation or expansion were not hidden from VoiceOver. This causes VoiceOver to read out redundant information (e.g., "chevron right") which clutters the auditory experience.
+**Action:** Applied `.accessibilityHidden(true)` to these decorative `Image(systemName:)` views across settings lists and review cards to streamline the screen reader experience. Always ensure visual-only indicators are explicitly hidden from assistive technologies.
