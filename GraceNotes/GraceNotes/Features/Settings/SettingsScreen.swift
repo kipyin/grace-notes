@@ -79,6 +79,7 @@ struct SettingsScreen: View {
                             Image(systemName: "chevron.right")
                                 .font(AppTheme.outfitRegularCaption2)
                                 .foregroundStyle(AppTheme.settingsTextMuted)
+                                .accessibilityHidden(true)
                         }
                         .contentShape(Rectangle())
                     }
@@ -233,6 +234,7 @@ private extension SettingsScreen {
                         Image(systemName: isReminderPickerExpanded ? "chevron.up" : "chevron.down")
                             .font(AppTheme.outfitSemiboldCaption)
                             .foregroundStyle(AppTheme.settingsTextMuted)
+                            .accessibilityHidden(true)
                     }
                 }
                 .contentShape(Rectangle())

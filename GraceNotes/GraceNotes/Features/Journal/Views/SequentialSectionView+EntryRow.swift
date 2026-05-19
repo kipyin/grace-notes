@@ -81,6 +81,7 @@ enum SequentialSectionEntryRow {
                     Image(systemName: "chevron.right")
                         .font(AppTheme.outfitSemiboldCaption)
                         .foregroundStyle(palette.textMuted)
+                        .accessibilityHidden(true)
                 }
                 Spacer(minLength: 0)
             }

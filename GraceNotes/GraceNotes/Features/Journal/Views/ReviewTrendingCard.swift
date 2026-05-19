@@ -162,6 +162,7 @@ struct ReviewTrendingCard: View {
                 .font(AppTheme.warmPaperMetaEmphasis.weight(.semibold))
             Image(systemName: "chevron.right")
                 .font(.caption.weight(.semibold))
+                .accessibilityHidden(true)
         }
         .foregroundStyle(AppTheme.reviewAccent)
         .frame(maxWidth: .infinity, alignment: .leading)
