@@ -1,0 +1,3 @@
+## 2025-02-14 - Redundant Accessibility Image Announcements in Settings
+**Learning:** Decorative SwiftUI `Image(systemName:)` elements used as chevrons and dismiss icons in settings panels (`SettingsScreen`, `ImportExportSettingsScreen`) were being read out by VoiceOver, causing redundant noise since the surrounding or parent elements already announced the interaction or state.
+**Action:** Consistently apply `.accessibilityHidden(true)` to decorative `Image(systemName:)` elements that act as visual cues (like chevrons or marks) when their state is already conveyed by an overarching `accessibilityLabel` or `accessibilityValue`.
